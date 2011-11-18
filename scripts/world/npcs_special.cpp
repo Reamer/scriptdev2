@@ -1990,6 +1990,55 @@ CreatureAI* GetAI_npc_death_knight_gargoyle(Creature* pCreature)
 {
     return new npc_death_knight_gargoyle(pCreature);
 }
+/*######
+## npc_training_dummy
+######*/
+#define OUT_OF_COMBAT_TIME 5000
+#define AFK_TIME 300000
+
+struct MANGOS_DLL_DECL npc_training_dummyAI : public Scripted_NoMovementAI
+{
+    npc_training_dummyAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
+    {
+        Reset();
+    }
+
+    uint32 afk_timer;
+    uint32 combat_timer;
+
+    void Reset()
+    {
+        //m_creature->addUnitState(UNIT_STAT_STUNNED);
+        combat_timer = 0;
+        afk_timer = 0;
+    }
+
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        combat_timer = 0;
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (m_creature->GetHealthPercent() < 10.0f) // allow players using finishers
+            m_creature->ModifyHealth(m_creature->GetMaxHealth());
+
+        m_creature->SetTargetGuid(ObjectGuid()); // prevent from rotating
+        combat_timer += diff;
+        afk_timer += diff;
+
+        if (combat_timer > OUT_OF_COMBAT_TIME || afk_timer > AFK_TIME)
+        EnterEvadeMode();
+    }
+};
+
+CreatureAI* GetAI_npc_training_dummy(Creature* pCreature)
+{
+    return new npc_training_dummyAI(pCreature);
+}
 
 /*########
 # npc_risen_ally AI
@@ -2487,6 +2536,11 @@ void AddSC_npcs_special()
     pNewScript = new Script;
     pNewScript->Name = "npc_death_knight_gargoyle";
     pNewScript->GetAI = &GetAI_npc_death_knight_gargoyle;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_training_dummy";
+    pNewScript->GetAI = &GetAI_npc_training_dummy;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

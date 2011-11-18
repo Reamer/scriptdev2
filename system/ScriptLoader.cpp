@@ -10,6 +10,7 @@ extern void AddSC_battlegroundSA();
 extern void AddSC_battlegroundIC();
 
 // custom
+extern void AddSC_custom_cybernetic();
 extern void AddSC_mob_teleguy();
 extern void AddSC_npc_arena_honor();
 
@@ -409,8 +410,7 @@ extern void AddSC_boss_xt002();
 extern void AddSC_boss_yogg_saron();
 extern void AddSC_instance_ulduar();
 extern void AddSC_ulduar();
-extern void AddSC_ulduar_teleport();
-extern void AddSC_boss_ingvar();                            // utgarde_keep, utgarde_keep
+extern void AddSC_boss_ingvar();                            // utgarde_keep
 extern void AddSC_boss_keleseth();
 extern void AddSC_boss_skarvald_and_dalronn();
 extern void AddSC_instance_utgarde_keep();
@@ -536,6 +536,7 @@ void AddScripts()
     AddSC_battlegroundIC();
 
     // custom
+    AddSC_custom_cybernetic();
     AddSC_mob_teleguy();
     AddSC_npc_arena_honor();
 
@@ -934,8 +935,7 @@ void AddScripts()
     AddSC_boss_yogg_saron();
     AddSC_instance_ulduar();
     AddSC_ulduar();
-    AddSC_ulduar_teleport();
-    AddSC_boss_ingvar();                                    // UK, utgarde_keep
+    AddSC_boss_ingvar();                                    //utgarde_keep
     AddSC_boss_keleseth();
     AddSC_boss_skarvald_and_dalronn();
     AddSC_instance_utgarde_keep();
