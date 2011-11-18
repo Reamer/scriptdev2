@@ -23,9 +23,10 @@ EndScriptData */
 
 #include "precompiled.h"
 
-#define SPELL_WRATH                 21807
-#define SPELL_ENTANGLINGROOTS       12747
-#define SPELL_CORRUPT_FORCES        21968
+#define SPELL_WRATH						21807
+#define SPELL_ENTANGLINGROOTS			12747
+#define SPELL_CORRUPT_FORCES			21968
+#define QUEST_THE_SCEPTER_OF_CELEBRAS	7046
 
 struct MANGOS_DLL_DECL celebras_the_cursedAI : public ScriptedAI
 {
@@ -84,13 +85,83 @@ CreatureAI* GetAI_celebras_the_cursed(Creature* pCreature)
 {
     return new celebras_the_cursedAI(pCreature);
 }
+struct Locations
+{
+    float x, y, z;
+};
+static Locations CelebrasWP[] =
+{
+	{653.61f, 73.41f, -85.86f},
+};
+struct MANGOS_DLL_DECL npc_celebrasAI : public ScriptedAI
+{
+    npc_celebrasAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+	float x;
+	float y;
+	float z;
+	uint32 m_uiWalkTimer;
+
+    void MovementInform(uint32 type, uint32 tempid)
+    {
+		if (tempid == 0)
+			if(Player* pPlayer = GetPlayerAtMinimumRange( 50))
+                    if (pPlayer->GetQuestStatus(QUEST_THE_SCEPTER_OF_CELEBRAS) == QUEST_STATUS_INCOMPLETE)
+					{
+                        pPlayer->GroupEventHappens(QUEST_THE_SCEPTER_OF_CELEBRAS, m_creature);
+						m_uiWalkTimer = 200;
+					}
+    }
+
+    void Reset()
+    {
+    }
+	void GoToStone()
+	{
+		m_uiWalkTimer = 200;
+	}
+	void UpdateAI(const uint32 diff)
+	{
+		if (m_uiWalkTimer)
+        {
+            if (m_uiWalkTimer <= diff)
+            {
+				m_creature->GetMotionMaster()->MovePoint(0,CelebrasWP[0].x, CelebrasWP[0].y, CelebrasWP[0].z);
+				m_uiWalkTimer = 0;
+
+            }else m_uiWalkTimer -= diff;
+        }
+		DoMeleeAttackIfReady();
+	}
+};
+
+CreatureAI* GetAI_npc_celebras(Creature* pCreature)
+{
+    return new npc_celebrasAI(pCreature);
+}
+
+bool QuestAcceptNPC_npc_celebras(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+{
+    if (pQuest->GetQuestId() == QUEST_THE_SCEPTER_OF_CELEBRAS)
+    {
+        if (npc_celebrasAI* pCreatureAI = dynamic_cast<npc_celebrasAI*>(pCreature->AI()))
+            pCreatureAI->GoToStone();
+    }
+    return true;
+}
 
 void AddSC_boss_celebras_the_cursed()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
-    pNewScript->Name = "celebras_the_cursed";
-    pNewScript->GetAI = &GetAI_celebras_the_cursed;
-    pNewScript->RegisterSelf();
+    Script *newscript;
+    newscript = new Script;
+    newscript->Name = "celebras_the_cursed";
+    newscript->GetAI = &GetAI_celebras_the_cursed;
+    newscript->RegisterSelf();
+	
+	//quest from his ghost
+	newscript = new Script;
+	newscript->Name = "npc_celebras_the_redeemed";
+	newscript->GetAI = &GetAI_npc_celebras;
+    newscript->pQuestAcceptNPC = &QuestAcceptNPC_npc_celebras;
+    newscript->RegisterSelf();
 }

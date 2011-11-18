@@ -178,7 +178,7 @@ struct MANGOS_DLL_DECL boss_tyrande_whisperwindAI : public ScriptedAI
 
 CreatureAI* GetAI_boss_tyrande_whisperwind(Creature* pCreature)
 {
-   return new boss_tyrande_whisperwindAI(pCreature);
+    return new boss_tyrande_whisperwindAI(pCreature);
 }
 
 /*####
@@ -248,7 +248,7 @@ struct MANGOS_DLL_DECL boss_fandral_staghelmAI : public ScriptedAI
 
 CreatureAI* GetAI_boss_fandral_staghelm(Creature* pCreature)
 {
-   return new boss_fandral_staghelmAI(pCreature);
+    return new boss_fandral_staghelmAI(pCreature);
 }
 
 void AddSC_teldrassil()

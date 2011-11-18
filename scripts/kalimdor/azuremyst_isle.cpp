@@ -27,6 +27,7 @@ npc_engineer_spark_overgrind
 npc_injured_draenei
 npc_magwin
 npc_susurrus
+boss_prophet_velen
 EndContentData */
 
 #include "precompiled.h"
@@ -501,7 +502,7 @@ struct MANGOS_DLL_DECL boss_prophet_velenAI : public ScriptedAI
 
 CreatureAI* GetAI_boss_prophet_velen(Creature* pCreature)
 {
-   return new boss_prophet_velenAI(pCreature);
+    return new boss_prophet_velenAI(pCreature);
 }
 
 void AddSC_azuremyst_isle()

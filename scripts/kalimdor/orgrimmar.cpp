@@ -301,7 +301,7 @@ struct MANGOS_DLL_DECL boss_voljinAI : public ScriptedAI
 
 CreatureAI* GetAI_boss_voljin(Creature* pCreature)
 {
-   return new boss_voljinAI(pCreature);
+    return new boss_voljinAI(pCreature);
 }
 void AddSC_orgrimmar()
 {
