@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,7 +16,7 @@
 
 /* ScriptData
 SDName: instance_ahnkahet
-SD%Complete: 0
+SD%Complete: 80%
 SDComment:
 SDCategory: Ahn'kahet
 EndScriptData */
@@ -24,158 +24,191 @@ EndScriptData */
 #include "precompiled.h"
 #include "ahnkahet.h"
 
-struct MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
+instance_ahnkahet::instance_ahnkahet(Map* pMap) : ScriptedInstance(pMap),
+    m_bCriteriaVolunteerWork(false),
+    m_bCriteriaRespectYourElders(false),
+    m_uiDevicesActivated(0)
 {
-    instance_ahnkahet(Map* pMap) : ScriptedInstance(pMap) {Initialize();};
+    Initialize();
+}
+void instance_ahnkahet::Initialize()
+{
+    memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+}
 
-    uint32 m_auiEncounter[MAX_ENCOUNTER];
-    std::string strInstData;
-
-    uint8 m_uiDevicesActivated;
-
-    void Initialize()
+void instance_ahnkahet::OnCreatureCreate(Creature* pCreature)
+{
+    switch(pCreature->GetEntry())
     {
-        memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
-    }
-
-    void OnCreatureCreate(Creature* pCreature)
-    {
-        switch(pCreature->GetEntry())
-        {
-            case NPC_ELDER_NADOX:
-            case NPC_JEDOGA_SHADOWSEEKER:
-            case NPC_TALDARAM:
-                m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
-                break;
-        }
-    }
-
-    void OnObjectCreate(GameObject* pGo)
-    {
-        switch(pGo->GetEntry())
-        {
-            case GO_DOOR_TALDARAM:
-                if (m_auiEncounter[1] == DONE)
-                    pGo->SetGoState(GO_STATE_ACTIVE);
-                break;
-            case GO_ANCIENT_DEVICE_L:
-                if (m_auiEncounter[1] == NOT_STARTED)
-                    pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-                break;
-            case GO_ANCIENT_DEVICE_R:
-                if (m_auiEncounter[1] == NOT_STARTED)
-                    pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-                break;
-            case GO_VORTEX:
-                if (m_auiEncounter[1] != NOT_STARTED)
-                    pGo->SetGoState(GO_STATE_READY);
-                break;
-        }
-        m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
-    }
-
-    void SetData(uint32 uiType, uint32 uiData)
-    {
-        debug_log("SD2: Instance Ahn'Kahet: SetData received for type %u with data %u",uiType,uiData);
-
-        switch(uiType)
-        {
-            case TYPE_NADOX:
-                m_auiEncounter[0] = uiData;
-                break;
-            case TYPE_TALDARAM:
-                if (uiData == SPECIAL)
-                {
-                    if (m_uiDevicesActivated < 2)
-                        ++m_uiDevicesActivated;
-
-                    if (m_uiDevicesActivated == 2)
-                    {
-                        m_auiEncounter[1] = uiData;
-                        DoUseDoorOrButton(GO_VORTEX);
-                    }
-                }
-                if (uiData == DONE)
-                {
-                    m_auiEncounter[1] = uiData;
-                    DoUseDoorOrButton(GO_DOOR_TALDARAM);
-                }
-                break;
-            case TYPE_JEDOGA:
-                m_auiEncounter[2] = uiData;
-                break;
-            case TYPE_VOLAZJ:
-                m_auiEncounter[3] = uiData;
-                break;
-            case TYPE_AMANITAR:
-                m_auiEncounter[4] = uiData;
-                break;
-            default:
-                error_log("SD2: Instance Ahn'Kahet: ERROR SetData = %u for type %u does not exist/not implemented.",uiType,uiData);
-                break;
-        }
-
-        if (uiData == DONE)
-        {
-            OUT_SAVE_INST_DATA;
-
-            std::ostringstream saveStream;
-            saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " " << m_auiEncounter[3]
-                << " " << m_auiEncounter[4];
-
-            strInstData = saveStream.str();
-
-            SaveToDB();
-            OUT_SAVE_INST_DATA_COMPLETE;
-        }
-    }
-
-    const char* Save()
-    {
-        return strInstData.c_str();
-    }
-
-    void Load(const char* chrIn)
-    {
-        if (!chrIn)
-        {
-            OUT_LOAD_INST_DATA_FAIL;
+        case NPC_ELDER_NADOX:
+        case NPC_JEDOGA_SHADOWSEEKER:
+        case NPC_TALDARAM:
+            break;
+        case NPC_TWILIGHT_INITIATE:
+            m_lTwilightInitiate.push_back(pCreature->GetObjectGuid());
+            break;
+        default:
             return;
-        }
-
-        OUT_LOAD_INST_DATA(chrIn);
-
-        std::istringstream loadStream(chrIn);
-        loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3] >> m_auiEncounter[4];
-
-        for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-        {
-            if (m_auiEncounter[i] == IN_PROGRESS)
-                m_auiEncounter[i] = NOT_STARTED;
-        }
-
-        OUT_LOAD_INST_DATA_COMPLETE;
     }
-
-    uint32 GetData(uint32 uiType)
+    m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+}
+void instance_ahnkahet::OnObjectCreate(GameObject* pGo)
+{
+     switch(pGo->GetEntry())
     {
-        switch(uiType)
-        {
-            case TYPE_NADOX:
-                return m_auiEncounter[0];
-            case TYPE_TALDARAM:
-                return m_auiEncounter[1];
-            case TYPE_JEDOGA:
-                return m_auiEncounter[2];
-            case TYPE_VOLAZJ:
-                return m_auiEncounter[3];
-            case TYPE_AMANITAR:
-                return m_auiEncounter[4];
-        }
-        return 0;
+        case GO_DOOR_TALDARAM:
+            if (m_auiEncounter[TYPE_TALDARAM] == DONE)
+                DoUseDoorOrButton(GO_DOOR_TALDARAM);
+            break;
+        case GO_ANCIENT_DEVICE_L:
+            if (m_auiEncounter[TYPE_TALDARAM] == NOT_STARTED)
+                pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+            break;
+        case GO_ANCIENT_DEVICE_R:
+            if (m_auiEncounter[TYPE_TALDARAM] == NOT_STARTED)
+                pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+            break;
+        case GO_VORTEX:
+            if (m_auiEncounter[TYPE_TALDARAM] != NOT_STARTED)
+                DoUseDoorOrButton(GO_VORTEX);
+            break;
+        default:
+            return;
+    }
+    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+}
+void instance_ahnkahet::SetData(uint32 uiType, uint32 uiData)
+{
+    switch(uiType)
+    {
+        case TYPE_NADOX:
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_TALDARAM:
+            if (uiData == SPECIAL)
+            {
+                if (m_uiDevicesActivated < 2)
+                    ++m_uiDevicesActivated;
+
+                if (m_uiDevicesActivated == 2)
+                {
+                    if (Unit* pTaldaram = GetSingleCreatureFromStorage(NPC_TALDARAM))
+                    {
+                        pTaldaram->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        pTaldaram->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+                    }
+                    m_auiEncounter[uiType] = uiData;
+                    DoUseDoorOrButton(GO_VORTEX);
+                }
+            }
+            if (uiData == DONE)
+            {
+                m_auiEncounter[uiType] = uiData;
+                DoUseDoorOrButton(GO_DOOR_TALDARAM);
+            }
+            break;
+        case TYPE_JEDOGA:
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_VOLAZJ:
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_AMANITAR:
+            m_auiEncounter[uiType] = uiData;
+            break;
+        default:
+            error_log("SD2: Instance Ahn'Kahet: ERROR SetData = %u for type %u does not exist/not implemented.",uiType,uiData);
+            break;
     }
 
-};
+    if (uiData == DONE)
+    {
+        OUT_SAVE_INST_DATA;
+
+        std::ostringstream saveStream;
+        saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " " << m_auiEncounter[3]
+            << " " << m_auiEncounter[4];
+
+        strInstData = saveStream.str();
+
+        SaveToDB();
+        OUT_SAVE_INST_DATA_COMPLETE;
+    }
+}
+void instance_ahnkahet::SetAchiev(uint32 uiType, bool get)
+{
+    switch(uiType)
+    {
+        case TYPE_NADOX:
+            m_bCriteriaRespectYourElders = get;
+            break;
+        case TYPE_TALDARAM:
+            break;
+        case TYPE_JEDOGA:
+            m_bCriteriaVolunteerWork = get;
+            break;
+        case TYPE_VOLAZJ:
+            break;
+        case TYPE_AMANITAR:
+            break;
+        default:
+            break;
+    }
+}
+
+
+void instance_ahnkahet::Load(const char* chrIn)
+{
+    if (!chrIn)
+    {
+        OUT_LOAD_INST_DATA_FAIL;
+        return;
+    }
+
+    OUT_LOAD_INST_DATA(chrIn);
+
+    std::istringstream loadStream(chrIn);
+    loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3] >> m_auiEncounter[4];
+
+    for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    {
+        if (m_auiEncounter[i] == IN_PROGRESS)
+            m_auiEncounter[i] = NOT_STARTED;
+    }
+
+    OUT_LOAD_INST_DATA_COMPLETE;
+}
+uint32 instance_ahnkahet::GetData(uint32 uiType)
+{
+    switch(uiType)
+    {
+        case TYPE_NADOX:
+            return m_auiEncounter[0];
+        case TYPE_TALDARAM:
+            return m_auiEncounter[1];
+        case TYPE_JEDOGA:
+            return m_auiEncounter[2];
+        case TYPE_VOLAZJ:
+            return m_auiEncounter[3];
+        case TYPE_AMANITAR:
+            return m_auiEncounter[4];
+    }
+    return 0;
+}
+ 
+bool instance_ahnkahet::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+{
+    switch (uiCriteriaId)
+    {
+        case ACHIEV_CRITERIA_VOLUNTEER_WORK:
+            return m_bCriteriaVolunteerWork;
+        case ACHIEV_CRITERIA_RESPECT_YOUR_ELDERS:
+            return m_bCriteriaRespectYourElders;
+        default:
+            return 0;
+    }
+}
+
 
 InstanceData* GetInstanceData_instance_ahnkahet(Map* pMap)
 {

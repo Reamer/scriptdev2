@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -13,13 +13,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-
+ 
 /* ScriptData
-SDName: boss_anubarak
-SD%Complete: ?%
-SDComment: by MaxXx2021
-SDCategory: Azjol-Nerub instance
+SDName: Boss_Anubarak
+SD%Complete: 80%
+SDComment: Some cosmetic mistakes. TODO: spikes.
+SDCategory: Azjol'Nerub
 EndScriptData */
 
 #include "precompiled.h"
@@ -27,324 +26,545 @@ EndScriptData */
 
 enum
 {
-    SPELL_CARRION_BEETLES                         = 53520,
-    SPELL_SUMMON_CARRION_BEETLES                  = 53521,
-    SPELL_LEECHING_SWARM                          = 53467,
-    SPELL_IMPALE                                  = 53454,
-    SPELL_POUND                                   = 53472,
-    SPELL_SUBMERGE                                = 53421,
+    SAY_INTRO                       = -1601014,
+    SAY_AGGRO                       = -1601015,
+    SAY_KILL_1                      = -1601016,
+    SAY_KILL_2                      = -1601017,
+    SAY_KILL_3                      = -1601018,
+    SAY_SUBMERGE_1                  = -1601019,
+    SAY_SUBMERGE_2                  = -1601020,
+    SAY_LOCUST_1                    = -1601021,
+    SAY_LOCUST_2                    = -1601022,
+    SAY_LOCUST_3                    = -1601023,
+    SAY_DEATH                       = -1601024,
 
-    NPC_GUARDIAN                             = 29216,
-    NPC_VENOMANCER                           = 29217,
-    NPC_DATTER                               = 29213,
+    SPELL_EARTH_EXPLOSION           = 42373,
+    SPELL_CARRION_SWARM             = 53520,
+    SPELL_IMPALE                    = 53454,
+    SPELL_IMPALE_H                  = 59446,
+    SPELL_LEECHING_SWARM            = 53467,
+    SPELL_LEECHING_SWARM_H          = 59430,
+    SPELL_POUND                     = 53472,
+    SPELL_POUND_H                   = 59433,
+    SPELL_POUND_DMG                 = 53509,
+    SPELL_POUND_DMG_H               = 59432,
+    SPELL_BURROW                    = 26381,
 
-    SAY_INTRO                                     = -1601010,
-    SAY_AGGRO                                     = -1601000,
-    SAY_SLAY_1                                    = -1601001,
-    SAY_SLAY_2                                    = -1601002,
-    SAY_SLAY_3                                    = -1601003,
-    SAY_LOCUST_1                                  = -1601005,
-    SAY_LOCUST_2                                  = -1601006,
-    SAY_LOCUST_3                                  = -1601007,
-    SAY_SUBMERGE_1                                = -1601008,
-    SAY_SUBMERGE_2                                = -1601009,
-    SAY_DEATH                                     = -1601004
+    NPC_ADD1                        = 28736,
+    NPC_ADD2                        = 29349,
+    NPC_ELITE_ADD                   = 28732,
+
+    NPC_IMPALE_TRIGGER              = 105000,
+
+    FAC_HOSTILE                     = 16,
+
+    ACHIEV_SPEEDKILL_H              = 1860,
+
 };
 
-struct Locations
-{
-    float x, y, z;
-    uint32 id;
+enum Phasen{
+    PHASE_NORMAL    = 0,
+    PHASE_ADDS      = 1,
 };
 
-static Locations SpawnPoint[2] =
-{
-    {550.7f, 282.8f, 224.3f},
-    {551.1f, 229.4f, 224.3f}
-};
+static const float aPercentOfLife[4] = {66.6f, 33.3f, 15.0f, 0.0f};
+
+#define MIDDLE_CORD_X                   552.927734f
+#define MIDDLE_CORD_Y                   248.950851f
+#define MIDDLE_CORD_Z                   223.912796f
+
+#define ELITE_SPAWN_1_X                 547.412841f
+#define ELITE_SPAWN_1_Y                 320.102448f
+#define ELITE_SPAWN_1_Z                 236.062057f
+
+#define ELITE_SPAWN_2_X                 554.539185f
+#define ELITE_SPAWN_2_Y                 319.792603f
+#define ELITE_SPAWN_2_Z                 235.927032f
+
+/*######
+## boss_anubarak
+######*/
 
 struct MANGOS_DLL_DECL boss_anubarakAI : public ScriptedAI
 {
-    boss_anubarakAI(Creature *pCreature) : ScriptedAI(pCreature)
+    boss_anubarakAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_azjol_nerub*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
-    ScriptedInstance *pInstance;
+    instance_azjol_nerub* m_pInstance;
+    bool m_bIsRegularMode;
+    uint8 m_uiPhase;
 
-    bool bChanneling;
-    bool bGuardianSummoned;
-    bool bVenomancerSummoned;
-    bool bDatterSummoned;
-    uint8 uiPhase;
-    uint32 uiPhaseTimer;
-    uint32 uiEmergeTimer;
+    uint32 m_uiSummonCreatureTimer;
+    uint32 m_uiLeechingSwarmTimer;
+    uint32 m_uiImpaleTimer;
+    uint32 m_uiPoundTimer;
+    uint32 m_uiCarrionSwarmTimer;
+    
+    uint32 m_uiWaveStepCount;
+    uint32 m_uiCountInvisiblePhases;
+    uint32 m_uiBurrowStepCount;
+    uint32 m_uiBurronStepTimer;
 
-    uint32 uiCarrionBeetlesTimer;
-    uint32 uiLeechingSwarmTimer;
-    uint32 uiImpaleTimer;
-    uint32 uiPoundTimer;
-    uint32 uiSubmergeTimer;
-    uint32 uiUndergroundTimer;
-    uint32 uiVenomancerTimer;
-    uint32 uiDatterTimer;
-
-    //SummonList lSummons;
+    GUIDList m_lBettleGUIDList;
 
     void Reset()
     {
+        m_uiPhase               = PHASE_NORMAL;
+        m_uiCountInvisiblePhases= 0;
+        m_uiBurrowStepCount     = 0;
+        m_uiBurronStepTimer     = 0;
+        m_uiWaveStepCount       = 0;
+        m_uiSummonCreatureTimer = 2000;
+        m_uiLeechingSwarmTimer  = 4000;
+        m_uiImpaleTimer         = 5000;
+        m_uiPoundTimer          = 12000;
+        m_uiCarrionSwarmTimer   = 13000;
 
-        uiCarrionBeetlesTimer = 8000;
-        uiLeechingSwarmTimer = 20000;
-        uiImpaleTimer = 9000;
-        uiPoundTimer = 15000;
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetVisibility(VISIBILITY_ON);
+        
+        RemoveAllBettles();
 
-        uiPhase = 0;
-        uiPhaseTimer = 0;
-        bChanneling = false;
-
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE|UNIT_FLAG_NOT_SELECTABLE);
-        m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE);
-        m_creature->SetDisplayId(27856);
-
-        DespawnAll();
-
-        if (pInstance)
-            pInstance->SetData(TYPE_ANUBARAK, NOT_STARTED);
     }
 
-    void AttackStart(Unit* who)
-    {
-       if(!who) return;
-
-       if(uiPhase > 0) return;
-
-       ScriptedAI::AttackStart(who);
-    }
-
-    void DespawnAll()
-    {
-        std::list<Creature*> m_pGuard;
-        GetCreatureListWithEntryInGrid(m_pGuard, m_creature, NPC_GUARDIAN, DEFAULT_VISIBILITY_INSTANCE);
-
-        if (!m_pGuard.empty())
-            for(std::list<Creature*>::iterator itr = m_pGuard.begin(); itr != m_pGuard.end(); ++itr)
-            {
-                (*itr)->ForcedDespawn();
-            }
-
-        std::list<Creature*> m_pVen;
-        GetCreatureListWithEntryInGrid(m_pVen, m_creature, NPC_VENOMANCER, DEFAULT_VISIBILITY_INSTANCE);
-
-        if (!m_pVen.empty())
-            for(std::list<Creature*>::iterator iter = m_pVen.begin(); iter != m_pVen.end(); ++iter)
-            {
-                (*iter)->ForcedDespawn();
-            }
-
-        std::list<Creature*> m_pDat;
-        GetCreatureListWithEntryInGrid(m_pDat, m_creature, NPC_DATTER, DEFAULT_VISIBILITY_INSTANCE);
-
-        if (!m_pDat.empty())
-            for(std::list<Creature*>::iterator iter = m_pDat.begin(); iter != m_pDat.end(); ++iter)
-            {
-                (*iter)->ForcedDespawn();
-            }
-    }
-
-    void EnterCombat(Unit *pWho)
+    void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
-
-        if (pInstance)
-            pInstance->SetData(TYPE_ANUBARAK, IN_PROGRESS);
+        if (m_pInstance)
+        {
+            m_pInstance->SetData(TYPE_ANUBARAK, IN_PROGRESS);
+        }
     }
 
-    void NextPhase()
+    void RemoveAllBettles()
     {
-        m_creature->InterruptNonMeleeSpells(false);
-        ++uiPhaseTimer;
-
-        bGuardianSummoned = false;
-        bVenomancerSummoned = false;
-        bDatterSummoned = false;
-
-        uiUndergroundTimer = 40000;
-        uiVenomancerTimer = 25000;
-        uiDatterTimer = 32000;
-
-        DoCast(m_creature, SPELL_SUBMERGE);
-
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE|UNIT_FLAG_NOT_SELECTABLE);
-
-        uiPhase = 1;
+        if (!m_lBettleGUIDList.empty())
+        {
+            for(GUIDList::iterator itr = m_lBettleGUIDList.begin(); itr != m_lBettleGUIDList.end(); ++itr)
+                if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
+                        pTemp->ForcedDespawn();
+        }
+        m_lBettleGUIDList.clear();
     }
 
-    void UpdateAI(const uint32 diff)
+    void KilledUnit(Unit* pVictim)
     {
-        //Return since we have no target
+        switch(urand(0, 2))
+        {
+            case 0: DoScriptText(SAY_KILL_1, m_creature); break;
+            case 1: DoScriptText(SAY_KILL_2, m_creature); break;
+            case 2: DoScriptText(SAY_KILL_3, m_creature); break;
+        }
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ANUBARAK, FAIL);
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetVisibility(VISIBILITY_ON);
+        DoScriptText(SAY_DEATH, m_creature);
+        RemoveAllBettles();
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ANUBARAK, DONE);
+    }
+
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_POUND)
+        {
+            if (pTarget)
+                pTarget->CastSpell(pTarget, SPELL_POUND_DMG, true);
+        }
+
+        if (pSpell->Id == SPELL_POUND_H)
+        {
+            if (pTarget)
+                pTarget->CastSpell(pTarget, SPELL_POUND_DMG_H, true); 
+        }     
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (bChanneling == true)
+        switch (m_uiPhase)
         {
-            for (uint8 i = 0; i < 4; ++i)
-                DoCast(m_creature->getVictim(), SPELL_SUMMON_CARRION_BEETLES, true);
-            bChanneling = false;
-        }
-
-        if (uiPhase == 1)
-        {
-            if (uiImpaleTimer <= diff)
+            case PHASE_NORMAL:
             {
-                if(m_creature->HasAura(SPELL_SUBMERGE))
+                if (m_creature->GetHealthPercent() < aPercentOfLife[m_uiCountInvisiblePhases])
                 {
-                   m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE);
-                   m_creature->SetDisplayId(11686);       
-                   m_creature->StopMoving();
-                   m_creature->GetMotionMaster()->Clear(false);
-                   m_creature->GetMotionMaster()->MoveIdle();
+                    ++m_uiCountInvisiblePhases;
+                    m_uiPhase = PHASE_ADDS;
+                    DoCastSpellIfCan(m_creature, SPELL_BURROW);
+                    m_uiSummonCreatureTimer = 2000;
+                    m_uiBurronStepTimer = 2000;
+                    m_uiBurrowStepCount = 0;
+                    m_uiWaveStepCount = 0;
                 }
-                if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCast(pTarget, SPELL_IMPALE);
-                uiImpaleTimer = 9000;
-            } else uiImpaleTimer -= diff;
 
-            if (!bGuardianSummoned)
-            {
-                for (uint8 i = 0; i < 2; ++i)
+                if (m_uiPoundTimer < uiDiff)
                 {
-                    if (Creature *Guardian = m_creature->SummonCreature(NPC_GUARDIAN,SpawnPoint[i].x,SpawnPoint[i].y,SpawnPoint[i].z,0,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
+                    if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_POUND : SPELL_POUND_H) == CAST_OK)
+                        m_uiPoundTimer = urand(15000, 18000);
+                }
+                else
+                    m_uiPoundTimer -= uiDiff;
+            
+                if (m_uiLeechingSwarmTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_LEECHING_SWARM : SPELL_LEECHING_SWARM_H) == CAST_OK)
+                        m_uiLeechingSwarmTimer = 15000;  
+                }
+                else
+                    m_uiLeechingSwarmTimer -= uiDiff;
+
+                if (m_uiCarrionSwarmTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_CARRION_SWARM) == CAST_OK)
+                        m_uiCarrionSwarmTimer = urand(23000, 31000);
+                }
+                else
+                    m_uiCarrionSwarmTimer -= uiDiff;
+                
+                DoMeleeAttackIfReady();
+                break;
+            }
+            case PHASE_ADDS:
+            {
+                if (m_uiImpaleTimer < uiDiff)
+                {
+                    if (Unit* pImpaleVictim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
                     {
-                        Guardian->AddThreat(m_creature->getVictim(), 0.0f);
-                        Guardian->SetInCombatWithZone();
+                        m_creature->SummonCreature(NPC_IMPALE_TRIGGER, pImpaleVictim->GetPositionX(), pImpaleVictim->GetPositionY(), pImpaleVictim->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 4000);
+                        m_uiImpaleTimer = 8000;
                     }
                 }
-                bGuardianSummoned = true;
-            }
+                else
+                    m_uiImpaleTimer -= uiDiff;
 
-            if (!bVenomancerSummoned)
-            {
-                if (uiVenomancerTimer <= diff)
+                if (m_uiBurronStepTimer < uiDiff)
                 {
-                    if (uiPhaseTimer > 1)
+                    switch (m_uiBurrowStepCount)
                     {
-                        for (uint8 i = 0; i < 2; ++i)
+                        case 0:
                         {
-                            if (Creature *Venomancer = m_creature->SummonCreature(NPC_VENOMANCER,SpawnPoint[i].x,SpawnPoint[i].y,SpawnPoint[i].z,0,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
+                            m_creature->SetVisibility(VISIBILITY_OFF);
+                            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            m_creature->GetMotionMaster()->MoveIdle();
+                            switch (m_uiCountInvisiblePhases)
                             {
-                                Venomancer->AddThreat(m_creature->getVictim(), 0.0f);
-                                Venomancer->SetInCombatWithZone();
+                                case 0: m_uiBurronStepTimer = 7000; break;
+                                case 1: m_uiBurronStepTimer = 15000; break;
+                                case 2: m_uiBurronStepTimer = 25000; break;
+                                default: m_uiBurronStepTimer = 2000;
                             }
+                            break;
                         }
-                        bVenomancerSummoned = true;
+                        case 1:
+                        {
+                            DoCastSpellIfCan(m_creature, SPELL_BURROW);
+                            m_uiBurronStepTimer = 8000;
+                            break;
+                        }
+                        case 2:
+                        {
+                            m_uiPhase = PHASE_NORMAL;
+                            m_creature->SetVisibility(VISIBILITY_ON);
+                            m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            m_uiBurronStepTimer = 2000;
+                            break;
+                        }
+                        default:
+                        {
+                            m_uiBurrowStepCount = 1;
+                            m_uiBurronStepTimer = 2000;
+                        }
                     }
-                } else uiVenomancerTimer -= diff;
-            }
+                     ++m_uiBurrowStepCount;
+                }
+                else
+                    m_uiBurronStepTimer -= uiDiff;
 
-            if (!bDatterSummoned)
-            {
-                if (uiDatterTimer <= diff)
+                if (m_uiSummonCreatureTimer < uiDiff)
                 {
-                    if (uiPhaseTimer > 2)
+                    switch(m_uiWaveStepCount)
                     {
-                        for (uint8 i = 0; i < 2; ++i)
+                        case 0:
                         {
-                            if (Creature *Datter = m_creature->SummonCreature(NPC_DATTER,SpawnPoint[i].x,SpawnPoint[i].y,SpawnPoint[i].z,0,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
-                            {
-                                Datter->AddThreat(m_creature->getVictim(), 0.0f);
-                                Datter->SetInCombatWithZone();
-                            }
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ELITE_ADD, ELITE_SPAWN_1_X, ELITE_SPAWN_1_Y, ELITE_SPAWN_1_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (m_uiCountInvisiblePhases == 3)
+                                if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD2, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                    m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+
+                            m_uiSummonCreatureTimer = 2000;
+                            break;
                         }
-                        bDatterSummoned = true;
+                        case 1:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ELITE_ADD, ELITE_SPAWN_2_X, ELITE_SPAWN_2_Y, ELITE_SPAWN_2_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            switch (m_uiCountInvisiblePhases)
+                            {
+                                case 1:
+                                    m_uiSummonCreatureTimer = 6000;
+                                    break;
+                                case 2:
+                                    m_uiSummonCreatureTimer = 10000;
+                                    break;
+                                case 3:
+                                    m_uiSummonCreatureTimer = 10000;
+                                    m_uiWaveStepCount += 3;
+                                    break;
+                            }
+                            break;
+                        }
+                        case 2:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (m_uiCountInvisiblePhases == 1)
+                            {
+                                m_uiWaveStepCount = 10; // END
+                                break;
+                            }
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ELITE_ADD, ELITE_SPAWN_1_X, ELITE_SPAWN_1_Y, ELITE_SPAWN_1_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+
+                            m_uiSummonCreatureTimer = 1000;
+                            break;
+                        }
+                        case 3:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ELITE_ADD, ELITE_SPAWN_2_X, ELITE_SPAWN_2_Y, ELITE_SPAWN_2_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            m_uiSummonCreatureTimer = 7000;
+                            break;
+                        }
+                        case 4:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                        
+                            m_uiWaveStepCount = 10; // END
+                            break;
+                        }
+                        case 5:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD2, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                        
+                            m_uiSummonCreatureTimer = 2500;
+                            break;
+                        }
+                        case 6:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD1, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ELITE_ADD, ELITE_SPAWN_1_X, ELITE_SPAWN_1_Y, ELITE_SPAWN_1_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 120000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                        
+                            m_uiSummonCreatureTimer = 2000;
+                            break;
+                        }
+                        case 7:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ELITE_ADD, ELITE_SPAWN_2_X, ELITE_SPAWN_2_Y, ELITE_SPAWN_2_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                            m_uiSummonCreatureTimer = 3000;
+                            break;
+                        }
+                        case 8:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD2, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+
+                            m_uiSummonCreatureTimer = 8000;
+                            break;
+                        }
+                        case 9:
+                        {
+                            if (Creature* pTemp = m_creature->SummonCreature(NPC_ADD2, MIDDLE_CORD_X + urand(0.0f, 10.0f), MIDDLE_CORD_Y + urand(0.0f, 10.0f), MIDDLE_CORD_Z, m_creature->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 30000))
+                                m_lBettleGUIDList.push_back(pTemp->GetObjectGuid());
+                        
+                            m_uiSummonCreatureTimer = 9999999;
+                            break;
+                        }
+                        default:
+                            break;
                     }
-                } else uiDatterTimer -= diff;
+                    m_uiWaveStepCount++;
+                    
+                }
+                else
+                    m_uiSummonCreatureTimer -= uiDiff;
             }
-
-            if (uiUndergroundTimer <= diff)
-            {
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE|UNIT_FLAG_NOT_SELECTABLE);
-                m_creature->SetDisplayId(27856);
-                DoCast(m_creature, 50142);
-                uiEmergeTimer = 2000;
-                uiPhase = 2;
-            } else uiUndergroundTimer -= diff;
         }
-
-        if (uiPhase == 2)
-        {
-            if (uiEmergeTimer <= diff)
-            {
-                uiPhase = 0;
-                m_creature->RemoveAurasDueToSpell(50142);
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-            } else uiEmergeTimer -= diff;
-        }
-
-        if (uiPhase == 0)
-        {
-            if (uiLeechingSwarmTimer <= diff)
-            {
-                DoCast(m_creature, SPELL_LEECHING_SWARM);
-                uiLeechingSwarmTimer = 19000;
-            } else uiLeechingSwarmTimer -= diff;
-
-            if (uiCarrionBeetlesTimer <= diff)
-            {
-                bChanneling = true;
-                DoCast(m_creature->getVictim(), SPELL_CARRION_BEETLES);
-                uiCarrionBeetlesTimer = 25000;
-            } else uiCarrionBeetlesTimer -= diff;
-
-            if (uiPoundTimer <= diff)
-            {
-                 DoCast(m_creature->getVictim(), SPELL_POUND);
-                 uiPoundTimer = 16500;
-            } else uiPoundTimer -= diff;
-
-            DoMeleeAttackIfReady();
-        }
-
-        if(uiPhaseTimer == 0 && m_creature->GetHealthPercent() < 75.0f)
-            NextPhase();
-
-        if(uiPhaseTimer == 1 && m_creature->GetHealthPercent() < 50.0f)
-            NextPhase();
-
-        if(uiPhaseTimer == 2 && m_creature->GetHealthPercent() < 25.0f)
-            NextPhase();
     }
-
-    void JustDied(Unit *pKiller)
-    {
-        DoScriptText(SAY_DEATH, m_creature);
-
-        if (pInstance)
-            pInstance->SetData(TYPE_ANUBARAK, DONE);
-    }
-
-    void KilledUnit(Unit *pVictim)
-    {
-        if (pVictim == m_creature)
-            return;
-
-        DoScriptText(urand(SAY_SLAY_1,SAY_SLAY_2), m_creature);
-    }
-
 };
 
-CreatureAI* GetAI_boss_anubarak(Creature *pCreature)
+enum
 {
-    return new boss_anubarakAI (pCreature);
+    SPELL_STRIKE    = 52532,
+    SPELL_CLEAVE    = 49806,
+};
+#define ELITE_SPAWN_1_X_END             556.115845f
+#define ELITE_SPAWN_1_Y_END             260.768311f
+#define ELITE_SPAWN_1_Z_END             223.889069f
+
+#define ELITE_SPAWN_2_X_END             547.456970f
+#define ELITE_SPAWN_2_Y_END             260.716064f
+#define ELITE_SPAWN_2_Z_END             223.643402f
+
+#define ELITE_WP_1_X                    546.684875f
+#define ELITE_WP_1_Y                    278.920990f
+#define ELITE_WP_1_Z                    224.348969f
+
+#define ELITE_WP_2_X                    555.046631f
+#define ELITE_WP_2_Y                    278.821503f
+#define ELITE_WP_2_Z                    224.304581f
+
+struct MANGOS_DLL_DECL npc_elite_anubAI : public ScriptedAI
+{
+    npc_elite_anubAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+    
+
+    uint32 m_uiMoveWpTimer;
+    uint32 m_uiMoveMiddleTimer;
+    uint32 m_uiStrikeTimer;
+    uint32 m_uiCleaveTimer;
+
+    bool m_uiSetSpeed;
+
+    void Reset()
+    {
+        m_uiMoveWpTimer = 100;
+        m_uiMoveMiddleTimer = 7000;
+        m_uiStrikeTimer = urand(9000,12000);
+        m_uiCleaveTimer = urand(4000,7000);
+        m_uiSetSpeed = false;
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        {
+            if (!m_creature->IsTemporarySummon())
+                return;
+
+            if (m_creature->GetPositionX() < 550.0f)
+            {
+                if (m_uiMoveWpTimer < uiDiff)
+                {
+                    m_creature->GetMotionMaster()->MovePoint(0, ELITE_WP_1_X, ELITE_WP_1_Y, ELITE_WP_1_Z);
+                    m_uiMoveWpTimer = 9999999;
+                    return;
+                }else m_uiMoveWpTimer -= uiDiff;
+            }
+            else
+            {
+                if (m_uiMoveWpTimer < uiDiff)
+                {
+                    m_creature->GetMotionMaster()->MovePoint(0, ELITE_WP_2_X, ELITE_WP_2_Y, ELITE_WP_2_Z);
+                    m_uiMoveWpTimer = 9999999;
+                    return;
+                }else m_uiMoveWpTimer -= uiDiff;
+            }
+
+            if (m_creature->GetPositionX() < 550.0f)
+            {
+                if (m_uiMoveMiddleTimer < uiDiff)
+                {
+                    m_creature->GetMotionMaster()->MovePoint(0, ELITE_SPAWN_2_X_END, ELITE_SPAWN_2_Y_END, ELITE_SPAWN_2_Z_END);
+                    m_uiMoveMiddleTimer = 9999999;
+                    return;
+                }else m_uiMoveMiddleTimer -= uiDiff;
+            }
+            else
+            {
+                if (m_uiMoveMiddleTimer < uiDiff)
+                {
+                    m_creature->GetMotionMaster()->MovePoint(0, ELITE_SPAWN_1_X_END, ELITE_SPAWN_1_Y_END, ELITE_SPAWN_1_Z_END);
+                    m_uiMoveMiddleTimer = 9999999;
+                    return;
+                }else m_uiMoveMiddleTimer -= uiDiff;
+            }
+            return;
+
+            if (!m_uiSetSpeed)
+            {
+                m_creature->SetSpeedRate(MOVE_WALK, 1.7f);
+                m_creature->SetSpeedRate(MOVE_RUN, 1.7f);
+                m_uiSetSpeed = true;
+            }
+        } 
+        else
+        {
+            if (m_uiStrikeTimer < uiDiff)
+            {
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_STRIKE);
+                m_uiStrikeTimer = urand(5000,7000);
+            }                
+            else
+                m_uiStrikeTimer -= uiDiff;
+
+            if (m_uiCleaveTimer < uiDiff)
+            {
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE);
+                m_uiCleaveTimer = urand(14000,17000);
+            }
+            else
+                m_uiCleaveTimer -= uiDiff;
+        }
+        DoMeleeAttackIfReady();
+    }  
+};
+
+CreatureAI* GetAI_boss_anubarak(Creature* pCreature)
+{
+    return new boss_anubarakAI(pCreature);
+}
+
+CreatureAI* GetAI_npc_elite_anub(Creature* pCreature)
+{
+    return new npc_elite_anubAI(pCreature);
 }
 
 void AddSC_boss_anubarak()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_anubarak";
-    newscript->GetAI = &GetAI_boss_anubarak;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_anubarak";
+    pNewScript->GetAI = &GetAI_boss_anubarak;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_elite_anub";
+    pNewScript->GetAI = &GetAI_npc_elite_anub;
+    pNewScript->RegisterSelf();
 }
