@@ -136,8 +136,6 @@ struct MANGOS_DLL_DECL boss_s_and_d_dummyAI : public ScriptedAI
 
         if (m_creature->getVictim())
             pSummoned->AI()->AttackStart(pTarget ? pTarget : m_creature->getVictim());
-
-        pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
     void JustDied(Unit* pKiller)
@@ -322,15 +320,15 @@ CreatureAI* GetAI_boss_dalronn(Creature* pCreature)
 
 void AddSC_boss_skarvald_and_dalronn()
 {
-    Script* pNewScript;
+    Script *newscript;
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_skarvald";
-    pNewScript->GetAI = &GetAI_boss_skarvald;
-    pNewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "boss_skarvald";
+    newscript->GetAI = &GetAI_boss_skarvald;
+    newscript->RegisterSelf();
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_dalronn";
-    pNewScript->GetAI = &GetAI_boss_dalronn;
-    pNewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "boss_dalronn";
+    newscript->GetAI = &GetAI_boss_dalronn;
+    newscript->RegisterSelf();
 }

@@ -19,6 +19,7 @@ enum
     NPC_KELESETH                = 23953,
     NPC_SKARVALD                = 24200,
     NPC_DALRONN                 = 24201,
+    NPC_INGVAR                  = 23954,
 
     NPC_FROST_TOMB              = 23965,
 
@@ -28,6 +29,9 @@ enum
     GO_FORGEFIRE_1              = 186692,
     GO_FORGEFIRE_2              = 186693,
     GO_FORGEFIRE_3              = 186691,
+
+    GO_EXITDOOR_1               = 186756,
+    GO_EXITDOOR_2               = 186694,
 
     ACHIEV_CRIT_ON_THE_ROCKS    = 7231,
 };
