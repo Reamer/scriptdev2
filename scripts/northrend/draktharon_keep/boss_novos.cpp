@@ -55,9 +55,6 @@ enum
 
     // Spells 'Crystal Handler Death' 47336, 55801, 55803, 55805 (defined in instance script)
 
-    NPC_CRYSTAL_HANDLER = 26627,
-    NPC_HULKING_CORPSE = 27597,
-    NPC_FETID_TROLL_CORPSE = 27598,
     NPC_RISON_SHADOWCASTER = 27600,
     NPC_ROTTED_TROLL_CORPSE = 32786, // On heroic as effect of SPELL_SUMMON_MINIONS_H
 };

@@ -218,24 +218,23 @@ bool GossipHello_npc_sa_cannon(Player* pPlayer, Creature* pCreature)
      ((npc_sa_cannonAI*)pCreature->AI())->StartEvent(pPlayer, pCreature);
          return true;
 }
+#define GOSSIP_START_EVENT_1 "Starte den Bau eines Zerstörers"
+#define GOSSIP_START_EVENT_2 "Ich habe nichts zu tun"
+#define GOSSIP_EVENT_STARTED "Ich arbeite daran"
 
-#define GOSSIP_START_EVENT_1        "Start building the Demolisher."
-#define GOSSIP_START_EVENT_2        "You have nothing to do now!"
-#define GOSSIP_EVENT_STARTED        "Im working on it."
+#define NPC_DEMILISHER 28781
 
-#define NPC_DEMILISHER        28781
-
-#define SA_MESSAGE_0        "Begin the manufracture of Demolisher"
-#define SA_MESSAGE_1        "Time Left: 1 minute"
-#define SA_MESSAGE_1_1      "Time Left: 40 seconds"
-#define SA_MESSAGE_1_2      "Time Left: 35 seconds"
-#define SA_MESSAGE_2        "Time Left: 30 seconds"
-#define SA_MESSAGE_3        "Time Left: 25 seconds"
-#define SA_MESSAGE_4        "Time Left: 20 seconds"
-#define SA_MESSAGE_5        "Time Left: 15 seconds"
-#define SA_MESSAGE_6        "Time Left: 10 seconds"
-#define SA_MESSAGE_7        "Time Left: 5 seconds"
-#define SA_MESSAGE_8        "Ready!"
+#define SA_MESSAGE_0 "Begin der Herstellung des Zerstörers"
+#define SA_MESSAGE_1 "verbleibene Zeit: 1 Minute"
+#define SA_MESSAGE_1_1 "verbleibene Zeit: 40 Sekunden"
+#define SA_MESSAGE_1_2 "verbleibene Zeit: 35 Sekunden"
+#define SA_MESSAGE_2 "verbleibene Zeit: 30 Sekunden"
+#define SA_MESSAGE_3 "verbleibene Zeit: 25 Sekunden"
+#define SA_MESSAGE_4 "verbleibene Zeit: 20 Sekunden"
+#define SA_MESSAGE_5 "verbleibene Zeit: 15 Sekunden"
+#define SA_MESSAGE_6 "verbleibene Zeit: 10 Sekunden"
+#define SA_MESSAGE_7 "verbleibene Zeit: 5 Sekunden"
+#define SA_MESSAGE_8 "Fertig!"
 
 static float SummonLocations[2][4]=
 {
@@ -424,7 +423,7 @@ bool GOHello_go_sa_def_portal(Player* pPlayer, GameObject* pGo)
                     }
                 }
             } else
-                pPlayer->MonsterSay("You are not defender!",LANG_UNIVERSAL, pPlayer);
+                pPlayer->MonsterSay("Du kommst hier net rein",LANG_UNIVERSAL, pPlayer);
         }
     }
     return false;

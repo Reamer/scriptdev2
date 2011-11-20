@@ -226,6 +226,8 @@ struct MANGOS_DLL_DECL mob_nadox_guardianAI : public ScriptedAI
 
     instance_ahnkahet* m_pInstance;
 
+    void Reset(){}
+
     void JustDied(Unit* Killer)
     {
         if(m_pInstance)

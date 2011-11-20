@@ -198,7 +198,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
                 }
             }
             m_vVolunteerGuid.clear();
-        }        
+        }
     }
 
     void MoveVolunteer()
