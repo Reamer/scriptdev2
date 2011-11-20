@@ -1500,9 +1500,6 @@
     <ClCompile Include="..\scripts\northrend\ulduar\ulduar\ulduar.cpp">
       <Filter>scripts\northrend\ulduar\ulduar</Filter>
     </ClCompile>
-    <ClCompile Include="..\scripts\northrend\ulduar\ulduar\ulduar_teleport.cpp">
-      <Filter>scripts\northrend\ulduar\ulduar</Filter>
-    </ClCompile>
     <ClCompile Include="..\scripts\northrend\utgarde_keep\utgarde_keep\boss_ingvar.cpp">
       <Filter>scripts\northrend\utgarde_keep\utgarde_keep</Filter>
     </ClCompile>
@@ -2055,6 +2052,9 @@
     <ClInclude Include="..\scripts\northrend\vault_of_archavon\vault_of_archavon.h">
       <Filter>scripts\northrend\vault_of_archavon</Filter>
     </ClInclude>
+    <ClCompile Include="..\scripts\custom\custom_cybernetic.cpp">
+      <Filter>scripts\custom</Filter>
+    </ClCompile>
     <ClInclude Include="..\scripts\northrend\violet_hold\violet_hold.h">
       <Filter>scripts\northrend\violet_hold</Filter>
     </ClInclude>
