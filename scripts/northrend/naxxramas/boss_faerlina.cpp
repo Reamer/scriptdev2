@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -45,8 +45,11 @@ enum
     SPELL_ENRAGE_H              = 54100,
     SPELL_RAIN_OF_FIRE          = 28794,
     SPELL_RAIN_OF_FIRE_H        = 54099,
+    //MOB SPELLS
     SPELL_WIDOWS_EMBRACE        = 28732,
     SPELL_WIDOWS_EMBRACE_H      = 54097,
+    SPELL_FIRE_BALL             = 54095,
+    SPELL_FIRE_BALL_H           = 54096
 };
 
 struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
@@ -83,6 +86,8 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
             case 2: DoScriptText(SAY_AGGRO_3, m_creature); break;
             case 3: DoScriptText(SAY_AGGRO_4, m_creature); break;
         }
+
+        m_creature->CallForHelp(15.0f);
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_FAERLINA, IN_PROGRESS);
@@ -194,12 +199,52 @@ CreatureAI* GetAI_boss_faerlina(Creature* pCreature)
     return new boss_faerlinaAI(pCreature);
 }
 
+struct MANGOS_DLL_DECL mob_worshipperAI : public ScriptedAI
+{
+    mob_worshipperAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    instance_naxxramas* m_pInstance;
+    bool m_bIsRegularMode;
+
+    void Reset()
+    {
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+        DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FIRE_BALL : SPELL_FIRE_BALL_H);
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        //if (m_bIsRegularMode) //only 10 mode
+            DoCast(m_creature, SPELL_WIDOWS_EMBRACE, true);
+    }
+
+};
+
+CreatureAI* GetAI_mob_worshipper(Creature* pCreature)
+{
+    return new mob_worshipperAI(pCreature);
+}
 void AddSC_boss_faerlina()
 {
-    Script* pNewScript;
+    Script* NewScript;
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_faerlina";
-    pNewScript->GetAI = &GetAI_boss_faerlina;
-    pNewScript->RegisterSelf();
+    NewScript = new Script;
+    NewScript->Name = "boss_faerlina";
+    NewScript->GetAI = &GetAI_boss_faerlina;
+    NewScript->RegisterSelf();
+
+    NewScript = new Script;
+    NewScript->Name = "mob_worshipper";
+    NewScript->GetAI = &GetAI_mob_worshipper;
+    NewScript->RegisterSelf();
 }

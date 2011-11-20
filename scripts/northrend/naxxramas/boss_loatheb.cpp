@@ -182,10 +182,9 @@ CreatureAI* GetAI_boss_loatheb(Creature* pCreature)
 
 void AddSC_boss_loatheb()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
-    pNewScript->Name = "boss_loatheb";
-    pNewScript->GetAI = &GetAI_boss_loatheb;
-    pNewScript->RegisterSelf();
+    Script* NewScript;
+    NewScript = new Script;
+    NewScript->Name = "boss_loatheb";
+    NewScript->GetAI = &GetAI_boss_loatheb;
+    NewScript->RegisterSelf();
 }

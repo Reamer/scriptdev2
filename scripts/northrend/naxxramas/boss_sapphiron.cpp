@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Boss_Sapphiron
 SD%Complete: 80
-SDComment: Some spells need core implementation
+SDComment: Havy-Snow-Storms need proper handling, Some spells need core implementation, Hover is currently hacked
 SDCategory: Naxxramas
 EndScriptData */
 
@@ -25,6 +25,7 @@ EndScriptData */
  * Bugged spells:   28560 (needs maxTarget = 1, Summon of 16474 implementation, TODO, 30s duration)
  *                  28526 (needs ScriptEffect to cast 28522 onto random target)
  *
+ * Blizzard might need handling for their movement
  * Achievement-criteria check needs implementation
  *
  * Frost-Breath ability: the dummy spell 30101 is self cast, so it won't take the needed delay of ~7s until it reaches its target
@@ -48,6 +49,7 @@ enum
     SPELL_TAIL_SWEEP            = 55697,
     SPELL_TAIL_SWEEP_H          = 55696,
     SPELL_ICEBOLT               = 28526,
+    SPELL_ICEBOLT_2             = 28522,
     SPELL_FROST_BREATH_DUMMY    = 30101,
     SPELL_FROST_BREATH_A        = 28524,
     SPELL_FROST_BREATH_B        = 29318,
@@ -62,6 +64,14 @@ enum
     SPELL_ACHIEVEMENT_CHECK     = 60539,                    // unused
 
     NPC_YOU_KNOW_WHO            = 16474,
+
+    // ADDTITION
+    SPELL_ICEBLOCK              = 62766,
+
+    SPELL_BLIZZARD              = 28547,
+    H_SPELL_BLIZZARD            = 55699,
+
+    SPELL_DIES                  = 29357,
 };
 
 static const float aLiftOffPosition[3] = {3522.386f, -5236.784f, 137.709f};
@@ -97,6 +107,8 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
     uint32 m_uiBerserkTimer;
     uint32 m_uiLandTimer;
 
+    uint32 m_uiAchievCheck;
+
     uint32 m_uiIceboltCount;
     Phases m_Phase;
 
@@ -114,8 +126,11 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
         m_Phase = PHASE_GROUND;
         m_uiIceboltCount = 0;
 
+        m_uiAchievCheck = 1000;
+
+
         SetCombatMovement(true);
-        m_creature->SetLevitate(false);
+        m_creature->SetHover(false);
         //m_creature->ApplySpellMod(SPELL_FROST_AURA, SPELLMOD_DURATION, -1);
     }
 
@@ -127,8 +142,31 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
             m_pInstance->SetData(TYPE_SAPPHIRON, IN_PROGRESS);
     }
 
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_ICEBOLT_2)
+        {
+            if (!pTarget->HasAura(SPELL_ICEBLOCK))
+                pTarget->CastSpell(pTarget, SPELL_ICEBLOCK, true);
+        }
+    }
+
+    void RemoveAuraAndIce()
+    {
+        Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
+        //remove frost immunity icebolt and iceblock
+        for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+        {
+            if (i->getSource()->HasAura(SPELL_ICEBOLT_2))
+                i->getSource()->RemoveAurasDueToSpell(SPELL_ICEBOLT_2);
+            if (i->getSource()->HasAura(SPELL_ICEBLOCK))
+                i->getSource()->RemoveAurasDueToSpell(SPELL_ICEBLOCK);            
+        }
+    }
+
     void JustDied(Unit* pKiller)
     {
+        RemoveAuraAndIce();
         if (m_pInstance)
             m_pInstance->SetData(TYPE_SAPPHIRON, DONE);
     }
@@ -167,6 +205,31 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
+
+        if (m_uiAchievCheck)
+        {
+            if (m_uiAchievCheck < uiDiff)
+            {
+                Map *map = m_creature->GetMap();
+                if (map->IsDungeon())
+                {
+                    Map::PlayerList const &PlayerList = map->GetPlayers();
+                    for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+                    {
+                        if (i->getSource()->GetTotalAuraModValue(UNIT_MOD_RESISTANCE_FROST) > 100.0f)
+                        {
+                            if (m_pInstance)
+                            {
+                                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_HUNDRED_CLUB, false);
+                                m_uiAchievCheck = 0;
+                            }
+                        }
+                    }
+                    m_uiAchievCheck = 1000;
+                }
+            } else
+                m_uiAchievCheck -= uiDiff;
+        }
 
         switch (m_Phase)
         {
@@ -227,7 +290,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
                 break;
             case PHASE_AIR_BOLTS:
                 // WOTLK Changed, originally was 5
-                if (m_uiIceboltCount == (uint32)(m_bIsRegularMode ? 2 : 3))
+                if (m_uiIceboltCount == (m_bIsRegularMode ? 2 : 3))
                 {
                     if (m_uiFrostBreathTimer < uiDiff)
                     {
@@ -272,6 +335,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
                 {
                     if (m_uiLandTimer <= uiDiff)
                     {
+                        RemoveAuraAndIce();
                         // Begin Landing
                         DoScriptText(EMOTE_GROUND, m_creature);
                         m_creature->HandleEmote(EMOTE_ONESHOT_LAND);
@@ -290,7 +354,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
                 {
                     m_Phase = PHASE_GROUND;
 
-                    SetCombatMovement(true);
+                    SetCombatMovement(false);
                     m_creature->GetMotionMaster()->Clear(false);
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
 

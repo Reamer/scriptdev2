@@ -42,7 +42,10 @@ enum
     SPELL_SLIME_SPRAY_H             = 54364,
     SPELL_BERSERK                   = 26662,
 
-    NPC_FALLOUT_SLIME               = 16290
+    NPC_FALLOUT_SLIME               = 16290,
+    MOB_GROBBOLUS_CLOUD             = 16363,
+
+    SPELL_POISON_CLOUD_DAMAGE       = 59116,
 };
 
 struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
@@ -67,6 +70,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
 
     void Reset()
     {
+        Despawnall();
         m_uiInjectionTimer = 12*IN_MILLISECONDS;
         m_uiPoisonCloudTimer = urand (20*IN_MILLISECONDS, 25*IN_MILLISECONDS);
         m_uiSlimeSprayTimer = urand(20*IN_MILLISECONDS, 30*IN_MILLISECONDS);
@@ -83,6 +87,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        Despawnall();
         if (m_pInstance)
             m_pInstance->SetData(TYPE_GROBBULUS, DONE);
     }
@@ -124,11 +129,48 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
         else
             return false;
     }
-
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    
+    void Despawnall()
     {
-        if ((pSpell->Id == SPELL_SLIME_SPRAY || pSpell->Id == SPELL_SLIME_SPRAY_H) && pTarget->GetTypeId() == TYPEID_PLAYER)
-            m_creature->SummonCreature(NPC_FALLOUT_SLIME, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10*IN_MILLISECONDS);
+        std::list<Creature*> m_pCloud;
+        GetCreatureListWithEntryInGrid(m_pCloud, m_creature, MOB_GROBBOLUS_CLOUD, DEFAULT_VISIBILITY_INSTANCE);
+
+        if (!m_pCloud.empty())
+        for(std::list<Creature*>::iterator itr = m_pCloud.begin(); itr != m_pCloud.end(); ++itr)
+        {
+            (*itr)->ForcedDespawn();
+        }
+
+        std::list<Creature*> m_pSpray;
+        GetCreatureListWithEntryInGrid(m_pSpray, m_creature, NPC_FALLOUT_SLIME, DEFAULT_VISIBILITY_INSTANCE);
+
+        if (!m_pSpray.empty())
+        for(std::list<Creature*>::iterator iter = m_pSpray.begin(); iter != m_pSpray.end(); ++iter)
+        {
+            (*iter)->ForcedDespawn();
+        } 
+    }
+
+    void SpellHitTarget(Unit *target, const SpellEntry *spell)
+    {
+        if(spell->Id == SPELL_SLIME_SPRAY)
+        {
+            SpawnFalloutSlime(target);
+        }
+        else if(spell->Id == SPELL_SLIME_SPRAY_H)
+        {
+            SpawnFalloutSlime(target);
+            SpawnFalloutSlime(target);
+        }
+    }
+    void SpawnFalloutSlime(Unit *target)
+    {
+        if (Creature* pTemp = m_creature->SummonCreature(NPC_FALLOUT_SLIME, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
+            {
+                pTemp->AddThreat(pTarget,0.0f);
+                pTemp->AI()->AttackStart(pTarget);
+            }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -206,17 +248,52 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
     }
 };
 
+struct MANGOS_DLL_DECL npc_grobbulus_poison_cloudAI : public Scripted_NoMovementAI
+{
+    npc_grobbulus_poison_cloudAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
+    {
+        Reset();
+    }
+
+    uint32 Cloud_Timer;
+
+    void Reset()
+    {
+        Cloud_Timer = 1000;
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (Cloud_Timer < diff)
+        {
+            DoCast(m_creature, SPELL_POISON_CLOUD_DAMAGE);
+            Cloud_Timer = 10000;
+        }else Cloud_Timer -= diff;
+    }
+};
+
 CreatureAI* GetAI_boss_grobbulus(Creature* pCreature)
 {
     return new boss_grobbulusAI(pCreature);
 }
 
+CreatureAI* GetAI_npc_grobbulus_poison_cloud(Creature* pCreature)
+{
+    return new npc_grobbulus_poison_cloudAI(pCreature);
+}
+
 void AddSC_boss_grobbulus()
 {
-    Script* pNewScript;
+    Script *newscript;
+    newscript = new Script;
+    newscript->Name = "boss_grobbulus";
+    newscript->GetAI = &GetAI_boss_grobbulus;
+    newscript->RegisterSelf();
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_grobbulus";
-    pNewScript->GetAI = &GetAI_boss_grobbulus;
-    pNewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "npc_grobbulus_poison_cloud";
+    newscript->GetAI = &GetAI_npc_grobbulus_poison_cloud;
+    newscript->RegisterSelf();
 }
+

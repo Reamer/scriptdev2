@@ -37,21 +37,22 @@ enum
     TYPE_RAZUVIOUS              = 6,
     TYPE_GOTHIK                 = 7,
     TYPE_FOUR_HORSEMEN          = 8,
+    TYPE_BLAUMEUX               = 81,
+    TYPE_RIVENDARE              = 82,
+    TYPE_KORTHAZZ               = 83,
+    TYPE_ZELIEK                 = 84,
 
     TYPE_PATCHWERK              = 9,
     TYPE_GROBBULUS              = 10,
     TYPE_GLUTH                  = 11,
     TYPE_THADDIUS               = 12,
+    TYPE_STALAGG                = 121,
+    TYPE_FEUGEN                 = 122,
 
     TYPE_SAPPHIRON              = 13,
     TYPE_KELTHUZAD              = 14,
 
     TYPE_UNDYING_FAILED         = 15,                       // Achievements Undying and Immortal, needs to be saved to database
-
-    TYPE_MAX_HEIGAN_TRAPS_1     = 18,
-    TYPE_MAX_HEIGAN_TRAPS_2     = 19,
-    TYPE_MAX_HEIGAN_TRAPS_3     = 20,
-    TYPE_MAX_HEIGAN_TRAPS_4     = 21,
 
     MAX_SPECIAL_ACHIEV_CRITS    = 6,
 
@@ -62,21 +63,32 @@ enum
     TYPE_ACHIEV_SPORE_LOSER     = 4,
     TYPE_ACHIEV_GET_ENOUGH      = 5,
 
-    MAX_HEIGAN_TRAP_AREAS       = 4,
-
     NPC_ANUB_REKHAN             = 15956,
     NPC_FAERLINA                = 15953,
+    NPC_MAEXXNA                 = 15952,
 
+    NPC_PATCHWERK               = 16028,
+    NPC_GROBBULUS               = 15931,
+    NPC_GLUTH                   = 15932,
     NPC_THADDIUS                = 15928,
     NPC_STALAGG                 = 15929,
     NPC_FEUGEN                  = 15930,
     NPC_TESLA_COIL              = 16218,
 
+    NPC_NOTH                    = 15954,
+    NPC_HEIGAN                  = 15936,
+    NPC_LOATHEB                 = 16011,
+
+    NPC_RAZUVIOUS               = 16061,
+    NPC_DEATH_KNIGHT_UNDERSTUDY = 16803,
+
+    
     NPC_ZELIEK                  = 16063,
     NPC_THANE                   = 16064,
     NPC_BLAUMEUX                = 16065,
     NPC_RIVENDARE               = 30549,
 
+    NPC_SAPPHIRON               = 15989,
     NPC_KELTHUZAD               = 15990,
     NPC_THE_LICHKING            = 16980,
     NPC_MR_BIGGLESWORTH         = 16998,
@@ -118,6 +130,10 @@ enum
     GO_PLAG_HEIG_ENTRY_DOOR     = 181202,
     GO_PLAG_HEIG_EXIT_DOOR      = 181203,                   //exit, open when boss dead
     GO_PLAG_LOAT_DOOR           = 181241,                   //encounter door
+    GO_ERUPTION_ONE_OBJECT      = 181678,                   //eruption objects
+    GO_ERUPTION_TWO_OBJECT      = 181676,
+    GO_ERUPTION_THREE_OBJECT    = 181677,
+    GO_ERUPTION_FOUR_OBJECT     = 181695,
 
     // Military Quarter
     GO_MILI_GOTH_ENTRY_GATE     = 181124,                   //used while encounter is in progress
@@ -156,7 +172,7 @@ enum
     AREATRIGGER_GOTHIK          = 4116,
     AREATRIGGER_THADDIUS_DOOR   = 4113,
 
-    // Achievement-related
+    // Achievement related
     ACHIEV_CRIT_SAFETY_DANCE_N  = 7264,                     // Heigan, achievs 1996, 2139
     ACHIEV_CRIT_SAFETY_DANCE_H  = 7548,
     ACHIEV_CRIT_KNOCK_YOU_OUT_N = 7265,                     // Faerlina, achievs 1997, 2140
@@ -206,6 +222,7 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         void OnCreatureCreate(Creature* pCreature);
         void OnObjectCreate(GameObject* pGo);
 
+        void SetAchiev(uint32 uiType, bool get);
         void OnPlayerDeath(Player* pPlayer);
         void OnCreatureDeath(Creature* pCreature);
 
@@ -220,17 +237,11 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
 
         void Update(uint32 uiDiff);
 
-        // Heigan
-        void DoTriggerHeiganTraps(Creature* pHeigan, uint32 uiAreaIndex);
-
         // goth
         void SetGothTriggers();
         Creature* GetClosestAnchorForGoth(Creature* pSource, bool bRightSide);
         void GetGothSummonPointCreatures(std::list<Creature*> &lList, bool bRightSide);
         bool IsInRightSideGothArea(Unit* pUnit);
-
-        // Heigan
-        uint64 GetHeiganTrapData64(uint8 uiAreaIndex, uint32 uiIndex);
 
         // thaddius
         void GetThadTeslaCreatures(GUIDList &lList){ lList = m_lThadTeslaCoilList; };
@@ -240,19 +251,29 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         void GetChamberCenterCoords(float &fX, float &fY, float &fZ) { fX = m_fChamberCenterX; fY = m_fChamberCenterY; fZ = m_fChamberCenterZ; }
         void DoTaunt();
 
+        //Heigan
+        GUIDList m_lEruptionObjectOneGUIDs;
+        GUIDList m_lEruptionObjectTwoGUIDs;
+        GUIDList m_lEruptionObjectThreeGUIDs;
+        GUIDList m_lEruptionObjectFourGUIDs;
+
+        GUIDVector m_lDeathKnightUnderstudyGUIDs;
+       
     protected:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
         std::string m_strInstData;
 
         GUIDList m_lThadTeslaCoilList;
+
         GUIDList m_lFaerlinaAddGUIDs;
+
         GUIDList m_lGothTriggerList;
-
         UNORDERED_MAP<ObjectGuid, GothTrigger> m_mGothTriggerMap;
-        GUIDList m_alHeiganTrapGuids[MAX_HEIGAN_TRAP_AREAS];
-
-        std::vector<uint64> m_avuiHeiganTraps[MAX_HEIGAN_TRAP_AREAS];
+        bool m_bBlaumeuxDead;
+        bool m_bRivendareDead;
+        bool m_bZeliekDead;
+        bool m_bKorthazzDead;
 
         float m_fChamberCenterX;
         float m_fChamberCenterY;

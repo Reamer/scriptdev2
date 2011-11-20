@@ -64,11 +64,14 @@ enum
     SPELL_CHAINS_OF_KELTHUZAD           = 28408,            // 3.x, heroic only
     SPELL_CHAINS_OF_KELTHUZAD_TARGET    = 28410,
 
-    SPELL_MANA_DETONATION               = 27819,
+    SPELL_DETONATE_MANA                 = 27819,
+    SPELL_MANA_DETONATION               = 27820,
     SPELL_SHADOW_FISSURE                = 27810,
     SPELL_FROST_BLAST                   = 27808,
 
     SPELL_CHANNEL_VISUAL                = 29423,
+
+    NPC_SHADOW_FISSURE                  = 16129,
 
     MAX_SOLDIER_COUNT                   = 71,
     MAX_ABOMINATION_COUNT               = 8,
@@ -190,6 +193,17 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             return;
 
         ScriptedAI::MoveInLineOfSight(pWho);
+
+        if (m_pInstance->GetData(TYPE_KELTHUZAD) != IN_PROGRESS)
+            m_pInstance->SetData(TYPE_KELTHUZAD, IN_PROGRESS); 
+    } 
+
+    void Aggro(Unit *pWho)
+    {
+        /*if (m_pInstance)
+            m_pInstance->SetData(TYPE_KELTHUZAD, IN_PROGRESS);*/
+
+        DoCastSpellIfCan(m_creature, SPELL_CHANNEL_VISUAL); 
     }
 
     void DespawnIntroCreatures()
@@ -391,7 +405,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
                 {
                     m_uiPhase = PHASE_NORMAL;
                     DespawnIntroCreatures();
-
+                    m_creature->InterruptNonMeleeSpells(false);
                     m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                     SetCombatMovement(true);
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
@@ -465,9 +479,11 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
             if (m_uiManaDetonationTimer < uiDiff)
             {
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MANA_DETONATION, SELECT_FLAG_PLAYER | SELECT_FLAG_POWER_MANA))
+                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+
+                if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER && pTarget->getPowerType() == POWER_MANA)
                 {
-                    if (DoCastSpellIfCan(pTarget, SPELL_MANA_DETONATION) == CAST_OK)
+                    if (DoCastSpellIfCan(pTarget, SPELL_DETONATE_MANA) == CAST_OK)
                     {
                         if (urand(0, 1))
                             DoScriptText(SAY_SPECIAL1_MANA_DET, m_creature);
@@ -567,10 +583,10 @@ CreatureAI* GetAI_boss_kelthuzad(Creature* pCreature)
 
 void AddSC_boss_kelthuzad()
 {
-    Script* pNewScript;
+    Script* NewScript;
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_kelthuzad";
-    pNewScript->GetAI = &GetAI_boss_kelthuzad;
-    pNewScript->RegisterSelf();
+    NewScript = new Script;
+    NewScript->Name = "boss_kelthuzad";
+    NewScript->GetAI = &GetAI_boss_kelthuzad;
+    NewScript->RegisterSelf();
 }

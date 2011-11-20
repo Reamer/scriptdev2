@@ -39,7 +39,11 @@ instance_naxxramas::instance_naxxramas(Map* pMap) : ScriptedInstance(pMap),
     m_dialogueHelper(aNaxxDialogue),
     m_fChamberCenterX(0.0f),
     m_fChamberCenterY(0.0f),
-    m_fChamberCenterZ(0.0f)
+    m_fChamberCenterZ(0.0f),
+    m_bBlaumeuxDead(false),
+    m_bRivendareDead(false),
+    m_bZeliekDead(false),
+    m_bKorthazzDead(false)
 {
     Initialize();
 }
@@ -60,14 +64,23 @@ void instance_naxxramas::OnCreatureCreate(Creature* pCreature)
     {
         case NPC_ANUB_REKHAN:
         case NPC_FAERLINA:
+        case NPC_MAEXXNA:
+        case NPC_PATCHWERK:
+        case NPC_GROBBULUS:
+        case NPC_GLUTH:
         case NPC_THADDIUS:
         case NPC_STALAGG:
         case NPC_FEUGEN:
+        case NPC_NOTH:
+        case NPC_HEIGAN:
+        case NPC_LOATHEB:
+        case NPC_RAZUVIOUS:
         case NPC_ZELIEK:
         case NPC_THANE:
         case NPC_BLAUMEUX:
         case NPC_RIVENDARE:
         case NPC_GOTHIK:
+        case NPC_SAPPHIRON:
         case NPC_KELTHUZAD:
         case NPC_THE_LICHKING:
             m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
@@ -80,6 +93,9 @@ void instance_naxxramas::OnCreatureCreate(Creature* pCreature)
         case NPC_NAXXRAMAS_WORSHIPPER:
             m_lFaerlinaAddGUIDs.push_back(pCreature->GetObjectGuid());
             break;
+        case NPC_DEATH_KNIGHT_UNDERSTUDY:
+            m_lDeathKnightUnderstudyGUIDs.push_back(pCreature->GetObjectGuid());
+            return;
     }
 }
 
@@ -124,6 +140,18 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
             break;
         case GO_PLAG_LOAT_DOOR:
             break;
+        case GO_ERUPTION_ONE_OBJECT:
+            m_lEruptionObjectOneGUIDs.push_back(pGo->GetObjectGuid());
+            return;
+        case GO_ERUPTION_TWO_OBJECT:
+            m_lEruptionObjectTwoGUIDs.push_back(pGo->GetObjectGuid());
+            return;
+        case GO_ERUPTION_THREE_OBJECT:
+            m_lEruptionObjectThreeGUIDs.push_back(pGo->GetObjectGuid());
+            return;
+        case GO_ERUPTION_FOUR_OBJECT:
+            m_lEruptionObjectFourGUIDs.push_back(pGo->GetObjectGuid());
+            return;
 
         // Military Quarter
         case GO_MILI_GOTH_ENTRY_GATE:
@@ -198,21 +226,6 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
             break;
 
         default:
-            // Heigan Traps - many different entries which are only required for sorting
-            if (pGo->GetGoType() == GAMEOBJECT_TYPE_TRAP)
-            {
-                uint32 uiGoEntry = pGo->GetEntry();
-
-                if ((uiGoEntry >= 181517 && uiGoEntry <= 181524) || uiGoEntry == 181678)
-                    m_alHeiganTrapGuids[0].push_back(pGo->GetObjectGuid());
-                else if ((uiGoEntry >= 181510 && uiGoEntry <= 181516) || (uiGoEntry >= 181525 && uiGoEntry <= 181531) || uiGoEntry == 181533 || uiGoEntry == 181676)
-                    m_alHeiganTrapGuids[1].push_back(pGo->GetObjectGuid());
-                else if ((uiGoEntry >= 181534 && uiGoEntry <= 181544) || uiGoEntry == 181532 || uiGoEntry == 181677)
-                    m_alHeiganTrapGuids[2].push_back(pGo->GetObjectGuid());
-                else if ((uiGoEntry >= 181545 && uiGoEntry <= 181552) || uiGoEntry == 181695)
-                    m_alHeiganTrapGuids[3].push_back(pGo->GetObjectGuid());
-            }
-
             return;
     }
     m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
@@ -240,8 +253,6 @@ bool instance_naxxramas::IsEncounterInProgress() const
         if (m_auiEncounter[i] == IN_PROGRESS)
             return true;
     }
-
-    // Some Encounters use SPECIAL while in progress
     if (m_auiEncounter[TYPE_GOTHIK] == SPECIAL)
         return true;
 
@@ -347,11 +358,48 @@ void instance_naxxramas::SetData(uint32 uiType, uint32 uiData)
             }
             m_auiEncounter[uiType] = uiData;
             break;
+        case TYPE_BLAUMEUX:
+            if (uiData == DONE)
+            {
+                m_bBlaumeuxDead = true;
+                if (m_bRivendareDead && m_bZeliekDead && m_bKorthazzDead)
+                    SetData(TYPE_FOUR_HORSEMEN, DONE);
+            }
+            break;
+        case TYPE_RIVENDARE:
+            if (uiData == DONE)
+            {
+                m_bRivendareDead = true;
+                if (m_bBlaumeuxDead && m_bZeliekDead && m_bKorthazzDead)
+                    SetData(TYPE_FOUR_HORSEMEN, DONE);
+            }
+            break;
+        case TYPE_ZELIEK:
+            if (uiData == DONE)
+            {
+                m_bZeliekDead = true;
+                if (m_bBlaumeuxDead && m_bRivendareDead && m_bKorthazzDead)
+                    SetData(TYPE_FOUR_HORSEMEN, DONE);
+            }
+            break;
+        case TYPE_KORTHAZZ:
+            if (uiData == DONE)
+            {
+                m_bKorthazzDead = true;
+                if (m_bBlaumeuxDead && m_bRivendareDead && m_bZeliekDead)
+                    SetData(TYPE_FOUR_HORSEMEN, DONE);
+            }
+            break;
         case TYPE_FOUR_HORSEMEN:
             m_auiEncounter[uiType] = uiData;
             DoUseDoorOrButton(GO_MILI_HORSEMEN_DOOR);
             if (uiData == DONE)
             {
+                if (instance)
+                {
+                    bool m_bIsRegularMode = instance->IsRegularDifficulty();
+                    DoCompleteAchievement(m_bIsRegularMode ? 568 : 569);
+                }                
                 DoUseDoorOrButton(GO_MILI_EYE_RAMP);
                 DoRespawnGameObject(GO_MILI_PORTAL, 30*MINUTE);
                 DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_CHEST_HORSEMEN_NORM : GO_CHEST_HORSEMEN_HERO, 30*MINUTE);
@@ -384,9 +432,8 @@ void instance_naxxramas::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData != SPECIAL)
                 DoUseDoorOrButton(GO_CONS_THAD_DOOR, uiData);
-            // Uncomment when this achievement is implemented
             //if (uiData == IN_PROGRESS)
-            //    SetSpecialAchievementCriteria(TYPE_ACHIEV_SHOCKING, true);
+                //SetSpecialAchievementCriteria(TYPE_ACHIEV_SHOCKING, true);
             if (uiData == DONE)
             {
                 DoUseDoorOrButton(GO_CONS_EYE_RAMP);
@@ -396,9 +443,8 @@ void instance_naxxramas::SetData(uint32 uiType, uint32 uiData)
             break;
         case TYPE_SAPPHIRON:
             m_auiEncounter[uiType] = uiData;
-            // Uncomment when achiev check implemented
-            //if (uiData == IN_PROGRESS)
-            //    SetSpecialAchievementCriteria(TYPE_ACHIEV_HUNDRED_CLUB, true);
+            if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEV_HUNDRED_CLUB, true);
             if (uiData == DONE)
             {
                 DoUseDoorOrButton(GO_KELTHUZAD_WATERFALL_DOOR);
@@ -464,14 +510,6 @@ uint32 instance_naxxramas::GetData(uint32 uiType)
     if (uiType < MAX_ENCOUNTER)
         return m_auiEncounter[uiType];
 
-    switch(uiType)
-    {
-        // Number of Heigan traps per area
-        case TYPE_MAX_HEIGAN_TRAPS_1:   return m_avuiHeiganTraps[0].size();
-        case TYPE_MAX_HEIGAN_TRAPS_2:   return m_avuiHeiganTraps[1].size();
-        case TYPE_MAX_HEIGAN_TRAPS_3:   return m_avuiHeiganTraps[2].size();
-        case TYPE_MAX_HEIGAN_TRAPS_4:   return m_avuiHeiganTraps[3].size();
-    }
     return 0;
 }
 
@@ -611,18 +649,6 @@ bool instance_naxxramas::IsInRightSideGothArea(Unit* pUnit)
 
     error_log("SD2: left/right side check, Gothik combat area failed.");
     return true;
-}
-
-void instance_naxxramas::DoTriggerHeiganTraps(Creature* pHeigan, uint32 uiAreaIndex)
-{
-    if (uiAreaIndex >= MAX_HEIGAN_TRAP_AREAS)
-        return;
-
-    for (GUIDList::const_iterator itr = m_alHeiganTrapGuids[uiAreaIndex].begin(); itr != m_alHeiganTrapGuids[uiAreaIndex].end(); ++itr)
-    {
-        if (GameObject* pTrap = instance->GetGameObject(*itr))
-            pTrap->Use(pHeigan);
-    }
 }
 
 void instance_naxxramas::SetChamberCenterCoords(float fX, float fY, float fZ)

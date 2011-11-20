@@ -51,6 +51,11 @@ enum
     SPELL_SELF_SPAWN_5          = 29105,                    //This spawns 5 corpse scarabs ontop of us (most likely the pPlayer casts this on death)
     SPELL_SELF_SPAWN_10         = 28864,                    //This is used by the crypt guards when they die
 
+    SPELL_FRENZY                = 8269,
+    SPELL_ACID_SPIT             = 28969,
+    SPELL_ACID_SPIT_H           = 56098,
+    SPELL_CLEAVE                = 40504,
+
     NPC_CRYPT_GUARD             = 16573
 };
 
@@ -76,7 +81,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
     {
         m_uiImpaleTimer = 15000;                            // 15 seconds
         m_uiLocustSwarmTimer = urand(80000, 120000);        // Random time between 80 seconds and 2 minutes for initial cast
-        m_uiSummonTimer = m_uiLocustSwarmTimer + 45000;     // 45 seconds after initial locust swarm
+        m_uiSummonTimer = 0;                       
     }
 
     void KilledUnit(Unit* pVictim)
@@ -102,6 +107,15 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ANUB_REKHAN, IN_PROGRESS);
+
+        if (m_bIsRegularMode)
+            m_uiSummonTimer = 20000;
+        else
+        {
+            SummonGuard();
+            SummonGuard();
+            m_uiSummonTimer = 30000;
+        }
     }
 
     void JustDied(Unit* pKiller)
@@ -134,6 +148,20 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
         ScriptedAI::MoveInLineOfSight(pWho);
     }
 
+    void SummonGuard()
+    {
+        m_creature->SummonCreature(NPC_CRYPT_GUARD,m_creature->GetPositionX()+rand()%5,
+                                                   m_creature->GetPositionY()+rand()%5,
+                                                   m_creature->GetPositionZ(),0,
+                                                   TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
+    }
+
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_CRYPT_GUARD)
+            DoCastSpellIfCan(pSummoned, SPELL_SELF_SPAWN_10, CAST_TRIGGERED);
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -158,20 +186,20 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
         // Locust Swarm
         if (m_uiLocustSwarmTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_LOCUSTSWARM :SPELL_LOCUSTSWARM_H);
-            m_uiLocustSwarmTimer = 90000;
-        }
-        else
-            m_uiLocustSwarmTimer -= uiDiff;
+            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_LOCUSTSWARM :SPELL_LOCUSTSWARM_H) == CAST_OK)
+                m_uiLocustSwarmTimer = 80000;
+        }else m_uiLocustSwarmTimer -= uiDiff;
 
-        // Summon
-        /*if (m_uiSummonTimer < uiDiff)
+        // Summon crypt guard
+        if (m_uiSummonTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_SUMMONGUARD);
-            Summon_Timer = 45000;
-        }
-        else
-            m_uiSummonTimer -= uiDiff;*/
+            SummonGuard();
+            if (!m_bIsRegularMode)
+                SummonGuard();
+
+            //DoCastSpellIfCan(m_creature, SPELL_SUMMONGUARD);
+            m_uiSummonTimer =  m_bIsRegularMode ? 30000 : 45000;
+        }else m_uiSummonTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
@@ -184,10 +212,9 @@ CreatureAI* GetAI_boss_anubrekhan(Creature* pCreature)
 
 void AddSC_boss_anubrekhan()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
-    pNewScript->Name = "boss_anubrekhan";
-    pNewScript->GetAI = &GetAI_boss_anubrekhan;
-    pNewScript->RegisterSelf();
+    Script* NewScript;
+    NewScript = new Script;
+    NewScript->Name = "boss_anubrekhan";
+    NewScript->GetAI = &GetAI_boss_anubrekhan;
+    NewScript->RegisterSelf();
 }

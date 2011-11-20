@@ -42,8 +42,10 @@ enum
     EMOTE_TELEPORT          = -1533136,
     EMOTE_RETURN            = -1533137,
 
-    // Spells by boss
-    SPELL_DECREPIT_FEVER    = 29998,
+    SPELL_ERUPTION          = 29371,                        //Spell used by floor pieces to cause damage to players
+
+    //Spells by boss
+    SPELL_DECREPIT_FEVER_N  = 29998,
     SPELL_DECREPIT_FEVER_H  = 55011,
     SPELL_DISRUPTION        = 29310,
     SPELL_TELEPORT          = 30211,
@@ -63,7 +65,8 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
     bool m_bIsRegularMode;
 
     uint8 m_uiPhase;
-    uint8 m_uiPhaseEruption;
+    uint8 m_uiSafeSpot;
+    bool  m_bforward;
 
     uint32 m_uiFeverTimer;
     uint32 m_uiDisruptionTimer;
@@ -74,7 +77,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
 
     void ResetPhase()
     {
-        m_uiPhaseEruption = 0;
+        m_uiSafeSpot = 1;
         m_uiFeverTimer = 4000;
         m_uiEruptionTimer = m_uiPhase == PHASE_GROUND ? urand(8000, 12000) : urand(2000, 3000);
         m_uiDisruptionTimer = 5000;
@@ -121,6 +124,140 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
             m_pInstance->SetData(TYPE_HEIGAN, FAIL);
     }
 
+    std::list<GameObject*> GetGameObjectsByEntry(uint32 entry)
+    {
+        CellPair pair(MaNGOS::ComputeCellPair(m_creature->GetPositionX(), m_creature->GetPositionY()));
+        Cell cell(pair);
+        cell.SetNoCreate();
+ 
+        std::list<GameObject*> gameobjectList;
+ 
+        AllGameObjectsWithEntryInRangeCheck check(m_creature, entry, 100);
+        MaNGOS::GameObjectListSearcher<AllGameObjectsWithEntryInRangeCheck> searcher(gameobjectList, check);
+        TypeContainerVisitor<MaNGOS::GameObjectListSearcher<AllGameObjectsWithEntryInRangeCheck>, GridTypeMapContainer> visitor(searcher);
+ 
+        cell.Visit(pair, visitor, *(m_creature->GetMap()), *m_creature, 100);
+ 
+        return gameobjectList;
+    }
+
+    //Let's Dance!
+    void DoErupt(uint32 safePlace)
+    {
+        if(safePlace != 1)
+        {
+            //Visual part of eruption
+            for (int32 i = 181510; i <= 181526; i++)
+            {
+                if (i == 181513 || i == 181512 || i == 181511 || i == 181525 || i == 181514 || i == 181515 || i == 181516)
+                    continue;
+                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                {
+                    if((*itr))
+                        //Required GO Custom Animation Patch for this
+                    {
+                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
+                        data << (*itr)->GetGUID();
+                        data << 0;
+                        (*itr)->SendMessageToSet(&data,true);
+                    }
+                }
+            }
+            //Damage part of eruption
+            if (m_pInstance)
+            {
+                for (GUIDList::iterator itr = m_pInstance->m_lEruptionObjectOneGUIDs.begin(); itr != m_pInstance->m_lEruptionObjectOneGUIDs.end(); ++itr)
+                {
+                    m_creature->CastSpell(m_creature, SPELL_ERUPTION, true, 0, 0, (*itr));
+                }
+            }
+        }
+        else
+            m_bforward = true;
+
+        if(safePlace != 2)
+        {
+            for (int32 i = 181511; i <= 181531; i++)
+            {
+                if ((i > 181516 && i < 181525) || (i == 181526))
+                    continue;
+                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                {
+                    if((*itr))
+                    {
+                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
+                        data << (*itr)->GetGUID();
+                        data << 0;
+                        (*itr)->SendMessageToSet(&data,true);
+                    }
+                }
+            }
+            if (m_pInstance)
+            {
+                for (GUIDList::iterator itr = m_pInstance->m_lEruptionObjectTwoGUIDs.begin(); itr != m_pInstance->m_lEruptionObjectTwoGUIDs.end(); ++itr)
+                {
+                    m_creature->CastSpell(m_creature, SPELL_ERUPTION, true, 0, 0, (*itr));
+                }
+            }
+        }
+        if(safePlace != 3)
+        {
+            for (int32 i = 181532; i <= 181545; i++)
+            {
+                if (i >= 181537 && i <= 181539)
+                    continue;
+                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                {
+                    if((*itr))
+                    {
+                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
+                        data << (*itr)->GetGUID();
+                        data << 0;
+                        (*itr)->SendMessageToSet(&data,true);
+                    }
+                }
+            }
+            if (m_pInstance)
+            {
+                for (GUIDList::iterator itr = m_pInstance->m_lEruptionObjectThreeGUIDs.begin(); itr != m_pInstance->m_lEruptionObjectThreeGUIDs.end(); ++itr)
+                {
+                    m_creature->CastSpell(m_creature, SPELL_ERUPTION, true, 0, 0, (*itr));
+                }
+            }
+        }
+        if(safePlace != 4)
+        {
+            for (int32 i = 181537; i <= 181552; i++)
+            {
+                if (i > 181539 && i < 181545)
+                    continue;
+                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
+                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                {
+                    if((*itr))
+                    {
+                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
+                        data << (*itr)->GetGUID();
+                        data << 0;
+                        (*itr)->SendMessageToSet(&data,true);
+                    }
+                }
+            }
+            if (m_pInstance)
+            {
+                for (GUIDList::iterator itr = m_pInstance->m_lEruptionObjectFourGUIDs.begin(); itr != m_pInstance->m_lEruptionObjectFourGUIDs.end(); ++itr)
+                {
+                    m_creature->CastSpell(m_creature, SPELL_ERUPTION, true, 0, 0, (*itr));
+                }
+            }
+        }
+        else
+            m_bforward = false;
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -147,7 +284,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
             // Fever
             if (m_uiFeverTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_DECREPIT_FEVER : SPELL_DECREPIT_FEVER_H);
+                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_DECREPIT_FEVER_N : SPELL_DECREPIT_FEVER_H);
                 m_uiFeverTimer = 21000;
             }
             else
@@ -161,10 +298,21 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
             }
             else
                 m_uiDisruptionTimer -= uiDiff;
+
+            if(m_uiEruptionTimer < uiDiff)
+            {
+                DoErupt(m_uiSafeSpot);
+                if (m_bforward)
+                    m_uiSafeSpot++;
+                else
+                    m_uiSafeSpot--;
+                m_uiEruptionTimer = 10500;
+            }else 
+                m_uiEruptionTimer -= uiDiff;
         }
-        else                                                // Platform Phase
+        else                                                //Platform Phase
         {
-            if (m_uiPhaseTimer < uiDiff)                    // Return to fight
+            if (m_uiPhaseTimer <= uiDiff)                   // return to fight
             {
                 m_creature->InterruptNonMeleeSpells(true);
                 DoScriptText(EMOTE_RETURN, m_creature);
@@ -179,7 +327,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
 
             if (m_uiStartChannelingTimer)
             {
-                if (m_uiStartChannelingTimer <= uiDiff)
+                if (m_uiStartChannelingTimer <=uiDiff)
                 {
                     DoScriptText(SAY_CHANNELING, m_creature);
                     DoCastSpellIfCan(m_creature, SPELL_PLAGUE_CLOUD);
@@ -188,6 +336,16 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
                 else
                     m_uiStartChannelingTimer -= uiDiff;
             }
+            
+            if(m_uiEruptionTimer < uiDiff)
+            {
+                DoErupt(m_uiSafeSpot);
+                if (m_bforward)
+                    m_uiSafeSpot++;
+                else
+                    m_uiSafeSpot--;
+                m_uiEruptionTimer = 3500;
+            }else m_uiEruptionTimer-=uiDiff;
         }
 
         // Taunt
@@ -206,28 +364,6 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
             m_uiTauntTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
-
-        // Handling of the erruptions, this is not related to melee attack or spell-casting
-        if (!m_pInstance)
-            return;
-
-        // Eruption
-        if (m_uiEruptionTimer < uiDiff)
-        {
-            for (uint8 uiArea = 0; uiArea < MAX_HEIGAN_TRAP_AREAS; ++uiArea)
-            {
-                // Actually this is correct :P
-                if (uiArea == (m_uiPhaseEruption % 6) || uiArea == 6 - (m_uiPhaseEruption % 6))
-                    continue;
-
-                m_pInstance->DoTriggerHeiganTraps(m_creature, uiArea);
-            }
-
-            m_uiEruptionTimer = m_uiPhase == PHASE_GROUND ? urand(8000, 12000) : urand(2000, 3000);
-            ++m_uiPhaseEruption;
-        }
-        else
-            m_uiEruptionTimer -= uiDiff;
     }
 };
 
@@ -238,10 +374,9 @@ CreatureAI* GetAI_boss_heigan(Creature* pCreature)
 
 void AddSC_boss_heigan()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
-    pNewScript->Name = "boss_heigan";
-    pNewScript->GetAI = &GetAI_boss_heigan;
-    pNewScript->RegisterSelf();
+    Script* NewScript;
+    NewScript = new Script;
+    NewScript->Name = "boss_heigan";
+    NewScript->GetAI = &GetAI_boss_heigan;
+    NewScript->RegisterSelf();
 }

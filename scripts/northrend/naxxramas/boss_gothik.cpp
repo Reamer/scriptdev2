@@ -92,6 +92,8 @@ struct MANGOS_DLL_DECL boss_gothikAI : public ScriptedAI
     uint32 m_uiTeleportTimer;
     uint32 m_uiShadowboltTimer;
 
+    uint32 m_uiHarvestSoulTimer;
+
     void Reset()
     {
         m_uiPhase = PHASE_SPEECH;
@@ -184,7 +186,11 @@ struct MANGOS_DLL_DECL boss_gothikAI : public ScriptedAI
             if (uiCount == 0)
                 break;
 
-            m_creature->SummonCreature(uiSummonEntry, (*itr)->GetPositionX(), (*itr)->GetPositionY(), (*itr)->GetPositionZ(), (*itr)->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 15000);
+            if (Creature* pSummond = m_creature->SummonCreature(uiSummonEntry, (*itr)->GetPositionX(), (*itr)->GetPositionY(), (*itr)->GetPositionZ(), (*itr)->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 15000))
+            {
+                pSummond->SetInCombatWithZone();
+            }
+
             --uiCount;
         }
     }
@@ -314,6 +320,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public ScriptedAI
                         {
                             DoResetThreat();
                             m_uiTeleportTimer = 15000;
+                            m_uiHarvestSoulTimer = 1000;
                             m_uiShadowboltTimer = 2000;
                             return;
                         }
@@ -330,6 +337,14 @@ struct MANGOS_DLL_DECL boss_gothikAI : public ScriptedAI
                 else
                     m_uiShadowboltTimer -= uiDiff;
 
+                if (m_uiHarvestSoulTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_HARVESTSOUL) == CAST_OK)
+                        m_uiHarvestSoulTimer = 15000;
+                }
+                else
+                    m_uiHarvestSoulTimer -= uiDiff;
+               
                 DoMeleeAttackIfReady();                     // possibly no melee at all
                 break;
             }
@@ -412,10 +427,12 @@ bool EffectDummyCreature_spell_anchor(Unit* pCaster, uint32 uiSpellId, SpellEffe
                 else if (uiSpellId == SPELL_C_TO_SKULL)
                     uiNpcEntry = NPC_SPECT_RIDER;
 
-                pGoth->SummonCreature(uiNpcEntry, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), pCreatureTarget->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 20000);
+                if (Creature* pTemp = pGoth->SummonCreature(uiNpcEntry, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), pCreatureTarget->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 20000))
+                    pTemp->SetInCombatWithZone();
 
                 if (uiNpcEntry == NPC_SPECT_RIDER)
-                    pGoth->SummonCreature(NPC_SPECT_HORSE, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), pCreatureTarget->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 20000);
+                    if (Creature* pTemp = pGoth->SummonCreature(NPC_SPECT_HORSE, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), pCreatureTarget->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 20000))
+                        pTemp->SetInCombatWithZone();
             }
             return true;
         }
@@ -426,15 +443,15 @@ bool EffectDummyCreature_spell_anchor(Unit* pCaster, uint32 uiSpellId, SpellEffe
 
 void AddSC_boss_gothik()
 {
-    Script* pNewScript;
+    Script* newscript;
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_gothik";
-    pNewScript->GetAI = &GetAI_boss_gothik;
-    pNewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "boss_gothik";
+    newscript->GetAI = &GetAI_boss_gothik;
+    newscript->RegisterSelf();
 
-    pNewScript = new Script;
-    pNewScript->Name = "spell_anchor";
-    pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_anchor;
-    pNewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "spell_anchor";
+    newscript->pEffectDummyNPC = &EffectDummyCreature_spell_anchor;
+    newscript->RegisterSelf();
 }

@@ -41,6 +41,7 @@ enum
     SPELL_DISRUPTING_SHOUT   = 55543,
     SPELL_DISRUPTING_SHOUT_H = 29107,
     SPELL_JAGGED_KNIFE       = 55550,
+    SPELL_FORCE_OBEDIENCE    = 55479,
     SPELL_HOPELESS           = 29125
 };
 
@@ -169,6 +170,24 @@ CreatureAI* GetAI_boss_razuvious(Creature* pCreature)
     return new boss_razuviousAI(pCreature);
 }
 
+bool GossipHello_obedience_crystal(Player* pPlayer, Creature* pCreature)
+{
+    if (instance_naxxramas* m_pInstance = (instance_naxxramas*) pCreature->GetInstanceData())
+    {
+        for(int i=0;i<2;i++)
+        {
+            if (Creature* pUnderstudy = pCreature->GetMap()->GetCreature(m_pInstance->m_lDeathKnightUnderstudyGUIDs.at(i)))
+            {
+                if (pUnderstudy->HasAura(SPELL_FORCE_OBEDIENCE))
+                    continue;
+                pPlayer->CastSpell(pUnderstudy,SPELL_FORCE_OBEDIENCE,true);
+                return true;
+            }
+        }
+    }
+    return true;
+}
+
 void AddSC_boss_razuvious()
 {
     Script* pNewScript;
@@ -176,5 +195,10 @@ void AddSC_boss_razuvious()
     pNewScript = new Script;
     pNewScript->Name = "boss_razuvious";
     pNewScript->GetAI = &GetAI_boss_razuvious;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "obedience_crystal";
+    pNewScript->pGossipHello = &GossipHello_obedience_crystal;
     pNewScript->RegisterSelf();
 }
