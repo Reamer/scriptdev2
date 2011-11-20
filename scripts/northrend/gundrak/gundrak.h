@@ -25,7 +25,7 @@ enum
     NPC_MOORABI            = 29305,
     NPC_COLOSSUS           = 29307,
     NPC_ELEMENTAL          = 29573,
-    NPC_LIVIN_MOJO         = 29830,
+    NPC_LIVING_MOJO        = 29830,
     NPC_GALDARAH           = 29306,
     NPC_ECK                = 29932,
     NPC_INVISIBLE_STALKER  = 30298,                         // Caster and Target for visual spells on altar use
@@ -55,6 +55,12 @@ enum
     TIMER_VISUAL_ALTAR     = 3000,
     TIMER_VISUAL_BEAM      = 2500,
     TIMER_VISUAL_KEY       = 2000,
+
+    //Achievements
+    ACHIEV_CRITERIA_SNAKES = 7363,
+    ACHIEV_CRITERIA_LESS_RABI = 7319,
+    ACHIEV_CRITERIA_WHAT_THE_ECK = 7136,
+    ACHIEV_CRITERIA_SHARE_THE_LOVE = 7583
 };
 
 typedef std::map<uint8, uint32>  TypeTimerMap;
@@ -72,12 +78,17 @@ class MANGOS_DLL_DECL instance_gundrak : public ScriptedInstance
         void OnObjectCreate(GameObject* pGo);
 
         void SetData(uint32 uiType, uint32 uiData);
+        void SetAchiev(uint32 uiType, bool get);
         uint32 GetData(uint32 uiType);
+
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
 
         const char* Save() { return m_strInstData.c_str(); }
         void Load(const char* chrIn);
 
         void Update(uint32 uiDiff);
+
+        GUIDList m_lLivingMojoGUIDList;
 
     protected:
         void DoAltarVisualEffect(uint8 uiType);
@@ -91,6 +102,15 @@ class MANGOS_DLL_DECL instance_gundrak : public ScriptedInstance
         GUIDList m_luiStalkerGUIDs;
         GUIDVector m_vStalkerCasterGuids;
         GUIDVector m_vStalkerTargetGuids;
+
+        uint32 m_uiBridgeCounter;
+        bool   m_bGuardSpawnt;
+
+        //Achievements
+        bool m_bCriteriaSnake;
+        bool m_bLessRabi;
+        bool m_bWhatTheEck;
+        bool m_bShareTheLove;
 };
 
 #endif

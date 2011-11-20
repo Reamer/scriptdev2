@@ -91,7 +91,10 @@ struct MANGOS_DLL_DECL boss_moorabiAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_MOJO_FRENZY);
 
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_MOORABI, IN_PROGRESS);
+            m_pInstance->SetAchiev(TYPE_MOORABI, true);
+        }
     }
 
     void KilledUnit(Unit* pVictim)
@@ -119,6 +122,8 @@ struct MANGOS_DLL_DECL boss_moorabiAI : public ScriptedAI
 
         if (m_creature->HasAura(SPELL_TRANSFORMATION) && !m_bMammothPhase)
         {
+            if (m_pInstance)
+                m_pInstance->SetAchiev(TYPE_MOORABI, false);
             DoScriptText(EMOTE_TRANSFORMED, m_creature);
             m_bMammothPhase = true;
         }
@@ -178,10 +183,10 @@ CreatureAI* GetAI_boss_moorabi(Creature* pCreature)
 
 void AddSC_boss_moorabi()
 {
-    Script* pNewScript;
+    Script* newscript;
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_moorabi";
-    pNewScript->GetAI = &GetAI_boss_moorabi;
-    pNewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "boss_moorabi";
+    newscript->GetAI = &GetAI_boss_moorabi;
+    newscript->RegisterSelf();
 }

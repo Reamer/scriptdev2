@@ -1,18 +1,18 @@
 /* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+*/
 
 /* ScriptData
 SDName: Boss_Novos
@@ -26,43 +26,40 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO                       = -1600005,
-    SAY_DEATH                       = -1600006,
-    SAY_KILL                        = -1600007,
-    SAY_ADDS                        = -1600008,
-    SAY_BUBBLE_1                    = -1600009,
-    SAY_BUBBLE_2                    = -1600010,
+    SAY_AGGRO = -1600005,
+    SAY_DEATH = -1600006,
+    SAY_KILL = -1600007,
+    SAY_ADDS = -1600008,
+    SAY_BUBBLE_1 = -1600009,
+    SAY_BUBBLE_2 = -1600010,
 
-    EMOTE_ASSISTANCE                = -1600011,
+    EMOTE_ASSISTANCE = -1600011,
 
-    SPELL_ARCANE_FIELD              = 47346,
-    SPELL_IMMUNITY                  = 34098,
-    SPELL_SUMMON_MINIONS_H          = 59910,
-    SPELL_FROSTBOLT                 = 49037,
-    SPELL_FROSTBOLT_H               = 59855,
-    SPELL_ARCANE_BLAST              = 49198,
-    SPELL_ARCANE_BLAST_H            = 59909,
-    SPELL_BLIZZARD                  = 49034,
-    SPELL_BLIZZARD_H                = 59854,
-    SPELL_TOUCH_OF_MISERY           = 50090,                // TODO - purpose of this spell (triggers SPELL_WRATH_OF_MISERY) unknown
-    SPELL_WRATH_OF_MISERY           = 50089,
-    SPELL_WRATH_OF_MISERY_H         = 59856,
+    SPELL_ARCANE_FIELD = 47346,
+    SPELL_IMMUNITY = 34098,
+    SPELL_SUMMON_MINIONS_H = 59910,
+    SPELL_FROSTBOLT = 49037,
+    SPELL_FROSTBOLT_H = 59855,
+    SPELL_ARCANE_BLAST = 49198,
+    SPELL_ARCANE_BLAST_H = 59909,
+    SPELL_BLIZZARD = 49034,
+    SPELL_BLIZZARD_H = 59854,
+    SPELL_TOUCH_OF_MISERY = 50090, // TODO - purpose of this spell (triggers SPELL_WRATH_OF_MISERY) unknown
+    SPELL_WRATH_OF_MISERY = 50089,
+    SPELL_WRATH_OF_MISERY_H = 59856,
 
-    // SPELL_SUMMON_CRYSTAL_HANDLER    = 49179,             // Spell seems to be unused, perhaps only server-side, and especially no suitable positioned caster are found for this spell
+    // SPELL_SUMMON_CRYSTAL_HANDLER = 49179, // Spell seems to be unused, perhaps only server-side, and especially no suitable positioned caster are found for this spell
     SPELL_SUMMON_FETID_TROLL_CORPSE = 49103,
-    SPELL_SUMMON_HULKING_CORPSE     = 49104,
+    SPELL_SUMMON_HULKING_CORPSE = 49104,
     SPELL_SUMMON_RISON_SHADOWCASTER = 49105,
-
-    SPELL_SHADOW_BOLT               = 51363,
-    SPELL_SHADOW_BOLT_H             = 59016,
 
     // Spells 'Crystal Handler Death' 47336, 55801, 55803, 55805 (defined in instance script)
 
-    NPC_CRYSTAL_HANDLER             = 26627,
-    NPC_HULKING_CORPSE              = 27597,
-    NPC_FETID_TROLL_CORPSE          = 27598,
-    NPC_RISON_SHADOWCASTER          = 27600,
-    NPC_ROTTED_TROLL_CORPSE         = 32786,                // On heroic as effect of SPELL_SUMMON_MINIONS_H
+    NPC_CRYSTAL_HANDLER = 26627,
+    NPC_HULKING_CORPSE = 27597,
+    NPC_FETID_TROLL_CORPSE = 27598,
+    NPC_RISON_SHADOWCASTER = 27600,
+    NPC_ROTTED_TROLL_CORPSE = 32786, // On heroic as effect of SPELL_SUMMON_MINIONS_H
 };
 
 // The Crystal Handlers are summoned around the two entrances of the room
@@ -78,9 +75,9 @@ static const float aHandlerSummonPos[2][3] =
 
 enum Phases
 {
-    PHASE_SHIELDED  = 0,
-    PHASE_WAITING   = 1,
-    PHASE_NORMAL    = 2,
+    PHASE_SHIELDED = 0,
+    PHASE_WAITING = 1,
+    PHASE_NORMAL = 2,
 };
 
 struct MANGOS_DLL_DECL boss_novosAI : public Scripted_NoMovementAI
@@ -95,7 +92,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public Scripted_NoMovementAI
     instance_draktharon_keep* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint32 m_uiSummonHandlerTimer;                          // TODO the summoning timers are weak
+    uint32 m_uiSummonHandlerTimer; // TODO the summoning timers are weak
     uint32 m_uiSummonShadowcasterTimer;
     uint32 m_uiSummonFetidTrollTimer;
     uint32 m_uiSummonHulkingCorpseTimer;
@@ -133,7 +130,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public Scripted_NoMovementAI
 
         DoScriptText(urand(0, 1) ? SAY_BUBBLE_1 : SAY_BUBBLE_2, m_creature);
 
-        if (m_uiLostCrystals == MAX_CRYSTALS)               // Enter Phase 2
+        if (m_uiLostCrystals == MAX_CRYSTALS) // Enter Phase 2
             m_uiPhase = PHASE_WAITING;
     }
 
@@ -217,7 +214,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public Scripted_NoMovementAI
 
         switch (m_uiPhase)
         {
-            case PHASE_SHIELDED:                            // Event Phase, only summoning of mobs
+            case PHASE_SHIELDED: // Event Phase, only summoning of mobs
                 if (m_uiSummonHandlerTimer < uiDiff)
                 {
                     float fX, fY, fZ;
@@ -262,7 +259,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public Scripted_NoMovementAI
 
                 break;
 
-            case PHASE_WAITING:                             // Short delay between last destroyed crystal and entering combat
+            case PHASE_WAITING: // Short delay between last destroyed crystal and entering combat
                 if (m_uiPhaseTimer < uiDiff)
                 {
                     m_uiPhase = PHASE_NORMAL;
@@ -280,7 +277,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public Scripted_NoMovementAI
 
                 break;
 
-            case PHASE_NORMAL:                              // Normal Phase, attack enemies
+            case PHASE_NORMAL: // Normal Phase, attack enemies
                 if (m_uiArcaneBlastTimer < uiDiff)
                 {
                     // TODO - might be possible that this spell is only casted, when there is an enemy in range
@@ -308,7 +305,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public Scripted_NoMovementAI
                 else
                     m_uiWrathTimer -= uiDiff;
 
-                if (!m_creature->IsNonMeleeSpellCasted(true))       // TODO Use this additional check, because might want to change the random target to be a target that is in LoS (which then is expensive)
+                if (!m_creature->IsNonMeleeSpellCasted(true)) // TODO Use this additional check, because might want to change the random target to be a target that is in LoS (which then is expensive)
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                         DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_FROSTBOLT : SPELL_FROSTBOLT_H);
 
@@ -408,41 +405,6 @@ bool EffectAuraDummy_npc_crystal_channel_target(const Aura* pAura, bool bApply)
     return false;
 }
 
-struct MANGOS_DLL_DECL risen_shadowcasterAI : public ScriptedAI
-{
-    risen_shadowcasterAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    bool m_bIsRegularMode;
-
-    uint32 Check_Timer;
-    void Reset()
-    {
-        Check_Timer = 1000;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (Check_Timer < uiDiff)
-        {
-            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SHADOW_BOLT : SPELL_SHADOW_BOLT_H);
-            Check_Timer = 1000;
-        }
-        else
-            Check_Timer -= uiDiff;
-    }
-};
-
-CreatureAI* GetAI_risen_shadowcaster(Creature* pCreature)
-{
-    return new risen_shadowcasterAI(pCreature);
-}
-
 void AddSC_boss_novos()
 {
     Script* pNewScript;
@@ -456,10 +418,5 @@ void AddSC_boss_novos()
     pNewScript->Name = "npc_crystal_channel_target";
     pNewScript->GetAI = &GetAI_npc_crystal_channel_target;
     pNewScript->pEffectAuraDummy = &EffectAuraDummy_npc_crystal_channel_target;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "risen_shadowcaster";
-    pNewScript->GetAI = &GetAI_risen_shadowcaster;
     pNewScript->RegisterSelf();
 }

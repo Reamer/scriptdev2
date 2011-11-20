@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "gundrak.h"
+#include <math.h> 
 
 enum
 {
@@ -35,12 +36,20 @@ enum
     SPELL_MIGHTY_BLOW           = 54719,
     SPELL_MORTAL_STRIKES        = 54715,
     SPELL_MORTAL_STRIKES_H      = 59454,
+    SPELL_STUN                  = 54852,
 
     // elemental's abilities
-    SPELL_MERGE                 = 54878,
+    SPELL_MERGE                 = 54269,
     SPELL_SURGE                 = 54801,
     SPELL_MOJO_VOLLEY           = 59453,
     SPELL_MOJO_VOLLEY_H         = 54849
+};
+
+enum ColossusPhases
+{
+    PHASE_START     = 0,
+    PHASE_NORMAL    = 1,
+    PHASE_ELEMENTAR = 2
 };
 
 /*######
@@ -58,61 +67,78 @@ struct MANGOS_DLL_DECL boss_colossusAI : public ScriptedAI
 
     instance_gundrak* m_pInstance;
     bool m_bIsRegularMode;
-    bool m_bFirstEmerge;
+
+    bool m_bElementsHasMoved;
+    uint32 m_uiMojoDieTimer;
+
+    uint8  m_uiPhase;
 
     uint32 m_uiMightyBlowTimer;
+    uint32 m_uiEmergeTimer;
+    uint32 m_uiElementarTimer;
 
     void Reset()
     {
-        m_bFirstEmerge = false;
-        m_uiMightyBlowTimer = 10000;
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE | UNIT_FLAG_UNK_6 | UNIT_FLAG_UNK_15);
+        SetCombatMovement(false);
+        m_uiPhase = PHASE_START;
+        m_uiEmergeTimer = 12000;
+        m_uiMightyBlowTimer = 3000;
+        m_creature->SetWalk(true);
+        
+        m_uiMojoDieTimer = 4000;
+        m_bElementsHasMoved = false;
+        m_uiElementarTimer = 26000;
     }
 
-    void Agrro()
+    void Aggro(Unit* pWho)
     {
-        DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_MORTAL_STRIKES : SPELL_MORTAL_STRIKES_H);
-
         if (m_pInstance)
             m_pInstance->SetData(TYPE_COLOSSUS, IN_PROGRESS);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_COLOSSUS, FAIL);
+    }
+
+    void JustDied(Unit* pWho)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_COLOSSUS, DONE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    }
+
+    void KillElementals()
+    {
+        if (m_pInstance)
+        {
+            for(GUIDList::iterator itr = m_pInstance->m_lLivingMojoGUIDList.begin(); itr != m_pInstance->m_lLivingMojoGUIDList.end(); ++itr)
+            {
+                if (Creature* pMojo = m_pInstance->instance->GetCreature(*itr))
+                {
+                    if (pMojo->isAlive())
+                    {
+                        pMojo->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE | UNIT_FLAG_NON_ATTACKABLE);
+                        m_creature->DealDamage(pMojo, pMojo->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                        m_creature->RemoveAurasDueToSpell(16245);
+                    }
+                }
+            }
+        }
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
         if (pSpell->Id == SPELL_MERGE)
         {
-            // re-activate colossus here
-        }
-    }
-
-    void JustSummoned(Creature* pSummoned)
-    {
-        if (pSummoned->GetEntry() == NPC_ELEMENTAL)
-        {
-            // handle elemental stuff
-        }
-    }
-
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
-    {
-        if (!m_bFirstEmerge && m_creature->GetHealthPercent() < 50.0f)
-        {
-            m_bFirstEmerge = true;
-            DoCastSpellIfCan(m_creature, SPELL_EMERGE);
-        }
-        else if (m_creature->GetHealth() - uiDamage <= 0)
-        {
-            // prevent boss from dying if players deal the final blow
-            if (pDoneBy->GetCharmerOrOwnerPlayerOrPlayerItself())
-            {
-                uiDamage = 0;
-                DoCastSpellIfCan(m_creature, SPELL_EMERGE);
-            }
+            if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            SetCombatMovement(true);
+            m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+            m_uiPhase = PHASE_NORMAL;
+            m_uiElementarTimer = 26000;
         }
     }
 
@@ -121,15 +147,82 @@ struct MANGOS_DLL_DECL boss_colossusAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_uiMightyBlowTimer < uiDiff)
+        switch (m_uiPhase)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIGHTY_BLOW);
-            m_uiMightyBlowTimer = 10000;
-        }
-        else
-            m_uiMightyBlowTimer -= uiDiff;
+            case PHASE_START:
+                if (!m_bElementsHasMoved)
+                {
+                    if (m_pInstance)
+                    {
+                        for(GUIDList::iterator itr = m_pInstance->m_lLivingMojoGUIDList.begin(); itr != m_pInstance->m_lLivingMojoGUIDList.end(); ++itr)
+                        {
+                            if (Creature* pMojo = m_pInstance->instance->GetCreature(*itr))
+                            {
+                                if (pMojo->isAlive())
+                                {
+                                    pMojo->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE | UNIT_FLAG_NON_ATTACKABLE);
+                                    pMojo->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());                                    
+                                }
+                            }
+                        }
+                        m_bElementsHasMoved = true;
+                    }
+                }
+                else
+                {
+                    if (m_uiMojoDieTimer < uiDiff)
+                    {
+                        KillElementals();
+                        SetCombatMovement(true);
+                        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                        m_uiPhase = PHASE_NORMAL;
+                    }
+                    else
+                        m_uiMojoDieTimer -= uiDiff;
+                }
+                break;
+            case PHASE_NORMAL:
+            {
+                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_MORTAL_STRIKES : SPELL_MORTAL_STRIKES_H, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
 
-        DoMeleeAttackIfReady();
+                if (m_uiMightyBlowTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIGHTY_BLOW) == CAST_OK)
+                        m_uiMightyBlowTimer = urand(14000, 18000);
+                }
+                else
+                    m_uiMightyBlowTimer -= uiDiff;
+
+                if (m_uiEmergeTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_EMERGE) == CAST_OK)
+                    {
+                        m_uiPhase = PHASE_ELEMENTAR;
+                        m_uiEmergeTimer = 15000;
+                        return;
+                    }
+                }
+                else
+                    m_uiEmergeTimer -= uiDiff;
+
+                DoMeleeAttackIfReady();
+                break;
+            }            
+            case PHASE_ELEMENTAR:
+            {
+                
+                if (m_uiElementarTimer < uiDiff)
+                {
+                    m_creature->RemoveAurasDueToSpell(SPELL_STUN);
+                    m_uiPhase = PHASE_NORMAL;
+                    m_uiElementarTimer = 26000;
+                }
+                else
+                    m_uiElementarTimer -= uiDiff;
+                break;
+            }
+            
+        }
     }
 };
 
@@ -138,12 +231,78 @@ CreatureAI* GetAI_boss_colossus(Creature* pCreature)
     return new boss_colossusAI(pCreature);
 }
 
+struct MANGOS_DLL_DECL mob_colossus_elementalAI : public ScriptedAI
+{
+    mob_colossus_elementalAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (instance_gundrak*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    instance_gundrak* m_pInstance;
+    bool m_bIsRegularMode;
+
+    uint32 m_uiMergeTimer;
+    uint32 m_uiSurgeTimer;
+
+    void Reset()
+    {
+        m_uiMergeTimer = 25000;
+        m_uiSurgeTimer = 10000;
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_MOJO_VOLLEY : SPELL_MOJO_VOLLEY_H, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        
+        if (m_uiMergeTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_MERGE) == CAST_OK)
+            {
+                m_uiMergeTimer = 5000;
+            }
+        }
+        else
+            m_uiMergeTimer -= uiDiff;
+
+        if (m_uiSurgeTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_PLAYER))
+            {
+                m_creature->SetFacingToObject(pTarget);
+                if (DoCastSpellIfCan(pTarget, SPELL_SURGE) == CAST_OK)
+                {
+                    m_uiSurgeTimer = 10000;
+                }
+            }
+        }
+        else
+            m_uiSurgeTimer -= uiDiff;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_mob_colossus_elemental(Creature* pCreature)
+{
+    return new mob_colossus_elementalAI(pCreature);
+}
+
 void AddSC_boss_colossus()
 {
-    Script* pNewScript;
+    Script *newscript;
 
-    pNewScript = new Script;
-    pNewScript->Name = "boss_colossus";
-    pNewScript->GetAI = &GetAI_boss_colossus;
-    pNewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "boss_colossus";
+    newscript->GetAI = &GetAI_boss_colossus;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_colossus_elemental";
+    newscript->GetAI = &GetAI_mob_colossus_elemental;
+    newscript->RegisterSelf();
 }
