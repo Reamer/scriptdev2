@@ -1,23 +1,23 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 
 /* ScriptData
 SDName: boss_vezax
 SD%Complete:
-SDComment: mark of the faceless needs core support. Searing flames needs fixing, cannot be interrupted
+SDComment: TODO Achievments: Shadowdodger
 SDCategory: Ulduar
 EndScriptData */
 
@@ -26,16 +26,16 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO       = -1603120,
-    SAY_SURGE       = -1603123,
-    SAY_HARD        = -1603126,
-    SAY_SLAY1       = -1603121,
-    SAY_SLAY2       = -1603122,
-    SAY_BERSERK     = -1603125,
-    SAY_DEATH       = -1603124,
-    EMOTE_VAPORS    = -1603366,
-    EMOTE_SURGE     = -1603367,
-    EMOTE_ANIMUS    = -1603368,
+    SAY_AGGRO       = -1603350,
+    SAY_SLAY1       = -1603351,
+    SAY_SLAY2       = -1603352,
+    SAY_SURGE       = -1603353,
+    SAY_DEATH       = -1603354,
+    SAY_BERSERK     = -1603355,
+    SAY_HARD        = -1603356,
+    EMOTE_VAPORS    = -1603357,
+    EMOTE_SURGE     = -1603358,
+    EMOTE_ANIMUS    = -1603359,
 
     SPELL_AURA_OF_DESPAIR       = 62692,
     SPELL_SHADOW_CRASH          = 62660,
@@ -65,12 +65,12 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
 {
     boss_vezaxAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_ulduar* m_pInstance;
     bool m_bIsRegularMode;
 
     uint32 m_uiEnrageTimer;
@@ -79,20 +79,13 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
     uint32 m_uiFlamesTimer;
     uint32 m_uiSurgeTimer;
     uint32 m_uiSaroniteVaporTimer;
-    uint32 m_uiSimphonTimer;
-    uint32 m_uiEndSimphonTimer;
     uint32 m_uiSummonAnimusTimer;
     uint64 m_uiAnimusGUID;
-    uint64 m_uiMarkTargetGUID;
-    uint32 m_uiMarkCheckTimer;
-    uint32 m_uiMarkEndTimer;
 
     std::list<Creature*> lVapors;
 
     bool m_bIsHardMode;
     bool m_bActiveHardMode;
-    bool m_bHasMark;
-    bool m_bHasSimphon;
     bool m_bIsAnimusAlive;
 
     void Reset()
@@ -102,17 +95,12 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
         m_uiSaroniteVaporTimer  = 30000;
         m_bIsHardMode           = false;
         m_bActiveHardMode       = false;
-        m_bHasMark              = false;
-        m_bHasSimphon           = false;
         m_bIsAnimusAlive        = false;
 
         m_uiSurgeTimer          = 60000;
         m_uiMarkTimer           = urand(10000, 35000);
         m_uiCrashTimer          = 10000;
-        m_uiSimphonTimer        = 1000;
-        m_uiEndSimphonTimer     = 10000;
         m_uiAnimusGUID          = 0;
-        m_uiMarkTargetGUID      = 0;
 
         lVapors.clear();
 
@@ -146,13 +134,6 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
             if(m_bIsHardMode)
             {
                 m_pInstance->SetData(TYPE_VEZAX_HARD, DONE);
-
-                // hacky way to complete achievements; use only if you have this function
-                m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_MORNING_SARONITE : ACHIEV_MORNING_SARONITE_H);
-                // hack used when the hard mode loot is within the Animus corpse
-                // PLEASE REMOVE FOR REVISION
-                if(Creature* pAnimus = m_pInstance->instance->GetCreature(m_uiAnimusGUID))
-                    pAnimus->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
             }
         }
 
@@ -161,10 +142,7 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-        if(irand(0,1))
-            DoScriptText(SAY_SLAY1, m_creature);
-        else
-            DoScriptText(SAY_SLAY2, m_creature);
+        DoScriptText(urand(0,1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 
     void PrepareHardMode()
@@ -176,7 +154,9 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
 
         if (!lVapors.empty())
         {
-            // vapors need more speed
+            if (m_pInstance)
+                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_MORNING_SARONITE, true);
+			// vapors need more speed
             for(std::list<Creature*>::iterator iter = lVapors.begin(); iter != lVapors.end(); ++iter)
             {
                 if ((*iter) && (*iter)->isAlive())
@@ -216,37 +196,6 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
 
         m_bIsHardMode = true;
         m_bIsAnimusAlive = true;
-    }
-
-    // hacky way for the mark of the faceless, needs core support
-    // PLEASE REMOVE FOR REVISION!
-    void CheckForMark(uint64 m_uiTargetGUID)
-    {
-        if(m_uiTargetGUID == 0)
-            return;
-
-        m_bHasSimphon = false;
-        Map *map = m_creature->GetMap();
-        Unit* pTarget = m_creature->GetMap()->GetUnit( m_uiTargetGUID);
-        if (map->IsDungeon())
-        {
-            Map::PlayerList const &PlayerList = map->GetPlayers();
-
-            if (PlayerList.isEmpty())
-                return;
-
-            for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
-            {
-                if(pTarget && pTarget->isAlive() && !m_bHasSimphon && m_uiTargetGUID != i->getSource()->GetGUID())
-                {
-                    if (i->getSource()->isAlive() && pTarget->GetDistance2d(i->getSource()) < 10.0f)
-                    {
-                        DoCast(pTarget, SPELL_MARK_SIMPHON);
-                        m_bHasSimphon = true;
-                    }
-                }
-            }
-        } 
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -298,35 +247,27 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
-                m_uiMarkTargetGUID = pTarget->GetGUID();
-                DoCast(pTarget, SPELL_MARK_OF_FACELESS);
+                if (pTarget->GetTypeId() == TYPEID_PLAYER)
+                {
+                    DoCastSpellIfCan(pTarget, SPELL_MARK_OF_FACELESS);
+                    m_uiMarkTimer = urand(25000, 30000);
+                }
             }
-            m_bHasMark = true;
-            m_uiMarkCheckTimer = 1000;
-            m_uiMarkEndTimer = 10000;
-            m_uiMarkTimer = urand(25000, 30000);
+            
         }
         else m_uiMarkTimer -= uiDiff;
 
-        // HACK FOR MARK OF THE FACELESS
-        // mark check ending
-        if(m_uiMarkEndTimer < uiDiff && m_bHasMark)
-            m_bHasMark = false;
-        else m_uiMarkEndTimer -= uiDiff;
-
-        // simphon life every sec
-        if(m_uiMarkCheckTimer < uiDiff && m_bHasMark)
-        {
-            CheckForMark(m_uiMarkTargetGUID);
-            m_uiMarkCheckTimer = 1000;
-        }
-        else m_uiMarkCheckTimer -= uiDiff;
 
         // shadow crash
         if(m_uiCrashTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
-                DoCast(pTarget, SPELL_SHADOW_CRASH);
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_PLAYER))
+            {
+                if (m_creature->GetDistance(pTarget) < 20.0f)
+                    DoCast(pTarget, SPELL_SHADOW_CRASH);
+                else 
+                    DoCast(m_creature->getVictim(), SPELL_SHADOW_CRASH);
+            }
             m_uiCrashTimer = 10000;
         }
         else m_uiCrashTimer -= uiDiff;
@@ -349,11 +290,11 @@ struct MANGOS_DLL_DECL mob_saronite_animusAI : public ScriptedAI
 {
     mob_saronite_animusAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_ulduar* m_pInstance;
 
     uint32 m_uiProfoundDarknessTimer;
 
@@ -368,7 +309,7 @@ struct MANGOS_DLL_DECL mob_saronite_animusAI : public ScriptedAI
     {
         if(m_pInstance)
         {
-            if (Creature* pVezax = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_VEZAX)))
+            if (Creature* pVezax = m_pInstance->GetSingleCreatureFromStorage(NPC_VEZAX))
             {
                 if (pVezax->isAlive())
                 {
@@ -377,9 +318,6 @@ struct MANGOS_DLL_DECL mob_saronite_animusAI : public ScriptedAI
                 }
             }
         }
-        // used for hard mode loot
-        // REMOVE THIS FOR REVISION
-        //m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -405,18 +343,20 @@ struct MANGOS_DLL_DECL mob_saronite_vaporAI : public ScriptedAI
 {
     mob_saronite_vaporAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
+        pCreature->SetRespawnTime(60000);
+        pCreature->SetCorpseDelay(60000);
+        m_creature->SetRespawnDelay(60000);
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_ulduar* m_pInstance;
 
     uint32 m_uiDieTimer;
 
     void Reset()
     {
-        m_uiDieTimer = 600000;
-        m_creature->SetRespawnDelay(DAY);
+        m_uiDieTimer = 600000;        
     }
 
     void AttackStart(Unit *pWho)
@@ -434,9 +374,12 @@ struct MANGOS_DLL_DECL mob_saronite_vaporAI : public ScriptedAI
         // Mana regen pool
         if(uiDamage >= m_creature->GetHealth())
         {
+            if (Creature* pVezax = m_pInstance->GetSingleCreatureFromStorage(NPC_VEZAX))
+            {
+                m_creature->CastSpell(m_creature, SPELL_SARONITE_VAPORS, true, 0, 0, pVezax->GetObjectGuid());
+            }
             uiDamage = 0;
             m_uiDieTimer = 500;
-            DoCast(m_creature, SPELL_SARONITE_VAPORS);
         }
     }
 
