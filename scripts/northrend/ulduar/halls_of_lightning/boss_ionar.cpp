@@ -72,7 +72,6 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
     bool m_bIsRegularMode;
 
-    bool m_bIsDesperseCasting;
     bool m_bIsSplitPhase;
     uint32 m_uiSplitTimer;
     uint32 m_uiSparkAtHomeCount;
@@ -84,8 +83,9 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
     void Reset()
     {
+        m_lSparkGUIDList.clear();
+
         m_bIsSplitPhase = true;
-        m_bIsDesperseCasting = false;
         m_uiSplitTimer = 25000;
         m_uiSparkAtHomeCount = 0;
 
@@ -120,9 +120,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_IONAR, FAIL);
-
-        DespawnSpark();
+            m_pInstance->SetData(TYPE_IONAR, NOT_STARTED);
     }
 
     void AttackStart(Unit* pWho)
@@ -180,9 +178,8 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
             {
                 if (pSpark->isAlive())
                 {
-                    // Required to prevent combat movement, elsewise they might switch movement on aggro-change
-                    if (ScriptedAI* pSparkAI = dynamic_cast<ScriptedAI*>(pSpark->AI()))
-                        pSparkAI->SetCombatMovement(false);
+                    if (pSpark->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+                        pSpark->GetMotionMaster()->MovementExpired();
 
                     pSpark->SetSpeedRate(MOVE_RUN,2);
 
@@ -233,11 +230,11 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
                 {
                     m_creature->SetVisibility(VISIBILITY_ON);
                     DoCastSpellIfCan(m_creature, SPELL_SPARK_DESPAWN);
+                    DespawnSpark();
 
                     m_uiSparkAtHomeCount = 0;
                     m_uiSplitTimer = 25000;
                     m_bIsSplitPhase = true;
-                    m_bIsDesperseCasting = false;
 
                     if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() != CHASE_MOTION_TYPE)
                     {
@@ -275,23 +272,16 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
             m_uiBallLightningTimer -= uiDiff;
 
         // Health check
-        if (!m_bIsDesperseCasting && m_creature->GetHealthPercent() < float(100 - 20*m_uiHealthAmountModifier))
+        if (m_creature->GetHealthPercent() < float(100 - 20*m_uiHealthAmountModifier))
         {
             ++m_uiHealthAmountModifier;
+
+            DoScriptText(urand(0, 1) ? SAY_SPLIT_1 : SAY_SPLIT_2, m_creature);
 
             if (m_creature->IsNonMeleeSpellCasted(false))
                 m_creature->InterruptNonMeleeSpells(false);
 
-            if (!m_bIsDesperseCasting && DoCastSpellIfCan(m_creature, SPELL_DISPERSE, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
-            {
-                DoScriptText(urand(0, 1) ? SAY_SPLIT_1 : SAY_SPLIT_2, m_creature);
-                m_bIsDesperseCasting = true;
-            }
-
-            // reset timers - don't interrupt Disperse
-            m_uiBallLightningTimer = urand(10000, 11000);
-            m_uiStaticOverloadTimer = urand(5000, 6000);
-
+            DoCastSpellIfCan(m_creature, SPELL_DISPERSE);
         }
 
         DoMeleeAttackIfReady();
@@ -315,23 +305,12 @@ bool EffectDummyCreature_boss_ionar(Unit* pCaster, uint32 uiSpellId, SpellEffect
             pCreatureTarget->CastSpell(pCreatureTarget, SPELL_SUMMON_SPARK, true);
 
         pCreatureTarget->AttackStop();
-        pCreatureTarget->RemoveAllAuras();
         pCreatureTarget->SetVisibility(VISIBILITY_OFF);
 
         if (pCreatureTarget->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
             pCreatureTarget->GetMotionMaster()->MovementExpired();
 
         //always return true when we are handling this spell and effect
-        return true;
-    }
-    else if (uiSpellId == SPELL_SPARK_DESPAWN && uiEffIndex == EFFECT_INDEX_0)
-    {
-        if (pCreatureTarget->GetEntry() != NPC_IONAR)
-            return true;
-
-        if (boss_ionarAI* pIonarAI = dynamic_cast<boss_ionarAI*> (pCreatureTarget->AI()))
-            pIonarAI->DespawnSpark();
-
         return true;
     }
     return false;
@@ -375,6 +354,10 @@ struct MANGOS_DLL_DECL mob_spark_of_ionarAI : public ScriptedAI
                 m_creature->ForcedDespawn();
         }
     }
+    // no Autohit
+    void UpdateAI(const uint32 uiDiff)
+    {
+    }    
 };
 
 CreatureAI* GetAI_mob_spark_of_ionar(Creature* pCreature)
