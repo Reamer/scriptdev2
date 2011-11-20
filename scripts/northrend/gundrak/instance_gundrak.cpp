@@ -24,6 +24,12 @@ EndScriptData */
 #include "precompiled.h"
 #include "gundrak.h"
 
+#define NPC_BRIDGE_GUARD            105002
+#define BRIDGE_GUARD_X              1751.449951f
+#define BRIDGE_GUARD_Y              740.658020f
+#define BRIDGE_GUARD_Z              118.949997f
+#define BRIDGE_GUARD_O              2.434944f
+
 bool GOUse_go_gundrak_altar(Player* pPlayer, GameObject* pGo)
 {
     ScriptedInstance* pInstance = (ScriptedInstance*)pGo->GetInstanceData();
@@ -42,7 +48,15 @@ bool GOUse_go_gundrak_altar(Player* pPlayer, GameObject* pGo)
     return true;
 }
 
-instance_gundrak::instance_gundrak(Map* pMap) : ScriptedInstance(pMap)
+instance_gundrak::instance_gundrak(Map* pMap) : ScriptedInstance(pMap),
+    m_uiBridgeCounter(0),
+    m_bGuardSpawnt(false),
+    
+    //Achievements
+    m_bCriteriaSnake(false),
+    m_bLessRabi(false),
+    m_bWhatTheEck(false),
+    m_bShareTheLove(false)
 {
     Initialize();
 }
@@ -67,6 +81,31 @@ void instance_gundrak::OnCreatureCreate(Creature* pCreature)
 
         case NPC_INVISIBLE_STALKER:
             m_luiStalkerGUIDs.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_LIVING_MOJO:
+            m_lLivingMojoGUIDList.push_back(pCreature->GetObjectGuid());
+            break;
+
+    }
+}
+
+void instance_gundrak::SetAchiev(uint32 uiType, bool get)
+{
+    switch(uiType)
+    {
+        case TYPE_SLADRAN:
+            m_bCriteriaSnake = get;
+            break;
+        case TYPE_MOORABI:
+            m_bLessRabi = get;
+            break;
+        case TYPE_ECK:
+            m_bWhatTheEck = get;
+            break;
+        case TYPE_GALDARAH:
+            m_bShareTheLove = get;
+            break;
+        default:
             break;
     }
 }
@@ -118,7 +157,7 @@ void instance_gundrak::OnObjectCreate(GameObject* pGo)
         case GO_ALTAR_OF_COLOSSUS:
             if (m_auiEncounter[TYPE_COLOSSUS] == DONE)
                 pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-                break;
+            break;
         case GO_SNAKE_KEY:
         case GO_TROLL_KEY:
         case GO_MAMMOTH_KEY:
@@ -159,6 +198,23 @@ void instance_gundrak::Load(const char* chrIn)
     OUT_LOAD_INST_DATA_COMPLETE;
 }
 
+bool instance_gundrak::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+{
+    switch (uiCriteriaId)
+    {
+        case ACHIEV_CRITERIA_SNAKES:
+            return m_bCriteriaSnake;
+        case ACHIEV_CRITERIA_LESS_RABI:
+            return m_bLessRabi;
+        case ACHIEV_CRITERIA_WHAT_THE_ECK:
+            return m_bWhatTheEck;
+        case ACHIEV_CRITERIA_SHARE_THE_LOVE:
+            return m_bShareTheLove;
+        default:
+            return 0;
+    }
+}
+
 void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
 {
     debug_log("SD2: Instance Gundrak: SetData received for type %u with data %u", uiType, uiData);
@@ -171,7 +227,10 @@ void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
                 if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_ALTAR_OF_SLADRAN))
                     pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
             if (uiData == SPECIAL)
+            {
                 m_mAltarInProgress.insert(TypeTimerPair(TYPE_SLADRAN, TIMER_VISUAL_ALTAR));
+                m_uiBridgeCounter++;
+            }
             break;
         case TYPE_MOORABI:
             m_auiEncounter[TYPE_MOORABI] = uiData;
@@ -183,15 +242,34 @@ void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
                     pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
             }
             if (uiData == SPECIAL)
+            {
                 m_mAltarInProgress.insert(TypeTimerPair(TYPE_MOORABI, TIMER_VISUAL_ALTAR));
+                m_uiBridgeCounter++;
+            }
             break;
         case TYPE_COLOSSUS:
             m_auiEncounter[TYPE_COLOSSUS] = uiData;
+            if (uiData == FAIL)
+            {
+                for (GUIDList::iterator itr = m_lLivingMojoGUIDList.begin(); itr != m_lLivingMojoGUIDList.end(); ++itr)
+                {
+                    if (Creature* mojo = instance->GetCreature(*itr))
+                    {
+                        if (mojo->isAlive())
+                            mojo->AI()->EnterEvadeMode();
+                        else
+                            mojo->Respawn();
+                    }
+                }
+            }
             if (uiData == DONE)
                 if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_ALTAR_OF_COLOSSUS))
                     pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
             if (uiData == SPECIAL)
+            {
                 m_mAltarInProgress.insert(TypeTimerPair(TYPE_COLOSSUS, TIMER_VISUAL_ALTAR));
+                m_uiBridgeCounter++;
+            }
             break;
         case TYPE_GALDARAH:
             m_auiEncounter[TYPE_GALDARAH] = uiData;
@@ -210,6 +288,15 @@ void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
         default:
             error_log("SD2: Instance Gundrak: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
             return;
+    }
+
+    if (m_uiBridgeCounter == 3 && !m_bGuardSpawnt)
+    {
+        if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_ALTAR_OF_COLOSSUS))
+        {
+            if (pGo->SummonCreature(NPC_BRIDGE_GUARD, BRIDGE_GUARD_X, BRIDGE_GUARD_Y, BRIDGE_GUARD_Z, BRIDGE_GUARD_O, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 2000))
+                m_bGuardSpawnt = true;
+        }
     }
 
     if (uiData == DONE || uiData == SPECIAL)                // Save activated altars, too
