@@ -27,16 +27,16 @@ EndScriptData */
 
 enum Spells
 {
-    SAY_AGGRO            = -1578030,
-    SAY_KILL_1           = -1578031,
-    SAY_KILL_2           = -1578032,
-    SAY_KILL_3           = -1578033,
-    SAY_DEATH            = -1578034,
-    SAY_ARCANE_SHIELD    = -1578035,
-    SAY_FIRE_SHIELD      = -1578036,
-    SAY_NATURE_SHIELD    = -1578037,
-    SAY_FRENZY           = -1578038,
-    SAY_SPAWN            = -1578039,
+    SAY_AGGRO            = -1578040,
+    SAY_KILL_1           = -1578041,
+    SAY_KILL_2           = -1578042,
+    SAY_KILL_3           = -1578043,
+    SAY_DEATH            = -1578044,
+    SAY_ARCANE_SHIELD    = -1578045,
+    SAY_FIRE_SHIELD      = -1578046,
+    SAY_NATURE_SHIELD    = -1578047,
+    SAY_FRENZY           = -1578048,
+    SAY_SPAWN            = -1578049,
 
     SPELL_ARCANE_BARRAGE_N                        = 50804,
     SPELL_ARCANE_BARRAGE_H                        = 59381,
@@ -137,8 +137,8 @@ struct MANGOS_DLL_DECL boss_eregosAI : public ScriptedAI
     void JustDied(Unit* killer)
     {
         m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-100.0f, 0);
-        m_creature->MonsterMoveWithSpeed(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-100.0f, 26);
-            DoScriptText(SAY_DEATH, m_creature);
+        // m_creature->SendMonsterMove(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-100.0f, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), 6000);
+        DoScriptText(SAY_DEATH, m_creature);
         if (m_pInstance)
             m_pInstance->SetData(TYPE_EREGOS, DONE);
     }

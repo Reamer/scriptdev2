@@ -27,13 +27,14 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO                                     = -1578022,
-    SAY_KILL_1                                    = -1578023,
-    SAY_KILL_2                                    = -1578024,
-    SAY_DEATH                                     = -1578025,
-    SAY_STRIKE_1                                  = -1578026,
-    SAY_STRIKE_2                                  = -1578027,
-    SAY_STRIKE_3                                  = -1578028,
+    SAY_AGGRO                                     = -1578020,
+    SAY_KILL_1                                    = -1578021,
+    SAY_KILL_2                                    = -1578022,
+    SAY_DEATH                                     = -1578023,
+    SAY_AIRSTRIKE_1                               = -1578024,
+    SAY_AIRSTRIKE_2                               = -1578025,
+    SAY_AIRSTRIKE_3                               = -1578026,
+    SAY_SHIELD_DOWN                               = -1578027,
 
     SPELL_ARCANE_SHIELD                           = 50053,
     SPELL_ENERGIZE_CORES                          = 50785, //Damage 5938 to 6562, effec2 Triggers 54069, effect3 Triggers 56251
@@ -126,6 +127,7 @@ struct MANGOS_DLL_DECL boss_varosAI : public ScriptedAI
               m_creature->RemoveAurasDueToSpell(SPELL_ARCANE_SHIELD);
               m_creature->InterruptNonMeleeSpells(false);
               m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+              DoScriptText(SAY_SHIELD_DOWN, m_creature);
            }
            else
            {
@@ -251,80 +253,78 @@ struct MANGOS_DLL_DECL boss_varosAI : public ScriptedAI
     {
         std::list<Creature*> m_pSpheres;
         GetCreatureListWithEntryInGrid(m_pSpheres, m_creature, NPC_VAROS_CORE, DEFAULT_VISIBILITY_INSTANCE);
-
+        std::list<uint64>  m_pTargets;
         if(!m_pSpheres.empty())
-           for(std::list<Creature*>::iterator iter = m_pSpheres.begin(); iter != m_pSpheres.end(); ++iter)
-           {
-              for(uint8 i = 1; i < 9; i++)
-                 if((i <= MaxOrb && i >= MinOrb) || (MinOrb == 7 && (i <= MaxOrb || i >= MinOrb)))
-                    if((*iter)->GetPositionX() > Regions[i].x1 && (*iter)->GetPositionX() < Regions[i].x2)
-                       if((*iter)->GetPositionY() > Regions[i].y1 && (*iter)->GetPositionY() < Regions[i].y2)
-                       {
-                          if(SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_ENERGIZE_CORES_TRIGGER_1))
-                          {
-                             pTempSpell->EffectImplicitTargetA[0] = TARGET_EFFECT_SELECT;
-                             pTempSpell->EffectImplicitTargetB[0] = 0;
-                             pTempSpell->EffectImplicitTargetA[1] = TARGET_EFFECT_SELECT;
-                             pTempSpell->EffectImplicitTargetB[1] = 0;
-                             pTempSpell->EffectImplicitTargetA[2] = TARGET_EFFECT_SELECT;
-                             pTempSpell->EffectImplicitTargetB[2] = 0;
-                             (*iter)->CastSpell(m_creature, pTempSpell, true);
-                          }
-
-                          if(i == MinOrb)
-                             angle01 = m_creature->GetAngle((*iter));
-                          if(i == MaxOrb)
-                             angle02 = m_creature->GetAngle((*iter));
-
-                          Map *map = m_creature->GetMap();
-                          if(map->IsDungeon())
-                          {
-                             Map::PlayerList const &PlayerList = map->GetPlayers();
-
-                             if(PlayerList.isEmpty())
-                                return;
-
-                             for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
-                             {
-                                if (i->getSource()->isAlive())
+        {
+            for(std::list<Creature*>::iterator iter = m_pSpheres.begin(); iter != m_pSpheres.end(); ++iter)
+            {
+                for(uint8 i = 1; i < 9; i++)
+                    if((i <= MaxOrb && i >= MinOrb) || (MinOrb == 7 && (i <= MaxOrb || i >= MinOrb)))
+                        if((*iter)->GetPositionX() > Regions[i].x1 && (*iter)->GetPositionX() < Regions[i].x2)
+                            if((*iter)->GetPositionY() > Regions[i].y1 && (*iter)->GetPositionY() < Regions[i].y2)
+                            {
+                                if(SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_ENERGIZE_CORES_TRIGGER_1))
                                 {
-                                   float pAngle = m_creature->GetAngle(i->getSource());
-                                   if(angle01 < angle02)
-                                      if(pAngle < angle02 && pAngle > angle01)
-                                         DoEnergy(i->getSource());
-                                   if(angle01 > angle02)
-                                      if(pAngle < angle02 || pAngle > angle01)
-                                         DoEnergy(i->getSource());
+                                     pTempSpell->EffectImplicitTargetA[0] = TARGET_EFFECT_SELECT;
+                                     pTempSpell->EffectImplicitTargetB[0] = 0;
+                                     pTempSpell->EffectImplicitTargetA[1] = TARGET_EFFECT_SELECT;
+                                     pTempSpell->EffectImplicitTargetB[1] = 0;
+                                     pTempSpell->EffectImplicitTargetA[2] = TARGET_EFFECT_SELECT;
+                                     pTempSpell->EffectImplicitTargetB[2] = 0;
+                                     (*iter)->CastSpell(m_creature, pTempSpell, true);
                                 }
-                             }
-                          }
-                       }
-           }
+
+                                if(i == MinOrb)
+                                    angle01 = m_creature->GetAngle((*iter));
+                                if(i == MaxOrb)
+                                    angle02 = m_creature->GetAngle((*iter));
+
+                                Map *map = m_creature->GetMap();
+                                if(map->IsDungeon())
+                                {
+                                    Map::PlayerList const &PlayerList = map->GetPlayers();
+                                    if(PlayerList.isEmpty())
+                                        return;
+                                    for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+                                    {
+                                        if (i->getSource()->isAlive())
+                                        {
+                                            float pAngle = m_creature->GetAngle(i->getSource());
+                                            if(angle01 < angle02)
+                                                if(pAngle < angle02 && pAngle > angle01)
+                                                    m_pTargets.push_back(i->getSource()->GetGUID());
+                                            if(angle01 > angle02)
+                                                if(pAngle < angle02 || pAngle > angle01)
+                                                    m_pTargets.push_back(i->getSource()->GetGUID());
+                                        }
+                                    }
+                                }
+                            }
+            }
+        }
+        if (!m_pTargets.empty())
+        {
+            m_pTargets.sort();
+            m_pTargets.unique();
+            Map *map = m_creature->GetMap();
+            for(std::list<uint64>::iterator iter = m_pTargets.begin(); iter != m_pTargets.end(); ++iter)
+            {
+                DoEnergy(map->GetUnit(ObjectGuid(*iter)));
+            }                
+        }
     }
 
     void DoEnergy(Unit* pTarget)
     {
         if(SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(m_bIsRegularMode ? SPELL_ENERGIZE_CORES : SPELL_ENERGIZE_CORES_2))
         {
-            pTempSpell->EffectImplicitTargetA[0] = TARGET_EFFECT_SELECT;
-            pTempSpell->EffectImplicitTargetB[0] = 0;
             pTempSpell->EffectImplicitTargetA[1] = TARGET_EFFECT_SELECT;
             pTempSpell->EffectImplicitTargetB[1] = 0;
             pTempSpell->EffectImplicitTargetA[2] = TARGET_EFFECT_SELECT;
             pTempSpell->EffectImplicitTargetB[2] = 0;
             m_creature->CastSpell(pTarget, pTempSpell, true);
         }
-
     }
-
-    /*void SpellHitTarget(Unit *target, const SpellEntry *spell)
-    {
-        if(spell->Id == (m_bIsRegularMode ? SPELL_ENERGIZE_CORES : SPELL_ENERGIZE_CORES_2) && target->GetTypeId() == TYPEID_PLAYER)
-        {
-           int32 uiDmg = m_bIsRegularMode ? urand(5938, 6562) : urand(9025, 9975);
-           m_creature->DealDamage(target, uiDmg,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, NULL, false);
-        }
-    }*/
 
     void UpdateAI(const uint32 uiDiff)
     {
@@ -345,9 +345,9 @@ struct MANGOS_DLL_DECL boss_varosAI : public ScriptedAI
            uint8 uiText = urand(0, 2);
            switch (uiText)
            {
-              case 0: DoScriptText(SAY_STRIKE_1, m_creature); break;
-              case 1: DoScriptText(SAY_STRIKE_2, m_creature); break;
-              case 2: DoScriptText(SAY_STRIKE_3, m_creature); break;
+              case 0: DoScriptText(SAY_AIRSTRIKE_1, m_creature); break;
+              case 1: DoScriptText(SAY_AIRSTRIKE_2, m_creature); break;
+              case 2: DoScriptText(SAY_AIRSTRIKE_3, m_creature); break;
            }
         } else m_uiDragonAttackTimer -= uiDiff;
 
