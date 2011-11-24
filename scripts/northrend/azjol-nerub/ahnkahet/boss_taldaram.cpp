@@ -121,11 +121,15 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-        if (m_uiEmbraceOfTheVampyrInterruptDamage > m_bIsRegularMode ? 20000 : 40000)
+        if (Spell* pSpell = m_creature->FindCurrentSpellBySpellId(m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H))
         {
-            m_creature->InterruptSpell(CURRENT_CHANNELED_SPELL);
-            m_creature->InterruptNonMeleeSpells(false);
-            m_uiEmbraceOfTheVampyrInterruptDamage = 0;
+            m_uiEmbraceOfTheVampyrInterruptDamage += uiDamage;
+            if (m_uiEmbraceOfTheVampyrInterruptDamage > (m_bIsRegularMode ? 20000 : 40000))
+            {
+                m_creature->InterruptSpell(CURRENT_CHANNELED_SPELL);
+                m_creature->InterruptNonMeleeSpells(false);
+                m_uiEmbraceOfTheVampyrInterruptDamage = 0;
+            }
         }
         if(pDoneBy->GetCreatorGuid() == m_creature->GetObjectGuid())
         {
@@ -138,12 +142,12 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         float destx = 0.0f;
         float desty = 0.0f;
         float destz = 0.0f;
-        float srcx = 0.0f;
-        float srcy = 0.0f;
-        float srcz = 0.0f;
-        m_creature->GetPosition(srcx, srcy, srcz);
+        //float srcx = 0.0f;
+        //float srcy = 0.0f;
+        //float srcz = 0.0f;
+        //m_creature->GetPosition(srcx, srcy, srcz);
         m_creature->GetClosePoint(destx,desty,destz, 0, 40.0f, 120.0 * m_uiOrbCounter++);
-        m_creature->GetTerrain()->CheckPathAccurate(srcx, srcy, srcz, destx,desty,destz, NULL);
+        //m_creature->GetTerrain()->CheckPathAccurate(srcx, srcy, srcz, destx,desty,destz, NULL);
         pSummoned->GetMotionMaster()->MovePoint(0, destx, desty, destz, false);
     }
 
@@ -242,7 +246,7 @@ struct MANGOS_DLL_DECL mob_taldaram_flame_orbAI : public ScriptedAI
         // Despawn Timer
         if(m_uiDespawn_Timer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_FLAME_ORB_DEATH) == CAST_OK);
+            if (DoCastSpellIfCan(m_creature, SPELL_FLAME_ORB_DEATH) == CAST_OK)
                 m_creature->ForcedDespawn(1000);
         }
         else
