@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Boss_Taldaram
 SD%Complete: 20%
-SDComment:
+SDComment: VANSIH rest Boss, workaround with m_creature->SetVisibility(VISIBILITY_ON);
 SDCategory: Ahn'kahet
 EndScriptData */
 
@@ -51,6 +51,10 @@ enum
 
     SPELL_FLAME_SPHERE_PERIODIC     = 55926,
     SPELL_FLAME_SPHERE_VISUAL       = 55928,
+
+    NPC_ORB_1                       = 30106,
+    NPC_ORB_2                       = 31686,
+    NPC_ORB_3                       = 31687
 };
 
 /*######
@@ -75,16 +79,14 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
     uint32 m_uiEmbraceOfTheVampyrTimer;
     uint32 m_uiEmbraceOfTheVampyrInterruptDamage;
 
-    uint8 m_uiOrbCounter;
-
     void Reset()
     {
+        m_creature->SetVisibility(VISIBILITY_ON);
         m_uiEmbraceOfTheVampyrInterruptDamage = 0;
         m_uiSummonFlameOrbTimer = 12000;
         m_uiVanishTimer = 14000;
         m_uiEmbraceOfTheVampyrTimer = m_uiVanishTimer + 2600;
         m_uiBloodthirstTimer = 10000;
-        m_uiOrbCounter = 0;
     }
 
     void Aggro(Unit* pWho)
@@ -114,6 +116,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        m_creature->SetVisibility(VISIBILITY_ON);
         DoScriptText(SAY_DEATH, m_creature);
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TALDARAM, DONE);
@@ -142,13 +145,24 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         float destx = 0.0f;
         float desty = 0.0f;
         float destz = 0.0f;
+        switch (pSummoned->GetEntry())
+        {
+            case NPC_ORB_1:
+                m_creature->GetClosePoint(destx,desty,destz, 0, 40.0f, 120.0f);
+                break;
+            case NPC_ORB_2:
+                m_creature->GetClosePoint(destx,desty,destz, 0, 40.0f, 240.0f);
+                break;
+            case NPC_ORB_3:
+                m_creature->GetClosePoint(destx,desty,destz, 0, 40.0f, 360.0f);
+                break;
+        }
         //float srcx = 0.0f;
         //float srcy = 0.0f;
         //float srcz = 0.0f;
         //m_creature->GetPosition(srcx, srcy, srcz);
-        m_creature->GetClosePoint(destx,desty,destz, 0, 40.0f, 120.0 * m_uiOrbCounter++);
         //m_creature->GetTerrain()->CheckPathAccurate(srcx, srcy, srcz, destx,desty,destz, NULL);
-        pSummoned->GetMotionMaster()->MovePoint(0, destx, desty, destz, false);
+        pSummoned->GetMotionMaster()->MovePoint(0, destx, desty, destz, true);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -164,7 +178,6 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_CONJURE_FLAME_ORB) == CAST_OK)
             {
                 m_uiSummonFlameOrbTimer = 16000 + rand()%10000;
-                m_uiOrbCounter = 0;
             }
         }
         else
@@ -180,10 +193,17 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 
         if(m_uiVanishTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature,SPELL_VANISH) == CAST_OK)
+            if (!m_creature->IsNonMeleeSpellCasted(true))
+            //if (DoCastSpellIfCan(m_creature,SPELL_VANISH) == CAST_OK)
             {
+                m_creature->SetVisibility(VISIBILITY_OFF);
                 m_uiVanishTimer = 25000;
                 m_uiEmbraceOfTheVampyrTimer = 2600;
+            }
+            else
+            {
+                m_uiVanishTimer = 3000;
+                m_uiEmbraceOfTheVampyrTimer = m_uiVanishTimer + 2600;
             }
         }
         else
@@ -193,6 +213,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER))
             {
+                m_creature->SetVisibility(VISIBILITY_ON);
                 m_creature->NearTeleportTo(pTarget->GetPositionX() + 3.0f, pTarget->GetPositionY() + 3.0f, pTarget->GetPositionZ(), pTarget->GetOrientation());
                 DoCast(pTarget, m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H);
                 m_uiEmbraceOfTheVampyrInterruptDamage = 0;
@@ -231,9 +252,8 @@ struct MANGOS_DLL_DECL mob_taldaram_flame_orbAI : public ScriptedAI
 
     void Reset()
     {
+        m_creature->SetDisplayId(26767);
         m_uiDespawn_Timer = 23000;
-        //hack to set model invisible
-        m_creature->SetDisplayId(10045);
         m_creature->SetLevitate(true);
         DoCast(m_creature, SPELL_FLAME_ORB_VISUAL);
         DoCast(m_creature, SPELL_FLAME_ORB_SPAWN_EFFECT);
