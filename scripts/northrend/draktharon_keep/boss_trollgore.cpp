@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Boss_Trollgore
 SD%Complete: 90%
-SDComment: Timers
+SDComment: Summon with Spells TriggerMob id 22515
 SDCategory: Drak'Tharon Keep
 EndScriptData */
 
@@ -44,13 +44,15 @@ enum
     SPELL_CORPSE_EXPLODE_PROC       = 49618,
     SPELL_CORPSE_EXPLODE_PROC_H     = 59809,
 
+    SPELL_SUMMON_INVADER_A          = 49456,
+    SPELL_SUMMON_INVADER_B          = 49457,
+    SPELL_SUMMON_INVADER_C          = 49458,
+
     NPC_DRAKKARI_INVADER            = 27753,
     NPC_TROLLGORE                   = 26630
 };
 
-const float PosSummon1[3] = {-259.59f, -652.49f, 26.52f};
-const float PosSummon2[3] = {-261.60f, -658.71f, 26.51f};
-const float PosSummon3[3] = {-262.05f, -665.71f, 26.49f};
+const float PosSummon[3][3] = {{-259.59f, -652.49f, 26.52f},{-261.60f, -658.71f, 26.51f},{-262.05f, -665.71f, 26.49f}};
 
 
 /*######
@@ -115,12 +117,14 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
 
     void SummonWaves()
     {
-        if (Creature* pInvader1 = m_creature->SummonCreature(NPC_DRAKKARI_INVADER,PosSummon1[0],PosSummon1[1],PosSummon1[2],0, TEMPSUMMON_DEAD_DESPAWN, 15000))
-            pInvader1->AI()->AttackStart(m_creature);
-        if (Creature* pInvader2 = m_creature->SummonCreature(NPC_DRAKKARI_INVADER,PosSummon2[0],PosSummon2[1],PosSummon2[2],0, TEMPSUMMON_DEAD_DESPAWN, 15000))
-            pInvader2->AI()->AttackStart(m_creature);
-        if (Creature* pInvader3 = m_creature->SummonCreature(NPC_DRAKKARI_INVADER,PosSummon3[0],PosSummon3[1],PosSummon3[2],0, TEMPSUMMON_DEAD_DESPAWN, 15000))
-            pInvader3->AI()->AttackStart(m_creature);
+        for (int i = 0; i < 3; ++i)
+        {
+            if (Creature* pInvader = m_creature->SummonCreature(NPC_DRAKKARI_INVADER,PosSummon[i][0],PosSummon[i][1],PosSummon[i][2],0, TEMPSUMMON_DEAD_DESPAWN, 15000))
+            {
+                pInvader->SetRespawnDelay(60);
+                pInvader->AI()->AttackStart(m_creature);
+            }
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -159,7 +163,10 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
         if (Consume_Timer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature,  m_bIsRegularMode ? SPELL_CONSUME : SPELL_CONSUME_H) == CAST_OK)
+            {
+                DoScriptText(SAY_CONSUME, m_creature);
                 Consume_Timer = 15000;
+            }
         }
         else
             Consume_Timer -= uiDiff;
@@ -168,7 +175,10 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
         if (CorpseExplode_Timer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(),  m_bIsRegularMode ? SPELL_CORPSE_EXPLODE : SPELL_CORPSE_EXPLODE_H) == CAST_OK)
+            {
+                DoScriptText(SAY_EXPLODE, m_creature);
                 CorpseExplode_Timer = 15000;
+            }
         }
         else
             CorpseExplode_Timer -= uiDiff;
