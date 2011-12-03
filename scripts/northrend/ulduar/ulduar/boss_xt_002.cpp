@@ -28,27 +28,27 @@ enum
 {
     //xt yells
     
-    SAY_DEATH				= -1603040,
-    SAY_BERSERK				= -1603041,
-    SAY_ADDS				= -1603042,
-    SAY_HEART_CLOSE			= -1603043,
-    SAY_HEART_OPEN			= -1603044,    
-    SAY_SLAY_02				= -1603045,
-    SAY_SLAY_01				= -1603046,
-    SAY_TANCTRUM			= -1603047,
-    SAY_AGGRO				= -1603048,
+    SAY_DEATH               = -1603040,
+    SAY_BERSERK             = -1603041,
+    SAY_ADDS                = -1603042,
+    SAY_HEART_CLOSE         = -1603043,
+    SAY_HEART_OPEN          = -1603044,
+    SAY_SLAY_02             = -1603045,
+    SAY_SLAY_01             = -1603046,
+    SAY_TANCTRUM            = -1603047,
+    SAY_AGGRO               = -1603048,
     EMOTE_HEART             = -1603049,
     EMOTE_REPAIR            = -1603050,
 
     //xt-002
-    SPELL_TANCTRUM			= 62776,
+    SPELL_TANCTRUM          = 62776,
     SPELL_LIGHT_BOMB_TRIG   = 65598,
-    SPELL_LIGHT_BOMB		= 63018,
-    SPELL_LIGHT_BOMB_H		= 65121,
-    SPELL_GRAVITY_BOMB		= 63024,
-    SPELL_GRAVITY_BOMB_H	= 64234,
-    SPELL_ENRAGE			= 47008,
-    SPELL_STUN				= 3618,
+    SPELL_LIGHT_BOMB        = 63018,
+    SPELL_LIGHT_BOMB_H      = 65121,
+    SPELL_GRAVITY_BOMB      = 63024,
+    SPELL_GRAVITY_BOMB_H    = 64234,
+    SPELL_ENRAGE            = 47008,
+    SPELL_STUN              = 3618,
     SPELL_ENERGY_ORB        = 62790,
 
     // hard mode
@@ -67,24 +67,24 @@ enum
     // Aura Void Zone!?
 
     //heart of the deconstructor
-    SPELL_EXPOSED_HEART		= 63849,
+    SPELL_EXPOSED_HEART     = 63849,
 
     //XS-013 Scrapbot
     SPELL_SCRAP_REPAIR      = 62832,
     
     //XE-321 Boombot
-    SPELL_BOOM				= 38831,			// right spell 62834
+    SPELL_BOOM              = 38831,            // right spell 62834
 
     //XM-024 Pummeller
-    SPELL_CLEAVE			= 8374,
-    SPELL_TRAMPLE			= 5568,
-    SPELL_UPPERCUT			= 10966,
+    SPELL_CLEAVE            = 8374,
+    SPELL_TRAMPLE           = 5568,
+    SPELL_UPPERCUT          = 10966,
 
     //NPC ids
-    NPC_HEART				= 33329,
-    NPC_SCRAPBOT			= 33343,
-    NPC_BOOMBOT				= 33346,
-    NPC_PUMMELER			= 33344,
+    NPC_HEART               = 33329,
+    NPC_SCRAPBOT            = 33343,
+    NPC_BOOMBOT             = 33346,
+    NPC_PUMMELER            = 33344,
     NPC_VOIDZONE            = 34001,
     NPC_LIFESPARK           = 34004,
 };
@@ -136,8 +136,8 @@ struct MANGOS_DLL_DECL mob_voidzoneAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-		// should be an aura here. Couldn't find it
-		// hacky way, needs fixing!
+        // should be an aura here. Couldn't find it
+        // hacky way, needs fixing!
         if (Spell_Timer < diff)
         {
             if (spellInfo)
@@ -317,7 +317,7 @@ struct MANGOS_DLL_DECL mob_xtheartAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         // used for hard mode loot only when hard mode loot is within the heart's corpse
-		// remove this for revision
+        // remove this for revision
         m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         if(m_pInstance)
             m_pInstance->SetData(TYPE_XT002_HARD, IN_PROGRESS);
@@ -525,7 +525,7 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                 {
                     case NPC_SCRAPBOT:
                         m_lScrapbotsGUIDList.push_back(pTemp->GetObjectGuid());
-						pTemp->GetMotionMaster()->MoveChase(m_creature);
+                        pTemp->GetMotionMaster()->MoveChase(m_creature);
                         break;
                     case NPC_BOOMBOT:
                         m_lBoombotsGUIDList.push_back(pTemp->GetObjectGuid());

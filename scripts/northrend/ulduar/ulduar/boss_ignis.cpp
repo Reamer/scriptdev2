@@ -40,8 +40,8 @@ enum
     SAY_DEATH       = -1603029,
 
     //ignis the furnace master
-    SPELL_FLAME_JETS			= 62680,
-    SPELL_FLAME_JETS_H			= 63472,
+    SPELL_FLAME_JETS            = 62680,
+    SPELL_FLAME_JETS_H          = 63472,
     SPELL_SCORCH_CHANNELED      = 62546,
     SPELL_SCORCH_CHANNELED_H    = 63474,
     SPELL_CHARGE_SLAG_POT       = 62707,
@@ -49,10 +49,10 @@ enum
     SPELL_SLAG_POT_AURA         = 62717,
     SPELL_SLAG_POT_AURA_H       = 63477,
 
-    SPELL_SLAG_POT_DMG			= 65722,
-    SPELL_SLAG_POT_DMG_H		= 65723,
+    SPELL_SLAG_POT_DMG          = 65722,
+    SPELL_SLAG_POT_DMG_H        = 65723,
     
-    SPELL_HASTE					= 62836,
+    SPELL_HASTE                 = 62836,
 
     // Scorch trigger
     SPELL_SCORCH_AURA           = 62548,
@@ -63,10 +63,10 @@ enum
     //NPC_IRON_CONSTRUCT        = 33121,
     SPELL_STONED                = 62468,
     SPELL_HEAT_AURA             = 65667,
-    SPELL_MOLTEN				= 62373,
-    SPELL_BRITTLE				= 67114,
+    SPELL_MOLTEN                = 62373,
+    SPELL_BRITTLE               = 67114,
     SPELL_BRITTLE_H             = 62382,
-    SPELL_SHATTER				= 62383,
+    SPELL_SHATTER               = 62383,
     SPELL_ACTIVATE_CONSTRUCT    = 62488,
     SPELL_STRENGTH_OF_THE_CREATOR = 64474,
     SPELL_STRENGHT_OF_CREATOR_DIE= 64475,

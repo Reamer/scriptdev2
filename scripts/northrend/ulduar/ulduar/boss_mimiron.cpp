@@ -1145,22 +1145,22 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 
         m_uiTankGUID            = 0;
 
-		// reset button
+        // reset button
         if(GameObject* pButton = m_pInstance->GetSingleGameObjectFromStorage(GO_MIMIRON_BUTTON))
             pButton->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
 
-		// reset elevator
+        // reset elevator
         if(GameObject* pLift = m_pInstance->GetSingleGameObjectFromStorage(GO_MIMIRON_ELEVATOR))
             pLift->SetGoState(GO_STATE_ACTIVE);
 
-		// kill torso and Head
+        // kill torso and Head
         if(Creature* pTorso = m_creature->GetMap()->GetCreature(m_uiTorsoGUID))
             pTorso->ForcedDespawn();
 
         if(Creature* pHead = m_creature->GetMap()->GetCreature(m_uiHeadGUID))
             pHead->ForcedDespawn();
 
-		// reset tank
+        // reset tank
         if (Creature* pTank = m_pInstance->GetSingleCreatureFromStorage(NPC_LEVIATHAN_MK))
         {
             if(pTank->isAlive())
@@ -1186,17 +1186,17 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
         }
     }
 
-	// start event
+    // start event
     void Aggro(Unit *who) 
     {
         DoScriptText(SAY_AGGRO, m_creature);
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_MIMIRON, IN_PROGRESS);
-			// activate teleporter
+            // activate teleporter
             if(m_pInstance->GetData(TYPE_MIMIRON_TP) != DONE)
                 m_pInstance->SetData(TYPE_MIMIRON_TP, DONE);
-			// start intro
+            // start intro
             if(m_pInstance->GetData(TYPE_MIMIRON) != DONE)
                 m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_INTRO);
         }
@@ -1935,7 +1935,7 @@ struct MANGOS_DLL_DECL mob_mimiron_flamesAI : public ScriptedAI
         if (m_pInstance && m_pInstance->GetData(TYPE_MIMIRON) != IN_PROGRESS) 
             m_creature->ForcedDespawn();
 
-		// spread flames
+        // spread flames
         if(m_uiFlamesSpreadTimer < uiDiff)
         {
             DoCast(m_creature->getVictim(), SPELL_FLAMES_SPREAD);

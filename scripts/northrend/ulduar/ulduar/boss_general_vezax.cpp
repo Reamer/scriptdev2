@@ -156,7 +156,7 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
         {
             if (m_pInstance)
                 m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_MORNING_SARONITE, true);
-			// vapors need more speed
+            // vapors need more speed
             for(std::list<Creature*>::iterator iter = lVapors.begin(); iter != lVapors.end(); ++iter)
             {
                 if ((*iter) && (*iter)->isAlive())

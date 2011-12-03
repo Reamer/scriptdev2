@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -28,12 +28,12 @@ EndScriptData */
 #define DENY_HELP       "I don't need your help."
 
 /*
-*	Here is the gossip for the keepers images
-*	Each image appears in the centra chamber after the corrupted keeper is defeated
-*	They should be spawned in script, but I added them into the DB by default as invisilbe
-*	After the players make theyr choice if the want help or not, this option is saved and there is no turning back, until raid reset
-*	If they are asked for help, at the beginning of the Yogg encounter each requested keeper will be summoned inside the chamber
-*	There should be more text in the gossip menu, I couldn't find it anywhere yet
+*    Here is the gossip for the keepers images
+*    Each image appears in the centra chamber after the corrupted keeper is defeated
+*    They should be spawned in script, but I added them into the DB by default as invisilbe
+*    After the players make theyr choice if the want help or not, this option is saved and there is no turning back, until raid reset
+*    If they are asked for help, at the beginning of the Yogg encounter each requested keeper will be summoned inside the chamber
+*    There should be more text in the gossip menu, I couldn't find it anywhere yet
 */
 
 /*#######

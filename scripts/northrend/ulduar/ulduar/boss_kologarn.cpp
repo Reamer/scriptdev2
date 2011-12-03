@@ -42,14 +42,14 @@ enum
     EMOTE_STONE_GRIP    = -1603101,
 
     //kologarn
-    SPELL_OVERHEAD_SMASH		= 63356,
-    SPELL_OVERHEAD_SMASH_H		= 64003,
-    SPELL_ONE_ARMED_SMASH		= 63573,
-    SPELL_ONE_ARMED_SMASH_H		= 64006,
-    SPELL_STONE_SHOUT			= 63716,
-    SPELL_STONE_SHOUT_H			= 64005,
-    SPELL_PETRIFYING_BREATH		= 62030,
-    SPELL_PETRIFYING_BREATH_H	= 63980,
+    SPELL_OVERHEAD_SMASH        = 63356,
+    SPELL_OVERHEAD_SMASH_H      = 64003,
+    SPELL_ONE_ARMED_SMASH       = 63573,
+    SPELL_ONE_ARMED_SMASH_H     = 64006,
+    SPELL_STONE_SHOUT           = 63716,
+    SPELL_STONE_SHOUT_H         = 64005,
+    SPELL_PETRIFYING_BREATH     = 62030,
+    SPELL_PETRIFYING_BREATH_H   = 63980,
     // Focused Eyebeam
     SPELL_FOCUSED_EYEBEAM       = 63342,
     NPC_FOCUSED_EYEBEAM_RIGHT   = 33802,
@@ -67,22 +67,22 @@ enum
     //left arm
     SPELL_ARM_SWEEP             = 63766,
     SPELL_ARM_SWEEP_H           = 63983,
-    SPELL_SHOCKWAVE				= 63783,
-    SPELL_SHOCKWAVE_H			= 63982,
+    SPELL_SHOCKWAVE             = 63783,
+    SPELL_SHOCKWAVE_H           = 63982,
     //right arm
     SPELL_STONE_GRIP_GRAB       = 62166,
     SPELL_STONE_GRIP_GRAB_H     = 63981,
-    SPELL_STONE_GRIP			= 64290,
-    SPELL_STONE_GRIP_H			= 64292,
+    SPELL_STONE_GRIP            = 64290,
+    SPELL_STONE_GRIP_H          = 64292,
     SPELL_STONE_GRIP_VEH        = 62056,
     SPELL_STONE_GRIP_VEH_H      = 63985,
     //both
-    SPELL_ARM_VISUAL			= 64753,
+    SPELL_ARM_VISUAL            = 64753,
     //rubble
-    SPELL_RUMBLE				= 63818,    // on 10 man
-    SPELL_STONE_NOVA			= 63978,    // on 25 man
+    SPELL_RUMBLE                = 63818,    // on 10 man
+    SPELL_STONE_NOVA            = 63978,    // on 25 man
     //NPC ids
-    MOB_RUBBLE					= 33768,
+    MOB_RUBBLE                  = 33768,
 
     RIGHT_ARM_SLOT              = 1,
     LEFT_ARM_SLOT               = 0,
@@ -448,7 +448,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         }else
             m_uiEyebeam_Timer -= uiDiff;
 
-		// respawn arms
+        // respawn arms
         if (m_bIsLeftDead)
         {
             if (m_uiRespawnLeftTimer < uiDiff && m_bIsLeftDead)

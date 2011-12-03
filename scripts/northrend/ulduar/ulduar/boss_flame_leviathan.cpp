@@ -900,9 +900,9 @@ CreatureAI* GetAI_mob_thorims_hammer(Creature* pCreature)
 
 bool GossipHello_mob_lorekeeper(Player *player, Creature *pCreature)
 {
-    player->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Gib mir Macht mit einen Zerstörer."		    , GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+    player->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Gib mir Macht mit einen Zerstörer."            , GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
     player->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Gib mir Stärke mit einer Belagerungsmaschine." , GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
-    player->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Gib mir Geschwindigkeit mit einen Moped."	    , GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
+    player->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Gib mir Geschwindigkeit mit einen Moped."      , GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
     player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
     return true;
 }

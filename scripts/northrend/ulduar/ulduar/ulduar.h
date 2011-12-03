@@ -7,6 +7,7 @@
 
 enum
 {
+    // encounters
     MAX_ENCOUNTER               = 14,
     HARD_MODE_ENCOUNTER         = 9,
     KEEPER_ENCOUNTER            = 4,
@@ -131,7 +132,7 @@ enum
     // loot chests
     // Kologarn
     GO_CACHE_OF_LIVING_STONE    = 195046,
-    GO_CACHE_OF_LIVING_STONE_H	= 195047,
+    GO_CACHE_OF_LIVING_STONE_H  = 195047,
     // Hodir
     GO_CACHE_OF_WINTER          = 194307,
     GO_CACHE_OF_WINTER_H        = 194308,
@@ -315,7 +316,7 @@ enum
     ACHIEV_CRIT_LOSE_YOUR_ILLUSION_H    = 10457,    // achiev 3183
     // Freya
     ACHIEV_CRIT_BACK_TO_NATURE          = 10445,    // achiev 2982
-    ACHIEV_CRIT_BACK_TO_NATURE_H        = 10758,    // achiev 2983  
+    ACHIEV_CRIT_BACK_TO_NATURE_H        = 10758,    // achiev 2983
     ACHIEV_CRIT_KNOCK_WOOD              = 10447,    // achiev 3177
     ACHIEV_CRIT_KNOCK_WOOD_H            = 10459,    // achiev 3185
     ACHIEV_CRIT_KNOCK_KNOCK_WOOD        = 10448,    // achiev 3178
@@ -326,8 +327,8 @@ enum
     ACHIEV_CRIT_FIREFIGHTER             = 10450,    // achiev 3180
     ACHIEV_CRIT_FIREFIGHTER_H           = 10463,    // achiev 3189
     // Vezax
-    ACHIEV_CRIT_MORNING_SARONITE        = 10451,    // achiev 3181
-    ACHIEV_CRIT_MORNING_SARONITE_H      = 10462,    // achiev 3188
+    ACHIEV_CRIT_SARONITE_N              = 10451,                    // General Vezax, achievs 3181, 3188
+    ACHIEV_CRIT_SARONITE_H              = 10462,
     // Yogg
     ACHIEV_CRIT_THREE_LIGHTS            = 10410,    // achiev 3157
     ACHIEV_CRIT_THREE_LIGHTS_H          = 10414,    // achiev 3161
@@ -398,7 +399,7 @@ class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     protected:
 
         
-	// initialize the encouter variables
+    // initialize the encouter variables
     std::string m_strInstData;
     uint32 m_auiEncounter[MAX_ENCOUNTER];
     uint32 m_auiHardBoss[HARD_MODE_ENCOUNTER];
@@ -406,7 +407,7 @@ class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     uint32 m_auiUlduarTeleporters[3];
     uint32 m_auiMiniBoss[6];
 
-	// boss phases which need to be used inside the instance script
+    // boss phases which need to be used inside the instance script
     uint32 m_uiMimironPhase;
     uint32 m_uiYoggPhase;
     uint32 m_uiVisionPhase;
