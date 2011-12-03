@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Boss_Svala
 SD%Complete: 30%
-SDComment: TODO: abilities. The way spells for intro works could use more research.
+SDComment: The way spells for intro works could use more research.
 SDCategory: Utgarde Pinnacle
 EndScriptData */
 
@@ -63,11 +63,6 @@ enum
     SPELL_PARALYZE              = 48278,
 };
 
-enum Phases{
-    PHASE_NORMAL = 0,
-    PHASE_RITUAL = 1,
-};
-
 /*######
 ## boss_svala
 ######*/
@@ -91,8 +86,6 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
     uint32 m_uiIntroTimer;
     uint32 m_uiIntroCount;
 
-    uint8 m_uiPhase;
-
     uint32 m_uiSinisterStrike;
     uint32 m_uiCallFlamesTimer;
     uint32 m_uiMoveToTarget;
@@ -103,7 +96,6 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         m_uiIntroTimer = 2500;
         m_uiIntroCount = 0;
 
-        m_uiPhase = PHASE_NORMAL;
         m_uiSinisterStrike = 2000;
         m_uiCallFlamesTimer = urand(10000, 15000);
         m_uiMoveToTarget = 0;
@@ -366,30 +358,30 @@ bool ProcessEventId_event_call_flames(uint32 uiEventId, Object* pSource, Object*
 
 void AddSC_boss_svala()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_svala";
-    newscript->GetAI = &GetAI_boss_svala;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_svala";
+    pNewScript->GetAI = &GetAI_boss_svala;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_paralyzer";
-    newscript->GetAI = &GetAI_npc_paralyzer;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_paralyzer";
+    pNewScript->GetAI = &GetAI_npc_paralyzer;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_ritual_target";
-    newscript->GetAI = &GetAI_ritual_target;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_ritual_target";
+    pNewScript->GetAI = &GetAI_ritual_target;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_svala_intro";
-    newscript->pAreaTrigger = &AreaTrigger_at_svala_intro;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_svala_intro";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_svala_intro;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "event_call_flames";
-    newscript->pProcessEventId = &ProcessEventId_event_call_flames;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "event_call_flames";
+    pNewScript->pProcessEventId = &ProcessEventId_event_call_flames;
+    pNewScript->RegisterSelf();
 }

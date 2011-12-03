@@ -21,6 +21,12 @@ SDComment: starts at trigger 4991
 SDCategory: Utgarde Pinnacle
 EndScriptData */
 
+
+/* TODO
+better fly script
+remove hacks like the shoot at grauf
+trigger mob should use summon spells
+*/
 #include "precompiled.h"
 #include "utgarde_pinnacle.h"
 #include "Vehicle.h"
@@ -68,6 +74,7 @@ enum
     SPELL_SUMMON_6                  = 48636,
 };
 
+#define HIT_GRAUF_MESSAGE "Ich habe Grauf getroffen"
 /*######
 ## boss_skadi
 ######*/
@@ -86,16 +93,16 @@ struct FlightPositionSkadi
 static FlightPositionSkadi FlightPosition[]=
 {
        {341.740997f, -516.955017f, 104.668999f},   // Start
-       {293.299f, -505.95f, 142.03f},              // kurz nach Start
-       {301.664f, -535.164f, 146.097f},            // Wendeposition
-       {526.896f, -546.387f, 119.209f},            // AbschussPosition
+       {293.299f, -505.95f, 142.03f},              // short time after start
+       {301.664f, -535.164f, 146.097f},            // rotating position
+       {526.896f, -546.387f, 119.209f},            // shoot position
        // PONTOS DO BREACH
        {485.4577f, -511.2515f, 115.3011f}, // Breath 1
        {435.1892f, -514.5232f, 118.6719f}, // Breath 1
 
-       {413.9327f, -540.9407f, 138.2614f}, // Wegflug über die Mauer
+       {413.9327f, -540.9407f, 138.2614f}, // fly over the wall
 
-       {477.311981f, -509.296814f, 104.723083f},   // Boden, dort wo skadi nachm drachentod steht
+       {477.311981f, -509.296814f, 104.723083f},   // Postion where skadi "jump" after graufs death
 };
 
 struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
@@ -265,12 +272,12 @@ struct boss_skadi_graufAI : public ScriptedAI
     {
         switch(uiData)
         {
-            case 1: // kurz nach Start
-            case 2: // Wendeposition
+            case 1: // short after start
+            case 2: // rotating position
                 ++uiWaypointId;
                 uiMovementTimer = 1000;
                 break;             
-            case 3: // Abschusspositon
+            case 3: // shoot position
             {
                 ++uiWaypointId;
                 uiMovementTimer = 15000;
@@ -296,7 +303,7 @@ struct boss_skadi_graufAI : public ScriptedAI
                 }
                 uiMovementTimer = 1000;
                 break;
-            case 6: // über Mauer
+            case 6: // fly over wall
                 uiWaypointId= 3;
                 if (m_pInstance)
                 {
@@ -416,37 +423,35 @@ bool GOHello_go_harpoon_launcher(Player *pPlayer, GameObject *pGO)
                 if (boss_skadi_graufAI* graufAI = (boss_skadi_graufAI*)pGrauf->AI())
                 {
                     graufAI->HarpoonHit();
-                    pPlayer->MonsterSay("Ich habe Grauf getroffen",1);
+                    pPlayer->MonsterSay(HIT_GRAUF_MESSAGE,LANG_UNIVERSAL);
                 }
             }
         }
     }
-      
-
     return true;
 }
 
 void AddSC_boss_skadi()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_skadi";
-    newscript->GetAI = &GetAI_boss_skadi;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_skadi";
+    pNewScript->GetAI = &GetAI_boss_skadi;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_skadi_grauf";
-    newscript->GetAI = &GetAI_boss_skadi_grauf;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_skadi_grauf";
+    pNewScript->GetAI = &GetAI_boss_skadi_grauf;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_skadi";
-    newscript->pAreaTrigger = &AreaTrigger_at_skadi;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_skadi";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_skadi;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "harpoon_Skadi";
-    newscript->pGOUse = &GOHello_go_harpoon_launcher;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "harpoon_Skadi";
+    pNewScript->pGOUse = &GOHello_go_harpoon_launcher;
+    pNewScript->RegisterSelf();
 }

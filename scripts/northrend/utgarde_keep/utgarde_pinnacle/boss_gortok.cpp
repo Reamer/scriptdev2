@@ -21,6 +21,11 @@ SDComment:
 SDCategory: Utgarde Pinnacle
 EndScriptData */
 
+/* TODO
+implement Orb - a red ball-> this Orb activate the mobs
+*/
+
+
 #include "precompiled.h"
 #include "utgarde_pinnacle.h"
 
@@ -349,10 +354,10 @@ CreatureAI* GetAI_boss_gortok(Creature* pCreature)
 
 void AddSC_boss_gortok()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_gortok";
-    newscript->GetAI = &GetAI_boss_gortok;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_gortok";
+    pNewScript->GetAI = &GetAI_boss_gortok;
+    pNewScript->RegisterSelf();
 }

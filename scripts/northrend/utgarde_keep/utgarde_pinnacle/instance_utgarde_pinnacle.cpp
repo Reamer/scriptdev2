@@ -155,9 +155,9 @@ uint32 instance_pinnacle::GetData(uint32 uiType)
 
 void instance_pinnacle::OnCreatureDeath(Creature * pCreature)
 {
-    if (pCreature->GetEntry() == 26555)
+    if (pCreature->GetEntry() == NPC_SCOURGE_HULK)
     {
-        if (pCreature->HasAura(59930))
+        if (pCreature->HasAura(SPELL_AURA_RITUAL_STRIKE))
         {
             m_abAchievCriteria[TYPE_ACHIEV_THE_INCREDIBLE_HULK] = true;
         }

@@ -18,6 +18,8 @@ enum
     GO_DOOR_SKADI                   = 192173,
     GO_DOOR_AFTER_YMIRON            = 192174,
 
+    NPC_SCOURGE_HULK                = 26555,
+
     NPC_FURBOLG                     = 26684,
     NPC_WORGEN                      = 26683,
     NPC_JORMUNGAR                   = 26685,
@@ -35,6 +37,7 @@ enum
 
     SPELL_BALL_OF_FLAME             = 48246,            // spell used by the flame braziers
     SPELL_FREEZING_CLOUD            = 47579,
+    SPELL_AURA_RITUAL_STRIKE        = 59930,
 
     TYPE_ACHIEV_KINGS_BANE          = 0,
     TYPE_ACHIEV_THE_INCREDIBLE_HULK = 1,

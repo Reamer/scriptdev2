@@ -26,58 +26,58 @@
 
 enum
 {
-    SAY_AGGRO = -1575031,
-    SAY_SUMMON_BJORN = -1575032,
-    SAY_SUMMON_HALDOR = -1575033,
-    SAY_SUMMON_RANULF = -1575034,
-    SAY_SUMMON_TORGYN = -1575035,
-    SAY_SLAY_1 = -1575036,
-    SAY_SLAY_2 = -1575037,
-    SAY_SLAY_3 = -1575038,
-    SAY_SLAY_4 = -1575039,
-    SAY_DEATH = -1575040,
+    SAY_AGGRO                       = -1575031,
+    SAY_SUMMON_BJORN                = -1575032,
+    SAY_SUMMON_HALDOR               = -1575033,
+    SAY_SUMMON_RANULF               = -1575034,
+    SAY_SUMMON_TORGYN               = -1575035,
+    SAY_SLAY_1                      = -1575036,
+    SAY_SLAY_2                      = -1575037,
+    SAY_SLAY_3                      = -1575038,
+    SAY_SLAY_4                      = -1575039,
+    SAY_DEATH                       = -1575040,
 
-    SPELL_BANE = 48294,
-    SPELL_BANE_H = 59301,
-    SPELL_DARK_SLASH = 48292,
-    SPELL_FETID_ROT = 48291,
-    SPELL_FETID_ROT_H = 59300,
-    SPELL_SCREAMS_OF_THE_DEAD = 51750,
-    SPELL_SPIRIT_BURST = 48529,
-    SPELL_SPIRIT_BURST_H = 59305,
-    SPELL_SPIRIT_STRIKE = 48423,
-    SPELL_SPIRIT_STRIKE_H = 59304,
+    SPELL_BANE                      = 48294,
+    SPELL_BANE_H                    = 59301,
+    SPELL_DARK_SLASH                = 48292,
+    SPELL_FETID_ROT                 = 48291,
+    SPELL_FETID_ROT_H               = 59300,
+    SPELL_SCREAMS_OF_THE_DEAD       = 51750,
+    SPELL_SPIRIT_BURST              = 48529,
+    SPELL_SPIRIT_BURST_H            = 59305,
+    SPELL_SPIRIT_STRIKE             = 48423,
+    SPELL_SPIRIT_STRIKE_H           = 59304,
 
-    SPELL_SUMMON_AVENGING_SPIRIT = 48593,
-    SPELL_SUMMON_SPIRIT_FOUNT = 48386,
+    SPELL_SUMMON_AVENGING_SPIRIT    = 48593,
+    SPELL_SUMMON_SPIRIT_FOUNT       = 48386,
 
-    SPELL_CHANNEL_SPIRIT_TO_YMIRON = 48316,
-    SPELL_CHANNEL_YMIRON_TO_SPIRIT = 48307,
+    SPELL_CHANNEL_SPIRIT_TO_YMIRON  = 48316,
+    SPELL_CHANNEL_YMIRON_TO_SPIRIT  = 48307,
 
-    SPELL_SPIRIT_FOUNT = 48380,
-    SPELL_SPIRIT_FOUNT_H = 59320
+    SPELL_SPIRIT_FOUNT              = 48380,
+    SPELL_SPIRIT_FOUNT_H            = 59320
 
 };
 
 enum Ghost{
-    NO_GHOST = 0,
-    BJORN = 1,
-    HALDOR = 2,
-    RANULF = 3,
-    TORGYN = 4
+    NO_GHOST= 0,
+    BJORN   = 1,
+    HALDOR  = 2,
+    RANULF  = 3,
+    TORGYN  = 4
 };
 
 enum Creatures
 {
-    CREATURE_BJORN = 27303,
-    CREATURE_BJORN_VISUAL = 27304,
-    CREATURE_HALDOR = 27307,
-    CREATURE_HALDOR_VISUAL = 27310,
-    CREATURE_RANULF = 27308,
-    CREATURE_RANULF_VISUAL = 27311,
-    CREATURE_TORGYN = 27309,
-    CREATURE_TORGYN_VISUAL = 27312,
-    CREATURE_SPIRIT_FOUNT = 27339,
+    CREATURE_BJORN          = 27303,
+    CREATURE_BJORN_VISUAL   = 27304,
+    CREATURE_HALDOR         = 27307,
+    CREATURE_HALDOR_VISUAL  = 27310,
+    CREATURE_RANULF         = 27308,
+    CREATURE_RANULF_VISUAL  = 27311,
+    CREATURE_TORGYN         = 27309,
+    CREATURE_TORGYN_VISUAL  = 27312,
+    CREATURE_SPIRIT_FOUNT   = 27339,
     CREATURE_AVENGING_SPIRIT = 27386
 };
 
@@ -376,15 +376,15 @@ CreatureAI* GetAI_npc_spirit_fount(Creature* pCreature)
 
 void AddSC_boss_ymiron()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_ymiron";
-    newscript->GetAI = &GetAI_boss_ymiron;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_ymiron";
+    pNewScript->GetAI = &GetAI_boss_ymiron;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_spirit_fount";
-    newscript->GetAI = &GetAI_npc_spirit_fount;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_spirit_fount";
+    pNewScript->GetAI = &GetAI_npc_spirit_fount;
+    pNewScript->RegisterSelf();
 }
