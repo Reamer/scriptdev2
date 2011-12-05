@@ -625,8 +625,10 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
                     break;
                 case NPC_HELPER_DRUID:                     // Druid
                     if (roll_chance_i(80))
+                    {
                         if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
                             DoCast(pHodir, SPELL_WRATH);
+                    }
                     else
                         DoCast(m_creature, SPELL_STARLIGHT);
                     break;
