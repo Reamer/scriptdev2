@@ -1,5 +1,5 @@
-/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
+/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: boss_iron_council
 SD%Complete: 
-SDComment: Achievment(Can't Do That While Stunned, 
+SDComment: Achievment(Can't Do That While Stunned,
 SDCategory: Ulduar
 EndScriptData */
 
@@ -266,14 +266,14 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
     bool m_bHasSupercharge2;
     bool m_bIsEnrage;
 
-    BrundirPhase BrundirPhase;
+    BrundirPhase brundirPhase;
 
     void Reset()
     {
         m_creature->SetLevitate(false);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
         m_uiChain_Lightning_Timer = 0;
-        BrundirPhase        = PHASE_NORMAL;
+        brundirPhase        = PHASE_NORMAL;
         m_uiOverload_Timer      = 35000;
         m_uiEnrage_Timer        = 900000;
         m_bIsEnrage             = false;
@@ -368,7 +368,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         else
             m_uiEnrage_Timer -= uiDiff;
 
-        switch (BrundirPhase)
+        switch (brundirPhase)
         {
             case PHASE_NORMAL:
             {
@@ -410,7 +410,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                         // boss doesn't fly during tendrils, needs fixing!
                         if (m_uiTendrilsTimer < uiDiff)
                         {
-                            BrundirPhase = PHASE_UP;
+                            brundirPhase = PHASE_UP;
                             DoScriptText(SAY_BRUNDIR_FLY, m_creature);
 
                             m_creature->SetLevitate(true);
@@ -431,7 +431,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
             case PHASE_UP:
                 if (m_uiTendrilsTimer < uiDiff)
                 {
-                    BrundirPhase = PHASE_TENDRILS;
+                    brundirPhase = PHASE_TENDRILS;
                     DoCast(m_creature, LIGHTNING_TENDRILS_VISUAL, true);
                     DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHTNING_TENDRILS : SPELL_LIGHTNING_TENDRILS_H,true);
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
@@ -455,7 +455,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
 
                 if (m_uiTendrilsEndTimer < uiDiff)
                 {
-                    BrundirPhase = PHASE_DOWN;
+                    brundirPhase = PHASE_DOWN;
 
                     m_uiTendrilsTimer = 2000;
                     m_creature->SetLevitate(false);
@@ -475,7 +475,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
             case PHASE_DOWN:
                 if (m_uiTendrilsTimer < uiDiff)
                 {
-                    BrundirPhase = PHASE_NORMAL;
+                    brundirPhase = PHASE_NORMAL;
                     m_uiTendrilsTimer = 90000;
                     if (m_creature->HasAura(SPELL_LIGHTNING_TENDRILS))
                         m_creature->RemoveAurasDueToSpell(SPELL_LIGHTNING_TENDRILS);
