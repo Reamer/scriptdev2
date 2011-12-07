@@ -909,8 +909,8 @@ bool instance_ulduar::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player c
         case ACHIEV_CRIT_FIREFIGHTER:
         case ACHIEV_CRIT_FIREFIGHTER_H:
             return m_abAchievCriteria[TYPE_ACHIEV_FIREFIGHTER];
-        case ACHIEV_CRIT_MORNING_SARONITE:
-        case ACHIEV_CRIT_MORNING_SARONITE_H:
+        case ACHIEV_CRIT_SARONITE_N:
+        case ACHIEV_CRIT_SARONITE_H:
             return m_abAchievCriteria[TYPE_ACHIEV_MORNING_SARONITE];
         case ACHIEV_CRIT_THREE_LIGHTS:
         case ACHIEV_CRIT_THREE_LIGHTS_H:
