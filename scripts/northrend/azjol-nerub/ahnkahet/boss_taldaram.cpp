@@ -124,7 +124,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-        if (Spell* pSpell = m_creature->FindCurrentSpellBySpellId(m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H))
+        if (m_creature->FindCurrentSpellBySpellId(m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H))
         {
             m_uiEmbraceOfTheVampyrInterruptDamage += uiDamage;
             if (m_uiEmbraceOfTheVampyrInterruptDamage > (m_bIsRegularMode ? 20000 : 40000))
