@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -43,10 +43,9 @@ enum
     SPELL_WING_BUFFET           = 62666,
     SPELL_STUN                  = 62794,
     SPELL_SUMMON_DWARF          = 62916,
-    SPELL_HOVER                 = 57764,
     //both
     SPELL_BERSERK               = 47008,
-    DEVOURING_FLAME_VISUAL      = 63236,
+    DEVOURING_FLAME_MISSILE     = 63236,
     SPELL_FLAME_BREATH          = 63317,
     SPELL_FLAME_BREATH_H        = 64021,
     NPC_CONTROLLER              = 33233,  // used for casting deep breath on turrets
@@ -276,6 +275,7 @@ struct MANGOS_DLL_DECL mob_devouring_flame_targetAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        // think that unnecessary because summon spell 63308 with duration 22 seconds
         if (m_uiDeath_Timer < uiDiff)
             m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
         else m_uiDeath_Timer -= uiDiff;
@@ -364,15 +364,19 @@ struct MANGOS_DLL_DECL mob_dark_rune_sentinelAI : public ScriptedAI
 
         if (m_uiWhirl_Timer < diff)
         {
-            DoCast(m_creature, SPELL_WHIRLWIND);
-            m_uiWhirl_Timer = urand(10000, 15000);
-        }else m_uiWhirl_Timer -= diff;
+            if (DoCastSpellIfCan(m_creature, SPELL_WHIRLWIND) == CAST_OK)
+                m_uiWhirl_Timer = urand(10000, 15000);
+        }
+        else
+            m_uiWhirl_Timer -= diff;
 
         if (m_uiShout_Timer < diff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_BATTLE_SHOUT : SPELL_BATTLE_SHOUT_H);
-            m_uiShout_Timer = 30000;
-        }else m_uiShout_Timer -= diff;
+            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_BATTLE_SHOUT : SPELL_BATTLE_SHOUT_H) == CAST_OK)
+                m_uiShout_Timer = 30000;
+        }
+        else
+            m_uiShout_Timer -= diff;
 
         DoMeleeAttackIfReady();
     }
@@ -410,9 +414,11 @@ struct MANGOS_DLL_DECL mob_dark_rune_guardianAI : public ScriptedAI
 
         if (m_uiStormstrike_Timer < diff)
         {
-            DoCast(m_creature->getVictim(), SPELL_STORMSTRIKE);
-            m_uiStormstrike_Timer = urand(7000, 13000);
-        }else m_uiStormstrike_Timer -= diff;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STORMSTRIKE) == CAST_OK)
+                m_uiStormstrike_Timer = urand(7000, 13000);
+        }
+        else
+            m_uiStormstrike_Timer -= diff;
 
         DoMeleeAttackIfReady();
     }
@@ -517,23 +523,23 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
     GUIDList m_lRepairHarpoonsGUID;
     GUIDList m_lHarpoonsDummyGUID;
 
-    uint32 m_uiRazorscalePhase;
+    RazorscalePhase razorscalePhase;
 
     void Reset()
     {
         m_uiMaxHarpoons = m_bIsRegularMode ? 2 : 4;
-        if (m_pInstance->m_lBreakHarpoonGUID.size() != m_uiMaxHarpoons)
-            m_creature->MonsterSay("Fehler in der Suche der Harpoonen", LANG_UNIVERSAL);
+        //if (m_pInstance->m_lBreakHarpoonGUID.size() != m_uiMaxHarpoons)
+            //m_creature->MonsterSay("Fehler in der Suche der Harpoonen", LANG_UNIVERSAL);
         BreakHarpoons();
 
-        m_uiFireball_Timer          = 10000;    // 10 secs for the first, fckin spam after that ~2secs
+        m_uiFireball_Timer          = 10000;    // 10 secs for the first
         m_uiDevouring_Flame_Timer   = 18000;    // 18 secs first, 12 seconds after
         m_uiWave_spawn              = urand(5000, 10000);
         m_uiBerserk_Timer           = 600000;   // 10 min
         m_uiRepairHarpoonTimer      = 51000;
         m_uiHarpoonsRepaired        = 0;
         
-        m_uiRazorscalePhase = PHASE_AIR;
+        razorscalePhase = PHASE_AIR;
         m_uiFlyNo           = 0;
         m_uiHarpoonsUsed    = 0;
         m_uiScorchedDwarves = 0;
@@ -674,7 +680,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         m_uiHarpoonsUsed    = 0;
         m_uiGroundStepTimer = 2000;
         m_uiGroundStepCount = 0;
-        m_uiRazorscalePhase = PHASE_GROUND;
+        razorscalePhase = PHASE_GROUND;
     }
 
     void SetToAirPhase()
@@ -684,7 +690,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         //  make boss fly
         m_creature->SetLevitate(true);
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
-        m_uiRazorscalePhase         = PHASE_AIR;
+        razorscalePhase             = PHASE_AIR;
         m_uiFireball_Timer          = 10000;
         m_uiDevouring_Flame_Timer   = 18000;
         m_uiWave_spawn              = urand(5000, 10000);
@@ -706,7 +712,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             m_creature->RemoveAurasDueToSpell(SPELL_STUN);
 
         DoScriptText(EMOTE_GROUNDED, m_creature);
-        m_uiRazorscalePhase         = PHASE_PERMAGROUND;
+        razorscalePhase             = PHASE_PERMAGROUND;
         m_uiDevouring_Flame_Timer   = 12000;
         m_uiFlame_Buffet_Timer      = 10000; //every 10 secs
         m_uiFuse_Armor_Timer        = 13000; //every ~13
@@ -724,13 +730,12 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             return;
 
         // make boss land at 50% hp
-        if (m_creature->GetHealthPercent() < 50 && m_uiRazorscalePhase != PHASE_PERMAGROUND)
+        if (m_creature->GetHealthPercent() < 50 && razorscalePhase != PHASE_PERMAGROUND)
         {
             SetToPermGroundedPhase();
         }
 
-        // AIR PHASE
-        switch(m_uiRazorscalePhase)
+        switch(razorscalePhase)
         {
             case PHASE_AIR:
             {
@@ -749,7 +754,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                 // air spells
                 if (m_uiFireball_Timer < uiDiff)
                 {
-                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
                         DoCast(target, m_bIsRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H);
                         m_uiFireball_Timer = 2000;
                 }else
@@ -757,8 +762,8 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
                 if (m_uiDevouring_Flame_Timer < uiDiff)
                 {
-                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                        DoCast(target, DEVOURING_FLAME_VISUAL);
+                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+                        DoCast(target, DEVOURING_FLAME_MISSILE);
                         m_uiDevouring_Flame_Timer = 12000;
                 }else
                     m_uiDevouring_Flame_Timer -= uiDiff;
@@ -820,33 +825,35 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             {
                 if (m_uiDevouring_Flame_Timer < uiDiff)
                 {
-                    DoCast(m_creature->getVictim(), DEVOURING_FLAME_VISUAL);
-                    m_uiDevouring_Flame_Timer = 12000;
+                    if (DoCastSpellIfCan(m_creature->getVictim(), DEVOURING_FLAME_MISSILE) == CAST_OK)
+                        m_uiDevouring_Flame_Timer = 12000;
                 }
                 else
                     m_uiDevouring_Flame_Timer -= uiDiff;
 
                 if (m_uiFuse_Armor_Timer < uiDiff)
                 {
-                    DoCast(m_creature->getVictim(), SPELL_FUSE_ARMOR, true);
-                    m_uiFuse_Armor_Timer = 13000;
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FUSE_ARMOR) == CAST_OK)
+                        m_uiFuse_Armor_Timer = 13000;
                 }
                 else
                     m_uiFuse_Armor_Timer -= uiDiff;
 
                 if (m_uiFlame_Buffet_Timer < uiDiff)
                 {
-                    DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BUFFET : SPELL_FLAME_BUFFET_H , true);
-                    m_uiFlame_Buffet_Timer = 13000;
+                    if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_FLAME_BUFFET : SPELL_FLAME_BUFFET_H) == CAST_OK)
+                        m_uiFlame_Buffet_Timer = 13000;
                 }
                 else
                     m_uiFlame_Buffet_Timer -= uiDiff;
 
                 if (m_uiFlame_Breath_Timer < uiDiff)
                 {
-                    DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BREATH : SPELL_FLAME_BREATH_H);
-                    DoScriptText(EMOTE_DEEP_BREATH, m_creature);
-                    m_uiFlame_Breath_Timer = 14000;
+                    if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_FLAME_BREATH : SPELL_FLAME_BREATH_H) == CAST_OK)
+                    {
+                        DoScriptText(EMOTE_DEEP_BREATH, m_creature);
+                        m_uiFlame_Breath_Timer = 14000;
+                    }
                 }
                 else
                     m_uiFlame_Breath_Timer -= uiDiff;
@@ -860,7 +867,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         }
 
         // ground adds only in Air and grounded phase NOT in Permagrounded Phase
-        if (m_uiWave_spawn < uiDiff && m_uiRazorscalePhase != PHASE_PERMAGROUND)
+        if (m_uiWave_spawn < uiDiff && razorscalePhase != PHASE_PERMAGROUND)
         {
             m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[0].x, PositionLoc[0].y, PositionLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
             m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[1].x, PositionLoc[1].y, PositionLoc[1].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
