@@ -79,10 +79,15 @@ void instance_ulduar::OnCreatureCreate(Creature* pCreature)
     case NPC_STEELBREAKER:
     case NPC_MOLGEIM:
     case NPC_BRUNDIR:
+    // Kologarn
     case NPC_KOLOGARN:
     case NPC_KOLOGARN_BRIDGE_DUMMY:
+    // Auriaya
     case NPC_AURIAYA:
     case NPC_FERAL_DEFENDER:
+    // Mimiron
+    case NPC_AERIAL_UNIT:
+    case NPC_VX001:
     case NPC_MIMIRON:
     case NPC_LEVIATHAN_MK:
     // Hodir
