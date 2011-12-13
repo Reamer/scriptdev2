@@ -279,17 +279,38 @@ UPDATE creature_template SET ScriptName = 'mob_frost_bomb_ulduar' WHERE entry = 
 UPDATE creature_template SET ScriptName = 'mob_mimiron_inferno' WHERE entry = 33370;
 UPDATE creature_template SET lootid = 34057, ScriptName = 'mob_assault_bot' WHERE entry = 34057;
 UPDATE creature_template SET ScriptName = 'mob_magnetic_core' WHERE entry = 34068;
--- spells, may not be correct
--- REPLACE INTO `spell_script_target` (`entry`, `type`, `targetEntry`) VALUES ('64444', '1', '33670');
--- REPLACE INTO `spell_script_target` (`entry`, `type`, `targetEntry`) VALUES ('63414', '1', '33651');
--- REPLACE INTO `spell_script_target` (`entry`, `type`, `targetEntry`) VALUES ('65101', '1', '33350');
--- REPLACE INTO `spell_script_target` (`entry`, `type`, `targetEntry`) VALUES ('62909', '1', '33350');
--- DELETE FROM spell_script_target WHERE entry = 63274;       	-- Laserslave
--- INSERT INTO spell_script_target (entry, type, targetEntry) VALUES (63274, 1,33651);
--- DELETE FROM spell_script_target WHERE entry = 63414;       	-- Laserslave
--- INSERT INTO spell_script_target (entry, type, targetEntry) VALUES (63414, 1,33651);
--- DELETE FROM spell_script_target WHERE entry = 63414;       	-- Laserslave
--- INSERT INTO spell_script_target (entry, type, targetEntry) VALUES (63414, 1,34192);
+DELETE FROM spell_script_target WHERE spell_script_target.entry = 63414;
+INSERT INTO spell_script_target VALUES (63414 , 1, 33576);
+DELETE FROM spell_script_target WHERE spell_script_target.entry = 63274 ;
+INSERT INTO spell_script_target VALUES (63274  , 1, 33576);
+
+-- Spell SQL for spell_dbc---------------
+-- Replace DBC values for spell 63414 - Hinaufdrehen
+DELETE FROM `spell_dbc` WHERE ID=63414;
+INSERT INTO `spell_dbc` (`Id`, `Category`, `Dispel`, `Mechanic`, `Attributes`, `AttributesEx`, `AttributesEx2`, `AttributesEx3`, `AttributesEx4`, `AttributesEx5`, `AttributesEx6`, `AttributesEx7`, `Stances`, `StancesNot`, `Targets`, `RequiresSpellFocus`, `CasterAuraSpell`, `TargetAuraSpell`, `ExcludeCasterAuraSpell`, `ExcludeTargetAuraSpell`, `CastingTimeIndex`, `RecoveryTime`, `CategoryRecoveryTime`, `InterruptFlags`, `AuraInterruptFlags`, `ProcFlags`, `ProcChance`, `ProcCharges`, `MaxLevel`, `BaseLevel`, `SpellLevel`, `DurationIndex`, `RangeIndex`, `StackAmount`, `EquippedItemClass`, `EquippedItemSubClassMask`, `EquippedItemInventoryTypeMask`, `Effect1`, `Effect2`, `Effect3`, `EffectDieSides1`, `EffectDieSides2`, `EffectDieSides3`, `EffectRealPointsPerLevel1`, `EffectRealPointsPerLevel2`, `EffectRealPointsPerLevel3`, `EffectBasePoints1`, `EffectBasePoints2`, `EffectBasePoints3`, `EffectMechanic1`, `EffectMechanic2`, `EffectMechanic3`, `EffectImplicitTargetA1`, `EffectImplicitTargetA2`, `EffectImplicitTargetA3`, `EffectImplicitTargetB1`, `EffectImplicitTargetB2`, `EffectImplicitTargetB3`, `EffectRadiusIndex1`, `EffectRadiusIndex2`, `EffectRadiusIndex3`, `EffectApplyAuraName1`, `EffectApplyAuraName2`, `EffectApplyAuraName3`, `EffectAmplitude1`, `EffectAmplitude2`, `EffectAmplitude3`, `EffectMultipleValue1`, `EffectMultipleValue2`, `EffectMultipleValue3`, `EffectItemType1`, `EffectItemType2`, `EffectMiscValue1`, `EffectMiscValue2`, `EffectMiscValue3`, `EffectMiscValueB1`, `EffectMiscValueB2`, `EffectMiscValueB3`, `EffectTriggerSpell1`, `EffectTriggerSpell2`, `EffectTriggerSpell3`, `EffectSpellClassMaskA1`, `EffectSpellClassMaskA2`, `EffectSpellClassMaskA3`, `EffectSpellClassMaskB1`, `EffectSpellClassMaskB2`, `EffectSpellClassMaskB3`, `EffectSpellClassMaskC1`, `EffectSpellClassMaskC2`, `EffectSpellClassMaskC3`, `SpellIconID`, `MaxTargetLevel`, `SpellFamilyName`, `SpellFamilyFlags1`, `SpellFamilyFlags2`, `SpellFamilyFlags3`, `MaxAffectedTargets`, `DmgClass`, `PreventionType`, `DmgMultiplier1`, `DmgMultiplier2`, `DmgMultiplier3`, `AreaGroupId`, `SchoolMask`, `Comment`)
+VALUES ( 63414 , 0 , 0 , 0 , 0 , 268451844 , 4 , 0 , 0 , 0 , 1024 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 0 , 0 , 0 , 0 , 0 , 101 , 0 , 0 , 0 , 0 , 35 , 13 , 0 , -1 , 0 , 0 , 6 , 140 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 38 , 38 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 23 , 0 , 0 , 4000 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 63274 , 66490 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 2281 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 1 , 1 , 0 , 1 ,'Hinaufdrehen');
+-- Attention! Fields [ Comment  ] not mapped
+
+
+UPDATE `spell_dbc` SET 
+`EffectImplicitTargetA1`=1, -- old value = 1
+`Comment` = 'Replacement for spell 63414 "Hinaufdrehen"' 
+WHERE Id=63414;
+
+-- Spell SQL for spell_dbc---------------
+-- Replace DBC values for spell 63274 - P3Wx2-Lasersalve
+DELETE FROM `spell_dbc` WHERE ID=63274;
+INSERT INTO `spell_dbc` (`Id`, `Category`, `Dispel`, `Mechanic`, `Attributes`, `AttributesEx`, `AttributesEx2`, `AttributesEx3`, `AttributesEx4`, `AttributesEx5`, `AttributesEx6`, `AttributesEx7`, `Stances`, `StancesNot`, `Targets`, `RequiresSpellFocus`, `CasterAuraSpell`, `TargetAuraSpell`, `ExcludeCasterAuraSpell`, `ExcludeTargetAuraSpell`, `CastingTimeIndex`, `RecoveryTime`, `CategoryRecoveryTime`, `InterruptFlags`, `AuraInterruptFlags`, `ProcFlags`, `ProcChance`, `ProcCharges`, `MaxLevel`, `BaseLevel`, `SpellLevel`, `DurationIndex`, `RangeIndex`, `StackAmount`, `EquippedItemClass`, `EquippedItemSubClassMask`, `EquippedItemInventoryTypeMask`, `Effect1`, `Effect2`, `Effect3`, `EffectDieSides1`, `EffectDieSides2`, `EffectDieSides3`, `EffectRealPointsPerLevel1`, `EffectRealPointsPerLevel2`, `EffectRealPointsPerLevel3`, `EffectBasePoints1`, `EffectBasePoints2`, `EffectBasePoints3`, `EffectMechanic1`, `EffectMechanic2`, `EffectMechanic3`, `EffectImplicitTargetA1`, `EffectImplicitTargetA2`, `EffectImplicitTargetA3`, `EffectImplicitTargetB1`, `EffectImplicitTargetB2`, `EffectImplicitTargetB3`, `EffectRadiusIndex1`, `EffectRadiusIndex2`, `EffectRadiusIndex3`, `EffectApplyAuraName1`, `EffectApplyAuraName2`, `EffectApplyAuraName3`, `EffectAmplitude1`, `EffectAmplitude2`, `EffectAmplitude3`, `EffectMultipleValue1`, `EffectMultipleValue2`, `EffectMultipleValue3`, `EffectItemType1`, `EffectItemType2`, `EffectMiscValue1`, `EffectMiscValue2`, `EffectMiscValue3`, `EffectMiscValueB1`, `EffectMiscValueB2`, `EffectMiscValueB3`, `EffectTriggerSpell1`, `EffectTriggerSpell2`, `EffectTriggerSpell3`, `EffectSpellClassMaskA1`, `EffectSpellClassMaskA2`, `EffectSpellClassMaskA3`, `EffectSpellClassMaskB1`, `EffectSpellClassMaskB2`, `EffectSpellClassMaskB3`, `EffectSpellClassMaskC1`, `EffectSpellClassMaskC2`, `EffectSpellClassMaskC3`, `SpellIconID`, `MaxTargetLevel`, `SpellFamilyName`, `SpellFamilyFlags1`, `SpellFamilyFlags2`, `SpellFamilyFlags3`, `MaxAffectedTargets`, `DmgClass`, `PreventionType`, `DmgMultiplier1`, `DmgMultiplier2`, `DmgMultiplier3`, `AreaGroupId`, `SchoolMask`, `Comment`)
+VALUES ( 63274 , 0 , 0 , 0 , 0 , 268451844 , 4 , 0 , 0 , 0 , 1024 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 0 , 0 , 0 , 0 , 0 , 101 , 0 , 0 , 0 , 0 , 1 , 13 , 0 , -1 , 0 , 0 , 6 , 6 , 6 , 0 , 1 , 0 , 0 , 0 , 0 , 0 , -1 , 0 , 0 , 0 , 0 , 38 , 1 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 4 , 23 , 284 , 0 , 250 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 63293 , 63300 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 2281 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 1 , 1 , 0 , 1 ,'P3Wx2-Lasersalve');
+-- Attention! Fields [ Comment  ] not mapped
+
+
+UPDATE `spell_dbc` SET 
+`EffectImplicitTargetA1`=1, -- old value = 1
+`Comment` = 'Replacement for spell 63274 "P3Wx2-Lasersalve"' 
+WHERE Id=63274;
+
+
 DELETE FROM spell_script_target WHERE entry = 64444;       	-- Magnetischer Kern
 INSERT INTO spell_script_target (entry, type, targetEntry) VALUES (64444, 1,33670);
 DELETE FROM spell_script_target WHERE entry = 64436;       	-- Magnetischer Kern

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -69,7 +69,7 @@ enum
     //spells
     //leviathan
     SPELL_PROXIMITY_MINES   = 63016, // also in phase 4
-    SPELL_MINE_SUMMON       = 65347,
+    SPELL_MINE_SUMMON_10    = 63027,
     MOB_PROXIMITY_MINE      = 34362,
     SPELL_EXPLOSION         = 66351,
     SPELL_EXPLOSION_H       = 63009,
@@ -89,8 +89,10 @@ enum
     SPELL_LASER_BARRAGE     = 63293, // also in phase 4
     SPELL_LASER_VISUAL      = 63300,
     SPELL_LASER_TRIGG       = 63274,
+    SPELL_LASER_SLAVE       = 63414,
     SPELL_ROCKET_STRIKE     = 64064,
-    NPC_MIMIRON_FOCUS       = 33835,    //33369
+    SPELL_ROCKET_TRIGGER    = 63036,
+    NPC_ROCKET_STRIKE       = 34047,
     SPELL_HEAT_WAVE         = 63677,
     SPELL_HEAT_WAVE_H       = 64533,
     SPELL_HAND_PULSE_LEFT   = 64348, // only in phase 4
@@ -107,8 +109,10 @@ enum
     SPELL_FROST_BOMB_SUMMON = 64627,    // summon the frostbomb
 
     //aerial unit
-    SPELL_PLASMA_BALL       = 65647, // also in phase 4
-    SPELL_PLASMA_BALL_H     = 65648, // also in phase 4
+    SPELL_PLASMA_BALL_FLY   = 63689, // in phase 2
+    SPELL_PLASMA_BALL_FLY_H = 64535, // in phase 2
+    SPELL_PLASMA_BALL       = 65647, // in phase 4, i use this spell also in phase 2, because aerial unit not move
+    SPELL_PLASMA_BALL_H     = 65648, // in phase 4
     MOB_ASSALT_BOT          = 34057,
     MOB_BOMB_BOT            = 33836,
     MOB_BOMB_BOT_321        = 33346,
@@ -185,7 +189,6 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         pVehicleTank = pCreature->GetVehicleKit();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        //pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         Reset();
     }
 
@@ -210,7 +213,6 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
     uint32 m_uiOutroStep;
 
     bool   m_bMustRepair;
-    uint32 m_uiRepairTimer;
 
     ObjectGuid m_TurretGuid;
 
@@ -229,7 +231,6 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
         m_uiOutroStep           = 1;
         m_bIsOutro              = false;
         m_bMustRepair           = false;
-        m_uiRepairTimer         = 15000;
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -240,11 +241,13 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
             pTurret->ForcedDespawn();
 
         if (!pVehicleTank->GetPassenger(SEAT_FOR_ROBOT))
+        {
             if (Creature* pTurret = DoSpawnCreature(LEVIATHAN_TURRET, 0, 0, 0, 0, TEMPSUMMON_DEAD_DESPAWN, 60000))
             {
                 pTurret->EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
                 m_TurretGuid = pTurret->GetObjectGuid();
             }
+        }
     }
 
     void AttackStart(Unit* pWho)
@@ -263,32 +266,28 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* pDealer, uint32& uiDamage)
     {
-        if(m_creature->GetHealth() <= uiDamage)
+        if (m_pInstance)
         {
-            uiDamage = 0;
-            if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
+            if(m_creature->GetHealth() <= uiDamage)
             {
-                m_bIsOutro = true;
-            }
-            // hacky way for feign death
-            if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
-            {
-                m_creature->InterruptNonMeleeSpells(true);
-                m_creature->RemoveAllAuras();
-                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                m_creature->GetMotionMaster()->MovementExpired(false);
-                m_creature->GetMotionMaster()->MoveIdle();
-                m_creature->CombatStop();
-                m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-                m_bMustRepair   = true;
-                m_uiRepairTimer = 15000;
-                DoCast(m_creature, SPELL_SELF_REPAIR);
+                uiDamage = 0;
+                if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
+                    m_bIsOutro = true;
 
-                if(m_pInstance) 
+                // for feign death
+                else if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                {
+                    if (m_pInstance->GetData(TYPE_LEVIATHAN_MK) != SPECIAL)
+                        m_creature->InterruptNonMeleeSpells(true);
+                    m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                    m_bMustRepair   = true;
+                    DoCast(m_creature, SPELL_SELF_REPAIR);
                     m_pInstance->SetData(TYPE_LEVIATHAN_MK, SPECIAL);
-            }            
+                }
+            }
         }
     }
 
@@ -307,30 +306,79 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
         }
     }
 
-    // hacky way for phase 4. needs rewriging when vehicles are fixed
-    void SetPhase()
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_bIsOutro          = false;
-        m_uiMinesTimer      = 10000;
-        m_uiShockBlastTimer = 30000;
-        m_bStartAttack      = true;
-        // look like a robot
-        // SetCombatMovement(false);
+        if (pSpell->Id == SPELL_SELF_REPAIR)
+        {
+            m_creature->MonsterSay("Selbst reperatur hat mich getroffen",0);
+            m_bMustRepair = false;
+            m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+            m_bIsOutro          = false;
+            m_uiMinesTimer      = 10000;
+            m_uiShockBlastTimer = 30000;
+            m_bStartAttack      = true;
+            m_creature->SetInCombatWithZone();
+
+            if(m_pInstance)
+                m_pInstance->SetData(TYPE_LEVIATHAN_MK, IN_PROGRESS);
+        }
     }
 
-    // hacky way for phase 4. needs rewriging when vehicles are fixed
-    void Repair()
+    void MovementInform(uint32 uiMovementType, uint32 uiData)
     {
-        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        m_creature->SetHealth(m_creature->GetMaxHealth() * 0.5);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-        m_creature->AI()->AttackStart(m_creature->getVictim());
-        SetPhase();
+        if (m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_INTRO)
+        {
+            m_bStartAttack = true;
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->SetInCombatWithZone();
+            m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_LEVIATHAN);
+        }
+        else if (m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_TRANS_3)
+        {
+            if (Creature* pMimiron = m_pInstance->GetSingleCreatureFromStorage(NPC_MIMIRON))
+            {
+                DoScriptText(SAY_ROBOT_ACTIVE, pMimiron);
+            }
 
-        if(m_pInstance)
-            m_pInstance->SetData(TYPE_LEVIATHAN_MK, IN_PROGRESS);
+            m_bStartAttack = true;
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->SetInCombatWithZone();
+            m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_ROBOT);
+            m_creature->SetHealthPercent(50.0f);
+            if(Creature* pTorso = m_pInstance->GetSingleCreatureFromStorage(NPC_VX001))
+            {
+                if (VehicleKit* pVehicleTank = m_creature->GetVehicleKit())
+                {
+                    pVehicleTank->RemoveAllPassengers();
+                    pTorso->EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
+                }
+
+                if(Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
+                {
+                    if (VehicleKit* pVehicleTorso = pTorso->GetVehicleKit())
+                    {
+                        pHead->EnterVehicle(pVehicleTorso, SEAT_FOR_ROBOT);
+                    }
+                }
+                else
+                    m_creature->MonsterSay("Kopf nicht gefunden",0);
+            }else
+                m_creature->MonsterSay("Torso nicht gefunden.", 0);
+        }
+
+        if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
+        {
+            // start again 3 fires
+            for(uint8 i = 0; i < 3; i++)
+            {
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    pTarget->InterruptNonMeleeSpells(true);
+                    pTarget->CastSpell(pTarget, SPELL_FLAMES_SUMMON, false);
+                }
+            }
+        }
     }
 
     void JustSummoned(Creature* pSummon)
@@ -360,14 +408,6 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
             if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
                 return;
 
-            if(m_uiRepairTimer < uiDiff && m_bMustRepair)
-            {
-                SetPhase();
-                Repair();
-                m_bMustRepair = false;
-            }
-            else m_uiRepairTimer -= uiDiff;
-
             // return if repairing
             if(m_bMustRepair)
                 return;
@@ -375,59 +415,62 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
             // proximity mines
             if(m_uiMinesTimer < uiDiff)
             {
-                //DoCast(m_crreature, SPELL_PROXIMITY_MINES);
-                for(uint8 i = 0; i < urand(8, 10); i++)
-                {
-                    float angle = (float) rand()*360/RAND_MAX + 1;
-                    float homeX = m_creature->GetPositionX() + 15*cos(angle*(M_PI/180));
-                    float homeY = m_creature->GetPositionY() + 15*sin(angle*(M_PI/180));
-                    m_creature->SummonCreature(MOB_PROXIMITY_MINE, homeX, homeY, m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 10000);
-                }
-                m_uiMinesTimer = 30000;
+                if (DoCastSpellIfCan(m_creature, SPELL_MINE_SUMMON_10) == CAST_OK)
+                    m_uiMinesTimer = 30000;
             }
-            else m_uiMinesTimer -= uiDiff;
+            else
+                m_uiMinesTimer -= uiDiff;
 
             // shock blast
             if(m_uiShockBlastTimer < uiDiff)
             {
-                DoCast(m_creature, SPELL_SHOCK_BLAST);
-                m_uiShockBlastTimer = 50000;
+                if (DoCastSpellIfCan(m_creature, SPELL_SHOCK_BLAST) == CAST_OK)
+                    m_uiShockBlastTimer = 50000;
             }
-            else m_uiShockBlastTimer -= uiDiff;
+            else
+                m_uiShockBlastTimer -= uiDiff;
 
             // hard mode script
-            if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS && m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
+            if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
             {
-                if(m_creature->GetHealthPercent() < 50.0f && !m_bHasSuppresed)
-                {
-                    m_creature->InterruptNonMeleeSpells(true);
-                    DoCast(m_creature, SPELL_FLAME_SUPRESSANT);
-                    m_bHasSuppresed = true;
-                    m_uiSupressTimer = 2000;
-                    m_uiSetFireTimer = 10000;
-                }
+                DoCastSpellIfCan(m_creature, SPELL_EMERGENCY_MODE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
 
-                if(m_uiSupressTimer < uiDiff && m_bHasSuppresed)
+                if (m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
                 {
-                    SuppressFires();
-                    m_uiSupressTimer = 600000;
-                }
-                else m_uiSupressTimer -= uiDiff;
-
-                if(m_uiSetFireTimer < uiDiff && m_bHasSuppresed)
-                {
-                    // start again 3 fires
-                    for(uint8 i = 0; i < 3; i++)
+                    if(m_creature->GetHealthPercent() < 50.0f && !m_bHasSuppresed)
                     {
-                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        if (DoCastSpellIfCan(m_creature, SPELL_FLAME_SUPRESSANT) == CAST_OK)
                         {
-                            pTarget->InterruptNonMeleeSpells(true);
-                            pTarget->CastSpell(pTarget, SPELL_FLAMES_SUMMON, false);
+                            m_bHasSuppresed = true;
+                            m_uiSupressTimer = 2000;
+                            m_uiSetFireTimer = 10000;
                         }
                     }
-                    m_uiSetFireTimer = 600000;
+
+                    if(m_uiSupressTimer < uiDiff && m_bHasSuppresed)
+                    {
+                        SuppressFires();
+                        m_uiSupressTimer = 600000;
+                    }
+                    else
+                        m_uiSupressTimer -= uiDiff;
+
+                    if(m_uiSetFireTimer < uiDiff && m_bHasSuppresed)
+                    {
+                        // start again 3 fires
+                        for(uint8 i = 0; i < 3; i++)
+                        {
+                            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                            {
+                                pTarget->InterruptNonMeleeSpells(true);
+                                pTarget->CastSpell(pTarget, SPELL_FLAMES_SUMMON, false);
+                            }
+                        }
+                        m_uiSetFireTimer = 600000;
+                    }
+                    else
+                        m_uiSetFireTimer -= uiDiff;
                 }
-                else m_uiSetFireTimer -= uiDiff;
             }
 
             DoMeleeAttackIfReady();
@@ -490,16 +533,10 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
     bool m_bStartAttack;
     uint32 m_uiAttackStartTimer;
 
-    uint32 m_uiRapidBurstTimer;
-    uint32 m_uiLaserBarrageWarningTimer;
     uint32 m_uiLaserBarrageTimer;
-    uint32 m_uiLaserBarrageTickTimer;
-    float  m_fCreatureOrientation;
-    uint32 m_uiOrientationCount;
-
+    uint32 m_uiLaserBarrageTick;
     uint32 m_uiRocketStrikeTimer;
     uint32 m_uiHeatWaveTimer;
-    uint32 m_uiHandPulseTimer;
 
     uint32 m_uiFlameSuppressTimer;
     uint32 m_uiFrostBombTimer;
@@ -510,26 +547,19 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
     uint32 m_uiStandardAttack;
 
     bool m_bFireLeft;
-    bool m_bIsInLaserBarrage;
 
     void Reset()
     {
         m_bFireLeft             = true;
-        m_bIsInLaserBarrage     = false;
 
         m_bStartAttack          = false;
         m_uiAttackStartTimer    = 12000;
         m_bMustRepair           = false;
 
-        m_uiRapidBurstTimer     = 1000;
-        m_uiLaserBarrageWarningTimer = 56000;
         m_uiLaserBarrageTimer   = 60000;
-        m_uiLaserBarrageTickTimer = 100;
-        m_fCreatureOrientation  = 0;
-        m_uiOrientationCount    = 0;
+        m_uiLaserBarrageTick    = 100;
         m_uiRocketStrikeTimer   = 25000;
         m_uiHeatWaveTimer       = 20000;
-        m_uiHandPulseTimer      = 1000;
 
         m_uiStandardAttack      = 1000;
 
@@ -576,43 +606,48 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
 
     void DamageTaken(Unit *done_by, uint32 &uiDamage)
     {
-        if(m_creature->GetHealth() <= uiDamage)
+        if (m_pInstance)
         {
-            uiDamage = 0;
-            m_bMustRepair   = true;
-            if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_VX001)
+            if(m_creature->GetHealth() <= uiDamage)
             {
-                if (Creature* pMimiron = m_pInstance->GetSingleCreatureFromStorage(NPC_MIMIRON))
-                    DoScriptText(SAY_TORSO_DEATH, pMimiron);
-                m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_TRANS_2);
-                m_pInstance->SetData(TYPE_VX001, DONE);
-            }
-            // hacky way for feign death, needs fixing
-            if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
-            {            
-                if(m_pInstance) 
+                uiDamage = 0;
+                m_bMustRepair   = true;
+                if (m_pInstance->GetData(TYPE_VX001) != SPECIAL)
+                    m_creature->InterruptNonMeleeSpells(true);
+                m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_VX001)
+                {
+                    if (Creature* pMimiron = m_pInstance->GetSingleCreatureFromStorage(NPC_MIMIRON))
+                        DoScriptText(SAY_TORSO_DEATH, pMimiron);
+                    m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_TRANS_2);
+                    m_pInstance->SetData(TYPE_VX001, DONE);
+                }
+                // hacky way for feign death, needs fixing
+                else if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                {
+                    DoCast(m_creature, SPELL_SELF_REPAIR);
                     m_pInstance->SetData(TYPE_VX001, SPECIAL);
+                }
             }
-            m_creature->InterruptNonMeleeSpells(true);
-            m_creature->RemoveAllAuras();
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
         }
     }
 
-    // hacky way for phase 4. needs rewriging when vehicles are fixed
-    void Repair()
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        m_creature->SetHealth(m_creature->GetMaxHealth() * 0.5);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_uiLaserBarrageTimer   = 60000;
-        m_uiRocketStrikeTimer   = 25000;
-        m_uiHandPulseTimer      = 1000;
-        m_bMustRepair = false;
+        if (pSpell->Id == SPELL_SELF_REPAIR)
+        {
+            m_creature->MonsterSay("Selbst reperatur hat mich getroffen",0);
+            m_bMustRepair = false;
+            m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+            m_uiLaserBarrageTimer   = 60000;
+            m_uiRocketStrikeTimer   = 25000;
+            m_creature->SetInCombatWithZone();
 
-        if(m_pInstance)
-            m_pInstance->SetData(TYPE_VX001, IN_PROGRESS);
+            if(m_pInstance)
+                m_pInstance->SetData(TYPE_VX001, IN_PROGRESS);
+        }
     }
 
     void SuppressFires()
@@ -654,6 +689,15 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
         }
     }
 
+    void JustSummoned(Creature* pSummend)
+    {
+        if (pSummend->GetEntry() == NPC_ROCKET_STRIKE)
+        {
+            pSummend->CastSpell(m_creature, SPELL_ROCKET_STRIKE, false);
+            pSummend->ForcedDespawn(10 * IN_MILLISECONDS);
+        }
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (m_uiAttackStartTimer < uiDiff && !m_bStartAttack)
@@ -664,145 +708,118 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
             m_creature->SetInCombatWithZone();
             m_bStartAttack = true;
         }
-        else m_uiAttackStartTimer -= uiDiff;
+        else
+            m_uiAttackStartTimer -= uiDiff;
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
+        // HACK against the lose of an vehicle part
+        if (m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+        {
+            if (Creature* pTank = m_pInstance->GetSingleCreatureFromStorage(NPC_LEVIATHAN_MK))
+            {
+                if (VehicleKit* pTankV = pTank->GetVehicleKit())
+                {
+                    if (!pTankV->GetPassenger(SEAT_FOR_ROBOT))
+                    {
+                        m_creature->EnterVehicle(pTankV, SEAT_FOR_ROBOT);
+                    }
+                }
+            }
+            if (VehicleKit* pVX001V = m_creature->GetVehicleKit())
+            {
+                if (!pVX001V->GetPassenger(SEAT_FOR_ROBOT))
+                {
+                    if (Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
+                    {
+                        pHead->EnterVehicle(pVX001V,SEAT_FOR_ROBOT);
+                    }
+                }
+            }
+        }
 
         // return if repairing
         if(m_bMustRepair)
             return;
-        
-        if (!m_bIsInLaserBarrage)
+
+        // turning if mob has dummy aura from Laser Barrage
+        if (m_creature->HasAura(SPELL_LASER_VISUAL))
         {
-            if (m_uiStandardAttack < uiDiff)
+            if (m_uiLaserBarrageTick < uiDiff)
             {
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                {
-                    m_creature->SetInFront(pTarget);
-                    m_creature->SetTargetGuid(pTarget->GetObjectGuid());
-                    if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_VX001)
-                    {
-                        if (m_bFireLeft)
-                        {
-                            DoCast(pTarget, m_bIsRegularMode ? SPELL_RAPID_BURST_LEFT : SPELL_RAPID_BURST_LEFT_H);
-                            m_bFireLeft = false;
-                        }
-                        else
-                        {
-                            DoCast(pTarget, m_bIsRegularMode ? SPELL_RAPID_BURST_RIGHT : SPELL_RAPID_BURST_RIGHT_H);
-                            m_bFireLeft = true;
-                        }
-                        m_uiStandardAttack = 500;
-                    }
-                    if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
-                    {
-                        if (m_bFireLeft)
-                        {
-                            DoCast(pTarget, m_bIsRegularMode ? SPELL_HAND_PULSE_LEFT : SPELL_HAND_PULSE_LEFT_H);
-                            m_bFireLeft = false;
-                        }
-                        else
-                        {
-                            DoCast(pTarget, m_bIsRegularMode ? SPELL_HAND_PULSE_RIGHT : SPELL_HAND_PULSE_RIGHT_H);
-                            m_bFireLeft = true;
-                        }
-                        m_uiStandardAttack = 1000;
-                    }                    
-                }
-            }else
-                m_uiStandardAttack -= uiDiff;
+                // Sweep around
+                float newAngle = m_creature->GetOrientation() +M_PI*0.015;
+                if (newAngle > 2*M_PI_F)
+                    newAngle -= 2*M_PI_F;
+
+                m_creature->SetFacingTo(newAngle);
+                m_uiLaserBarrageTick = 100;
+            }
+            else
+                m_uiLaserBarrageTick -= uiDiff;
         }
+
+        // no turn with SelectHostileTarget in Laser Barrage
+        if (m_creature->HasAura(SPELL_LASER_SLAVE) || m_creature->HasAura(SPELL_LASER_VISUAL))
+            return;
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
 
         if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_VX001)
         {
             if(m_uiHeatWaveTimer < uiDiff)
             {
-                DoCast(m_creature, m_bIsRegularMode ? SPELL_HEAT_WAVE : SPELL_HEAT_WAVE_H);
-                m_uiHeatWaveTimer = 10000;
-            }
-        }
-
-        if (m_uiLaserBarrageWarningTimer < uiDiff)
-        {
-            m_uiLaserBarrageTimer = 4000;
-            m_uiLaserBarrageTickTimer = 4100;
-            m_bIsInLaserBarrage = true;
-            m_uiLaserBarrageWarningTimer = urand(50000, 60000);
-            m_uiOrientationCount = 0;
-            DoScriptText(EMOTE_LASER_SLAVE, m_creature);
-        }
-        else
-            m_uiLaserBarrageWarningTimer -= uiDiff;
-
-        if (m_bIsInLaserBarrage)
-        {
-            if(m_uiLaserBarrageTimer < uiDiff)
-            {
-                m_creature->SetTargetGuid(m_creature->GetObjectGuid());
-                m_fCreatureOrientation = frand(0,2*M_PI);
-                m_creature->SetOrientation(m_fCreatureOrientation);
-                DoCast(m_creature, SPELL_LASER_BARRAGE, true);
-                DoCast(m_creature, SPELL_LASER_VISUAL, true);
-                m_uiLaserBarrageTimer = 60000;
-                m_uiLaserBarrageTickTimer = 100; 
-            }
-            else 
-                m_uiLaserBarrageTimer -= uiDiff;
-
-            if (m_uiLaserBarrageTickTimer < uiDiff)
-            {
-                m_fCreatureOrientation = M_PI/100 + m_fCreatureOrientation;
-                m_creature->SetOrientation(m_fCreatureOrientation);
-                DoCast(m_creature, SPELL_LASER_BARRAGE, true);
-                m_uiLaserBarrageTickTimer = 100;
-                ++m_uiOrientationCount;
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_HEAT_WAVE : SPELL_HEAT_WAVE_H) == CAST_OK)
+                    m_uiHeatWaveTimer = urand(18000,22000);
             }
             else
-                m_uiLaserBarrageTickTimer -= uiDiff;
-
-            if (m_uiOrientationCount > 100)
-            {
-                m_creature->RemoveAurasDueToSpell(SPELL_LASER_BARRAGE);
-                m_creature->RemoveAurasDueToSpell(SPELL_LASER_VISUAL);
-                m_bIsInLaserBarrage = false;
-            }
+                m_uiHeatWaveTimer -=uiDiff;
         }
 
-        // this needs vehicles in order to make the rocket move to the target
-        if(m_uiRocketStrikeTimer < uiDiff)
+        if (m_uiLaserBarrageTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
             {
-                if(Creature* pTemp = m_creature->SummonCreature(NPC_MIMIRON_FOCUS, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 30000))
+                if (DoCastSpellIfCan(pTarget, SPELL_LASER_SLAVE) == CAST_OK)
                 {
-                    pTemp->setFaction(14);
-                    pTemp->GetMotionMaster()->MoveIdle();
-                    pTemp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    pTemp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                    pTemp->CombatStop();
-                    pTemp->SetDisplayId(11686);     // make invisible
-                    pTemp->CastSpell(pTemp, SPELL_ROCKET_STRIKE, false);
+                    m_creature->SetFacingTo(m_creature->GetAngle(pTarget));
+                    m_uiLaserBarrageTimer = 46000;
+    //                DoScriptText(EMOTE_LASER_SLAVE, m_creature);
                 }
             }
-            m_uiRocketStrikeTimer = urand(25000, 30000);
         }
-        else m_uiRocketStrikeTimer -= uiDiff;
+        else
+            m_uiLaserBarrageTimer -= uiDiff;
+
+        if(m_uiRocketStrikeTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_ROCKET_TRIGGER) == CAST_OK)
+                    m_uiRocketStrikeTimer = urand(8000, 12000);
+            }
+        }
+        else
+            m_uiRocketStrikeTimer -= uiDiff;
 
         // hard mode
         if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
         {
+
+            DoCastSpellIfCan(m_creature, SPELL_EMERGENCY_MODE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+
             // only in VX001 phase
             if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_VX001)
             {
                 if(m_uiFlameSuppressTimer < uiDiff)
                 {
-                    m_creature->InterruptNonMeleeSpells(true);
-                    DoCast(m_creature, SPELL_FLAME_SUPRESS);
-                    SuppressFires();
-                    m_uiFlameSuppressTimer = urand(9000, 10000);
+                    if (DoCastSpellIfCan(m_creature, SPELL_FLAME_SUPRESS) == CAST_OK)
+                    {
+                        SuppressFires();
+                        m_uiFlameSuppressTimer = urand(9000, 10000);
+                    }
                 }
-                else m_uiFlameSuppressTimer -= uiDiff;
+                else
+                    m_uiFlameSuppressTimer -= uiDiff;
             }
 
             if(m_uiFrostBombTimer < uiDiff)
@@ -812,7 +829,8 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
                 m_uiFrostBombTimer = urand(50000, 60000);
                 m_uiSpreadFiresTimer = urand(15000, 20000);
             }
-            else m_uiFrostBombTimer -= uiDiff;
+            else
+                m_uiFrostBombTimer -= uiDiff;
 
             if(m_uiSpreadFiresTimer < uiDiff)
             {
@@ -827,8 +845,62 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
                 }
                 m_uiSpreadFiresTimer = 60000;
             }
-            else m_uiSpreadFiresTimer -= uiDiff;
+            else
+                m_uiSpreadFiresTimer -= uiDiff;
         }
+
+        if (m_uiStandardAttack < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            {
+                if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_VX001)
+                {
+                    if (m_bFireLeft)
+                    {
+                        if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_RAPID_BURST_LEFT : SPELL_RAPID_BURST_LEFT_H) == CAST_OK)
+                        {
+                            m_creature->SetInFront(pTarget);
+                            m_creature->SetTargetGuid(pTarget->GetObjectGuid());
+                            m_bFireLeft = false;
+                        }
+                    }
+                    else
+                    {
+                        if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_RAPID_BURST_RIGHT : SPELL_RAPID_BURST_RIGHT_H) ==CAST_OK)
+                        {
+                            m_creature->SetInFront(pTarget);
+                            m_creature->SetTargetGuid(pTarget->GetObjectGuid());
+                            m_bFireLeft = true;
+                        }
+                    }
+                    m_uiStandardAttack = 500;
+                }
+                else if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                {
+                    if (m_bFireLeft)
+                    {
+                        if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_HAND_PULSE_LEFT : SPELL_HAND_PULSE_LEFT_H) ==CAST_OK)
+                        {
+                            m_creature->SetInFront(pTarget);
+                            m_creature->SetTargetGuid(pTarget->GetObjectGuid());
+                            m_bFireLeft = false;
+                        }
+                    }
+                    else
+                    {
+                        if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_HAND_PULSE_RIGHT : SPELL_HAND_PULSE_RIGHT_H)  ==CAST_OK)
+                        {
+                            m_creature->SetInFront(pTarget);
+                            m_creature->SetTargetGuid(pTarget->GetObjectGuid());
+                            m_bFireLeft = true;
+                        }
+                    }
+                    m_uiStandardAttack = 1000;
+                }
+            }
+        }
+        else
+            m_uiStandardAttack -= uiDiff;
     }
 };
 
@@ -865,18 +937,16 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
 
         m_uiPlasmaBallTimer     = 3000;
         m_uiSummonWavesTimer    = 10000;
-        m_bIsGrounded = false;
+        m_bIsGrounded           = false;
 
         m_bMustRepair           = false;
 
-        // m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
-        // m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
+        MakeBossLand();
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
         if(m_pInstance) 
             m_pInstance->SetData(TYPE_AERIAL_UNIT, NOT_STARTED);
-
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
     void AttackStart(Unit* pWho)
@@ -897,54 +967,64 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
     {
         if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
         {
-            // m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-            // m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
-            // m_creature->GetMotionMaster()->MoveIdle();
-            // SetCombatMovement(false);
-            m_creature->SetLevitate(true);
-
-            //m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() +  7, 0.0f);
-            //m_creature->SendMonsterMove(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() +  7, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), 1);
+            MakeBossFly();
         }
+    }
+
+    void MakeBossLand()
+    {
+        m_creature->SetLevitate(false);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+    }
+
+    void MakeBossFly()
+    {
+        m_creature->SetLevitate(true);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
     }
 
     void DamageTaken(Unit *done_by, uint32 &uiDamage)
     {
-        if(m_creature->GetHealth() <= uiDamage)
+        if(m_pInstance)
         {
-            uiDamage = 0;
-            m_bMustRepair   = true;
-            if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
-            {                
-                if(m_pInstance) 
-                    m_pInstance->SetData(TYPE_AERIAL_UNIT, SPECIAL);
-            }
-            if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
+            if(m_creature->GetHealth() <= uiDamage)
             {
-                if (Creature* pMimiron = m_pInstance->GetSingleCreatureFromStorage(NPC_MIMIRON))
-                    DoScriptText(SAY_HEAD_DEATH, pMimiron);
-                m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_TRANS_3);
-                m_pInstance->SetData(TYPE_AERIAL_UNIT, DONE);
+                uiDamage = 0;
+                m_bMustRepair = true;
+                if (m_pInstance->GetData(TYPE_AERIAL_UNIT) != SPECIAL)
+                    m_creature->InterruptNonMeleeSpells(true);
+                m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                {
+                    DoCast(m_creature, SPELL_SELF_REPAIR);
+                    m_pInstance->SetData(TYPE_AERIAL_UNIT, SPECIAL);
+                }
+                else if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
+                {
+                    if (Creature* pMimiron = m_pInstance->GetSingleCreatureFromStorage(NPC_MIMIRON))
+                        DoScriptText(SAY_HEAD_DEATH, pMimiron);
+                    m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_TRANS_3);
+                    m_pInstance->SetData(TYPE_AERIAL_UNIT, DONE);
+                }
             }
-            m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-            m_creature->InterruptNonMeleeSpells(true);
-            m_creature->RemoveAllAuras();
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        }        
+        }
     }
 
-    // hacky way for phase 4. needs rewriging when vehicles are fixed
-    void Repair()
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        m_creature->SetHealth(m_creature->GetMaxHealth() * 0.5);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->AI()->AttackStart(m_creature->getVictim());
-        m_bMustRepair = false;
-
-        m_uiPlasmaBallTimer = 3000;
-        if(m_pInstance)
-            m_pInstance->SetData(TYPE_AERIAL_UNIT, IN_PROGRESS);
+        if (pSpell->Id == SPELL_SELF_REPAIR)
+        {
+            MakeBossLand();
+            m_creature->MonsterSay("Selbst reperatur hat mich getroffen",0);
+            m_bMustRepair = false;
+            m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+            m_uiPlasmaBallTimer = 3000;
+            m_creature->SetInCombatWithZone();
+            if(m_pInstance)
+                m_pInstance->SetData(TYPE_AERIAL_UNIT, IN_PROGRESS);
+        }
     }
 
     void KilledUnit(Unit* pVictim)
@@ -965,13 +1045,9 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
     // get the boss down by the magnetic core
     void SetToGround()
     {
-        //m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), CENTER_Z, 0);
-        //m_creature->SendMonsterMove(m_creature->GetPositionX(), m_creature->GetPositionY(), CENTER_Z, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), 1);
+        m_creature->MonsterMoveWithSpeed(m_creature->GetPositionX(), m_creature->GetPositionY(), 364.0f, 24.0f, false, true);
         m_bIsGrounded = true;
-        m_creature->SetLevitate(false);
-        // make boss land
-        //m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
-        //m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
+        MakeBossLand();
         m_uiGroundTimer = 20000;
     }
 
@@ -988,7 +1064,8 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
             m_creature->SetInCombatWithZone();
             m_bStartAttack = true;
         }
-        else m_uiAttackStartTimer -= uiDiff;
+        else
+            m_uiAttackStartTimer -= uiDiff;
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -997,33 +1074,41 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
         if(m_bMustRepair)
             return;
 
-        if (m_creature->HasAura(SPELL_MAGNETIC_CORE, EFFECT_INDEX_0))
+        // return if grounded
+        if (m_creature->HasAura(SPELL_MAGNETIC_CORE))
             return;
 
-        if (m_uiGroundTimer < uiDiff && m_bIsGrounded)
+        if (m_bIsGrounded)
         {
-            //m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() +  7, 0.0f);
-            //m_creature->SendMonsterMove(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() +  7, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), 1);
             m_bIsGrounded = false;
-            m_creature->SetLevitate(true);
-            // make boss fly
-            //m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-            //m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
-            m_creature->InterruptNonMeleeSpells(true);
+            MakeBossFly();
             DoCast(m_creature, SPELL_BOMB_BOT_SUMMON);
-        }else m_uiGroundTimer -= uiDiff;
-
+        }
         if(m_uiPlasmaBallTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
-                DoCast(pTarget, m_bIsRegularMode ? SPELL_PLASMA_BALL : SPELL_PLASMA_BALL_H);
-            m_uiPlasmaBallTimer = urand(3000, 5000);
+            {
+                if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_PLASMA_BALL : SPELL_PLASMA_BALL_H) == CAST_OK)
+                {
+                    m_uiPlasmaBallTimer = urand(3000, 5000);
+                }
+            }
         }
-        else m_uiPlasmaBallTimer -= uiDiff;
+        else
+            m_uiPlasmaBallTimer -= uiDiff;
+
+        if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
+        {
+            DoCastSpellIfCan(m_creature, SPELL_EMERGENCY_MODE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        }
 
         // spawn adds in arena, only in phase 3
         if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
         {
+            // mobs at a specific height, maybe someother work; i think best is hoverheight, but doesn't work
+            if (m_creature->GetPositionZ() < 372.0f)
+                m_creature->MonsterMoveWithSpeed(m_creature->GetPositionX(), m_creature->GetPositionY(), 372.0f, 24.0f, false, true);
+
             if(m_uiSummonWavesTimer < uiDiff)
             {
                 uint32 m_uiCreatureEntry;
@@ -1070,7 +1155,8 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
 
                 m_uiSummonWavesTimer = urand (10000, 15000);
             }
-            else m_uiSummonWavesTimer -= uiDiff; 
+            else
+                m_uiSummonWavesTimer -= uiDiff;
 
             if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
             {
@@ -1087,7 +1173,8 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
                     }
                     m_uiSpreadFiresTimer = urand(40000, 50000);
                 }
-                else m_uiSpreadFiresTimer -= uiDiff;
+                else
+                    m_uiSpreadFiresTimer -= uiDiff;
             }
         }
     }
@@ -1123,10 +1210,6 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
     bool m_bIsIntro;
     bool m_bIsRobotReady;
 
-    ObjectGuid m_uiTankGUID;
-    ObjectGuid m_uiTorsoGUID;
-    ObjectGuid m_uiHeadGUID;
-
     bool m_bIsTankDead;
     bool m_bIsTorsoDead;
     bool m_bIsHeadDead;
@@ -1149,8 +1232,6 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
         m_bIsTorsoDead          = false;
         m_bIsHeadDead           = false;
 
-        m_uiTankGUID            = 0;
-
         // reset button
         if(GameObject* pButton = m_pInstance->GetSingleGameObjectFromStorage(GO_MIMIRON_BUTTON))
             pButton->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
@@ -1160,10 +1241,10 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
             pLift->SetGoState(GO_STATE_ACTIVE);
 
         // kill torso and Head
-        if(Creature* pTorso = m_creature->GetMap()->GetCreature(m_uiTorsoGUID))
+        if(Creature* pTorso = m_pInstance->GetSingleCreatureFromStorage(NPC_VX001))
             pTorso->ForcedDespawn();
 
-        if(Creature* pHead = m_creature->GetMap()->GetCreature(m_uiHeadGUID))
+        if(Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
             pHead->ForcedDespawn();
 
         // reset tank
@@ -1176,9 +1257,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
         }
 
         if(m_pInstance)
-        {
             m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_IDLE);
-        }
 
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
@@ -1273,7 +1352,6 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                             {
                                 DoScriptText(SAY_TANK_ACTIVE, m_creature);
                                 pTank->GetMotionMaster()->MovePoint(0, CENTER_X, CENTER_Y, CENTER_Z);
-                                m_uiTankGUID = pTank->GetObjectGuid();
                             }
                             else
                                 EnterEvadeMode();
@@ -1282,36 +1360,25 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                         m_uiIntroTimer = 18000;
                         break;
                     case 7:
-                        if(Creature* pTank = m_pInstance->instance->GetCreature(m_uiTankGUID))
-                        {
-                            if(m_bIsHardMode)
-                            {
-                                pTank->CastSpell(pTank, SPELL_EMERGENCY_MODE, false);
-                                m_uiSelfDestructTimer   = 460000;  // 8 min
-                            }                            
-                            if(m_pInstance)
-                            {
-                                m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_LEVIATHAN);
-                                    ((boss_leviathan_mkAI*)pTank->AI())->m_bStartAttack = true;
-                            }
-                            pTank->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                            pTank->SetInCombatWithZone();
-                            m_uiBerserkTimer        = 900000;   // 15 min
-                            m_bIsIntro = false;
-                            ++m_uiIntroStep;
-                            m_uiIntroTimer = 9000;
-                        }
+                        if(m_bIsHardMode)
+                            m_uiSelfDestructTimer   = 460000;  // 8 min
+                        m_uiBerserkTimer        = 900000;   // 15 min
+                        m_bIsIntro = false;
+                        ++m_uiIntroStep;
+                        m_uiIntroTimer = 9000;
                         break;
                     }
                 }
-                else return;
+                else
+                    return;
 
                 if (m_uiIntroTimer <= uiDiff)
                 {
                     ++m_uiIntroStep;
                     m_uiIntroTimer = 330000;
-                } 
-                m_uiIntroTimer -= uiDiff;
+                }
+                else
+                    m_uiIntroTimer -= uiDiff;
 
                 break;
             }
@@ -1325,17 +1392,16 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                     m_pInstance->DoUseDoorOrButton(GO_MIMIRON_ELEVATOR);
                     m_uiUseLiftTimer = 60000;
                 }
-                else m_uiUseLiftTimer -= uiDiff;
+                else
+                    m_uiUseLiftTimer -= uiDiff;
 
                 if(m_uiPhaseDelayTimer < uiDiff)
                 {
                     DoScriptText(SAY_TORSO_ACTIVE, m_creature);
                     if(Creature* pTorso = m_creature->SummonCreature(NPC_VX001, CENTER_X, CENTER_Y, CENTER_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 180000))
                     {
-                        m_uiTorsoGUID = pTorso->GetObjectGuid();
                         if(m_bIsHardMode)
                         {
-                            pTorso->CastSpell(pTorso, SPELL_EMERGENCY_MODE, false);
                             for(uint8 i = 0; i < 3; i++)
                             {
                                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
@@ -1349,7 +1415,8 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                         m_uiPhaseDelayTimer = 10000;
                     }
                 }
-                else m_uiPhaseDelayTimer -= uiDiff;
+                else
+                    m_uiPhaseDelayTimer -= uiDiff;
 
                 break;
             }
@@ -1363,10 +1430,8 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                     DoScriptText(SAY_HEAD_ACTIVE, m_creature);
                     if(Creature* pHead = m_creature->SummonCreature(NPC_AERIAL_UNIT, CENTER_X, CENTER_Y, CENTER_Z, 0, TEMPSUMMON_DEAD_DESPAWN, 10000))
                     {
-                        m_uiHeadGUID = pHead->GetObjectGuid();
                         if(m_bIsHardMode)
                         {
-                            pHead->CastSpell(pHead, SPELL_EMERGENCY_MODE, false);
                             // start again 3 fires
                             for(uint8 i = 0; i < 3; i++)
                             {
@@ -1379,11 +1444,11 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 
                         }
                         m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_AERIAL);
-                        m_uiPhaseDelayTimer = 15000;                    
-                        
+                        m_uiPhaseDelayTimer = 15000;
                     }
                 }
-                else m_uiPhaseDelayTimer -= uiDiff;
+                else
+                    m_uiPhaseDelayTimer -= uiDiff;
 
                 break;
             }
@@ -1399,7 +1464,15 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                         if(pTank->isAlive())
                         {
                             pTank->GetMotionMaster()->MovePoint(0, CENTER_X, CENTER_Y, CENTER_Z);
-                            m_uiTankGUID = pTank->GetObjectGuid();
+                            if(Creature* pTorso = m_pInstance->GetSingleCreatureFromStorage(NPC_VX001))
+                            {
+                                pTorso->CastSpell(pTorso, SPELL_SELF_REPAIR, false);
+                            }
+                            if(Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
+                            {
+                                pHead->CastSpell(pHead, SPELL_SELF_REPAIR, false);
+                            }
+
                             m_bIsRobotReady = true;
                             m_uiRobotDelayTimer = 15000;
                         }
@@ -1408,136 +1481,33 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                     }
                     m_uiPhaseDelayTimer = 100000;
                 }
-                else m_uiPhaseDelayTimer -= uiDiff;
+                else
+                    m_uiPhaseDelayTimer -= uiDiff;
 
                 if(m_uiRobotDelayTimer < uiDiff && m_bIsRobotReady)
                 {
-                    DoScriptText(SAY_ROBOT_ACTIVE, m_creature);
-                    if(Creature* pTank = m_pInstance->instance->GetCreature(m_uiTankGUID))
-                    {
-                        pTank->CastSpell(pTank, SPELL_EMERGENCY_MODE, false);
-                        ((boss_leviathan_mkAI*)pTank->AI())->Repair();
 
-                        if(Creature* pTorso = m_pInstance->instance->GetCreature(m_uiTorsoGUID))
-                        {
-                            pTorso->CastSpell(pTorso, SPELL_EMERGENCY_MODE, false);
-                            pTorso->SetInCombatWithZone();
-                            ((boss_vx001AI*)pTorso->AI())->Repair();                            
-                            if (VehicleKit* pVehicleTank = pTank->GetVehicleKit())
-                            {
-                                pVehicleTank->RemoveAllPassengers();
-                                pTorso->EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
-                            }
-                            
-
-                            if(Creature* pHead = m_pInstance->instance->GetCreature(m_uiHeadGUID))
-                            {
-                                pHead->CastSpell(pHead, SPELL_EMERGENCY_MODE, false);
-                                pHead->SetInCombatWithZone();
-                                ((boss_aerial_command_unitAI*)pHead->AI())->Repair();                                
-                                if (VehicleKit* pVehicleTorso = pTorso->GetVehicleKit())
-                                {
-                                    pHead->EnterVehicle(pVehicleTorso, SEAT_FOR_ROBOT);
-                                }                                
-                            }
-                            else
-                                m_creature->MonsterSay("Kopf nicht gefunden",0);
-                        }else
-                            m_creature->MonsterSay("Torso nicht gefunden.", 0);
-                    }
-                    if (m_bIsHardMode)
-                    {
-                        // start again 3 fires
-                        for(uint8 i = 0; i < 3; i++)
-                        {
-                            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                            {
-                                pTarget->InterruptNonMeleeSpells(true);
-                                pTarget->CastSpell(pTarget, SPELL_FLAMES_SUMMON, false);
-                            }
-                        }
-                    }
-                    m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_ROBOT);
                     m_uiRobotDelayTimer = 100000;
                 }
-                else m_uiRobotDelayTimer -= uiDiff;
+                else
+                    m_uiRobotDelayTimer -= uiDiff;
 
                 break;
             }
             case PHASE_ROBOT:
             {
-                if(m_pInstance->GetData(TYPE_LEVIATHAN_MK) == SPECIAL && !m_bHasChecked)
+                if(m_pInstance->GetData(TYPE_LEVIATHAN_MK) == SPECIAL && m_pInstance->GetData(TYPE_VX001) == SPECIAL && m_pInstance->GetData(TYPE_AERIAL_UNIT) == SPECIAL)
                 {
-                    m_uiSelfRepairTimer = 15000;
-                    m_bIsTankDead       = true;
-                    m_bHasChecked       = true;
+                    if(Creature* pTank = m_pInstance->GetSingleCreatureFromStorage(NPC_LEVIATHAN_MK))
+                        m_creature->DealDamage(pTank, pTank->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                    if(Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
+                        m_creature->DealDamage(pHead, pHead->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                    if(Creature* pTorso = m_pInstance->GetSingleCreatureFromStorage(NPC_VX001))
+                        m_creature->DealDamage(pTorso, pTorso->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                    DoScriptText(SAY_ROBOT_DEATH, m_creature);
+                    m_uiOutroTimer = 15000;
+                    m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_OUTRO);
                 }
-                if(m_pInstance->GetData(TYPE_VX001) == SPECIAL && !m_bHasChecked)
-                {
-                    m_uiSelfRepairTimer = 15000;
-                    m_bIsTorsoDead      = true;
-                    m_bHasChecked       = true;
-                }
-                if(m_pInstance->GetData(TYPE_AERIAL_UNIT) == SPECIAL && !m_bHasChecked)
-                {
-                    m_uiSelfRepairTimer = 15000;
-                    m_bIsHeadDead       = true;
-                    m_bHasChecked       = true;
-                }
-
-                if(m_uiSelfRepairTimer < uiDiff && m_bHasChecked)
-                {
-                    if(m_pInstance->GetData(TYPE_LEVIATHAN_MK) == SPECIAL)
-                        m_bIsTankDead = true;
-                    if(m_pInstance->GetData(TYPE_VX001) == SPECIAL)
-                        m_bIsTorsoDead = true;
-                    if(m_pInstance->GetData(TYPE_AERIAL_UNIT) == SPECIAL)
-                        m_bIsHeadDead = true;
-
-                    if(m_bIsTankDead && m_bIsTorsoDead && m_bIsHeadDead)
-                    {
-                        if(Creature* pTank = m_pInstance->instance->GetCreature(m_uiTankGUID))
-                            m_creature->DealDamage(pTank, pTank->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                        if(Creature* pHead = m_pInstance->instance->GetCreature(m_uiHeadGUID))
-                            m_creature->DealDamage(pHead, pHead->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                        if(Creature* pTorso = m_pInstance->instance->GetCreature(m_uiTorsoGUID))
-                            m_creature->DealDamage(pTorso, pTorso->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                        DoScriptText(SAY_ROBOT_DEATH, m_creature);
-                        m_uiOutroTimer = 15000;
-                        m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_OUTRO);
-                    }
-                    else
-                    {
-                        m_bHasChecked = false;
-                        if(m_bIsTankDead)
-                        {
-                            if(Creature* pTank = m_pInstance->instance->GetCreature(m_uiTankGUID))
-                            {
-                                ((boss_leviathan_mkAI*)pTank->AI())->Repair();
-                                m_bIsTankDead = false;
-                            }
-                        }
-                        if(m_bIsTorsoDead)
-                        {
-                            if(Creature* pTorso = m_pInstance->instance->GetCreature(m_uiTorsoGUID))
-                            {
-                                ((boss_vx001AI*)pTorso->AI())->Repair();
-                                m_bIsTorsoDead = false;
-                            }
-                        }
-                        if(m_bIsHeadDead)
-                        {
-                            if(Creature* pHead = m_pInstance->instance->GetCreature(m_uiHeadGUID))
-                            {
-                                ((boss_aerial_command_unitAI*)pHead->AI())->Repair();
-                                m_bIsHeadDead = false;
-                            }
-                        }
-                    }
-                    m_uiSelfRepairTimer = 1000;
-                }
-                else m_uiSelfRepairTimer -= uiDiff;
-
                 break;
             }
             case PHASE_OUTRO:
@@ -1559,19 +1529,19 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
         if (m_uiBerserkTimer <= uiDiff)
         {
             DoScriptText(SAY_BERSERK, m_creature);
-            if(Creature* pTank = m_pInstance->instance->GetCreature(m_uiTankGUID))
+            if(Creature* pTank = m_pInstance->GetSingleCreatureFromStorage(NPC_LEVIATHAN_MK))
             {
                 if(pTank && pTank->isAlive())
                     pTank->CastSpell(pTank, SPELL_BERSERK, false);
             }
 
-            if(Creature* pTorso = m_pInstance->instance->GetCreature(m_uiTorsoGUID))
+            if(Creature* pTorso = m_pInstance->GetSingleCreatureFromStorage(NPC_VX001))
             {
                 if(pTorso && pTorso->isAlive())
                     pTorso->CastSpell(pTorso, SPELL_BERSERK, false);
             }
 
-            if(Creature* pHead = m_pInstance->instance->GetCreature(m_uiHeadGUID))
+            if(Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
             {
                 if(pHead && pHead->isAlive())
                     pHead->CastSpell(pHead, SPELL_BERSERK, false);
@@ -1601,14 +1571,12 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 };
 
 // Leviathan MK turret
-// used in phase 1; should be attached by a vehicle seat to the Leviathan MK
 struct MANGOS_DLL_DECL leviathan_turretAI : public ScriptedAI
 {
     leviathan_turretAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        //pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         Reset();
     }
 
@@ -2015,7 +1983,7 @@ struct MANGOS_DLL_DECL mob_magnetic_coreAI : public ScriptedAI
         {
             if (m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
             {
-                if(Creature* pAerial = GetClosestCreatureWithEntry(m_creature, NPC_AERIAL_UNIT, 10.0f))
+                if(Creature* pAerial = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
                 {
                     DoCast(pAerial, SPELL_MAGNETIC_CORE);
                     ((boss_aerial_command_unitAI*)pAerial->AI())->SetToGround();
