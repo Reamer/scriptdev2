@@ -413,7 +413,7 @@ void AddSC_boss_vezax()
 {
     Script *newscript;
     newscript = new Script;
-    newscript->Name = "boss_vezax";
+    newscript->Name = "boss_general_vezax";
     newscript->GetAI = &GetAI_boss_vezax;
     newscript->RegisterSelf();
 
