@@ -637,7 +637,6 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
     {
         if (pSpell->Id == SPELL_SELF_REPAIR)
         {
-            m_creature->MonsterSay("Selbst reperatur hat mich getroffen",0);
             m_bMustRepair = false;
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
@@ -1016,7 +1015,6 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
         if (pSpell->Id == SPELL_SELF_REPAIR)
         {
             MakeBossLand();
-            m_creature->MonsterSay("Selbst reperatur hat mich getroffen",0);
             m_bMustRepair = false;
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
@@ -1195,14 +1193,11 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
     bool m_bIsRegularMode;
     instance_ulduar *m_pInstance;
 
-    bool m_bIsHardMode;
     uint32 m_uiSelfDestructTimer;
     uint32 m_uiUseLiftTimer;
     uint32 m_uiPhaseDelayTimer;
     uint32 m_uiRobotDelayTimer;
-    uint32 m_uiSelfRepairTimer;
     uint32 m_uiBerserkTimer;
-    bool m_bHasChecked;
     uint32 m_uiOutroTimer;
 
     uint32 m_uiIntroTimer;
@@ -1210,27 +1205,17 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
     bool m_bIsIntro;
     bool m_bIsRobotReady;
 
-    bool m_bIsTankDead;
-    bool m_bIsTorsoDead;
-    bool m_bIsHeadDead;
-
     void Reset()
     {
-        m_bIsHardMode           = false;
         m_uiSelfDestructTimer   = 460000;  // 8 min
         m_bIsIntro              = true;
         m_uiPhaseDelayTimer     = 7000;
         m_uiUseLiftTimer        = 4000;
         m_uiBerserkTimer        = 900000;   // 15 min
-        m_bHasChecked           = false;
         m_bIsRobotReady         = false;
 
         m_uiIntroTimer          = 10000;
         m_uiIntroStep           = 1;
-
-        m_bIsTankDead           = false;
-        m_bIsTorsoDead          = false;
-        m_bIsHeadDead           = false;
 
         // reset button
         if(GameObject* pButton = m_pInstance->GetSingleGameObjectFromStorage(GO_MIMIRON_BUTTON))
@@ -1292,7 +1277,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
     {
         if(m_pInstance) 
         {
-            if(m_bIsHardMode)
+            if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
             {
                 m_pInstance->SetData(TYPE_MIMIRON_HARD, DONE);
             }
@@ -1306,7 +1291,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
     {
        if(m_pInstance) 
         {
-            if(m_bIsHardMode)
+            if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
                 m_pInstance->SetData(TYPE_MIMIRON_HARD, DONE);
             m_pInstance->SetData(TYPE_MIMIRON, DONE);
         }
@@ -1333,7 +1318,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                     case 3:
                         if(GameObject* pButton = m_pInstance->GetSingleGameObjectFromStorage(GO_MIMIRON_BUTTON))
                             pButton->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-                        if(m_bIsHardMode)
+                        if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
                         {
                             DoScriptText(SAY_HARD_MODE, m_creature);
                             ++m_uiIntroStep;
@@ -1360,7 +1345,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                         m_uiIntroTimer = 18000;
                         break;
                     case 7:
-                        if(m_bIsHardMode)
+                        if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
                             m_uiSelfDestructTimer   = 460000;  // 8 min
                         m_uiBerserkTimer        = 900000;   // 15 min
                         m_bIsIntro = false;
@@ -1400,7 +1385,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                     DoScriptText(SAY_TORSO_ACTIVE, m_creature);
                     if(Creature* pTorso = m_creature->SummonCreature(NPC_VX001, CENTER_X, CENTER_Y, CENTER_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 180000))
                     {
-                        if(m_bIsHardMode)
+                        if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
                         {
                             for(uint8 i = 0; i < 3; i++)
                             {
@@ -1430,7 +1415,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                     DoScriptText(SAY_HEAD_ACTIVE, m_creature);
                     if(Creature* pHead = m_creature->SummonCreature(NPC_AERIAL_UNIT, CENTER_X, CENTER_Y, CENTER_Z, 0, TEMPSUMMON_DEAD_DESPAWN, 10000))
                     {
-                        if(m_bIsHardMode)
+                        if(m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS)
                         {
                             // start again 3 fires
                             for(uint8 i = 0; i < 3; i++)
@@ -1553,7 +1538,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
             m_uiBerserkTimer -= uiDiff;
 
         // self destruct platform in hard mode
-        if (m_uiSelfDestructTimer < uiDiff && m_bIsHardMode)
+        if (m_uiSelfDestructTimer < uiDiff && (m_pInstance->GetData(TYPE_MIMIRON_HARD) == IN_PROGRESS))
         {
             m_creature->SummonCreature(NPC_MIMIRON_INFERNO, CENTER_X, CENTER_Y, CENTER_Z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000);
             // visual part, hacky way
@@ -1643,13 +1628,11 @@ struct MANGOS_DLL_DECL mob_proximity_mineAI : public ScriptedAI
 
     uint32 m_uiExplosionTimer;
     uint32 m_uiRangeCheckTimer;
-    uint32 m_uiDieTimer;
 
     void Reset()
     {
         m_uiExplosionTimer  = 60000;
         m_uiRangeCheckTimer = 1000;
-        m_uiDieTimer        = 65000;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1660,31 +1643,28 @@ struct MANGOS_DLL_DECL mob_proximity_mineAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_uiDieTimer < uiDiff)
-            m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        else
-            m_uiDieTimer -= uiDiff;
-
         if(m_uiExplosionTimer < uiDiff)
         {
             DoCast(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H);
-            m_uiDieTimer        = 500;
+            m_creature->ForcedDespawn(500);
             m_uiExplosionTimer = 20000;
         }
-        else m_uiExplosionTimer -= uiDiff;
+        else
+            m_uiExplosionTimer -= uiDiff;
 
         if (m_uiRangeCheckTimer < uiDiff)
         {
             if (m_creature->IsWithinDistInMap(m_creature->getVictim(), 2))
             {
                 DoCast(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H);
-                m_uiDieTimer = 500;
+                m_creature->ForcedDespawn(500);
                 m_uiRangeCheckTimer = 5000;
             }
             else
                 m_uiRangeCheckTimer = 500;
         }
-        else m_uiRangeCheckTimer -= uiDiff;
+        else
+            m_uiRangeCheckTimer -= uiDiff;
     }
 };
 
@@ -2015,8 +1995,6 @@ bool GOHello_go_red_button(Player* pPlayer, GameObject* pGo)
         pMimiron->SetInCombatWithZone();
         pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT); 
         pPlayer->CastSpell(pPlayer, SPELL_FLAMES_SUMMON, false);
-        if(pMimiron->isAlive() && m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_INTRO)
-            ((boss_mimironAI*)pMimiron->AI())->m_bIsHardMode = true;
     }
 
     return false;
