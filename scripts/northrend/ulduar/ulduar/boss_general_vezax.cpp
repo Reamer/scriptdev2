@@ -130,6 +130,9 @@ struct MANGOS_DLL_DECL boss_general_vezaxAI : public ScriptedAI
         if (pSummoned->GetEntry() == NPC_SARONITE_VAPOR)
         {
             m_lVaporsGuids.push_back(pSummoned->GetObjectGuid());
+            pSummoned->SetRespawnTime(DAY*IN_MILLISECONDS);
+            pSummoned->SetCorpseDelay(DAY*IN_MILLISECONDS);
+            pSummoned->SetRespawnDelay(DAY*IN_MILLISECONDS);
 
             // if vapors have reached the max number for hard mode then summon animus
             if (m_lVaporsGuids.size() == MAX_HARD_MODE_VAPORS)
@@ -145,7 +148,7 @@ struct MANGOS_DLL_DECL boss_general_vezaxAI : public ScriptedAI
         // decrease the number of vapors when they die
         if (pSummoned->GetEntry() == NPC_SARONITE_VAPOR)
         {
-            pSummoned->CastSpell(pSummoned, SPELL_SARONITE_VAPORS, true);
+            pSummoned->CastSpell(pSummoned, SPELL_SARONITE_VAPORS, true, 0, 0, m_creature->GetObjectGuid());
             m_lVaporsGuids.remove(pSummoned->GetObjectGuid());
         }
         // remove saronite barrier when animus dies
