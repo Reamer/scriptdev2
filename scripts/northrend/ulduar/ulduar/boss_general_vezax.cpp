@@ -1,22 +1,22 @@
-/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 /* ScriptData
-SDName: boss_vezax
-SD%Complete:
+SDName: boss_general_vezax
+SD%Complete: 80%
 SDComment: TODO Achievments: Shadowdodger
 SDCategory: Ulduar
 EndScriptData */
@@ -27,51 +27,47 @@ EndScriptData */
 enum
 {
     SAY_AGGRO       = -1603350,
-    SAY_SLAY1       = -1603351,
-    SAY_SLAY2       = -1603352,
+    SAY_SLAY_1      = -1603351,
+    SAY_SLAY_2      = -1603352,
     SAY_SURGE       = -1603353,
     SAY_DEATH       = -1603354,
-    SAY_BERSERK     = -1603355,
-    SAY_HARD        = -1603356,
-    EMOTE_VAPORS    = -1603357,
+    SAY_ENRAGE      = -1603355,
+    SAY_HARD_MODE   = -1603356,
+
+    EMOTE_VAPOR     = -1603357,
     EMOTE_SURGE     = -1603358,
     EMOTE_ANIMUS    = -1603359,
 
-    SPELL_AURA_OF_DESPAIR       = 62692,
-    SPELL_SHADOW_CRASH          = 62660,
-    SPELL_MARK_OF_FACELESS      = 63276,
-    SPELL_MARK_SIMPHON          = 63278,
-    SPELL_SEARING_FLAMES        = 62661,
-    SPELL_SURGE_OF_DARKNESS     = 62662,
-    SPELL_BERSERK               = 26662, 
-    SPELL_SARONITE_BARRIER      = 63364,
-    SPELL_SUMMON_ANIMUS         = 63145,
-    SPELL_SUMMON_VAPORS         = 63081,
+    SPELL_AURA_OF_DESPAIR               = 62692,
+    SPELL_SHADOW_CRASH                  = 62660,
+    SPELL_MARK_OF_FACELESS              = 63276,            // triggers 63278
+    SPELL_SEARING_FLAMES                = 62661,
+    SPELL_SURGE_OF_DARKNESS             = 62662,
+    SPELL_BERSERK                       = 26662,
+    SPELL_SARONITE_BARRIER              = 63364,            // also sends event 9735
+    SPELL_SUMMON_ANIMUS                 = 63145,            // the animus should spam 63420 on target - to be done in acid
+    SPELL_SUMMON_VAPORS                 = 63081,
+    SPELL_ANIMUS_FORMATION              = 63319,            // visual aura on the vapors
+    SPELL_SARONITE_VAPORS               = 63323,            // cast by vapor on death
+    SPELL_CORRUPTED_RAGE                = 68415,            // Unused
+    SPELL_CORRUPTED_WISDOM              = 64646,
 
-    NPC_SARONITE_VAPOR          = 33488,
-    SPELL_SARONITE_VAPORS       = 63323, 
+    MAX_HARD_MODE_VAPORS                = 6,
 
-    NPC_SARONITE_ANIMUS         = 33524,
-    SPELL_PROFOUND_DARKNESS     = 63420, 
-    SPELL_ANIMUS_FORMATION      = 63319,
-
-    ACHIEV_MORNING_SARONITE     = 3181,
-    ACHIEV_MORNING_SARONITE_H   = 3188,
+    NPC_SARONITE_VAPOR                  = 33488,
+    NPC_SARONITE_ANIMUS                 = 33524,
+    SPELL_PROFOUND_DARKNESS             = 63420,
 };
 
-uint8 m_uiSaroniteVaporCount;
-
-struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
+struct MANGOS_DLL_DECL boss_general_vezaxAI : public ScriptedAI
 {
-    boss_vezaxAI(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_general_vezaxAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
     instance_ulduar* m_pInstance;
-    bool m_bIsRegularMode;
 
     uint32 m_uiEnrageTimer;
     uint32 m_uiCrashTimer;
@@ -79,40 +75,33 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
     uint32 m_uiFlamesTimer;
     uint32 m_uiSurgeTimer;
     uint32 m_uiSaroniteVaporTimer;
-    uint32 m_uiSummonAnimusTimer;
-    uint64 m_uiAnimusGUID;
+    uint32 m_uiSaroniteBarrierTimer;
 
-    std::list<Creature*> lVapors;
+    uint8 m_uiVaporsGathered;
 
-    bool m_bIsHardMode;
-    bool m_bActiveHardMode;
-    bool m_bIsAnimusAlive;
+    GUIDList m_lVaporsGuids;
 
     void Reset()
     {
-        m_uiEnrageTimer         = 600000; //10 minutes
-        m_uiFlamesTimer         = urand(8000, 10000);
-        m_uiSaroniteVaporTimer  = 30000;
-        m_bIsHardMode           = false;
-        m_bActiveHardMode       = false;
-        m_bIsAnimusAlive        = false;
-
-        m_uiSurgeTimer          = 60000;
-        m_uiMarkTimer           = urand(10000, 35000);
-        m_uiCrashTimer          = 10000;
-        m_uiAnimusGUID          = 0;
-
-        lVapors.clear();
-
-        m_uiSaroniteVaporCount  = 0;
+        m_uiEnrageTimer          = 10*MINUTE*IN_MILLISECONDS;
+        m_uiFlamesTimer          = 8000;
+        m_uiSaroniteVaporTimer   = 30000;
+        m_uiSurgeTimer           = 60000;
+        m_uiMarkTimer            = 20000;
+        m_uiCrashTimer           = 15000;
+        m_uiSaroniteBarrierTimer = 0;
+        m_uiVaporsGathered       = 0;
     }
 
-    void Aggro(Unit *who) 
+    void Aggro(Unit* pWho)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_VEZAX, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_VEZAX_HARD, NOT_STARTED);
+        }
 
-        DoCast(m_creature, SPELL_AURA_OF_DESPAIR);
+        DoCastSpellIfCan(m_creature, SPELL_AURA_OF_DESPAIR);
 
         DoScriptText(SAY_AGGRO, m_creature);
     }
@@ -121,81 +110,88 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_VEZAX, FAIL);
-
-        m_creature->RemoveAurasDueToSpell(SPELL_SARONITE_BARRIER);
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* pKiller)
     {
-        if(m_pInstance) 
-        {
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_VEZAX, DONE);
-
-            if(m_bIsHardMode)
-            {
-                m_pInstance->SetData(TYPE_VEZAX_HARD, DONE);
-            }
-        }
 
         DoScriptText(SAY_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* pVictim)
     {
-        DoScriptText(urand(0,1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
+        DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature);
     }
 
-    void PrepareHardMode()
+    void JustSummoned(Creature* pSummoned)
     {
-        m_bActiveHardMode = true;
-        m_uiSummonAnimusTimer = 7000;
-
-        GetCreatureListWithEntryInGrid(lVapors, m_creature, NPC_SARONITE_VAPOR, 200.0f);
-
-        if (!lVapors.empty())
+        if (pSummoned->GetEntry() == NPC_SARONITE_VAPOR)
         {
-            if (m_pInstance)
-                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_MORNING_SARONITE, true);
-            // vapors need more speed
-            for(std::list<Creature*>::iterator iter = lVapors.begin(); iter != lVapors.end(); ++iter)
-            {
-                if ((*iter) && (*iter)->isAlive())
-                {
-                    (*iter)->RemoveAllAuras();
-                    (*iter)->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    (*iter)->SetSpeedRate(MOVE_RUN, 3.0f);
-                    (*iter)->SetWalk(false);
-                    (*iter)->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
-                }
-            }
+            m_lVaporsGuids.push_back(pSummoned->GetObjectGuid());
+
+            // if vapors have reached the max number for hard mode then summon animus
+            if (m_lVaporsGuids.size() == MAX_HARD_MODE_VAPORS)
+                DoPrepareAnimusIfCan();
+        }
+        // ToDo: faction should be set in DB
+        else if (pSummoned->GetEntry() == NPC_SARONITE_ANIMUS)
+            pSummoned->setFaction(14);
+    }
+
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        // decrease the number of vapors when they die
+        if (pSummoned->GetEntry() == NPC_SARONITE_VAPOR)
+        {
+            pSummoned->CastSpell(pSummoned, SPELL_SARONITE_VAPORS, true);
+            m_lVaporsGuids.remove(pSummoned->GetObjectGuid());
+        }
+        // remove saronite barrier when animus dies
+        else if (pSummoned->GetEntry() == NPC_SARONITE_ANIMUS)
+        {
+            m_creature->RemoveAurasDueToSpell(SPELL_SARONITE_BARRIER);
+
+            if (m_creature->isAlive() && m_pInstance)
+                m_pInstance->SetData(TYPE_VEZAX_HARD, DONE);
         }
     }
 
-    void ActivateHardMode()
+    void SummonedMovementInform(Creature* pSummoned, uint32 uiMoveType, uint32 uiPointId)
     {
-        m_creature->CastStop();
-        DoCast(m_creature, SPELL_SARONITE_BARRIER);
-        //DoCast(m_creature, SPELL_SUMMON_ANIMUS); // make it by summon creature because of better handling the auras
-        DoScriptText(EMOTE_ANIMUS, m_creature);
-        DoScriptText(SAY_HARD, m_creature);
-        
-        if(Creature* pAnimus = m_creature->SummonCreature(NPC_SARONITE_ANIMUS, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), m_creature->GetOrientation(), TEMPSUMMON_CORPSE_TIMED_DESPAWN, 900000))
-        {
-            pAnimus->SetInCombatWithZone();
-            m_uiAnimusGUID = pAnimus->GetGUID();
-        }
+        if (uiMoveType != POINT_MOTION_TYPE || uiPointId != 0 || pSummoned->GetEntry() != NPC_SARONITE_VAPOR)
+            return;
 
-        if (!lVapors.empty())
+        ++m_uiVaporsGathered;
+
+        // Cast the saronite formation aura when all vapors arive
+        if (m_uiVaporsGathered == MAX_HARD_MODE_VAPORS)
         {
-            for(std::list<Creature*>::iterator iter = lVapors.begin(); iter != lVapors.end(); ++iter)
+            pSummoned->CastSpell(pSummoned, SPELL_ANIMUS_FORMATION, true);
+
+            // Despawn the vapors
+            for (GUIDList::const_iterator itr = m_lVaporsGuids.begin(); itr != m_lVaporsGuids.end(); ++itr)
             {
-                if ((*iter) && (*iter)->isAlive())
-                    (*iter)->ForcedDespawn();
+                if (Creature* pVapor = m_creature->GetMap()->GetCreature(*itr))
+                    pVapor->ForcedDespawn(4000);
             }
-        }
 
-        m_bIsHardMode = true;
-        m_bIsAnimusAlive = true;
+            DoScriptText(EMOTE_ANIMUS, m_creature);
+            m_uiSaroniteBarrierTimer = 4000;
+        }
+    }
+
+    // Merge vapors
+    void DoPrepareAnimusIfCan()
+    {
+        // Gather the vapors to the boss - NOTE: not sure if position is ok
+        for (GUIDList::const_iterator itr = m_lVaporsGuids.begin(); itr != m_lVaporsGuids.end(); ++itr)
+        {
+            // Better place: near him or some fixed position?
+            if (Creature* pVapor = m_creature->GetMap()->GetCreature(*itr))
+                pVapor->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -203,87 +199,111 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // prepare hard mode
-        if(m_uiSaroniteVaporCount == 6 && !m_bIsHardMode && !m_bActiveHardMode)
-            PrepareHardMode();
-
-        // summon animus
-        if(m_uiSummonAnimusTimer < uiDiff && !m_bIsHardMode && m_bActiveHardMode)
-            ActivateHardMode();
-        else m_uiSummonAnimusTimer -= uiDiff;
-
-        // saronite vapor
-        if(m_uiSaroniteVaporTimer < uiDiff && !m_bIsHardMode)
+        if (m_uiSaroniteBarrierTimer)
         {
-            m_creature->CastStop();
-            DoCast(m_creature, SPELL_SUMMON_VAPORS);
-            DoScriptText(EMOTE_VAPORS, m_creature);
-            m_uiSaroniteVaporCount += 1;
-            m_uiSaroniteVaporTimer = 30000;
-        }
-        else m_uiSaroniteVaporTimer -= uiDiff;
-
-        // searing flames
-        if(m_uiFlamesTimer < uiDiff && !m_bIsAnimusAlive)
-        {
-            DoCast(m_creature, SPELL_SEARING_FLAMES);
-            m_uiFlamesTimer = urand(5000, 10000);
-        }
-        else m_uiFlamesTimer -= uiDiff; 
-
-        // surge of darkness
-        if(m_uiSurgeTimer < uiDiff)
-        {
-            m_creature->CastStop();
-            DoScriptText(SAY_SURGE, m_creature);
-            DoScriptText(EMOTE_SURGE, m_creature);
-            DoCast(m_creature, SPELL_SURGE_OF_DARKNESS);
-            m_uiSurgeTimer = 60000;
-        }
-        else m_uiSurgeTimer -= uiDiff; 
-
-        // mark of faceless
-        if(m_uiMarkTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+            if (m_uiSaroniteBarrierTimer <= uiDiff)
             {
-                if (pTarget->GetTypeId() == TYPEID_PLAYER)
+                if (DoCastSpellIfCan(m_creature, SPELL_SARONITE_BARRIER) == CAST_OK)
+                    m_uiSaroniteBarrierTimer = 0;
+            }
+            else
+                m_uiSaroniteBarrierTimer -= uiDiff;
+        }
+
+        // summon saronite vapors before the hard mode
+        if (m_pInstance && m_pInstance->GetData(TYPE_VEZAX_HARD) == NOT_STARTED)
+        {
+            if (m_uiSaroniteVaporTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_VAPORS) == CAST_OK)
                 {
-                    DoCastSpellIfCan(pTarget, SPELL_MARK_OF_FACELESS);
-                    m_uiMarkTimer = urand(25000, 30000);
+                    DoScriptText(EMOTE_VAPOR, m_creature);
+                    m_uiSaroniteVaporTimer = 30000;
                 }
             }
-            
+            else
+                m_uiSaroniteVaporTimer -= uiDiff;
         }
-        else m_uiMarkTimer -= uiDiff;
 
+        if (m_uiFlamesTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_SEARING_FLAMES) == CAST_OK)
+                m_uiFlamesTimer = urand(5000, 10000);
+        }
+        else
+            m_uiFlamesTimer -= uiDiff;
 
-        // shadow crash
-        if(m_uiCrashTimer < uiDiff)
+        if (m_uiSurgeTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_SURGE_OF_DARKNESS) == CAST_OK)
+            {
+                DoScriptText(SAY_SURGE, m_creature);
+                DoScriptText(EMOTE_SURGE, m_creature);
+                m_uiSurgeTimer = 62000;
+            }
+        }
+        else
+            m_uiSurgeTimer -= uiDiff;
+
+        if (m_uiMarkTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_PLAYER))
             {
-                if (m_creature->GetDistance(pTarget) < 20.0f)
-                    DoCast(pTarget, SPELL_SHADOW_CRASH);
-                else 
-                    DoCast(m_creature->getVictim(), SPELL_SHADOW_CRASH);
+                if (DoCastSpellIfCan(pTarget, SPELL_MARK_OF_FACELESS) == CAST_OK)
+                    m_uiMarkTimer = urand(25000, 30000);
             }
-            m_uiCrashTimer = 10000;
         }
-        else m_uiCrashTimer -= uiDiff;
+        else
+            m_uiMarkTimer -= uiDiff;
 
-        // enrage 10 min
-        if(m_uiEnrageTimer < uiDiff)
+        if (m_uiCrashTimer < uiDiff)
         {
-            DoScriptText(SAY_BERSERK, m_creature);
-            DoCast(m_creature, SPELL_BERSERK);
-            m_uiEnrageTimer = 30000;
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_CRASH) == CAST_OK)
+                    m_uiCrashTimer = 15000;
+            }
         }
-        else m_uiEnrageTimer -= uiDiff;
+        else
+            m_uiCrashTimer -= uiDiff;
+
+        if (m_uiEnrageTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
+            {
+                DoScriptText(SAY_ENRAGE, m_creature);
+                m_uiEnrageTimer = 30000;
+            }
+        }
+        else
+            m_uiEnrageTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
 };
+
+CreatureAI* GetAI_boss_general_vezax(Creature* pCreature)
+{
+    return new boss_general_vezaxAI(pCreature);
+}
+
+bool ProcessEventId_event_spell_saronite_barrier(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIsStart)
+{
+    if (pSource->GetTypeId() == TYPEID_UNIT && ((Creature*)pSource)->GetEntry() == NPC_VEZAX)
+    {
+        if (instance_ulduar* pInstance = (instance_ulduar*)((Creature*)pSource)->GetInstanceData())
+        {
+            // Start hard mode for Vezax and summon the Animus
+            pInstance->SetData(TYPE_VEZAX_HARD, IN_PROGRESS);
+
+            ((Creature*)pSource)->CastSpell((Creature*)pSource, SPELL_SUMMON_ANIMUS, true);
+            DoScriptText(SAY_HARD_MODE, (Creature*)pSource);
+
+            return true;
+        }
+    }
+    return false;
+}
 
 // Saronite animus
 struct MANGOS_DLL_DECL mob_saronite_animusAI : public ScriptedAI
@@ -301,23 +321,7 @@ struct MANGOS_DLL_DECL mob_saronite_animusAI : public ScriptedAI
     void Reset()
     {
         m_uiProfoundDarknessTimer = 3000;
-        DoCast(m_creature, SPELL_ANIMUS_FORMATION);
         m_creature->SetRespawnDelay(DAY);
-    }
-
-    void JustDied(Unit *killer)
-    {
-        if(m_pInstance)
-        {
-            if (Creature* pVezax = m_pInstance->GetSingleCreatureFromStorage(NPC_VEZAX))
-            {
-                if (pVezax->isAlive())
-                {
-                    pVezax->RemoveAurasDueToSpell(SPELL_SARONITE_BARRIER);
-                    ((boss_vezaxAI*)pVezax->AI())->m_bIsAnimusAlive = false;
-                }
-            }
-        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -328,102 +332,44 @@ struct MANGOS_DLL_DECL mob_saronite_animusAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        DoCastSpellIfCan(m_creature, SPELL_ANIMUS_FORMATION, CAST_AURA_NOT_PRESENT);
+
         if(m_uiProfoundDarknessTimer < uiDiff)
         {
-            DoCast(m_creature, SPELL_PROFOUND_DARKNESS);
-            m_uiProfoundDarknessTimer = urand(2000, 3000);
+            if (DoCastSpellIfCan(m_creature, SPELL_PROFOUND_DARKNESS) == CAST_OK)
+                m_uiProfoundDarknessTimer = urand(2000, 3000);
         }
-        else m_uiProfoundDarknessTimer -= uiDiff;
+        else
+            m_uiProfoundDarknessTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
 };
 
-struct MANGOS_DLL_DECL mob_saronite_vaporAI : public ScriptedAI
-{
-    mob_saronite_vaporAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
-        pCreature->SetRespawnTime(60000);
-        pCreature->SetCorpseDelay(60000);
-        m_creature->SetRespawnDelay(60000);
-        Reset();
-    }
 
-    instance_ulduar* m_pInstance;
 
-    uint32 m_uiDieTimer;
-
-    void Reset()
-    {
-        m_uiDieTimer = 600000;        
-    }
-
-    void AttackStart(Unit *pWho)
-    {
-        return;
-    }
-
-    void JustDied(Unit *killer)
-    {
-        m_uiSaroniteVaporCount -= 1;
-    }
-
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
-    {
-        // Mana regen pool
-        if(uiDamage >= m_creature->GetHealth())
-        {
-            if (Creature* pVezax = m_pInstance->GetSingleCreatureFromStorage(NPC_VEZAX))
-            {
-                m_creature->CastSpell(m_creature, SPELL_SARONITE_VAPORS, true, 0, 0, pVezax->GetObjectGuid());
-            }
-            uiDamage = 0;
-            m_uiDieTimer = 500;
-        }
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (m_pInstance && m_pInstance->GetData(TYPE_VEZAX) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
-
-        if (m_uiDieTimer < diff)
-            m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        else m_uiDieTimer -= diff;
-    }
-};
-
-CreatureAI* GetAI_boss_vezax(Creature* pCreature)
-{
-    return new boss_vezaxAI(pCreature);
-}
 
 CreatureAI* GetAI_mob_saronite_animus(Creature* pCreature)
 {
     return new mob_saronite_animusAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_saronite_vapor(Creature* pCreature)
+void AddSC_boss_general_vezax()
 {
-    return new mob_saronite_vaporAI(pCreature);
-}
+    Script* pNewScript;
 
-void AddSC_boss_vezax()
-{
-    Script *newscript;
-    newscript = new Script;
-    newscript->Name = "boss_general_vezax";
-    newscript->GetAI = &GetAI_boss_vezax;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_general_vezax";
+    pNewScript->GetAI = &GetAI_boss_general_vezax;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "mob_saronite_animus";
-    newscript->GetAI = &GetAI_mob_saronite_animus;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "event_spell_saronite_barrier";
+    pNewScript->pProcessEventId = &ProcessEventId_event_spell_saronite_barrier;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "mob_saronite_vapor";
-    newscript->GetAI = &GetAI_mob_saronite_vapor;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_saronite_animus";
+    pNewScript->GetAI = &GetAI_mob_saronite_animus;
+    pNewScript->RegisterSelf();
 }
