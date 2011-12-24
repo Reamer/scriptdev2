@@ -523,7 +523,6 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         SetCombatMovement(false);
-        pCreature->SetRespawnTime(604800000);
         Reset();
     }
 
@@ -623,7 +622,6 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
                     m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_TRANS_2);
                     m_pInstance->SetData(TYPE_VX001, DONE);
                 }
-                // hacky way for feign death, needs fixing
                 else if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
                 {
                     DoCast(m_creature, SPELL_SELF_REPAIR);
@@ -782,7 +780,6 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
                 {
                     m_creature->SetFacingTo(m_creature->GetAngle(pTarget));
                     m_uiLaserBarrageTimer = 46000;
-    //                DoScriptText(EMOTE_LASER_SLAVE, m_creature);
                 }
             }
         }
@@ -910,7 +907,6 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
     {
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        pCreature->SetRespawnTime(604800000);
         Reset();
     }
 
@@ -1645,20 +1641,24 @@ struct MANGOS_DLL_DECL mob_proximity_mineAI : public ScriptedAI
 
         if(m_uiExplosionTimer < uiDiff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H);
-            m_creature->ForcedDespawn(500);
-            m_uiExplosionTimer = 20000;
+            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H) == CAST_OK)
+            {
+                m_creature->ForcedDespawn(500);
+                m_uiExplosionTimer = 20000;
+            }
         }
         else
             m_uiExplosionTimer -= uiDiff;
 
         if (m_uiRangeCheckTimer < uiDiff)
         {
-            if (m_creature->IsWithinDistInMap(m_creature->getVictim(), 2))
+            if (GetPlayerAtMinimumRange(2.0f))
             {
-                DoCast(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H);
-                m_creature->ForcedDespawn(500);
-                m_uiRangeCheckTimer = 5000;
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H) == CAST_OK)
+                {
+                    m_creature->ForcedDespawn(500);
+                    m_uiRangeCheckTimer = 5000;
+                }
             }
             else
                 m_uiRangeCheckTimer = 500;
