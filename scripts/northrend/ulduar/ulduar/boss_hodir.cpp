@@ -147,6 +147,16 @@ struct MANGOS_DLL_DECL mob_npc_flashFreezeAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        if (Unit* pCreator = m_creature->GetCreator())
+        {
+            pCreator->ModifyAuraState(AURA_STATE_FROZEN, false); // HACK
+            pCreator->clearUnitState(UNIT_STAT_ROOT);            // HACK
+            pCreator->clearUnitState(UNIT_STAT_STUNNED);         // HACK
+            if (Creature* pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
+            {
+                pCreator->SetInCombatWith(pHodir);
+            }
+        }
         m_creature->ForcedDespawn();
     }
 
@@ -155,8 +165,13 @@ struct MANGOS_DLL_DECL mob_npc_flashFreezeAI : public ScriptedAI
         if (m_uiFreezeNPCTimer < uiDiff)
         {
             if (Unit* pCreator = m_creature->GetCreator())
+            {
                 if (!pCreator->HasAura(SPELL_FLASH_FREEZE_NPC_STUN))
-                    DoCast(pCreator, SPELL_FLASH_FREEZE_NPC_STUN, true);
+                {
+                    m_creature->InterruptNonMeleeSpells(false);
+                    DoCastSpellIfCan(pCreator, SPELL_FLASH_FREEZE_NPC_STUN, CAST_TRIGGERED);
+                }
+            }
             m_uiFreezeNPCTimer = 1000;
         }
         else
@@ -191,11 +206,6 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     uint32 m_uiOutroTimer;
     uint32 m_uiStep;
 
-    uint64 m_uiHelperGUID[4];
-    uint64 m_uiDruidHelperGUID;
-    uint64 m_uiMageHelperGUID;
-    uint64 m_uiPriestHelperGUID;
-
     bool   m_bhardmode;
 
     void Reset()
@@ -215,21 +225,29 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
         {
             if (!pMage->isAlive())
                 pMage->Respawn();
+            else
+                pMage->AI()->EnterEvadeMode();
         }
         if (Creature* pDruid = m_pInstance->GetSingleCreatureFromStorage(NPC_HELPER_DRUID))
         {
             if (!pDruid->isAlive())
                 pDruid->Respawn();
+            else
+                pDruid->AI()->EnterEvadeMode();
         }
         if (Creature* pPriest = m_pInstance->GetSingleCreatureFromStorage(NPC_HELPER_PRIEST))
         {
             if (!pPriest->isAlive())
                 pPriest->Respawn();
+            else
+                pPriest->AI()->EnterEvadeMode();
         }
         if (Creature* pShaman = m_pInstance->GetSingleCreatureFromStorage(NPC_HELPER_SHAMAN))
         {
             if (!pShaman->isAlive())
                 pShaman->Respawn();
+            else
+                pShaman->AI()->EnterEvadeMode();
         }
 
     }
@@ -244,8 +262,10 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     }
 
 
-    void Aggro(Unit *who)
+    void Aggro(Unit *pWho)
     {
+        if (pWho->GetTypeId() != TYPEID_PLAYER)
+            return;
         if(m_pInstance)
             m_pInstance->SetData(TYPE_HODIR, IN_PROGRESS);
 
@@ -305,14 +325,14 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     {
         if (spellProto->Id == SPELL_FLASH_FREEZE)
         {
-            if (!pTarget->HasAura(SPELL_SAFE_AREA_BUFF, EFFECT_INDEX_0))
+            if (!pTarget->HasAura(SPELL_SAFE_AREA_BUFF))
             {
                 if (pTarget->GetTypeId() == TYPEID_PLAYER)
                 {
                     if (m_pInstance)
                         m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_CHEESE_FREEZE, false);
-                    if (pTarget->HasAura(SPELL_FLASH_FREEZE_DEBUFF, EFFECT_INDEX_0))
-                        DoCastSpellIfCan(pTarget, SPELL_FLASH_FREEZE_KILL, true);
+                    if (pTarget->HasAura(SPELL_FLASH_FREEZE_DEBUFF))
+                        DoCastSpellIfCan(pTarget, SPELL_FLASH_FREEZE_KILL, CAST_TRIGGERED);
                     else
                         pTarget->CastSpell(pTarget, SPELL_FLASH_FREEZE_SUMMON, true);
                 }
@@ -349,14 +369,16 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             // Flash freeze
             if(m_uiFlashFreezeTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_FLASH_FREEZE, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature, SPELL_FLASH_FREEZE) == CAST_OK)
                 {
                     DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ICICLE_FLASH_MARKS : SPELL_ICICLE_FLASH_MARKS_H, CAST_TRIGGERED);
                     DoScriptText(EMOTE_FLASH_FREEZE, m_creature);
                     DoScriptText(SAY_FLASH_FREEZE, m_creature);
                     m_uiFlashFreezeTimer = 50000;
                 }
-            }else m_uiFlashFreezeTimer -= uiDiff;
+            }
+            else
+                m_uiFlashFreezeTimer -= uiDiff;
 
             // frozen blows
             if(m_uiFrozenBlowsTimer < uiDiff)
@@ -367,15 +389,21 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
                     DoScriptText(EMOTE_FROZEN_BLOWS, m_creature);
                     m_uiFrozenBlowsTimer = urand(50000, 60000);
                 }
-            }else m_uiFrozenBlowsTimer -= uiDiff;
+            }
+            else
+                m_uiFrozenBlowsTimer -= uiDiff;
 
             // freeze
             if(m_uiFreezeTimer < uiDiff)
             {
-                if(Unit *target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCast(target, SPELL_FREEZE);
-                m_uiFreezeTimer = urand(5000, 10000);
-            }else m_uiFreezeTimer -= uiDiff;
+                if(Unit *target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+                {
+                    if (DoCastSpellIfCan(target, SPELL_FREEZE) == CAST_OK)
+                        m_uiFreezeTimer = urand(5000, 10000);
+                }
+            }
+            else
+                m_uiFreezeTimer -= uiDiff;
 
             // enrage
             if(m_uiEnrageTimer < uiDiff)
@@ -383,7 +411,9 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
                 DoScriptText(SAY_BERSERK, m_creature);
                 DoCast(m_creature, SPELL_ENRAGE);
                 m_uiEnrageTimer = 30000;
-            }else m_uiEnrageTimer -= uiDiff;
+            }
+            else
+                m_uiEnrageTimer -= uiDiff;
 
             DoMeleeAttackIfReady();
         }
@@ -422,7 +452,9 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
         {
             ++m_uiStep;
             m_uiOutroTimer = 330000;
-        }else m_uiOutroTimer -= uiDiff;
+        }
+        else
+            m_uiOutroTimer -= uiDiff;
     }
 };
 
@@ -462,7 +494,6 @@ struct MANGOS_DLL_DECL mob_icicleAI : public ScriptedAI
     bool m_bIsRegularMode;
     uint32 m_uiActionTimer;
     uint32 m_uiSpellId;
-    float x, y, z;
 
     void Reset() {}
     void AttackStart(Unit* pWho) {}
@@ -474,7 +505,9 @@ struct MANGOS_DLL_DECL mob_icicleAI : public ScriptedAI
             DoCastSpellIfCan(m_creature, m_uiSpellId, CAST_TRIGGERED);
             DoCastSpellIfCan(m_creature, SPELL_ICICLE_DUMMY);
             m_uiActionTimer = 30000;
-        }else m_uiActionTimer -= uiDiff;
+        }
+        else
+            m_uiActionTimer -= uiDiff;
     }
 };
 
@@ -528,7 +561,9 @@ struct MANGOS_DLL_DECL mob_flashFreezeAI : public ScriptedAI
                     m_creature->ForcedDespawn();
             }
             m_uiCheckTimer = 1000;
-        }else m_uiCheckTimer -= uiDiff;
+        }
+        else
+            m_uiCheckTimer -= uiDiff;
     }
 };
 
@@ -539,6 +574,7 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
     {
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        SetCombatMovement(false);
         Reset();
     }
 
@@ -547,30 +583,16 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
     bool m_bIsRegularMode;
 
     uint32 m_uiSpellTimer;
-    uint32 m_uiCreatureEntry;
+    uint32 m_uiCeckMove;
 
     void Reset()
     {
+        m_creature->SetWalk(true);
+        m_uiCeckMove = 1000;
         m_uiSpellTimer = 5000;
-        m_uiCreatureEntry = m_creature->GetEntry();
         m_creature->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
-        if (m_pInstance->GetData(TYPE_HODIR) != DONE && !(m_creature->HasAura(SPELL_FLASH_FREEZE_NPC_STUN)))
-            DoCast(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC, true);
-
-    }
-
-    void AttackStart(Unit* pWho)
-    {
-        if (!pWho)
-            return;
-
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 20.0f);
-        }
+        if (m_pInstance->GetData(TYPE_HODIR) != IN_PROGRESS)
+            DoCastSpellIfCan(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC);
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
@@ -591,6 +613,10 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
             m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_COOLEST_FRIEND, false);
     }
 
+    void JustReachedHome()
+    {
+        DoCastSpellIfCan(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC);
+    }
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -599,27 +625,56 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
         if (m_creature->HasAura(SPELL_FLASH_FREEZE_NPC_STUN))
             return;
 
-        if (m_pInstance->GetData(TYPE_HODIR) != IN_PROGRESS)
-            EnterEvadeMode();
+        if (m_creature->hasUnitState(UNIT_STAT_FLEEING))
+            return;
+
+        if (m_uiCeckMove < uiDiff)
+        {
+            if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
+            {
+                if (m_creature->GetDistance(pHodir) > 30)
+                {
+                    float x,y,z;
+                    m_creature->GetContactPoint(pHodir, x,y,z, 15.0f);
+                    m_creature->GetMotionMaster()->MovementExpired(false);
+                    m_creature->GetMotionMaster()->MovePoint(1,x,y,z, false);
+                    m_uiCeckMove = 4000;
+                    return;
+                }
+            }
+
+            if (Creature* pIce = GetClosestCreatureWithEntry(m_creature, NPC_ICICLE, 5.0f))
+            {
+                m_creature->InterruptNonMeleeSpells(false);
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MoveFleeing(pIce, 1300);
+                m_uiCeckMove = 1000;
+                return;
+            }
+            m_uiCeckMove = 1000;
+        }
+        else
+            m_uiCeckMove -= uiDiff;
 
         if (m_uiSpellTimer < uiDiff)
         {
-            switch (m_uiCreatureEntry)
+            CanCastResult result;
+            switch (m_creature->GetEntry())
             {
                 case NPC_HELPER_PRIEST:                     // Priest
                     switch(urand(0, 4))
                     {
                         case 0:
                             if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
-                                DoCast(pHodir, SPELL_SMITE);
+                                result = DoCastSpellIfCan(pHodir, SPELL_SMITE);
                             break;
                         case 1:
                         case 2:
                         case 3:
-                            DoCast(m_creature, SPELL_GREAT_HEAL);
+                            result = DoCastSpellIfCan(m_creature, SPELL_GREAT_HEAL);
                             break;
                         case 4:
-                            DoCast(m_creature, SPELL_DISPEL_MAGIC);
+                            result = DoCastSpellIfCan(m_creature, SPELL_DISPEL_MAGIC);
                             break;
                     }
                     break;
@@ -627,22 +682,22 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
                     if (roll_chance_i(80))
                     {
                         if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
-                            DoCast(pHodir, SPELL_WRATH);
+                            result = DoCastSpellIfCan(pHodir, SPELL_WRATH);
                     }
                     else
-                        DoCast(m_creature, SPELL_STARLIGHT);
+                        result = DoCastSpellIfCan(m_creature, SPELL_STARLIGHT);
                     break;
                 case NPC_HELPER_SHAMAN:                     // Shaman
                     if (roll_chance_i(70))
                     {
                         if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
-                            DoCast(pHodir, SPELL_LAVA_BURST);
+                            result = DoCastSpellIfCan(pHodir, SPELL_LAVA_BURST);
                     }
                     else
                     {
                         Unit *pTemp = m_pInstance->GetPlayerInMap(1,1);
                         if (pTemp && m_creature->GetDistance(pTemp) < 40)
-                            DoCast(pTemp, m_bIsRegularMode ? SPELL_STORM_CLOUD : SPELL_STORM_CLOUD_H);
+                            result = DoCastSpellIfCan(pTemp, m_bIsRegularMode ? SPELL_STORM_CLOUD : SPELL_STORM_CLOUD_H);
                     }
                     break;
                 case NPC_HELPER_MAGE:                     // Mage
@@ -650,25 +705,29 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
                     {
                         case 0:
                             if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
-                                DoCast(pHodir, SPELL_FIREBALL);
+                                result = DoCastSpellIfCan(pHodir, SPELL_FIREBALL);
                             break;
                         case 1:
                         case 2:
                             if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
-                                DoCast(pHodir, SPELL_SIGNED);
+                                result = DoCastSpellIfCan(pHodir, SPELL_SIGNED);
                             break;
                         case 3:
                             if(Creature *pTemp = GetClosestCreatureWithEntry(m_creature, NPC_FLASH_FREEZE, 50.0f))
-                                DoCast(pTemp, SPELL_MELT_ICE);
+                                result = DoCastSpellIfCan(pTemp, SPELL_MELT_ICE);
                             break;
                         case 4:
-                            DoCast(m_creature, SPELL_TOASTY_FIRE);
+                            result = DoCastSpellIfCan(m_creature, SPELL_TOASTY_FIRE);
                             break;
                     }
                     break;
             }
-            m_uiSpellTimer = urand(2000, 5000);
-        }else m_uiSpellTimer -= uiDiff;
+            if (result == CAST_OK)
+                m_uiSpellTimer = urand(2000, 5000);
+        }
+        else
+            m_uiSpellTimer -= uiDiff;
+
     }
 };
 

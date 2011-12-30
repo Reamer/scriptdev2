@@ -1290,13 +1290,19 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
         switch(m_creature->GetEntry())
         {
             case NPC_ANCIENT_CONSERVATOR:
+            {
                 DoSpores(10);
                 break;
+            }
             case NPC_WATER_SPIRIT:
             case NPC_SNAPLASHER:
             case NPC_STORM_LASHER:
-                m_creature->SetCorpseDelay(30 * IN_MILLISECONDS);
+            {
+                m_creature->SetRespawnTime(30);
+                m_creature->SetCorpseDelay(30);
+                m_creature->SetRespawnDelay(30);
                 break;
+            }
             default:
                 break;
         }
