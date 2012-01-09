@@ -408,7 +408,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             // enrage
             if(m_uiEnrageTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE))
+                if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
                 {
                     DoScriptText(SAY_BERSERK, m_creature);
                     m_uiEnrageTimer = 30000;
