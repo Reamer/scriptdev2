@@ -658,7 +658,7 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
 
         if (m_uiSpellTimer < uiDiff)
         {
-            CanCastResult result;
+            CanCastResult result = CAST_FAIL_OTHER;
             switch (m_creature->GetEntry())
             {
                 case NPC_HELPER_PRIEST:                     // Priest

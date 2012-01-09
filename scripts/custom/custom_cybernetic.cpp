@@ -120,7 +120,7 @@ bool GossipHello_custum_cybernetic_2(Player* pPlayer, Creature* pCreature)
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT,"Dungeon auf Zeit soll gestartet werden. Zeig mir moegliche Instanzen!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT,"Dungeon auf Zeit soll resetet werden!", GOSSIP_SENDER_MAIN, RESET);
     }
-    QueryResult * result = strSD2Pquery("SELECT Endzeit FROM schnellstesdungeon WHERE AmLaufen = 1;");
+    QueryResult* result = strSD2Pquery("SELECT Endzeit FROM schnellstesdungeon WHERE AmLaufen = 1;");
     if (result)
     {
         Field *fields = result->Fetch();

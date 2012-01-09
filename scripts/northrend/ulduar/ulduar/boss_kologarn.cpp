@@ -709,17 +709,19 @@ struct MANGOS_DLL_DECL mob_kologarn_pit_kill_bunnyAI : public ScriptedAI
         {
             if (m_pInstance)
             {
-                Creature *pKolo = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN);
-                if (!pKolo || pKolo && !pKolo->isAlive())
+                if (Creature *pKolo = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
                 {
-                    if (GameObject *pGo = m_pInstance->GetSingleGameObjectFromStorage(GO_KOLOGARN_BRIDGE))
-                    {
-                        pGo->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
-                        pGo->SetGoState(GO_STATE_READY);
+                    if (!pKolo->isAlive())
+                    {  
+                        if (GameObject *pGo = m_pInstance->GetSingleGameObjectFromStorage(GO_KOLOGARN_BRIDGE))
+                        {
+                            pGo->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
+                            pGo->SetGoState(GO_STATE_READY);
+                        }
+                        if (Creature *pBridge = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN_BRIDGE_DUMMY))
+                            pBridge->SetVisibility(VISIBILITY_ON);
+                        m_bBridgeLocked = true;
                     }
-                    if (Creature *pBridge = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN_BRIDGE_DUMMY))
-                        pBridge->SetVisibility(VISIBILITY_ON);
-                    m_bBridgeLocked = true;
                 }
             }
         }

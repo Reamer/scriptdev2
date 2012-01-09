@@ -300,15 +300,20 @@ CreatureAI* GetAI_npc_sa_vendor(Creature* pCreature)
 
 bool GossipHello_npc_sa_vendor(Player* pPlayer, Creature* pCreature)
 {
-    uint8 gyd = NULL;
+    uint8 gyd;
     if (pCreature->GetEntry() == 29260)
         gyd = 0;
-    if (pCreature->GetEntry() == 29262)
+    else if (pCreature->GetEntry() == 29262)
         gyd = 1;
+    else
+        return true;
+
     if (!build[gyd])
     {
         if (pPlayer->GetMapId() == 607)
+        {
             if (BattleGround *bg = pPlayer->GetBattleGround())
+            {
                 if (bg->GetDefender() != pPlayer->GetTeam())
                 {
                     if (bg->GetDefender() != ALLIANCE && bg->GetGydController(gyd) == BG_SA_GRAVE_STATUS_ALLY_OCCUPIED)
@@ -316,7 +321,8 @@ bool GossipHello_npc_sa_vendor(Player* pPlayer, Creature* pCreature)
                     if (bg->GetDefender() != HORDE && bg->GetGydController(gyd) == BG_SA_GRAVE_STATUS_HORDE_OCCUPIED)
                         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
                 }
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+            }
+        }
     }
     else
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
@@ -330,14 +336,13 @@ bool GossipSelect_npc_sa_vendor(Player* pPlayer, Creature* pCreature, uint32 uiS
 {
     if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
-        uint8 gyd = NULL;
         if (pCreature->GetEntry() == 29260)
-            gyd = 0;
+            ((npc_sa_vendorAI*)pCreature->AI())->StartEvent(pPlayer, 0);
         if (pCreature->GetEntry() == 29262)
-            gyd = 1;
+            ((npc_sa_vendorAI*)pCreature->AI())->StartEvent(pPlayer, 1);
 
         pPlayer->CLOSE_GOSSIP_MENU();
-        ((npc_sa_vendorAI*)pCreature->AI())->StartEvent(pPlayer, gyd);
+        
      }
      if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
          pPlayer->CLOSE_GOSSIP_MENU();
@@ -392,33 +397,38 @@ bool GOHello_go_sa_def_portal(Player* pPlayer, GameObject* pGo)
                         else if(i == 0 || i == 1)
                         {
                             if(i == 0)
+                            {
                                 if(((BattleGroundSA*)bg)->GetGateStatus(2) != BG_SA_GO_GATES_DESTROY)
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i+1][0],TeleLocation[i+1][1],TeleLocation[i+1][2],0);
                                 else
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i+2][0],TeleLocation[i+2][1],TeleLocation[i+2][2],0);
 
-                            if(i == 1)
+                            }
+                            else if(i == 1)
+                            {
                                 if(((BattleGroundSA*)bg)->GetGateStatus(1) != BG_SA_GO_GATES_DESTROY)
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i-1][0],TeleLocation[i-1][1],TeleLocation[i-1][2],0);
                                 else
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i+1][0],TeleLocation[i+1][1],TeleLocation[i+1][2],0);
-
+                            }
                             return true;
                         }
                         else if(i == 2 || i == 3)
                         {
                             if (i == 2)
+                            {
                                 if(((BattleGroundSA*)bg)->GetGateStatus(4) != BG_SA_GO_GATES_DESTROY)
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i+1][0],TeleLocation[i+1][1],TeleLocation[i+1][2],0);
                                 else
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i+2][0],TeleLocation[i+2][1],TeleLocation[i+2][2],0);
-
-                            if (i == 3)
+                            }
+                            else if (i == 3)
+                            {
                                 if(((BattleGroundSA*)bg)->GetGateStatus(3) != BG_SA_GO_GATES_DESTROY)
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i-1][0],TeleLocation[i-1][1],TeleLocation[i-1][2],0);
                                 else
                                     pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i+1][0],TeleLocation[i+1][1],TeleLocation[i+1][2],0);
-
+                            }
                             return true;
                         }
                         else if (i == 4 || i == 5)
