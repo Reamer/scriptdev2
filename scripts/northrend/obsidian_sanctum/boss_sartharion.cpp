@@ -865,7 +865,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
         switch(m_creature->GetEntry())
         {
             case NPC_TENEBRON:
-                if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS ? pPortal = SummonPortal(NPC_SARTHARION) : pPortal = SummonPortal(NPC_TENEBRON))
+                if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS ? (pPortal = SummonPortal(NPC_SARTHARION)) : (pPortal = SummonPortal(NPC_TENEBRON)))
                 {
                     if (pPortal)
                     {
@@ -879,7 +879,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
                 }
                 break;
             case NPC_SHADRON:
-                if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS ? pPortal = SummonPortal(NPC_SARTHARION) : pPortal = SummonPortal(NPC_SHADRON))
+                if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS ? (pPortal = SummonPortal(NPC_SARTHARION)) : (pPortal = SummonPortal(NPC_SHADRON)))
                 {
                     if (pPortal)
                     {
@@ -889,7 +889,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
                             Creature* pAcolyte = m_pInstance->GetSingleCreatureFromStorage(NPC_ACOLYTE_OF_SHADRON);
                             if (!pAcolyte || (pAcolyte && pAcolyte->isDead()))
                             {
-                                if (Creature* pAcolyte2 = m_creature->SummonCreature(NPC_ACOLYTE_OF_SHADRON, pPortal->GetPositionX()-10+urand(0, 20), pPortal->GetPositionY()-10+urand(0, 20), pPortal->GetPositionZ()+1.0f, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 90000))
+                                if (/*Creature* pAcolyte2 = */m_creature->SummonCreature(NPC_ACOLYTE_OF_SHADRON, pPortal->GetPositionX()-10+urand(0, 20), pPortal->GetPositionY()-10+urand(0, 20), pPortal->GetPositionZ()+1.0f, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 90000))
                                 {
                                     if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS) 
                                     {
@@ -908,7 +908,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
                 }
                 break;
             case NPC_VESPERON:
-                if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS ? pPortal = SummonPortal(NPC_SARTHARION) : pPortal = SummonPortal(NPC_VESPERON))
+                if (m_pInstance->GetData(TYPE_SARTHARION_EVENT) == IN_PROGRESS ? (pPortal = SummonPortal(NPC_SARTHARION)) : (pPortal = SummonPortal(NPC_VESPERON)))
                 {
                     if (pPortal)
                     {
@@ -1602,10 +1602,12 @@ struct MANGOS_DLL_DECL mob_fire_cycloneAI : public ScriptedAI
     void JustSummoned(Creature* pSummoned)
     {
         if (pSummoned->GetEntry() == NPC_LAVA_BLAZE)
+        {
             if (urand(0, 3))                                //25% to stay
                 pSummoned->ForcedDespawn();
             else
                 pSummoned->SetInCombatWithZone();
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)

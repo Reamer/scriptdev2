@@ -215,8 +215,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
         {
             if (m_uiSpotlightTimer < uiDiff)
             {
-                if (Creature* pValkyr = m_creature->SummonCreature(NPC_ANNHYLDE, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 5, m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 16000))
-                    //pValkyr->setFaction(FAC_FRIENDLY);
+                if (/*Creature* pValkyr = */m_creature->SummonCreature(NPC_ANNHYLDE, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 5, m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 16000))
 
                 m_creature->CastSpell(m_creature, SPELL_SPOTLIGHT, true, 0, 0, ObjectGuid());
                 m_uiRescureTimer = 14000;
@@ -250,33 +249,35 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
         {
             if (m_uiCleaveTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE);
-                m_uiCleaveTimer = urand(2500, 7000);
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                    m_uiCleaveTimer = urand(2500, 7000);
             }
             else
                 m_uiCleaveTimer -= uiDiff;
 
             if (m_uiSmashTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_SMASH : SPELL_SMASH_H);
-                m_uiSmashTimer = urand(8000, 15000);
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_SMASH : SPELL_SMASH_H) == CAST_OK)
+                    m_uiSmashTimer = urand(8000, 15000);
             }
             else
                 m_uiSmashTimer -= uiDiff;
 
             if (m_uiStaggeringRoarTimer < uiDiff)
             {
-                DoScriptText(EMOTE_ROAR, m_creature);
-                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STAGGERING_ROAR : SPELL_STAGGERING_ROAR_H);
-                m_uiStaggeringRoarTimer = urand(15000, 30000);
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STAGGERING_ROAR : SPELL_STAGGERING_ROAR_H) == CAST_OK)
+                {
+                    DoScriptText(EMOTE_ROAR, m_creature);
+                    m_uiStaggeringRoarTimer = urand(15000, 30000);
+                }
             }
             else
                 m_uiStaggeringRoarTimer -= uiDiff;
 
             if (m_uiEnrageTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ENRAGE : SPELL_ENRAGE_H);
-                m_uiEnrageTimer = urand(10000, 20000);
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ENRAGE : SPELL_ENRAGE_H) == CAST_OK)
+                    m_uiEnrageTimer = urand(10000, 20000);
             }
             else
                 m_uiEnrageTimer -= uiDiff;
@@ -285,27 +286,40 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
         {            
             if (m_uiDreadfulRoarTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_DREADFUL_ROAR : SPELL_DREADFUL_ROAR_H);
-                m_uiDreadfulRoarTimer = 20000;
-            }else m_uiDreadfulRoarTimer -= uiDiff;
+                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_DREADFUL_ROAR : SPELL_DREADFUL_ROAR_H) == CAST_OK)
+                    m_uiDreadfulRoarTimer = 20000;
+            }
+            else
+                 m_uiDreadfulRoarTimer -= uiDiff;
 
             if (m_uiWoeStrike < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_WOE_STRIKE : SPELL_WOE_STRIKE_H);
-                m_uiWoeStrike = 20000;
-            }else m_uiWoeStrike -= uiDiff;
+                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_WOE_STRIKE : SPELL_WOE_STRIKE_H) == CAST_OK)
+                    m_uiWoeStrike = 20000;
+            }
+            else
+                m_uiWoeStrike -= uiDiff;
 
             if (m_uiDarkSmash < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, SPELL_DARK_SMASH);
-                m_uiDarkSmash = 20000;
-            }else m_uiDarkSmash -= uiDiff;
+                if (DoCastSpellIfCan(m_creature, SPELL_DARK_SMASH) == CAST_OK)
+                    m_uiDarkSmash = 20000;
+            }
+            else
+                m_uiDarkSmash -= uiDiff;
 
             if (m_uiShadowAxeTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_SHADOW_AXE_TRIGGER);
-                m_uiShadowAxeTimer = 44000;
-            }else m_uiShadowAxeTimer -= uiDiff;
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_SHADOW_AXE_TRIGGER, SELECT_FLAG_PLAYER))
+                {
+                    if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_AXE_TRIGGER) == CAST_OK)
+                    {
+                        m_uiShadowAxeTimer = 44000;
+                    }
+                }
+            }
+            else
+                m_uiShadowAxeTimer -= uiDiff;
         }
 
         DoMeleeAttackIfReady();
@@ -355,14 +369,18 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
         {
             DoScriptText(SAY_ANNHYLDE_REZ, m_creature);   
             SpeakTimer = 9999999;
-        }else SpeakTimer -= uiDiff;
+        }
+        else
+            SpeakTimer -= uiDiff;
         
         if (ChannelTimer < uiDiff)
         {
             m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_BUBBLE, true, 0, 0, ObjectGuid());
             m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_CHANNEL, true, 0, 0, ObjectGuid());
             ChannelTimer = 9999999;
-        }else ChannelTimer -= uiDiff;
+        }
+        else
+            ChannelTimer -= uiDiff;
     }
 };
 

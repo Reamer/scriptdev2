@@ -408,7 +408,7 @@ struct MANGOS_DLL_DECL mob_jedoga_volunteerAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        if((pKiller->GetTypeId() == TYPEID_PLAYER) || (pKiller->GetOwner()) && (pKiller->GetOwner()->GetTypeId() == TYPEID_PLAYER))
+        if((pKiller->GetTypeId() == TYPEID_PLAYER) || ((pKiller->GetOwner()) && (pKiller->GetOwner()->GetTypeId() == TYPEID_PLAYER)))
             if (m_pInstance)
                 m_pInstance->SetAchiev(TYPE_JEDOGA, false);
     }
