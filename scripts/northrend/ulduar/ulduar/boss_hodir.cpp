@@ -396,7 +396,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             // freeze
             if(m_uiFreezeTimer < uiDiff)
             {
-                if(Unit *target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+                if(Unit *target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_FREEZE, SELECT_FLAG_PLAYER))
                 {
                     if (DoCastSpellIfCan(target, SPELL_FREEZE) == CAST_OK)
                         m_uiFreezeTimer = urand(5000, 10000);
@@ -408,9 +408,11 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             // enrage
             if(m_uiEnrageTimer < uiDiff)
             {
-                DoScriptText(SAY_BERSERK, m_creature);
-                DoCast(m_creature, SPELL_ENRAGE);
-                m_uiEnrageTimer = 30000;
+                if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE))
+                {
+                    DoScriptText(SAY_BERSERK, m_creature);
+                    m_uiEnrageTimer = 30000;
+                }
             }
             else
                 m_uiEnrageTimer -= uiDiff;

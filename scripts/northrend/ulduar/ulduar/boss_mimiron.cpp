@@ -774,7 +774,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
 
         if (m_uiLaserBarrageTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_LASER_SLAVE) == CAST_OK)
                 {
@@ -788,7 +788,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
 
         if(m_uiRocketStrikeTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_ROCKET_TRIGGER, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_ROCKET_TRIGGER) == CAST_OK)
                     m_uiRocketStrikeTimer = urand(8000, 12000);
@@ -1078,6 +1078,7 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public ScriptedAI
             MakeBossFly();
             DoCast(m_creature, SPELL_BOMB_BOT_SUMMON);
         }
+        
         if(m_uiPlasmaBallTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))

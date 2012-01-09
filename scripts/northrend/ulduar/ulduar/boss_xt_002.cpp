@@ -359,7 +359,7 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
     instance_ulduar* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint32 m_uiPhase;
+    XT002Phase m_Phase;
 
     // spell timers
     uint32 m_uiHeartTimer;
@@ -390,15 +390,15 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
     {
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
 
-        m_uiPhase               = PHASE_NORMAL;
+        m_Phase               = PHASE_NORMAL;
         // spell timers
         m_uiLightBombTimer    = 5000;     // 7 seconds the first 14 secs all after(7 secs in 25man)
         m_uiGravityBombTimer  = 30000;    // 11 seconds first 18 secs all after(11 secs in 25man)
-        m_uiTanctrumTimer      = 35000;    // 38 seconds first 40 secs all after
-        m_uiEnrageTimer        = 600000;   // 10 min
+        m_uiTanctrumTimer     = 35000;    // 38 seconds first 40 secs all after
+        m_uiEnrageTimer       = 600000;   // 10 min
         m_uiRangeCheckTimer   = 1000;
-        m_uiVoidZoneTimer       = 60000;
-        m_uiLifeSparkTimer      = 60000;
+        m_uiVoidZoneTimer     = 60000;
+        m_uiLifeSparkTimer    = 60000;
 
         // Summon
         m_uiSummonTimer         = 5000;
@@ -540,7 +540,7 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
 
     void SwitchIntoPhaseOne()
     {
-        m_uiPhase = PHASE_NORMAL;
+        m_Phase = PHASE_NORMAL;
         DoScriptText(SAY_HEART_CLOSE, m_creature);
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
         m_creature->RemoveAurasDueToSpell(SPELL_STUN);
@@ -560,15 +560,14 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
         // enrage timer
         if (m_uiEnrageTimer < uiDiff && !m_bIsEnrage)
         {
-            DoCast(m_creature, SPELL_ENRAGE, true);
-            if (m_creature->HasAura(SPELL_ENRAGE))
+            if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
             {
                 m_bIsEnrage = true;
                 DoScriptText(SAY_BERSERK, m_creature);
             }
-            else
-                m_uiEnrageTimer = 5000;
-        }else m_uiEnrageTimer -= uiDiff;
+        }
+        else
+            m_uiEnrageTimer -= uiDiff;
 
         
         // adds range check
@@ -595,7 +594,7 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
         }else 
             m_uiRangeCheckTimer -= uiDiff;
 
-        switch (m_uiPhase)
+        switch (m_Phase)
         {
             case PHASE_NORMAL:
             {
@@ -608,7 +607,9 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                             m_uiLightBombTimer = urand(10000, 14000);
                         }
                     }
-                }else m_uiLightBombTimer -= uiDiff;
+                }
+                else
+                    m_uiLightBombTimer -= uiDiff;
 
                 if (m_uiGravityBombTimer < uiDiff)
                 {
@@ -620,7 +621,9 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                         }
                     }
                     
-                }else m_uiGravityBombTimer -= uiDiff;
+                }
+                else
+                    m_uiGravityBombTimer -= uiDiff;
 
                 if (m_uiTanctrumTimer < uiDiff)
                 {
@@ -629,14 +632,16 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                         DoScriptText(SAY_TANCTRUM, m_creature);
                         m_uiTanctrumTimer = 60000;
                     }
-                }else m_uiTanctrumTimer -= uiDiff;
+                }
+                else
+                    m_uiTanctrumTimer -= uiDiff;
 
                 if (m_creature->GetHealthPercent() < m_fHealthPercent && !m_bIsHardMode)
                 {
                     m_fHealthPercent = m_fHealthPercent - 25;
                     m_uiHeartTimer = 30000;
                     m_creature->CastStop();                    
-                    m_uiPhase = PHASE_ADDS;
+                    m_Phase = PHASE_ADDS;
 
                     DoScriptText(SAY_HEART_OPEN, m_creature);
                     DoCast(m_creature, SPELL_STUN);
@@ -662,13 +667,17 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                 {
                     SummonAdds();
                     m_uiSummonTimer = urand(3000, 5000);
-                }else m_uiSummonTimer -= uiDiff;
+                }
+                else
+                    m_uiSummonTimer -= uiDiff;
 
                 // Switch into Phase 1
                 if (m_uiHeartTimer < uiDiff)
                 {
                     SwitchIntoPhaseOne();
-                }else m_uiHeartTimer -= uiDiff;
+                }
+                else
+                    m_uiHeartTimer -= uiDiff;
 
                 if (m_pInstance->GetData(TYPE_XT002_HARD) == IN_PROGRESS)
                 {
@@ -681,6 +690,9 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
 
                 break;
             }
+            default:
+                SwitchIntoPhaseOne();
+                break;
         }
     }
 };

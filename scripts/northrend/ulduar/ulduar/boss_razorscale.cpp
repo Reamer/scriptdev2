@@ -754,7 +754,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                 // air spells
                 if (m_uiFireball_Timer < uiDiff)
                 {
-                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
                         DoCast(target, m_bIsRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H);
                         m_uiFireball_Timer = 2000;
                 }else
@@ -762,7 +762,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
                 if (m_uiDevouring_Flame_Timer < uiDiff)
                 {
-                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
+                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
                         DoCast(target, DEVOURING_FLAME_MISSILE);
                         m_uiDevouring_Flame_Timer = 12000;
                 }else

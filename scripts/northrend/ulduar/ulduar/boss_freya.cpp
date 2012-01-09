@@ -968,7 +968,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
             //All phases
             if(m_uiSunbeamTimer < uiDiff)
             {
-                if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_PLAYER))
+                if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, (uint32)0, SELECT_FLAG_PLAYER))
                 {
                     if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_SUNBEAM : SPELL_SUNBEAM_H) == CAST_OK)
                     {
@@ -1373,7 +1373,7 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
                 DoCastSpellIfCan(m_creature, SPELL_CONSERVATORS_GRIP, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
                 if(m_uiNaturesFury < uiDiff)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_PLAYER))
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, (uint32)0, SELECT_FLAG_PLAYER))
                     {
                         if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_NATURES_FURY : SPELL_NATURES_FURY_H) == CAST_OK)
                             m_uiNaturesFury = urand(5000,6000);

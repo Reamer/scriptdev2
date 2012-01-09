@@ -1385,7 +1385,7 @@ struct MANGOS_DLL_DECL boss_saraAI : public ScriptedAI
         m_uiBrainLinkTimer      = 25000;
         m_uiDeathRaySummonTimer = 30000;
 
-        m_uiFirstVision            = 0;
+        m_uiFirstVision         = 0;
         m_uiSecondVision        = 0;
 
         if(m_creature->HasAura(SPELL_SHADOWY_BARRIER))
@@ -1580,44 +1580,52 @@ struct MANGOS_DLL_DECL boss_saraAI : public ScriptedAI
                     {
                         DoScriptText(urand(0,1) ? SAY_HELP1 : SAY_HELP2, m_creature);
                         m_uiPhaseYellTimer = 30000;
-                    }else m_uiPhaseYellTimer -= uiDiff;
+                    }
+                    else
+                        m_uiPhaseYellTimer -= uiDiff;
 
                     if (m_uiSarasFervorTimer < uiDiff)
                     {
                         if(Creature* pYogg = m_pInstance->GetSingleCreatureFromStorage(NPC_YOGGSARON))
                         {
-                            if (Unit* pTarget = pYogg->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                            if (Unit* pTarget = pYogg->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
                             {
-                                if(pTarget != m_creature)
+                                if (DoCastSpellIfCan(pTarget, SPELL_SARAS_FERVOR) == CAST_OK)
                                 {
-                                    DoCast(pTarget, SPELL_SARAS_FERVOR);
                                     m_uiSarasFervorTimer = urand(20000, 30000);
                                 }
                             }
                         } 
-                    }else m_uiSarasFervorTimer -= uiDiff;
+                    }
+                    else
+                        m_uiSarasFervorTimer -= uiDiff;
 
                     if (m_uiSarasBlessingTimer < uiDiff)
                     {
                         if(Creature* pYogg = m_pInstance->GetSingleCreatureFromStorage(NPC_YOGGSARON))
                         {
-                            if (Unit* pTarget = pYogg->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                            if (Unit* pTarget = pYogg->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
                             {
-                                if(pTarget != m_creature)
+                                if (DoCastSpellIfCan(pTarget, SPELL_SARAS_BLESSING) == CAST_OK)
                                 {
-                                    DoCast(pTarget, SPELL_SARAS_BLESSING);
                                     m_uiSarasBlessingTimer = urand(20000, 30000);
                                 }
                             }
                         }
-                    }else m_uiSarasBlessingTimer -= uiDiff;
+                    }
+                    else
+                        m_uiSarasBlessingTimer -= uiDiff;
 
                     if (m_uiSarasAngerTimer < uiDiff)
                     {
                         if (Creature* pGuardian = SelectRandomNpc(80.0f, MOB_GUARDIAN_OF_YOGG))
-                            DoCast(pGuardian, SPELL_SARAS_ANGER);
-                        m_uiSarasAngerTimer = urand(20000, 30000);
-                    }else m_uiSarasAngerTimer -= uiDiff;
+                        {
+                            if (DoCastSpellIfCan(pGuardian, SPELL_SARAS_ANGER) == CAST_OK)
+                                m_uiSarasAngerTimer = urand(20000, 30000);
+                        }
+                    }
+                    else
+                        m_uiSarasAngerTimer -= uiDiff;
                 }
                 // Phase 1 outro
                 if(m_bIsOutro)

@@ -250,7 +250,7 @@ struct MANGOS_DLL_DECL boss_general_vezaxAI : public ScriptedAI
 
         if (m_uiMarkTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_PLAYER))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_MARK_OF_FACELESS, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_MARK_OF_FACELESS) == CAST_OK)
                     m_uiMarkTimer = urand(25000, 30000);
@@ -261,7 +261,7 @@ struct MANGOS_DLL_DECL boss_general_vezaxAI : public ScriptedAI
 
         if (m_uiCrashTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, 0.0f, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_SHADOW_CRASH, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_CRASH) == CAST_OK)
                     m_uiCrashTimer = 15000;
