@@ -51,7 +51,7 @@ enum
 
     SPELL_SLAG_POT_DMG          = 65722,
     SPELL_SLAG_POT_DMG_H        = 65723,
-    
+
     SPELL_HASTE                 = 62836,
 
     // Scorch trigger
@@ -71,7 +71,7 @@ enum
     SPELL_STRENGTH_OF_THE_CREATOR = 64474,
     SPELL_STRENGHT_OF_CREATOR_DIE= 64475,
 
-    
+
     //NPC ids
     SPELL_SUMMON_SCORCH_TRIGGER = 62551,
     SPELL_SLAG_IMBUED           = 62836,
@@ -114,10 +114,9 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
             return;
         }
 
-        if (m_creature->HasAura(SPELL_BRITTLE, EFFECT_INDEX_0) || m_creature->HasAura(SPELL_BRITTLE_H, EFFECT_INDEX_0))
+        if (m_creature->HasAura(SPELL_BRITTLE) || m_creature->HasAura(SPELL_BRITTLE_H))
         {
-            uint32 m_uiShatterDmg = m_bIsRegularMode ? 3000 : 5000;
-            if (uiDamage > m_uiShatterDmg)
+            if (uiDamage > (m_bIsRegularMode ? 3000 : 5000))
             {
                 uiDamage = 0;
                 if (DoCastSpellIfCan(m_creature, SPELL_SHATTER, CAST_TRIGGERED) == CAST_OK)
@@ -143,15 +142,12 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
             m_bIsActive = true;
             m_creature->SetInCombatWithZone();
-
-            if (Unit *pVictim = ((Creature*)pCaster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0) )
-                m_creature->AI()->AttackStart(pVictim);
-
-            m_creature->CastSpell(pCaster, SPELL_STRENGTH_OF_THE_CREATOR, true);
+            
+            DoCast(pCaster, SPELL_STRENGTH_OF_THE_CREATOR, true);
         }
         else if (spellInfo->Id == SPELL_HEAT_AURA)
         {
-            if (Aura* pHeat = m_creature->GetAura(SPELL_HEAT_AURA, EFFECT_INDEX_1) )
+            if (Aura* pHeat = m_creature->GetAura(SPELL_HEAT_AURA, EFFECT_INDEX_1))
             {
                 if (pHeat->GetStackAmount() > 9)
                 {
@@ -189,7 +185,8 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
             }
             m_uiBrittleCheckTimer = 500;
         }
-        else m_uiBrittleCheckTimer -= uiDiff;
+        else
+            m_uiBrittleCheckTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
@@ -203,7 +200,7 @@ CreatureAI* GetAI_mob_iron_construct(Creature* pCreature)
 //ignis the furnace master
 struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 {
-    boss_ignisAI(Creature* pCreature) : ScriptedAI(pCreature) 
+    boss_ignisAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
@@ -264,7 +261,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_IGNIS, DONE);
-      }
+    }
 
     void JustSummoned(Creature* pCreature)
     {
@@ -293,7 +290,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
         if (m_uiScorchTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SCORCH_TRIGGER, CAST_TRIGGERED) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SCORCH_TRIGGER) == CAST_OK)
             {
                 DoScriptText(urand(0,1) ? SAY_SCORCH1 : SAY_SCORCH2, m_creature);
                 m_uiScorchTimer = urand(20000, 25000);
@@ -310,7 +307,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
                     {
                         DoScriptText(SAY_SLAGPOT, m_creature);
                         pTarget->EnterVehicle(m_creature->GetVehicleKit(), 0);
-                        pTarget->CastSpell(pTarget, m_bIsRegularMode ? SPELL_SLAG_POT_AURA : SPELL_SLAG_POT_AURA_H, true, 0,0, m_creature->GetObjectGuid()); 
+                        pTarget->CastSpell(pTarget, m_bIsRegularMode ? SPELL_SLAG_POT_AURA : SPELL_SLAG_POT_AURA_H, true, 0,0, m_creature->GetObjectGuid());
                         m_bIsSlagPot = true;
                         m_uiSlagPotSwitchTimer = 1500;
                         m_uiSlagPotDmgTimer = 2000;
@@ -387,7 +384,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, 26662, CAST_AURA_NOT_PRESENT | CAST_TRIGGERED) == CAST_OK)
             {
                 DoScriptText(SAY_BERSERK, m_creature);
-            }   
+            }
         }
         else
             m_uiBerserkerTimer -= uiDiff;
