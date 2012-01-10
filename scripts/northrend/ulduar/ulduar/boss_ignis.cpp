@@ -290,7 +290,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
         if (m_uiScorchTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SCORCH_TRIGGER) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SCORCH_TRIGGER, CAST_TRIGGERED) == CAST_OK)
             {
                 DoScriptText(urand(0,1) ? SAY_SCORCH1 : SAY_SCORCH2, m_creature);
                 m_uiScorchTimer = urand(20000, 25000);
