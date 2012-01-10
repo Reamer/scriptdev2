@@ -272,7 +272,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
             m_uiBallLightningTimer -= uiDiff;
 
         // Health check
-        if (m_creature->GetHealthPercent() < float(100 - 20*m_uiHealthAmountModifier))
+        if (m_creature->GetHealthPercent() < float(100 - 25*m_uiHealthAmountModifier))
         {
             ++m_uiHealthAmountModifier;
 
