@@ -48,7 +48,6 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
-    float m_fDefaultMoveSpeed;
     uint32 m_uiEvadeCheckCooldown;
 
     uint32 m_uiBerserkTimer;
@@ -56,7 +55,6 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
     uint32 m_uiCrushingLeapTimer;
     uint32 m_uiStompTimer;
     uint32 m_uiImpaleAfterStompTimer;
-    bool m_bImpaleInProgress;
 
     void Reset()
     {
@@ -66,10 +64,6 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
         m_uiCrushingLeapTimer = 30000;
         m_uiStompTimer = 45000;
         m_uiImpaleAfterStompTimer = 1000;
-        m_bImpaleInProgress = false;
-
-        if(m_pInstance)
-            m_pInstance->SetData(TYPE_ARCHAVON, NOT_STARTED);
     }
 
     void Aggro(Unit *pWho)
@@ -82,6 +76,12 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
     {
         if(m_pInstance)
             m_pInstance->SetData(TYPE_ARCHAVON, DONE);
+    }
+
+    void JustReachedHome()
+    {
+        if(m_pInstance)
+            m_pInstance->SetData(TYPE_ARCHAVON, FAIL);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -98,7 +98,18 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
         else
             m_uiEvadeCheckCooldown -= uiDiff;
 
-        if (m_bImpaleInProgress)
+        if (m_uiStompTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STOMP_N : SPELL_STOMP_H) == CAST_OK)
+            {
+                m_uiImpaleAfterStompTimer = 1000;
+                m_uiStompTimer = 45000+rand()%15000;
+            }
+        }
+        else
+            m_uiStompTimer -= uiDiff;
+
+        if (m_uiImpaleAfterStompTimer)
         {
             if (m_uiImpaleAfterStompTimer < uiDiff)
             {
@@ -107,68 +118,43 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
                     DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_IMPALE_DMG_N : SPELL_IMPALE_DMG_H);
                     pTarget->CastSpell(pTarget, SPELL_IMPALE_STUN, true);
                 }
-                m_bImpaleInProgress = false;
             }
             else
-            {
                 m_uiImpaleAfterStompTimer -= uiDiff;
-                return;
-            }
         }
 
         if (m_uiRockShardsTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCast(pTarget, SPELL_ROCK_SHARDS);
-            m_uiRockShardsTimer = 15000+rand()%15000;
-            return;
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_ROCK_SHARDS) == CAST_OK)
+                    m_uiRockShardsTimer = 15000+rand()%15000;
+            }
         }
         else
             m_uiRockShardsTimer -= uiDiff;
 
         if (m_uiCrushingLeapTimer < uiDiff)
         {
-            ThreatList const& tList = m_creature->getThreatManager().getThreatList();
-            std::list<Unit*> lTargets;
-            for (ThreatList::const_iterator itr = tList.begin();itr != tList.end(); ++itr)
+            if (Unit* m_pCrushingLeapTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_IN_MELEE_RANGE))
             {
-                Unit *pTemp = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
-                if (pTemp && pTemp->GetTypeId() == TYPEID_PLAYER && !m_creature->IsWithinDist(pTemp, 10.0f) && m_creature->IsWithinDist(pTemp, 80.0f))
-                    lTargets.push_back(pTemp);
+                if (DoCastSpellIfCan(m_pCrushingLeapTarget, m_bIsRegularMode ? SPELL_CRUSHING_LEAP_N : SPELL_CRUSHING_LEAP_H) == CAST_OK)
+                    m_uiCrushingLeapTimer = 30000+rand()%15000;
             }
-            if (!lTargets.empty())
-            {
-                std::list<Unit*>::iterator pTarget = lTargets.begin();
-                advance(pTarget, (rand() % lTargets.size()));
-                Unit* m_pCrushingLeapTarget = *pTarget;
-                if (m_pCrushingLeapTarget)
-                {
-                    DoCast(m_pCrushingLeapTarget, m_bIsRegularMode ? SPELL_CRUSHING_LEAP_N : SPELL_CRUSHING_LEAP_H, true);
-                }
-            }
-            m_uiCrushingLeapTimer = 30000+rand()%15000;
-            return;
         }
         else
             m_uiCrushingLeapTimer -= uiDiff;
 
-        if (m_uiStompTimer < uiDiff)
+        if (m_uiBerserkTimer)
         {
-            DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STOMP_N : SPELL_STOMP_H);
-            m_uiImpaleAfterStompTimer = 1000;
-            m_bImpaleInProgress = true;
-            m_uiStompTimer = 45000+rand()%15000;
+            if (m_uiBerserkTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
+                    m_uiBerserkTimer = 0;
+            }
+            else
+                m_uiBerserkTimer -= uiDiff;
         }
-        else
-            m_uiStompTimer -= uiDiff;
-
-        if (m_uiBerserkTimer < uiDiff)
-        {
-            DoCastSpellIfCan(m_creature, SPELL_BERSERK);
-            m_uiBerserkTimer = 60000;
-        }
-        else
-            m_uiBerserkTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
