@@ -63,7 +63,7 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
         m_uiRockShardsTimer = 15000;
         m_uiCrushingLeapTimer = 30000;
         m_uiStompTimer = 45000;
-        m_uiImpaleAfterStompTimer = 1000;
+        m_uiImpaleAfterStompTimer = 0;
     }
 
     void Aggro(Unit *pWho)
@@ -115,8 +115,11 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
             {
                 if (Unit* pTarget = m_creature->getVictim())
                 {
-                    DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_IMPALE_DMG_N : SPELL_IMPALE_DMG_H);
-                    pTarget->CastSpell(pTarget, SPELL_IMPALE_STUN, true);
+                    if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_IMPALE_DMG_N : SPELL_IMPALE_DMG_H, CAST_TRIGGERED) == CAST_OK)
+                    {
+                        pTarget->CastSpell(pTarget, SPELL_IMPALE_STUN, true);
+                        m_uiImpaleAfterStompTimer = 0;
+                    }
                 }
             }
             else
@@ -136,7 +139,7 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
 
         if (m_uiCrushingLeapTimer < uiDiff)
         {
-            if (Unit* m_pCrushingLeapTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_IN_MELEE_RANGE))
+            if (Unit* m_pCrushingLeapTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, m_bIsRegularMode ? SPELL_CRUSHING_LEAP_N : SPELL_CRUSHING_LEAP_H, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(m_pCrushingLeapTarget, m_bIsRegularMode ? SPELL_CRUSHING_LEAP_N : SPELL_CRUSHING_LEAP_H) == CAST_OK)
                     m_uiCrushingLeapTimer = 30000+rand()%15000;
