@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,7 +25,6 @@ EndScriptData */
 npc_dirty_larry
 npc_ishanah
 npc_khadgars_servant
-npc_raliq_the_drunk
 npc_salsalabim
 npc_shattrathflaskvendors
 EndContentData */
@@ -548,78 +547,6 @@ CreatureAI* GetAI_npc_khadgars_servant(Creature* pCreature)
 }
 
 /*######
-## npc_raliq_the_drunk
-######*/
-
-enum
-{
-    SPELL_UPPERCUT          = 10966,
-    QUEST_CRACK_SKULLS      = 10009,
-    FACTION_HOSTILE_RD      = 45
-};
-
-#define GOSSIP_RALIQ        "You owe Sim'salabim money. Hand them over or die!"
-
-struct MANGOS_DLL_DECL npc_raliq_the_drunkAI : public ScriptedAI
-{
-    npc_raliq_the_drunkAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_uiNormFaction = pCreature->getFaction();
-        Reset();
-    }
-
-    uint32 m_uiNormFaction;
-    uint32 m_uiUppercut_Timer;
-
-    void Reset()
-    {
-        m_uiUppercut_Timer = 5000;
-
-        if (m_creature->getFaction() != m_uiNormFaction)
-            m_creature->setFaction(m_uiNormFaction);
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_uiUppercut_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_UPPERCUT);
-            m_uiUppercut_Timer = 15000;
-        }else m_uiUppercut_Timer -= diff;
-
-        DoMeleeAttackIfReady();
-    }
-};
-
-CreatureAI* GetAI_npc_raliq_the_drunk(Creature* pCreature)
-{
-    return new npc_raliq_the_drunkAI(pCreature);
-}
-
-bool GossipHello_npc_raliq_the_drunk(Player* pPlayer, Creature* pCreature)
-{
-    if (pPlayer->GetQuestStatus(QUEST_CRACK_SKULLS) == QUEST_STATUS_INCOMPLETE)
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_RALIQ, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-
-    pPlayer->SEND_GOSSIP_MENU(9440, pCreature->GetObjectGuid());
-    return true;
-}
-
-bool GossipSelect_npc_raliq_the_drunk(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
-{
-    if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
-    {
-        pPlayer->CLOSE_GOSSIP_MENU();
-        pCreature->setFaction(FACTION_HOSTILE_RD);
-        pCreature->AI()->AttackStart(pPlayer);
-    }
-    return true;
-}
-
-/*######
 # npc_salsalabim
 ######*/
 
@@ -765,12 +692,5 @@ void AddSC_shattrath_city()
     pNewScript->Name = "npc_shattrathflaskvendors";
     pNewScript->pGossipHello = &GossipHello_npc_shattrathflaskvendors;
     pNewScript->pGossipSelect = &GossipSelect_npc_shattrathflaskvendors;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_raliq_the_drunk";
-    pNewScript->GetAI = &GetAI_npc_raliq_the_drunk;
-    pNewScript->pGossipHello = &GossipHello_npc_raliq_the_drunk;
-    pNewScript->pGossipSelect = &GossipSelect_npc_raliq_the_drunk;
     pNewScript->RegisterSelf();
 }
