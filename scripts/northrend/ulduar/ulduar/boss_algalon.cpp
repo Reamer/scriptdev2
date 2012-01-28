@@ -852,7 +852,7 @@ bool GOHello_go_celestial_acces(Player* pPlayer, GameObject* pGo)
 
             // open celestial door
             if(GameObject* pDoor = m_pInstance->GetSingleGameObjectFromStorage(GO_CELESTIAL_DOOR))
-                m_pInstance->DoUseDoorOrButton(pDoor->GetGUID());
+                m_pInstance->DoUseDoorOrButton(pDoor->GetObjectGuid());
         }
     }
 

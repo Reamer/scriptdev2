@@ -137,13 +137,13 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
 
     bool m_bHasPlayerNear;
     bool m_bIsIntro;
-    uint64 m_uiPlayerGUID;
+    ObjectGuid m_uiPlayerGUID;
     uint32 m_uiSpeech_Timer;
     uint32 m_uiIntro_Phase;
 
     void Reset()
     {
-        m_uiPlayerGUID      = 0;
+        m_uiPlayerGUID.Clear();
         m_uiSpeech_Timer    = 3000;
         m_bIsIntro          = false;
         m_uiIntro_Phase     = 0;

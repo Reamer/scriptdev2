@@ -639,7 +639,7 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
         if (spell->Id == SPELL_STONE_GRIP_GRAB || spell->Id == SPELL_STONE_GRIP_GRAB_H)
         {
             victim->CastSpell(victim, 54661 , true); //HACK
-            m_lGripTargetGUIDList.push_back(victim->GetGUID());
+            m_lGripTargetGUIDList.push_back(victim->GetObjectGuid());
             victim->EnterVehicle(vehicle);
         }
     }*/ 
@@ -666,7 +666,7 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
                     }
                 }
                 m_uiFreeDamage = 0;
-                m_uiStone_Grip_Timer = 30000;            
+                m_uiStone_Grip_Timer = 30000;
             //DoCast(m_creature, m_bIsRegularMode ? SPELL_STONE_GRIP_GRAB : SPELL_STONE_GRIP_GRAB_H, true);
             }
         }else m_uiStone_Grip_Timer -= uiDiff;

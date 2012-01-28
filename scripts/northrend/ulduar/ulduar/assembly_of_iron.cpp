@@ -403,7 +403,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                     }
                     else
                         m_uiWhirl_Timer -= uiDiff;
-                    
+
                     // level 3 spells
                     if (m_bHasSupercharge2)
                     {
@@ -421,7 +421,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                         }
                         else
                             m_uiTendrilsTimer -= uiDiff;
-                        
+
                         DoCastSpellIfCan(m_creature, SPELL_STORMSHIELD, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
                     }
                 }

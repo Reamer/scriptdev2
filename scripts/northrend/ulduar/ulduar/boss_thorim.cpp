@@ -599,7 +599,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     uint32 m_uiChargeOrbTimer;
     uint32 m_uiSummonWavesTimer;
     uint32 m_uiJumpTimer;
-    uint64 m_uiStormTargetGUID;
+    ObjectGuid m_uiStormTargetGUID;
 
     uint32 m_uiChainLightningTimer;
     uint32 m_uiLightningChargeTimer;
@@ -890,7 +890,6 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                             {
                                 DoCast(m_creature, SPELL_TOUTCH_OF_DOMINION, true);
                             }
-                            
                         }
                     }
                 }

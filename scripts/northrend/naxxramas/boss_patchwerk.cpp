@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -191,9 +191,10 @@ CreatureAI* GetAI_boss_patchwerk(Creature* pCreature)
 
 void AddSC_boss_patchwerk()
 {
-    Script* NewScript;
-    NewScript = new Script;
-    NewScript->Name = "boss_patchwerk";
-    NewScript->GetAI = &GetAI_boss_patchwerk;
-    NewScript->RegisterSelf();
+    Script* pNewScript;
+
+    pNewScript = new Script;
+    pNewScript->Name = "boss_patchwerk";
+    pNewScript->GetAI = &GetAI_boss_patchwerk;
+    pNewScript->RegisterSelf();
 }

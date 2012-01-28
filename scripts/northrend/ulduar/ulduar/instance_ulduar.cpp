@@ -493,7 +493,7 @@ void instance_ulduar::SetData(uint32 uiType, uint32 uiData)
         DoUseDoorOrButton(GO_MIMIRON_DOOR_2);
         DoUseDoorOrButton(GO_MIMIRON_DOOR_3);
         if (uiData == DONE)
-        {         
+        {
             if (m_auiHardBoss[3] != DONE)
             {
                 if (instance->IsRegularDifficulty())
