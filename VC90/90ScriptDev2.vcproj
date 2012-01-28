@@ -44,6 +44,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm120"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\dep\include\;..\..\..\shared\;..\..\..\framework\;..\..\..\game\;..\include\;..\base\;..\..\..\..\dep\ACE_wrappers\"
 				PreprocessorDefinitions="WIN32;_DEBUG;MANGOS_DEBUG;_WINDOWS;_USRDLL;SCRIPT"
@@ -415,11 +416,11 @@
 					RelativePath="..\scripts\battlegrounds\battleground.cpp"
 					>
 				</File>
-                                <File
+                <File
 					RelativePath="..\scripts\battlegrounds\battlegroundSA.cpp"
 					>
 				</File>
-                                <File
+                <File
 					RelativePath="..\scripts\battlegrounds\battlegroundIC.cpp"
 					>
 				</File>
@@ -427,6 +428,10 @@
 			<Filter
 				Name="custom"
 				>
+				<File
+					RelativePath="..\scripts\custom\custom_cybernetic.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\scripts\custom\npc_arena_honor.cpp"
 					>
@@ -2206,10 +2211,6 @@
 						Name="ulduar"
 						>
 						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\assembly_of_iron.cpp"
-							>
-						</File>
-						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_algalon.cpp"
 							>
 						</File>
@@ -2218,15 +2219,7 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_flame_leviathan.cpp"
-							>
-						</File>
-						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_freya.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_general_vezax.cpp"
 							>
 						</File>
 						<File
@@ -2238,7 +2231,15 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_iron_council.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_kologarn.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_leviathan.cpp"
 							>
 						</File>
 						<File
@@ -2251,6 +2252,10 @@
 						</File>
 						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_thorim.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_vezax.cpp"
 							>
 						</File>
 						<File
@@ -2271,10 +2276,6 @@
 						</File>
 						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\ulduar.h"
-							>
-						</File>
-						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\ulduar_teleport.cpp"
 							>
 						</File>
 					</Filter>
