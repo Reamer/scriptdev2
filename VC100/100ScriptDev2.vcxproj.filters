@@ -1857,6 +1857,9 @@
     <ClCompile Include="..\ScriptMgr.cpp" />
     <ClCompile Include="..\scripts\eastern_kingdoms\deadmines\boss_mr_smite.cpp" />
     <ClCompile Include="..\scripts\world\pet_scripts.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\razorfen_downs\boss_tuten_kash.cpp">
+      <Filter>scripts\kalimdor\razorfen_downs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\base\BSW_ai.h">

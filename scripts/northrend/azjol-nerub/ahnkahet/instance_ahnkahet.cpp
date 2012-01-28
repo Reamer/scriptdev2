@@ -202,7 +202,7 @@ bool instance_ahnkahet::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player
     {
         case ACHIEV_CRITERIA_VOLUNTEER_WORK:
             return m_bCriteriaVolunteerWork;
-        case ACHIEV_CRITERIA_RESPECT_YOUR_ELDERS:
+        case ACHIEV_CRIT_RESPECT_ELDERS:
             return m_bCriteriaRespectYourElders;
         default:
             return 0;

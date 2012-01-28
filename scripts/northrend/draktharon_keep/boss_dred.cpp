@@ -28,7 +28,7 @@ enum
 {
     SAY_KING_DRED_TALON        = -1600020,
     SAY_CALL_FOR_RAPTOR        = -1600021,
-
+    
     SPELL_BELLOWING_ROAR       = 22686,
     SPELL_FEARSOME_ROAR        = 48849,
     SPELL_FEARSOME_ROAR_H      = 59422,
@@ -146,7 +146,7 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
             m_uiCallForRaptor -= uiDiff;
 
         //Call For Raptor - spawn
-        if (m_uiCallForRaptorSpawn < uiDiff && m_uiCallForRaptorSpawn)
+        if (m_uiCallForRaptorSpawn < uiDiff && m_bCallForRaptorSpawn)
         {    
             switch(urand(0, 1))
             {
@@ -161,7 +161,7 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
                         pRaptor2->SetInCombatWithZone();
                 }
             }
-            m_uiCallForRaptorSpawn = false;
+            m_bCallForRaptorSpawn = false;
         }
         else
             m_uiCallForRaptorSpawn -= uiDiff;

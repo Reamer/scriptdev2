@@ -1,4 +1,5 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2011 - 2012 MangosR2 <http://github.com/mangosR2/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -11,7 +12,8 @@
  * Herald Volazj       = 4
  * Amanitar            = 5
 */
-enum
+
+enum AhnkahetInstance
 {
     MAX_ENCOUNTER           = 5,
 
@@ -26,14 +28,24 @@ enum
     GO_ANCIENT_DEVICE_R     = 193094,
     GO_VORTEX               = 193564,
 
-    NPC_ELDER_NADOX         = 29309,
+    NPC_AHNKAHAR_GUARDIAN         = 30176,
+    NPC_AHNKAHAR_SWARMER          = 30178,
+
     NPC_TALDARAM            = 29308,
     NPC_JEDOGA_SHADOWSEEKER = 29310,
     NPC_TWILIGHT_INITIATE   = 30114,
 
 
+
+    NPC_ELDER_NADOX             = 29309,
+    NPC_AHNKAHAR_GUARDIAN_EGG   = 30173,
+    NPC_AHNKAHAR_SWARM_EGG      = 30172,
+    //NPC_JEDOGA_SHADOWSEEKER   = 29310,
+
+    ACHIEV_START_VOLAZJ_ID      = 20382,
+
     ACHIEV_CRITERIA_VOLUNTEER_WORK      = 7359,
-    ACHIEV_CRITERIA_RESPECT_YOUR_ELDERS = 7317
+    ACHIEV_CRIT_RESPECT_ELDERS  = 7317,             // Nadox, achiev 2038
 };
 
 class MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
@@ -49,6 +61,7 @@ class MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
 
         void SetData(uint32 uiType, uint32 uiData);
         void SetAchiev(uint32 uiType, bool get);
+
         uint32 GetData(uint32 uiType);
 
         bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
@@ -63,10 +76,10 @@ class MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string strInstData;
 
-        bool   m_bCriteriaVolunteerWork;
-        bool   m_bCriteriaRespectYourElders;
+        bool m_bCriteriaVolunteerWork;
+        bool m_bCriteriaRespectYourElders;
 
-        uint8  m_uiDevicesActivated;
+        uint8 m_uiDevicesActivated;
 };
 
 #endif
