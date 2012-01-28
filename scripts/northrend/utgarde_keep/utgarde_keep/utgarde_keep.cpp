@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -149,10 +149,10 @@ CreatureAI* GetAI_mob_dragonflayer_forge_master(Creature* pCreature)
 
 void AddSC_utgarde_keep()
 {
-    Script* pNewscript;
+    Script* pNewScript;
 
-    pNewscript = new Script;
-    pNewscript->Name = "mob_dragonflayer_forge_master";
-    pNewscript->GetAI = &GetAI_mob_dragonflayer_forge_master;
-    pNewscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_dragonflayer_forge_master";
+    pNewScript->GetAI = &GetAI_mob_dragonflayer_forge_master;
+    pNewScript->RegisterSelf();
 }

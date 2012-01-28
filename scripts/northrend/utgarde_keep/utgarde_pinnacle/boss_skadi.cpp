@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -30,6 +30,7 @@ trigger mob should use summon spells
 #include "precompiled.h"
 #include "utgarde_pinnacle.h"
 #include "Vehicle.h"
+#include "MotionMaster.h"
 
 enum
 {
@@ -183,7 +184,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                 break;
             case SKADI:
             {
-                
+
                 if (m_uiCrush < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CRUSH : SPELL_CRUSH_H) == CAST_OK)
@@ -231,7 +232,7 @@ struct boss_skadi_graufAI : public ScriptedAI
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         SetCombatMovement(false);
     }
-      
+
     instance_pinnacle* m_pInstance;
     VehicleKit* vehicle;
     bool m_bIsRegularMode;
@@ -243,7 +244,7 @@ struct boss_skadi_graufAI : public ScriptedAI
     uint8 m_uiHarpoonHitCounter;
     uint8 m_uiHarpoonHitCounterAchiev;
     uint32 m_uiSummon;
-      
+
     void Reset()
     {
         isInFlight = false;
@@ -276,7 +277,7 @@ struct boss_skadi_graufAI : public ScriptedAI
             case 2: // rotating position
                 ++uiWaypointId;
                 uiMovementTimer = 1000;
-                break;             
+                break;
             case 3: // shoot position
             {
                 ++uiWaypointId;
@@ -315,7 +316,11 @@ struct boss_skadi_graufAI : public ScriptedAI
             default:
                 uiWaypointId = 0;
                 uiMovementTimer = 1000;
+                break;
         }
+
+        if ( uiWaypointId > 6 )
+            error_log("SD2: Instance Pinnacle: Skadi Grauf try move to point %u!", uiWaypointId);
     }
 
     void JustDied(Unit* pTarget)
@@ -354,7 +359,7 @@ struct boss_skadi_graufAI : public ScriptedAI
             m_creature->DealDamage(m_creature, m_creature->GetHealth(),  NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
         }
     }
-      
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
