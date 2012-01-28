@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -72,6 +72,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
     bool m_bIsRegularMode;
 
+    bool m_bIsDesperseCasting;
     bool m_bIsSplitPhase;
     uint32 m_uiSplitTimer;
     uint32 m_uiSparkAtHomeCount;
@@ -83,9 +84,8 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
     void Reset()
     {
-        m_lSparkGUIDList.clear();
-
         m_bIsSplitPhase = true;
+        m_bIsDesperseCasting = false;
         m_uiSplitTimer = 25000;
         m_uiSparkAtHomeCount = 0;
 
@@ -120,7 +120,9 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_IONAR, NOT_STARTED);
+            m_pInstance->SetData(TYPE_IONAR, FAIL);
+
+        DespawnSpark();
     }
 
     void AttackStart(Unit* pWho)
@@ -178,10 +180,9 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
             {
                 if (pSpark->isAlive())
                 {
-                    if (pSpark->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
-                        pSpark->GetMotionMaster()->MovementExpired();
-
-                    pSpark->SetSpeedRate(MOVE_RUN,2);
+                    // Required to prevent combat movement, elsewise they might switch movement on aggro-change
+                    if (ScriptedAI* pSparkAI = dynamic_cast<ScriptedAI*>(pSpark->AI()))
+                        pSparkAI->SetCombatMovement(false);
 
                     pSpark->GetMotionMaster()->MovePoint(POINT_CALLBACK, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
                 }
@@ -226,15 +227,15 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
                     m_bIsSplitPhase = false;
                 }
                 // Lightning effect and restore Ionar
-                else 
+                else if (m_uiSparkAtHomeCount == MAX_SPARKS)
                 {
                     m_creature->SetVisibility(VISIBILITY_ON);
                     DoCastSpellIfCan(m_creature, SPELL_SPARK_DESPAWN);
-                    DespawnSpark();
 
                     m_uiSparkAtHomeCount = 0;
                     m_uiSplitTimer = 25000;
                     m_bIsSplitPhase = true;
+                    m_bIsDesperseCasting = false;
 
                     if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() != CHASE_MOTION_TYPE)
                     {
@@ -276,12 +277,11 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
         {
             ++m_uiHealthAmountModifier;
 
-            DoScriptText(urand(0, 1) ? SAY_SPLIT_1 : SAY_SPLIT_2, m_creature);
-
-            if (m_creature->IsNonMeleeSpellCasted(false))
-                m_creature->InterruptNonMeleeSpells(false);
-
-            DoCastSpellIfCan(m_creature, SPELL_DISPERSE);
+            if (!m_bIsDesperseCasting && DoCastSpellIfCan(m_creature, SPELL_DISPERSE, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+            {
+                DoScriptText(urand(0, 1) ? SAY_SPLIT_1 : SAY_SPLIT_2, m_creature);
+                m_bIsDesperseCasting = true;
+            }
         }
 
         DoMeleeAttackIfReady();
@@ -311,6 +311,16 @@ bool EffectDummyCreature_boss_ionar(Unit* pCaster, uint32 uiSpellId, SpellEffect
             pCreatureTarget->GetMotionMaster()->MovementExpired();
 
         //always return true when we are handling this spell and effect
+        return true;
+    }
+    else if (uiSpellId == SPELL_SPARK_DESPAWN && uiEffIndex == EFFECT_INDEX_0)
+    {
+        if (pCreatureTarget->GetEntry() != NPC_IONAR)
+            return true;
+
+        if (boss_ionarAI* pIonarAI = dynamic_cast<boss_ionarAI*> (pCreatureTarget->AI()))
+            pIonarAI->DespawnSpark();
+
         return true;
     }
     return false;
