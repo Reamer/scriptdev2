@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -170,7 +170,6 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
     void Reset()
     {
-        m_lBombsGUIDList.clear();
         m_lEggsRemainingList.clear();
 
         if (Creature* pHatcher = m_creature->GetMap()->GetCreature(m_hatcherOneGuid))
@@ -206,6 +205,13 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
     void JustReachedHome()
     {
+        for (GUIDList::const_iterator itr = m_lBombsGUIDList.begin(); itr != m_lBombsGUIDList.end(); ++itr)
+        {
+            if (Creature* pBomb = m_creature->GetMap()->GetCreature(*itr))
+                pBomb->ForcedDespawn();
+        }
+        m_lBombsGUIDList.clear();
+
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JANALAI, FAIL);
     }
@@ -327,10 +333,7 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
     void BlowUpBombs()
     {
-        if (m_lBombsGUIDList.empty())
-            return;
-
-        for(GUIDList::const_iterator itr = m_lBombsGUIDList.begin(); itr != m_lBombsGUIDList.end(); ++itr)
+        for (GUIDList::const_iterator itr = m_lBombsGUIDList.begin(); itr != m_lBombsGUIDList.end(); ++itr)
         {
             if (Creature* pBomb = m_creature->GetMap()->GetCreature(*itr))
             {
@@ -729,13 +732,13 @@ struct MANGOS_DLL_DECL npc_hatchlingAI : public ScriptedAI
         if (!m_bIsStarted)
         {
             if (m_creature->GetPositionY() > 1150)
-                m_creature->GetMotionMaster()->MovePoint(0, hatcherway_l[3][0]+rand()%4-2,hatcherway_l[3][1]+rand()%4-2,hatcherway_l[3][2]);
+                m_creature->GetMotionMaster()->MovePoint(0, hatcherway_l[3][0] + rand()%4-2, hatcherway_l[3][1] + rand()%4-2, hatcherway_l[3][2]);
             else
-                m_creature->GetMotionMaster()->MovePoint(0,hatcherway_r[3][0]+rand()%4-2,hatcherway_r[3][1]+rand()%4-2,hatcherway_r[3][2]);
+                m_creature->GetMotionMaster()->MovePoint(0, hatcherway_r[3][0] + rand()%4-2, hatcherway_r[3][1] + rand()%4-2, hatcherway_r[3][2]);
             m_bIsStarted = true;
         }
 
-        if (m_pInstance && m_pInstance->GetData(TYPE_JANALAI) == NOT_STARTED)
+        if (m_pInstance && m_pInstance->GetData(TYPE_JANALAI) == FAIL)
         {
             m_creature->ForcedDespawn();
             return;
@@ -746,8 +749,8 @@ struct MANGOS_DLL_DECL npc_hatchlingAI : public ScriptedAI
 
         if (m_uiBufferTimer < uiDiff)
         {
-            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
-                DoCastSpellIfCan(target,SPELL_FLAMEBUFFED);
+            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                DoCastSpellIfCan(target, SPELL_FLAMEBUFFED);
 
             m_uiBufferTimer = 7000;
         }

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -279,27 +279,13 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
         {
             if (m_uiChargeTimer < uiDiff)
             {
-                Unit *target = NULL;
-                std::vector<Unit *> target_list;
-
-                ThreatList const& tList = m_creature->getThreatManager().getThreatList();
-                for (ThreatList::const_iterator itr = tList.begin();itr != tList.end(); ++itr)
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_BERSERKER_CHARGE, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_IN_LOS))
                 {
-                    target = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
-
-                    if (target && !m_creature->CanReachWithMeleeAttack(target))
-                        target_list.push_back(target);
-
-                    target = NULL;
+                    if (DoCastSpellIfCan(pTarget, SPELL_BERSERKER_CHARGE) == CAST_OK)
+                        m_uiChargeTimer = 20000;
                 }
-
-                if (target_list.size())
-                {
-                    if (target = *(target_list.begin()+rand()%target_list.size()))
-                        DoCastSpellIfCan(target, SPELL_BERSERKER_CHARGE);
-                }
-
-                m_uiChargeTimer = 20000;
+                else
+                    m_uiChargeTimer = 2000;
             }
             else
                 m_uiChargeTimer -= uiDiff;

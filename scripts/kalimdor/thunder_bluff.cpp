@@ -1,4 +1,5 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2011 - 2012 MangosR2 <http://github.com/mangosR2/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -42,21 +43,21 @@ struct MANGOS_DLL_DECL npc_cairne_bloodhoofAI : public ScriptedAI
 {
     npc_cairne_bloodhoofAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
 
-    uint32 BerserkerCharge_Timer;
-    uint32 Cleave_Timer;
-    uint32 MortalStrike_Timer;
-    uint32 Thunderclap_Timer;
-    uint32 Uppercut_Timer;
+    uint32 m_uiBerserkerCharge_Timer;
+    uint32 m_uiCleave_Timer;
+    uint32 m_uiMortalStrike_Timer;
+    uint32 m_uiThunderclap_Timer;
+    uint32 m_uiUppercut_Timer;
     uint32 m_uiWarStompTimer;
 
     void Reset()
     {
-        BerserkerCharge_Timer = 30000;
-        Cleave_Timer = 5000;
-        MortalStrike_Timer = 10000;
-        Thunderclap_Timer = 15000;
-        Uppercut_Timer = 10000;
-        m_uiWarStompTimer = 25000;
+        m_uiBerserkerCharge_Timer = 30000;
+        m_uiCleave_Timer = 5000;
+        m_uiMortalStrike_Timer = 10000;
+        m_uiThunderclap_Timer = 15000;
+        m_uiUppercut_Timer = 10000;
+        m_uiWarStompTimer  = 20000;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -64,48 +65,48 @@ struct MANGOS_DLL_DECL npc_cairne_bloodhoofAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (BerserkerCharge_Timer < uiDiff)
+        if (m_uiBerserkerCharge_Timer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
             {
                 if (DoCastSpellIfCan(pTarget,SPELL_BERSERKER_CHARGE) == CAST_OK)
-                    BerserkerCharge_Timer = 25000;
+                    m_uiBerserkerCharge_Timer = 25000;
             }
         }
         else
-            BerserkerCharge_Timer -= uiDiff;
+            m_uiBerserkerCharge_Timer -= uiDiff;
 
-        if (Uppercut_Timer < uiDiff)
+        if (m_uiUppercut_Timer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(),SPELL_UPPERCUT) == CAST_OK)
-                Uppercut_Timer = 20000;
+                m_uiUppercut_Timer = 20000;
         }
         else
-            Uppercut_Timer -= uiDiff;
+            m_uiUppercut_Timer -= uiDiff;
 
-        if (Thunderclap_Timer < uiDiff)
+        if (m_uiThunderclap_Timer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(),SPELL_THUNDERCLAP) == CAST_OK)
-                Thunderclap_Timer = 15000;
+                m_uiThunderclap_Timer = 15000;
         }
         else
-            Thunderclap_Timer -= uiDiff;
+            m_uiThunderclap_Timer -= uiDiff;
 
-        if (MortalStrike_Timer < uiDiff)
+        if (m_uiMortalStrike_Timer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(),SPELL_MORTAL_STRIKE) == CAST_OK)
-                MortalStrike_Timer = 15000;
+                m_uiMortalStrike_Timer = 15000;
         }
         else
-            MortalStrike_Timer -= uiDiff;
+            m_uiMortalStrike_Timer -= uiDiff;
 
-        if (Cleave_Timer < uiDiff)
+        if (m_uiCleave_Timer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(),SPELL_CLEAVE) == CAST_OK)
-                Cleave_Timer = 7000;
+                m_uiCleave_Timer = 7000;
         }
         else
-            Cleave_Timer -= uiDiff;
+            m_uiCleave_Timer -= uiDiff;
 
         if (m_uiWarStompTimer < uiDiff)
         {
@@ -118,6 +119,7 @@ struct MANGOS_DLL_DECL npc_cairne_bloodhoofAI : public ScriptedAI
         DoMeleeAttackIfReady();
     }
 };
+
 CreatureAI* GetAI_npc_cairne_bloodhoof(Creature* pCreature)
 {
     return new npc_cairne_bloodhoofAI(pCreature);
