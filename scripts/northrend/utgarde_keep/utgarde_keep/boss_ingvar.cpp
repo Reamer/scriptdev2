@@ -349,7 +349,6 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
     
     uint32 SpeakTimer;
     uint32 ChannelTimer;
-    Creature* m_pIngvar;
 
     void Reset()
     {
@@ -359,8 +358,6 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->GetMotionMaster()->Clear();
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-
-        m_pIngvar = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_INGVAR));
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -375,9 +372,12 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
         
         if (ChannelTimer < uiDiff)
         {
-            m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_BUBBLE, true, 0, 0, ObjectGuid());
-            m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_CHANNEL, true, 0, 0, ObjectGuid());
-            ChannelTimer = 9999999;
+            if (Creature* m_pIngvar = m_pInstance->GetSingleCreatureFromStorage(NPC_INGVAR))
+            {
+                m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_BUBBLE, true, 0, 0, ObjectGuid());
+                m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_CHANNEL, true, 0, 0, ObjectGuid());
+                ChannelTimer = 9999999;
+            }
         }
         else
             ChannelTimer -= uiDiff;

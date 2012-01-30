@@ -547,7 +547,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                 Map::PlayerList const &players = pMap->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr) 
                 { 
-                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetGUID())) 
+                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetObjectGuid())) 
                     { 
                         if (pTarget->HasAura(SPELL_INSANITY_PHASE_16))
                         {
@@ -573,7 +573,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                 Map::PlayerList const &players = pMap->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr) 
                 { 
-                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetGUID())) 
+                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetObjectGuid())) 
                     { 
                         if (pTarget->HasAura(SPELL_INSANITY_PHASE_32))
                         {
@@ -599,7 +599,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                 Map::PlayerList const &players = pMap->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr) 
                 { 
-                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetGUID())) 
+                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetObjectGuid())) 
                     { 
                         if (pTarget->HasAura(SPELL_INSANITY_PHASE_64))
                         {
@@ -625,7 +625,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                 Map::PlayerList const &players = pMap->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr) 
                 { 
-                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetGUID())) 
+                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetObjectGuid())) 
                     { 
                         if (pTarget->HasAura(SPELL_INSANITY_PHASE_128))
                         {
@@ -651,7 +651,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                 Map::PlayerList const &players = pMap->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr) 
                 { 
-                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetGUID())) 
+                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetObjectGuid())) 
                     { 
                         if (pTarget->HasAura(SPELL_INSANITY_PHASE_256))
                         {
@@ -681,7 +681,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                 Map* pMap = m_creature->GetMap();
                 Map::PlayerList const &players = pMap->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr) 
-                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetGUID())) 
+                    if (Unit *pTarget = m_creature->GetMap()->GetUnit(itr->getSource()->GetObjectGuid())) 
                         DoScriptText(WHISPER_INSANITY,m_creature,pTarget);
 
                 m_creature->InterruptNonMeleeSpells(true);

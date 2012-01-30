@@ -88,9 +88,9 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
     uint32 m_uiImpalingChargeTimer;
     uint32 m_uiPunctureTimer;
 
-    uint64 m_uiRhinoGUID;
+    ObjectGuid m_uiRhinoGUID;
 
-    std::list<uint64> impalePlayerGuidList;
+    GUIDList impalePlayerGuidList;
 
     void Reset()
     {
@@ -105,7 +105,7 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
         m_uiImpalingChargeTimer = 7000;
         m_uiPunctureTimer       = 10000;
 
-        m_uiRhinoGUID = 0;
+        m_uiRhinoGUID.Clear();
 
         m_creature->SetDisplayId(MODELID_HUMAN);
 
@@ -127,7 +127,7 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
         Map::PlayerList const &players = pMap->GetPlayers();
         for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
         {
-            impalePlayerGuidList.push_back( itr->getSource()->GetGUID());
+            impalePlayerGuidList.push_back( itr->getSource()->GetObjectGuid());
         }
         for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
         {
@@ -178,7 +178,7 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
             Creature* cRhino = m_creature->SummonCreature(NPC_RHINO_SPIRIT, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 1800);
             if (cRhino)
             {
-                m_uiRhinoGUID = cRhino->GetGUID();
+                m_uiRhinoGUID = cRhino->GetObjectGuid();
                 cRhino->CastSpell(pTarget, SPELL_CHARGE, true);
                 cRhino->SetInCombatWith(pTarget);
                 cRhino->AddThreat(pTarget, 1000.0f);
@@ -249,7 +249,7 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
                 {
                     DoCastSpellIfCan(pVictim, m_bIsRegularMode ? SPELL_IMPALING_CHARGE : SPELL_IMPALING_CHARGE_H);
                     DoCastSpellIfCan(pVictim, SPELL_KNOCK_BACK);
-                    impalePlayerGuidList.remove(pVictim->GetGUID());
+                    impalePlayerGuidList.remove(pVictim->GetObjectGuid());
                     if (impalePlayerGuidList.empty())
                         if (m_pInstance)
                             m_pInstance->SetAchiev(TYPE_GALDARAH, true);

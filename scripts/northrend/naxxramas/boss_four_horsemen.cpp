@@ -156,15 +156,18 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        if (Creature* Zeliek = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ZELIEK)))
-            if (!Zeliek->isAlive())
-                Zeliek->Respawn();
-        if (Creature* Rivedare = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE)))
-            if (!Rivedare->isAlive())
-                Rivedare->Respawn();
-        if (Creature* Thane = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_THANE)))
-            if (!Thane->isAlive())
-                Thane->Respawn();
+        if (m_pInstance)
+        {
+            if (Creature* Zeliek = m_pInstance->GetSingleCreatureFromStorage(NPC_ZELIEK))
+                if (!Zeliek->isAlive())
+                    Zeliek->Respawn();
+            if (Creature* Rivedare = m_pInstance->GetSingleCreatureFromStorage(NPC_RIVENDARE))
+                if (!Rivedare->isAlive())
+                    Rivedare->Respawn();
+            if (Creature* Thane = m_pInstance->GetSingleCreatureFromStorage(NPC_THANE))
+                if (!Thane->isAlive())
+                    Thane->Respawn();
+        }
     }
 
     void Aggro(Unit *who)
@@ -345,15 +348,18 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        if (Creature* Blaumeux = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX)))
-            if (!Blaumeux->isAlive())
-                Blaumeux->Respawn();
-        if (Creature* Zeliek = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ZELIEK)))
-            if (!Zeliek->isAlive())
-                Zeliek->Respawn();
-        if (Creature* Thane = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_THANE)))
-            if (!Thane->isAlive())
-                Thane->Respawn();
+        if (m_pInstance)
+        {
+            if (Creature* Blaumeux = m_pInstance->GetSingleCreatureFromStorage(NPC_BLAUMEUX))
+                if (!Blaumeux->isAlive())
+                    Blaumeux->Respawn();
+            if (Creature* Zeliek = m_pInstance->GetSingleCreatureFromStorage(NPC_ZELIEK))
+                if (!Zeliek->isAlive())
+                    Zeliek->Respawn();
+            if (Creature* Thane = m_pInstance->GetSingleCreatureFromStorage(NPC_THANE))
+                if (!Thane->isAlive())
+                    Thane->Respawn();
+        }
     }
 
     void Aggro(Unit *who)
@@ -486,15 +492,18 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
     }
     void JustReachedHome()
     {
-        if (Creature* Blaumeux = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX)))
-            if (!Blaumeux->isAlive())
-                Blaumeux->Respawn();
-        if (Creature* Zeliek = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ZELIEK)))
-            if (!Zeliek->isAlive())
-                Zeliek->Respawn();
-        if (Creature* Rivedare = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE)))
-            if (!Rivedare->isAlive())
-                Rivedare->Respawn();
+        if (m_pInstance)
+        {
+            if (Creature* Blaumeux = m_pInstance->GetSingleCreatureFromStorage(NPC_BLAUMEUX))
+                if (!Blaumeux->isAlive())
+                    Blaumeux->Respawn();
+            if (Creature* Zeliek = m_pInstance->GetSingleCreatureFromStorage(NPC_ZELIEK))
+                if (!Zeliek->isAlive())
+                    Zeliek->Respawn();
+            if (Creature* Rivedare = m_pInstance->GetSingleCreatureFromStorage(NPC_RIVENDARE))
+                if (!Rivedare->isAlive())
+                    Rivedare->Respawn();
+        }
     }
 
     void KilledUnit(Unit* Victim)
@@ -622,15 +631,18 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
     }
     void JustReachedHome()
     {
-        if (Creature* Blaumeux = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX)))
-            if (!Blaumeux->isAlive())
-                Blaumeux->Respawn();
-        if (Creature* Rivedare = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE)))
-            if (!Rivedare->isAlive())
-                Rivedare->Respawn();
-        if (Creature* Thane = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_THANE)))
-            if (!Thane->isAlive())
-                Thane->Respawn();
+        if (m_pInstance)
+        {
+            if (Creature* Blaumeux = m_pInstance->GetSingleCreatureFromStorage(NPC_BLAUMEUX))
+                if (!Blaumeux->isAlive())
+                    Blaumeux->Respawn();
+            if (Creature* Rivedare = m_pInstance->GetSingleCreatureFromStorage(NPC_RIVENDARE))
+                if (!Rivedare->isAlive())
+                    Rivedare->Respawn();
+            if (Creature* Thane = m_pInstance->GetSingleCreatureFromStorage(NPC_THANE))
+                if (!Thane->isAlive())
+                    Thane->Respawn();
+        }
     }
 
     void Aggro(Unit *who)

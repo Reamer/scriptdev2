@@ -157,10 +157,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
                     if((*itr))
                         //Required GO Custom Animation Patch for this
                     {
-                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
-                        data << (*itr)->GetGUID();
-                        data << 0;
-                        (*itr)->SendMessageToSet(&data,true);
+                        (*itr)->SendGameObjectCustomAnim((*itr)->GetObjectGuid(), 0);
                     }
                 }
             }
@@ -187,10 +184,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
                 {
                     if((*itr))
                     {
-                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
-                        data << (*itr)->GetGUID();
-                        data << 0;
-                        (*itr)->SendMessageToSet(&data,true);
+                        (*itr)->SendGameObjectCustomAnim((*itr)->GetObjectGuid(), 0);
                     }
                 }
             }
@@ -213,10 +207,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
                 {
                     if((*itr))
                     {
-                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
-                        data << (*itr)->GetGUID();
-                        data << 0;
-                        (*itr)->SendMessageToSet(&data,true);
+                        (*itr)->SendGameObjectCustomAnim((*itr)->GetObjectGuid(), 0);
                     }
                 }
             }
@@ -239,10 +230,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
                 {
                     if((*itr))
                     {
-                        WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
-                        data << (*itr)->GetGUID();
-                        data << 0;
-                        (*itr)->SendMessageToSet(&data,true);
+                        (*itr)->SendGameObjectCustomAnim((*itr)->GetObjectGuid(), 0);
                     }
                 }
             }

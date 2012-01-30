@@ -292,10 +292,10 @@ struct MANGOS_DLL_DECL boss_varosAI : public ScriptedAI
                                             float pAngle = m_creature->GetAngle(i->getSource());
                                             if(angle01 < angle02)
                                                 if(pAngle < angle02 && pAngle > angle01)
-                                                    m_pTargets.push_back(i->getSource()->GetGUID());
+                                                    m_pTargets.push_back(i->getSource()->GetObjectGuid());
                                             if(angle01 > angle02)
                                                 if(pAngle < angle02 || pAngle > angle01)
-                                                    m_pTargets.push_back(i->getSource()->GetGUID());
+                                                    m_pTargets.push_back(i->getSource()->GetObjectGuid());
                                         }
                                     }
                                 }
