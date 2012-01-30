@@ -51,33 +51,37 @@ struct MANGOS_DLL_DECL boss_krystallusAI : public ScriptedAI
 {
     boss_krystallusAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_halls_of_stone*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_halls_of_stone* m_pInstance;
 
     bool m_bIsRegularMode;
-    bool m_bIsSlam;
 
-    uint32 m_uiToss_Timer;
-    uint32 m_uiSpike_Timer;
-    uint32 m_uiSlam_Timer;
+    uint32 m_uiTossTimer;
+    uint32 m_uiSpikeTimer;
+    uint32 m_uiSlamTimer;
     uint32 m_uiShatter_Timer;
-    uint32 m_uiStomp_Timer;
+    uint32 m_uiStompTimer;
 
     void Reset()
     {
-        m_bIsSlam = false;
-        m_uiToss_Timer = 3000 + rand()%6000;
-        m_uiSpike_Timer = 9000 + rand()%5000;
-        m_uiSlam_Timer = 15000 + rand()%3000;
-        m_uiStomp_Timer = 20000 + rand()%9000;
+        m_uiTossTimer = 3000 + rand()%6000;
+        m_uiSpikeTimer = 9000 + rand()%5000;
+        m_uiSlamTimer = 15000 + rand()%3000;
+        m_uiStompTimer = 20000 + rand()%9000;
         m_uiShatter_Timer = 0;
 
         if(m_pInstance)
             m_pInstance->SetData(TYPE_KRYSTALLUS, NOT_STARTED);
+    }
+
+    void JustReachedHome()
+    {
+        if(m_pInstance)
+            m_pInstance->SetData(TYPE_KRYSTALLUS, FAIL);
     }
 
     void EnterCombat(Unit* pWho)
@@ -103,53 +107,58 @@ struct MANGOS_DLL_DECL boss_krystallusAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        //Return since we have no target
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_uiToss_Timer < uiDiff)
+        if (m_uiTossTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCast(pTarget, m_bIsRegularMode ? SPELL_BOULDER_TOSS_H : SPELL_BOULDER_TOSS);
-            m_uiToss_Timer = 9000 + rand()%6000;
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, m_bIsRegularMode ? SPELL_BOULDER_TOSS_H : SPELL_BOULDER_TOSS, SELECT_FLAG_PLAYER))
+            {
+                if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_BOULDER_TOSS : SPELL_BOULDER_TOSS_H) == CAST_OK)
+                    m_uiTossTimer = 9000 + rand()%6000;
+            }
         }
         else
-            m_uiToss_Timer -= uiDiff;
+            m_uiTossTimer -= uiDiff;
 
-        if (m_uiSpike_Timer < uiDiff)
+        if (m_uiSpikeTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCast(pTarget, SPELL_GROUND_SPIKE);
-            m_uiSpike_Timer = 12000 + rand()%5000;
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_GROUND_SPIKE, SELECT_FLAG_PLAYER))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_GROUND_SPIKE) == CAST_OK)
+                    m_uiSpikeTimer = 12000 + rand()%5000;
+            }
         }
         else
-            m_uiSpike_Timer -= uiDiff;
+            m_uiSpikeTimer -= uiDiff;
 
-        if (m_uiStomp_Timer < uiDiff)
+        if (m_uiStompTimer < uiDiff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_STOMP_H : SPELL_STOMP);
-            m_uiStomp_Timer = 20000 + rand()%9000;
+            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STOMP : SPELL_STOMP_H) == CAST_OK)
+                m_uiStompTimer = 20000 + rand()%9000;
         }
         else
-            m_uiStomp_Timer -= uiDiff;
+            m_uiStompTimer -= uiDiff;
 
-        if (m_uiSlam_Timer < uiDiff)
+        if (m_uiSlamTimer < uiDiff)
         {
-            DoCast(m_creature, SPELL_GROUND_SLAM);
-            m_bIsSlam = true;
-            m_uiShatter_Timer = 10000;
-            m_uiSlam_Timer = 15000 + rand()%3000;
+            if (DoCastSpellIfCan(m_creature, SPELL_GROUND_SLAM) == CAST_OK)
+            {
+                m_uiShatter_Timer = 10000;
+                m_uiSlamTimer = 15000 + rand()%3000;
+            }
         }
         else
-            m_uiSlam_Timer -= uiDiff;
+            m_uiSlamTimer -= uiDiff;
 
-        if (m_bIsSlam)
+        if (m_uiShatter_Timer)
         {
             if (m_uiShatter_Timer < uiDiff)
             {
-                DoCast(m_creature, m_bIsRegularMode ? SPELL_SHATTER_H : SPELL_SHATTER);
-                m_bIsSlam = false;
-                m_uiShatter_Timer = 0;
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_SHATTER : SPELL_SHATTER_H) == CAST_OK)
+                {
+                    m_uiShatter_Timer = 0;
+                }
             }
             else
                 m_uiShatter_Timer -= uiDiff;
