@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -45,8 +45,9 @@ enum
 
     MAX_WAVES                   = 19,
 
-    SPELL_TELEPORT_LEFT         = 28025,                    // guesswork
-    SPELL_TELEPORT_RIGHT        = 28026,                    // could be defined as dead or live side, left or right facing north
+    // Right is right side from gothik (eastern)
+    SPELL_TELEPORT_RIGHT        = 28025,
+    SPELL_TELEPORT_LEFT         = 28026,
 
     SPELL_HARVESTSOUL           = 28679,
     SPELL_SHADOWBOLT            = 29317,
@@ -331,8 +332,11 @@ struct MANGOS_DLL_DECL boss_gothikAI : public ScriptedAI
 
                 if (m_uiShadowboltTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ?  SPELL_SHADOWBOLT: SPELL_SHADOWBOLT_H) == CAST_OK)
-                        m_uiShadowboltTimer = 1500;
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, m_bIsRegularMode ?  SPELL_SHADOWBOLT: SPELL_SHADOWBOLT_H, SELECT_FLAG_IN_LOS))
+                    {
+                        if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ?  SPELL_SHADOWBOLT: SPELL_SHADOWBOLT_H) == CAST_OK)
+                            m_uiShadowboltTimer = 1500;
+                    }
                 }
                 else
                     m_uiShadowboltTimer -= uiDiff;
@@ -443,15 +447,15 @@ bool EffectDummyCreature_spell_anchor(Unit* pCaster, uint32 uiSpellId, SpellEffe
 
 void AddSC_boss_gothik()
 {
-    Script* newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_gothik";
-    newscript->GetAI = &GetAI_boss_gothik;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_gothik";
+    pNewScript->GetAI = &GetAI_boss_gothik;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "spell_anchor";
-    newscript->pEffectDummyNPC = &EffectDummyCreature_spell_anchor;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "spell_anchor";
+    pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_anchor;
+    pNewScript->RegisterSelf();
 }
