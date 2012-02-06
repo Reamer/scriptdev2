@@ -362,7 +362,7 @@ void instance_halls_of_stone::ProcessFace(uint8 uiFace)
             // One should be enough..
             //if (Creature* pEye = instance->GetCreature(m_aFaces[uiFace].m_rightEyeGuid))
             //    pEye->CastSpell(pEye, SPELL_SUMMON_DARK_MATTER_TARGET, true);
-            m_aFaces[uiFace].m_uiTimer = 6000;              // TODO, verify, was 3s+0..1s
+            m_aFaces[uiFace].m_uiTimer = 21000;              // TODO, verify, was 3s+0..1s
             break;
         case FACE_ABEDNEUM:
             if (Creature* pEye = instance->GetCreature(m_aFaces[uiFace].m_leftEyeGuid))
@@ -370,7 +370,7 @@ void instance_halls_of_stone::ProcessFace(uint8 uiFace)
             // One should be enough..
             //if (Creature* pEye = instance->GetCreature(m_aFaces[uiFace].m_rightEyeGuid))
             //    pEye->CastSpell(pEye, SPELL_SUMMON_SEARING_GAZE_TARGET, true);
-            m_aFaces[uiFace].m_uiTimer = 6000;              // TODO, verify, was 3s+0..2s
+            m_aFaces[uiFace].m_uiTimer = 21000;              // TODO, verify, was 3s+0..2s
             break;
         default:
             return;
