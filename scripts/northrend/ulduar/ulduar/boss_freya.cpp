@@ -819,6 +819,9 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
                             m_creature->CastSpell(m_creature, SPELL_ATTUNED_10_STACKS, true);
                             m_creature->CastSpell(m_creature, SPELL_ATTUNED_10_STACKS, true);
                             m_creature->CastSpell(m_creature, SPELL_ATTUNED_10_STACKS, true);
+                            pWaterSpirit->ForcedDespawn();
+                            pStormLasher->ForcedDespawn();
+                            pSnapLasher->ForcedDespawn();
                         }
                         else if (!m_bThreeWaveCheckTimerStarted)
                         {
