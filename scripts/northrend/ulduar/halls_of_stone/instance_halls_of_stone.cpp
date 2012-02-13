@@ -226,7 +226,10 @@ void instance_halls_of_stone::SortFaces()
         if (!lPossibleEyes.empty())
         {
             lPossibleEyes.sort(SortHelper(pFace));
-            m_aFaces[FACE_MARNAK].m_rightEyeGuid = (*lPossibleEyes.begin())->GetObjectGuid();
+            Creature* pDummy = (*lPossibleEyes.begin());
+            if (Creature* newFace = pFace->SummonCreature(NPC_MARNAK, pDummy->GetPositionX(), pDummy->GetPositionY(), pDummy->GetPositionZ(), pDummy->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 1000))
+                m_aFaces[FACE_MARNAK].m_rightEyeGuid = newFace->GetObjectGuid();
+            //m_aFaces[FACE_MARNAK].m_rightEyeGuid = (*lPossibleEyes.begin())->GetObjectGuid();
         }
     }
 
@@ -248,7 +251,10 @@ void instance_halls_of_stone::SortFaces()
         if (!lPossibleEyes.empty())
         {
             lPossibleEyes.sort(SortHelper(pFace));
-            m_aFaces[FACE_ABEDNEUM].m_rightEyeGuid = (*lPossibleEyes.begin())->GetObjectGuid();
+            Creature* pDummy = (*lPossibleEyes.begin());
+            if (Creature* newFace = pFace->SummonCreature(NPC_ABEDNEUM, pDummy->GetPositionX(), pDummy->GetPositionY(), pDummy->GetPositionZ(), pDummy->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 1000))
+                m_aFaces[FACE_ABEDNEUM].m_rightEyeGuid = newFace->GetObjectGuid();
+            //m_aFaces[FACE_ABEDNEUM].m_rightEyeGuid = (*lPossibleEyes.begin())->GetObjectGuid();
         }
     }
 
@@ -270,7 +276,10 @@ void instance_halls_of_stone::SortFaces()
         if (!lPossibleEyes.empty())
         {
             lPossibleEyes.sort(SortHelper(pFace));
-            m_aFaces[FACE_KADDRAK].m_rightEyeGuid = (*lPossibleEyes.begin())->GetObjectGuid();
+            Creature* pDummy = (*lPossibleEyes.begin());
+            if (Creature* newFace = pFace->SummonCreature(NPC_KADDRAK, pDummy->GetPositionX(), pDummy->GetPositionY(), pDummy->GetPositionZ(), pDummy->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 1000))
+                m_aFaces[FACE_KADDRAK].m_rightEyeGuid = newFace->GetObjectGuid();
+            //m_aFaces[FACE_KADDRAK].m_rightEyeGuid = (*lPossibleEyes.begin())->GetObjectGuid();
         }
     }
 
