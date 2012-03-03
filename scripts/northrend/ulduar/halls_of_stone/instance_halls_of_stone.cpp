@@ -116,7 +116,10 @@ void instance_halls_of_stone::SetData(uint32 uiType, uint32 uiData)
                     break;
                 case DONE:
                     if (GameObject* pChest = GetSingleGameObjectFromStorage(instance->IsRegularDifficulty() ? GO_TRIBUNAL_CHEST : GO_TRIBUNAL_CHEST_H))
+                    {
+                        DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_TRIBUNAL_CHEST : GO_TRIBUNAL_CHEST_H, 5*MINUTE);
                         pChest->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+                    }
                     // Door workaround because of the missing Bran event
                     DoUseDoorOrButton(GO_DOOR_SJONNIR);
                     break;
