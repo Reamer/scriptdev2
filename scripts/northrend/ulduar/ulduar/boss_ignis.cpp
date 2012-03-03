@@ -114,13 +114,14 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
             return;
         }
 
-        if (m_creature->HasAura(SPELL_BRITTLE) || m_creature->HasAura(SPELL_BRITTLE_H))
+        if (m_creature->HasAura(m_bIsRegularMode ? SPELL_BRITTLE : SPELL_BRITTLE_H))
         {
             if (uiDamage > (m_bIsRegularMode ? 3000 : 5000))
             {
                 uiDamage = 0;
                 if (DoCastSpellIfCan(m_creature, SPELL_SHATTER, CAST_TRIGGERED) == CAST_OK)
                 {
+                    DoCast(m_creature, SPELL_STRENGHT_OF_CREATOR_DIE, true);
                     m_creature->ForcedDespawn(1000);
                     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 }
@@ -175,7 +176,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
 
         if (m_uiBrittleCheckTimer <= uiDiff)
         {
-            if (m_creature->HasAura(SPELL_MOLTEN) && !m_creature->HasAura(SPELL_BRITTLE) )
+            if (m_creature->HasAura(SPELL_MOLTEN) && !m_creature->HasAura(m_bIsRegularMode ? SPELL_BRITTLE : SPELL_BRITTLE_H) )
             {
                 if (m_creature->IsInWater())
                 {
