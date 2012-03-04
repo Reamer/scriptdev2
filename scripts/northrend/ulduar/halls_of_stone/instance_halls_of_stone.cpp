@@ -76,6 +76,8 @@ void instance_halls_of_stone::OnObjectCreate(GameObject* pGo)
     switch(pGo->GetEntry())
     {
         case GO_DOOR_SJONNIR:
+        case GO_DOOR_MAIDEN:
+        case GO_DOOR_TO_TRIBUNAL:
             break;
         case GO_TRIBUNAL_CHEST:
         case GO_TRIBUNAL_CHEST_H:
@@ -117,7 +119,7 @@ void instance_halls_of_stone::SetData(uint32 uiType, uint32 uiData)
                 case DONE:
                     if (GameObject* pChest = GetSingleGameObjectFromStorage(instance->IsRegularDifficulty() ? GO_TRIBUNAL_CHEST : GO_TRIBUNAL_CHEST_H))
                     {
-                        DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_TRIBUNAL_CHEST : GO_TRIBUNAL_CHEST_H, 5*MINUTE);
+                        DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_TRIBUNAL_CHEST : GO_TRIBUNAL_CHEST_H, 10*MINUTE);
                         pChest->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
                     }
                     // Door workaround because of the missing Bran event
@@ -148,9 +150,13 @@ void instance_halls_of_stone::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[1] = uiData;
             if (uiData == IN_PROGRESS)
                 DoStartTimedAchievement(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE, ACHIEV_START_MAIDEN_ID);
+            if (uiData == DONE)
+                DoUseDoorOrButton(GO_DOOR_TO_TRIBUNAL);
             break;
         case TYPE_KRYSTALLUS:
             m_auiEncounter[2] = uiData;
+            if (uiData == DONE)
+                DoUseDoorOrButton(GO_DOOR_MAIDEN);
             break;
         case TYPE_SJONNIR:
             m_auiEncounter[3] = uiData;
