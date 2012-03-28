@@ -244,7 +244,7 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
         {
             if (Creature* pTurret = DoSpawnCreature(LEVIATHAN_TURRET, 0, 0, 0, 0, TEMPSUMMON_DEAD_DESPAWN, 60000))
             {
-                pTurret->EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
+                pTurret->_EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
                 m_TurretGuid = pTurret->GetObjectGuid();
             }
         }
@@ -351,14 +351,14 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
                 if (VehicleKit* pVehicleTank = m_creature->GetVehicleKit())
                 {
                     pVehicleTank->RemoveAllPassengers();
-                    pTorso->EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
+                    pTorso->_EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
                 }
 
                 if(Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
                 {
                     if (VehicleKit* pVehicleTorso = pTorso->GetVehicleKit())
                     {
-                        pHead->EnterVehicle(pVehicleTorso, SEAT_FOR_ROBOT);
+                        pHead->_EnterVehicle(pVehicleTorso, SEAT_FOR_ROBOT);
                     }
                 }
                 else
@@ -717,7 +717,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
                 {
                     if (!pTankV->GetPassenger(SEAT_FOR_ROBOT))
                     {
-                        m_creature->EnterVehicle(pTankV, SEAT_FOR_ROBOT);
+                        m_creature->_EnterVehicle(pTankV, SEAT_FOR_ROBOT);
                     }
                 }
             }
@@ -727,7 +727,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
                 {
                     if (Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
                     {
-                        pHead->EnterVehicle(pVX001V,SEAT_FOR_ROBOT);
+                        pHead->_EnterVehicle(pVX001V,SEAT_FOR_ROBOT);
                     }
                 }
             }
