@@ -120,6 +120,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
     uint8 m_uiPhase;
     uint8 m_uiMaxBreathPositions;
 
+    uint32 m_uiEruptionTimer;
     uint32 m_uiFlameBreathTimer;
     uint32 m_uiCleaveTimer;
     uint32 m_uiTailSweepTimer;
@@ -146,6 +147,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
 
         m_uiPhase = PHASE_START;
 
+        m_uiEruptionTimer = urand(2000, 5000);
         m_uiFlameBreathTimer = urand(10000, 20000);
         m_uiTailSweepTimer = urand(15000, 20000);
         m_uiCleaveTimer = urand(2000, 5000);
@@ -277,6 +279,24 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                 }
                 else
                     m_uiBellowingRoarTimer -= uiDiff;
+                
+                if (m_uiSummonWhelpsTimer < uiDiff)
+                {
+                    m_creature->SummonCreature(NPC_ONYXIA_WHELP, afSpawnLocations[0][0], afSpawnLocations[0][1], afSpawnLocations[0][2], 0.0f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, MINUTE*IN_MILLISECONDS);
+                    m_creature->SummonCreature(NPC_ONYXIA_WHELP, afSpawnLocations[1][0], afSpawnLocations[1][1], afSpawnLocations[1][2], 0.0f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, MINUTE*IN_MILLISECONDS);
+                    m_uiSummonWhelpsTimer = 3000;
+                }
+                else
+                    m_uiSummonWhelpsTimer -= uiDiff;
+
+                if (m_uiEruptionTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ERRUPTION : SPELL_ERRUPTION_H) == CAST_OK)
+                        m_uiEruptionTimer = urand(15000, 20000);
+                }
+                else
+                    m_uiEruptionTimer -= uiDiff;
+
                 // no break, phase 3 will use same abilities as in 1
             case PHASE_START:
             {
@@ -358,9 +378,10 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                     m_uiMovementTimer = 25000;
 
                     // 3 possible actions
-                    switch(urand(0, 2))
+                    switch(urand(0, 3))
                     {
                         case 0:                             // breath
+                        case 1:
                             if (m_pPointData = GetMoveData())
                             {
                                 DoScriptText(EMOTE_BREATH, m_creature);
@@ -368,14 +389,14 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                                 m_uiMovePoint = m_pPointData->uiLocIdEnd;
                             }
                             return;
-                        case 1:                             // a point on the left side
+                        case 2:                             // a point on the left side
                         {
                             // C++ is stupid, so add -1 with +7
                             m_uiMovePoint += m_uiMaxBreathPositions - 1;
                             m_uiMovePoint %= m_uiMaxBreathPositions;
                             break;
                         }
-                        case 2:                             // a point on the right side
+                        case 3:                             // a point on the right side
                             ++m_uiMovePoint %= m_uiMaxBreathPositions;
                             break;
                     }
