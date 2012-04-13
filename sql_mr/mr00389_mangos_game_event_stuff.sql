@@ -35,19 +35,19 @@ INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entr
  
 -- Fix quest script to correct horseman summon location
 DELETE FROM `quest_end_scripts` WHERE `id`=11405;
-INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `datalong3`, `datalong4`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
+INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `buddy_entry`, `search_radius`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
 (11405, 0, 10, 23682, 1200000, 0, 0, 0, '0', '0', '0', '0', 1766.798, 1349.538, 18.6855, 6.2786, '');
 
 DELETE FROM `quest_end_scripts` WHERE `id`=11404;
-INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `datalong3`, `datalong4`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
+INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `buddy_entry`, `search_radius`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
 (11404, 0, 10, 23682, 1200000, 0, 0, 0, '0', '0', '0', '0', 1766.798, 1349.538, 18.6855, 6.2786, '');
 
 DELETE FROM `quest_end_scripts` WHERE `id`=11401;
-INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `datalong3`, `datalong4`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
+INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `buddy_entry`, `search_radius`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
 (11401, 0, 10, 23682, 1200000, 0, 0, 0, '0', '0', '0', '0', 1766.798, 1349.538, 18.6855, 6.2786, '');
 
 DELETE FROM `quest_end_scripts` WHERE `id`=11392;
-INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `datalong3`, `datalong4`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
+INSERT INTO `quest_end_scripts` (`id`, `delay`, `command`, `datalong`, `datalong2`, `buddy_entry`, `search_radius`, `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`, `x`, `y`, `z`, `o`,`comments`) VALUES 
 (11392, 0, 10, 23682, 1200000, 0, 0, 0, '0', '0', '0', '0', 1766.798, 1349.538, 18.6855, 6.2786, '');
 
 -- -- Quest fix to get quest inside instance w/o having the others from the villages ( this is the daily neutral one )
@@ -118,3 +118,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`
 
 DELETE FROM game_event_creature WHERE guid IN (SELECT guid FROM creature WHERE id IN (23543,23686));
 INSERT INTO game_event_creature (guid,EVENT) SELECT guid, 101 FROM creature WHERE id IN (23543,23686);
+
+-- --------------------------------
+-- Pilgrim's bounty event scripts -
+-- --------------------------------
+UPDATE `creature_template` SET `ScriptName` = 'npc_wild_turkey' WHERE `entry` = 32820;

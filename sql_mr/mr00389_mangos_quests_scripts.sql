@@ -66,11 +66,17 @@ INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equ
 UPDATE `creature_template` SET `faction_A` = 16, `faction_H` = 16 WHERE `entry` = 15949;
 
 -- ------------
+-- Quest 13828, 13829, 13835, 13838, 13837, 13839, 13625, 13677
+-- ------------
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_melee_target' WHERE `entry` = 33229;
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ranged_target' WHERE `entry` = 33243;
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_charge_target' WHERE `entry` = 33272;
+
+-- ------------
 -- Quest 13663
 -- ------------
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_black_knights_gryphon' WHERE `entry` = 33519;
 UPDATE creature_template SET vehicle_id = 402 WHERE entry = 33519; -- vehicle_id can be 88 107 108 112 143 etc.
-UPDATE creature_template SET KillCredit1 = 33341 WHERE entry = 33229;
 UPDATE creature_template SET KillCredit1 = 38595 WHERE entry = 33448;
 
 UPDATE `creature_template` SET `modelid_2` = 28652 WHERE `entry` = 33513;
@@ -115,7 +121,7 @@ INSERT INTO `gossip_menu_option`(`menu_id`,`id`,`option_icon`,`option_text`,`opt
 (10461,0,0,'I am ready to fight!',1,1,-1,0,10461,0,0,NULL,1,62853,0,6,67,0,0,0,0),
 (10462,0,0,'I am ready to fight!',1,1,-1,0,10462,0,0,NULL,1,62853,0,6,67,0,0,0,0);
  
-INSERT INTO `gossip_scripts`(`id`,`delay`,`command`,`datalong`,`datalong2`,`datalong3`,`datalong4`,
+INSERT INTO `gossip_scripts`(`id`,`delay`,`command`,`datalong`,`datalong2`,`buddy_entry`,`search_radius`,
 `data_flags`,`dataint`,`dataint2`,`dataint3`,`dataint4`,`x`,`y`,`z`,`o`,`comments`) VALUES
 (10453,1,22,14,0,0,0,2,0,0,0,0,0,0,0,0,''),
 (10453,0,0,0,0,0,0,4,2000000449,2000000450,2000000451,0,0,0,0,0,''),
