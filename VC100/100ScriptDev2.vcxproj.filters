@@ -468,6 +468,9 @@
     <ClCompile Include="..\scripts\eastern_kingdoms\burning_steppes.cpp">
       <Filter>scripts\eastern_kingdoms</Filter>
     </ClCompile>
+    <ClCompile Include="..\scripts\eastern_kingdoms\deadmines\boss_mr_smite.cpp">
+      <Filter>scripts\eastern_kingdoms\deadmines</Filter>
+    </ClCompile>
     <ClCompile Include="..\scripts\eastern_kingdoms\deadmines\deadmines.cpp">
       <Filter>scripts\eastern_kingdoms\deadmines</Filter>
     </ClCompile>
@@ -948,6 +951,9 @@
     <ClCompile Include="..\scripts\kalimdor\desolace.cpp">
       <Filter>scripts\kalimdor</Filter>
     </ClCompile>
+    <ClCompile Include="..\scripts\kalimdor\durotar.cpp">
+      <Filter>scripts\kalimdor</Filter>
+    </ClCompile>
     <ClCompile Include="..\scripts\kalimdor\dire_maul\dire_maul.cpp">
       <Filter>scripts\kalimdor\dire_maul</Filter>
     </ClCompile>
@@ -991,6 +997,9 @@
       <Filter>scripts\kalimdor</Filter>
     </ClCompile>
     <ClCompile Include="..\scripts\kalimdor\razorfen_downs\boss_amnennar_the_coldbringer.cpp">
+      <Filter>scripts\kalimdor\razorfen_downs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scripts\kalimdor\razorfen_downs\boss_tuten_kash.cpp">
       <Filter>scripts\kalimdor\razorfen_downs</Filter>
     </ClCompile>
     <ClCompile Include="..\scripts\kalimdor\razorfen_downs\razorfen_downs.cpp">
@@ -1854,11 +1863,11 @@
     <ClCompile Include="..\system\system.cpp">
       <Filter>system</Filter>
     </ClCompile>
-    <ClCompile Include="..\ScriptMgr.cpp" />
-    <ClCompile Include="..\scripts\eastern_kingdoms\deadmines\boss_mr_smite.cpp" />
-    <ClCompile Include="..\scripts\world\pet_scripts.cpp" />
-    <ClCompile Include="..\scripts\kalimdor\razorfen_downs\boss_tuten_kash.cpp">
-      <Filter>scripts\kalimdor\razorfen_downs</Filter>
+    <ClCompile Include="..\ScriptMgr.cpp">
+      <Filter>system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scripts\world\pet_scripts.cpp">
+      <Filter>scripts\world</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2111,7 +2120,9 @@
     <ClInclude Include="..\config.h" />
     <ClInclude Include="..\sd2_revision_nr.h" />
     <ClInclude Include="..\sd2_revision_sql.h" />
-    <ClInclude Include="..\ScriptMgr.h" />
+    <ClInclude Include="..\ScriptMgr.h">
+      <Filter>system</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\revision.h" />

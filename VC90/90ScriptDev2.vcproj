@@ -211,6 +211,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalOptions="-Zm120"
 				AdditionalIncludeDirectories="..\..\..\..\dep\include\;..\..\..\shared\;..\..\..\framework\;..\..\..\game\;..\include\;..\base\;..\..\..\..\dep\ACE_wrappers\"
 				PreprocessorDefinitions="WIN32;_DEBUG;MANGOS_DEBUG;_WINDOWS;_USRDLL;SCRIPT"
 				MinimalRebuild="true"
@@ -1305,6 +1306,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\scripts\kalimdor\durotar.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\scripts\kalimdor\dustwallow_marsh.cpp"
 					>
 				</File>
@@ -1569,6 +1574,10 @@
 					>
 					<File
 						RelativePath="..\scripts\kalimdor\razorfen_downs\boss_amnennar_the_coldbringer.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\kalimdor\razorfen_downs\boss_tuten_kash.cpp"
 						>
 					</File>
 					<File
