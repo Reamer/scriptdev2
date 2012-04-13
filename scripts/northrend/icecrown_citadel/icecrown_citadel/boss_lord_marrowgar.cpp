@@ -17,8 +17,11 @@
 /* ScriptData
 SDName: boss_lord_marrowgar
 SD%Complete: 99%
-SDComment:  hack in script included for not correctly working Cold Flame spell.
-            also not sure if spell for marking impaled targets is for this boss, so not implemented.
+SDComment:  by michalpolko with special thanks to:
+            mangosR2 team and all who are supporting us with feedback, testing and fixes
+            TrinityCore for some info about spells IDs
+            everybody whom I forgot to mention here ;)
+
 SDCategory: Icecrown Citadel
 EndScriptData */
 
@@ -192,7 +195,7 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public base_icc_bossAI
         {
             float summon_x, summon_y, summon_z, ang;
             ang = m_creature->GetAngle(pTarget);
-            m_creature->GetNearPoint(m_creature, summon_x, summon_y, summon_z, m_creature->GetObjectBoundingRadius(), 5.0f, ang);
+            m_creature->GetNearPoint(m_creature, summon_x, summon_y, summon_z, m_creature->GetObjectBoundingRadius(), 10.0f, ang);
 
             m_creature->SummonCreature(NPC_COLDFLAME, summon_x, summon_y, summon_z, ang, TEMPSUMMON_TIMED_DESPAWN, 12000);
         }
@@ -240,22 +243,6 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public base_icc_bossAI
                 }
                 else
                     m_uiColdflameTimer -= uiDiff;
-
-                // Bone Spike Graveyard
-                // don't count timer twice on heroic!
-                if (!m_bIsHeroic)
-                {
-                    if (m_uiBoneSpikeTimer <= uiDiff)
-                    {
-                        if (DoCastSpellIfCan(m_creature, SPELL_BONE_SPIKE_10) == CAST_OK)
-                        {
-                            m_uiBoneSpikeTimer = urand(20000, 30000);
-                            DoScriptText(SAY_BONE_SPIKE_1 - urand(0, 2), m_creature);
-                        }
-                    }
-                    else
-                        m_uiBoneSpikeTimer -= uiDiff;
-                }
 
                 // Bone Storm
                 if (m_uiBoneStormTimer <= uiDiff)
@@ -340,7 +327,7 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public base_icc_bossAI
         }
 
         // Bone Spike - on heroic in every phase
-        if (m_bIsHeroic && m_uiPhase != PHASE_NORMAL)
+        if (m_bIsHeroic || m_uiPhase == PHASE_NORMAL)
         {
             if (m_uiBoneSpikeTimer <= uiDiff)
             {

@@ -17,7 +17,11 @@
 /* ScriptData
 SDName: boss_rotface
 SD%Complete: 99%
-SDComment: 
+SDComment:  by michalpolko with special thanks to:
+            mangosR2 team and all who are supporting us with feedback, testing and fixes
+            TrinityCore for some info about spells IDs
+            everybody whom I forgot to mention here ;)
+
 SDCategory: Icecrown Citadel
 EndScriptData */
 
@@ -107,7 +111,6 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public base_icc_bossAI
         Reset();
     }
 
-    uint32 m_uiBerserkTimer;
     uint32 m_uiSlimeSprayTimer;
     uint32 m_uiMutatedInfectionTimer;
     uint32 m_uiMutatedInfectionBeforeTimer;
@@ -117,7 +120,6 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public base_icc_bossAI
 
     void Reset()
     {
-        m_uiBerserkTimer = 5 * MINUTE * IN_MILLISECONDS;
         m_uiSlimeSprayTimer = urand(17000, 23000);
         m_uiVileGasTimer = 20000;
         m_uiMutatedInfectionTimer = m_uiMutatedInfectionBeforeTimer = 60000;
@@ -180,18 +182,6 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public base_icc_bossAI
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        // Berserk
-        if (m_uiBerserkTimer <= uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
-            {
-                DoScriptText(SAY_BERSERK, m_creature);
-                m_uiBerserkTimer = 5 * MINUTE * IN_MILLISECONDS;
-            }
-        }
-        else
-            m_uiBerserkTimer -= uiDiff;
 
         // Slime Spray
         if (m_uiSlimeSprayTimer <= uiDiff)

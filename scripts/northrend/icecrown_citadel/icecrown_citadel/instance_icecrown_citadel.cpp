@@ -15,9 +15,13 @@
  */
 
 /* ScriptData
-SDName: instance_icecrown_citadel
-SD%Complete: 
-SDComment: 
+SDName: instance_icecrown_spire
+SD%Complete: 90%
+SDComment:  by michalpolko with special thanks to:
+            mangosR2 team and all who are supporting us with feedback, testing and fixes
+            TrinityCore for some info about spells IDs
+            everybody whom I forgot to mention here ;)
+
 SDCategory: Icecrown Citadel
 EndScriptData */
 
@@ -158,12 +162,12 @@ void instance_icecrown_spire::OnObjectCreate(GameObject* pGo)
             break;
         case GO_SCIENTIST_DOOR_GREEN:
             if (m_auiEncounter[TYPE_ROTFACE] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
+                pGo->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
             m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
             break;
         case GO_SCIENTIST_DOOR_ORANGE:
             if (m_auiEncounter[TYPE_FESTERGUT] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
+                pGo->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
             m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
             break;
         case GO_SCIENTIST_DOOR_COLLISION:
@@ -173,6 +177,16 @@ void instance_icecrown_spire::OnObjectCreate(GameObject* pGo)
             break;
         case GO_SCIENTIST_DOOR:
             if (m_auiEncounter[TYPE_FESTERGUT] == DONE && m_auiEncounter[TYPE_ROTFACE] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+            break;
+        case GO_ORANGE_TUBES:
+            if (m_auiEncounter[TYPE_FESTERGUT] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+            break;
+        case GO_GREEN_TUBES:
+            if (m_auiEncounter[TYPE_ROTFACE] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
             break;
@@ -244,6 +258,7 @@ void instance_icecrown_spire::OnObjectCreate(GameObject* pGo)
         case GO_GREEN_DRAGON_DOOR_1:
         case GO_BLOODWING_DOOR:
         case GO_ORATORY_DOOR:
+	case GO_SINDRAGOSA_ICE_WALL:
             m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
             break;
     }
@@ -306,10 +321,12 @@ void instance_icecrown_spire::SetData(uint32 uiType, uint32 uiData)
 
             if (uiData == DONE)
             {
+                DoUseDoorOrButton(GO_ORANGE_TUBES);
                 if (m_auiEncounter[TYPE_ROTFACE] == DONE)
-                {
+                {                    
+                    DoUseDoorOrButton(GO_SCIENTIST_DOOR_ORANGE, 0, true);
+                    DoUseDoorOrButton(GO_SCIENTIST_DOOR_GREEN, 0, true);
                     DoUseDoorOrButton(GO_SCIENTIST_DOOR_COLLISION);
-                    DoUseDoorOrButton(GO_SCIENTIST_DOOR_ORANGE);
                 }
             }
             break;
@@ -320,17 +337,17 @@ void instance_icecrown_spire::SetData(uint32 uiType, uint32 uiData)
 
             if (uiData == DONE)
             {
+                DoUseDoorOrButton(GO_GREEN_TUBES);
                 if (m_auiEncounter[TYPE_FESTERGUT] == DONE)
                 {
-                    DoUseDoorOrButton(GO_SCIENTIST_DOOR_GREEN);
+                    DoUseDoorOrButton(GO_SCIENTIST_DOOR_GREEN, 0, true);
+                    DoUseDoorOrButton(GO_SCIENTIST_DOOR_ORANGE, 0, true);
                     DoUseDoorOrButton(GO_SCIENTIST_DOOR_COLLISION);
                 }
             }
             break;
          case TYPE_PUTRICIDE:
             m_auiEncounter[TYPE_PUTRICIDE] = uiData;
-
-            DoUseDoorOrButton(GO_SCIENTIST_DOOR);
 
             if (uiData == DONE)
             {
@@ -340,6 +357,36 @@ void instance_icecrown_spire::SetData(uint32 uiType, uint32 uiData)
                     m_auiEncounter[TYPE_KINGS_OF_ICC] = DONE;
                 }
             }
+
+            {
+                // Proff sometimes does't trigger door, so let's check it explicitly
+                GameObject* pDoor = GetSingleGameObjectFromStorage(GO_SCIENTIST_DOOR);
+                if (pDoor)
+                {
+                    switch (uiData)
+                    {
+                        case IN_PROGRESS:
+                        case SPECIAL:
+                        {
+                            // Close door if it's open
+                            if (pDoor->getLootState() != GO_ACTIVATED)
+                                DoUseDoorOrButton(GO_SCIENTIST_DOOR);
+                            break;
+                        }
+                        case NOT_STARTED:
+                        case FAIL:
+                        case DONE:
+                        {
+                            // Open door if it's closed
+                            if (pDoor->getLootState() != GO_READY)
+                                DoUseDoorOrButton(GO_SCIENTIST_DOOR);
+                            break;
+                        }
+                        default: break;
+                    }
+                }
+            }
+
             break;
          case TYPE_BLOOD_COUNCIL:
             m_auiEncounter[TYPE_BLOOD_COUNCIL] = uiData;
@@ -401,6 +448,7 @@ void instance_icecrown_spire::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[TYPE_SINDRAGOSA] = uiData;
 
             DoUseDoorOrButton(GO_SINDRAGOSA_ENTRANCE);
+	    DoUseDoorOrButton(GO_SINDRAGOSA_ICE_WALL);
 
             if (uiData == DONE)
             {

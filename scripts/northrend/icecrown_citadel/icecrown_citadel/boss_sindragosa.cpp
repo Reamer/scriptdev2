@@ -16,8 +16,12 @@
 
 /* ScriptData
 SDName: boss_sindragosa
-SD%Complete: 
-SDComment: 
+SD%Complete: 99%
+SDComment:  by michalpolko with special thanks to:
+            mangosR2 team and all who are supporting us with feedback, testing and fixes
+            TrinityCore for some info about spells IDs
+            everybody whom I forgot to mention here ;)
+
 SDCategory: Icecrown Citadel
 EndScriptData */
 
@@ -343,7 +347,7 @@ struct MANGOS_DLL_DECL boss_sindragosaAI : public base_icc_bossAI
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_ICY_GRIP) == CAST_OK)
                     {
-                        m_uiIcyGripTimer = 35000;
+                        m_uiIcyGripTimer = 70000;
                         DoScriptText(SAY_BLISTERING_COLD, m_creature);
                     }
                 }
@@ -479,7 +483,7 @@ struct MANGOS_DLL_DECL boss_sindragosaAI : public base_icc_bossAI
                     if (DoCastSpellIfCan(m_creature, SPELL_ICY_GRIP) == CAST_OK)
                     {
                         DoScriptText(SAY_BLISTERING_COLD, m_creature);
-                        m_uiIcyGripTimer = 35000;
+                        m_uiIcyGripTimer = 70000;
                     }
                 }
                 else

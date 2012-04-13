@@ -424,6 +424,8 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
             // shock blast
             if(m_uiShockBlastTimer < uiDiff)
             {
+                // HACK
+                pVehicleTank->RelocatePassengers(0,0,0,0);
                 if (DoCastSpellIfCan(m_creature, SPELL_SHOCK_BLAST) == CAST_OK)
                     m_uiShockBlastTimer = 50000;
             }
@@ -847,6 +849,8 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
 
         if (m_uiStandardAttack < uiDiff)
         {
+            // HACK
+            m_creature->GetVehicleKit()->RelocatePassengers(0,0,0,0);
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if(m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_VX001)

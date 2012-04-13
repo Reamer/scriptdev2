@@ -16,8 +16,12 @@
 
 /* ScriptData
 SDName: boss_blood_queen_lanathel
-SD%Complete: 
-SDComment: 
+SD%Complete: 99%
+SDComment:  by michalpolko with special thanks to:
+            mangosR2 team and all who are supporting us with feedback, testing and fixes
+            TrinityCore for some info about spells IDs
+            everybody whom I forgot to mention here ;)
+
 SDCategory: Icecrown Citadel
 EndScriptData */
 
@@ -128,7 +132,10 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
     void JustReachedHome()
     {
         if(m_pInstance)
+        {
             m_pInstance->SetData(TYPE_LANATHEL, FAIL);
+            RemoveAurasFromAllPlayers();
+        }
     }
 
     void KilledUnit(Unit* pVictim)
@@ -151,7 +158,10 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
     void JustDied(Unit *pKiller)
     {
         if(m_pInstance)
+	{
             m_pInstance->SetData(TYPE_LANATHEL, DONE);
+	    RemoveAurasFromAllPlayers();
+	}
 
         DoScriptText(SAY_DEATH, m_creature);
     }
@@ -254,6 +264,36 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
         return NULL;
     }
 
+    void RemoveAurasFromAllPlayers()
+    {
+         Map* pMap = m_creature->GetMap();
+         Map::PlayerList const &PlayerList = pMap->GetPlayers();
+
+         if (PlayerList.isEmpty())
+            return;
+
+         for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+            if (Player* pPlayer = i->getSource())
+                if (pPlayer->isAlive())
+                {
+                    // Additional checking for achiev
+                    pPlayer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE, NPC_LANATHEL, 0);
+
+                    // Uncontrollable Frenzy
+                    pPlayer->RemoveAurasDueToSpell(70923);
+                    pPlayer->RemoveAurasDueToSpell(70924);
+
+                    // Frenzied Bloodthirst
+                    pPlayer->RemoveAurasDueToSpell(70877);
+                    pPlayer->RemoveAurasDueToSpell(71474);
+
+                    // Essence of The Blood Queen
+                    pPlayer->RemoveAurasDueToSpell(70867);
+                    pPlayer->RemoveAurasDueToSpell(70871);
+
+                }
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
 
@@ -300,26 +340,29 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
                     m_uiBloodMirrorTimer -= uiDiff;
 
                 // Delirious Slash
-                if (m_uiDeliriousSlashTimer <= uiDiff)
+                if (m_bIsHeroic)
                 {
-                    /**
-                     * Spell that handles targeting - we can do this here.
-                     * if (DoCastSpellIfCan(m_creature, SPELL_DELIRIOUS_SLASH) == CAST_OK)
-                     */
-                    if (Unit *pTarget = SelectClosestFriendlyTarget(m_creature->getVictim()))
+                    if (m_uiDeliriousSlashTimer <= uiDiff)
                     {
-                        uint32 spell = SPELL_DELIRIOUS_SLASH_1;
+                        /**
+                         * Spell that handles targeting - we can do this here.
+                         * if (DoCastSpellIfCan(m_creature, SPELL_DELIRIOUS_SLASH) == CAST_OK)
+                         */
+                        if (Unit *pTarget = SelectClosestFriendlyTarget(m_creature->getVictim()))
+                        {
+                            uint32 spell = SPELL_DELIRIOUS_SLASH_1;
 
-                        // if target is not in 5yd range then cast spell with charge effect
-                        if (!m_creature->IsWithinDist(pTarget, 5.0f))
-                            spell = SPELL_DELIRIOUS_SLASH_2;
+                            // if target is not in 5yd range then cast spell with charge effect
+                            if (!m_creature->IsWithinDist(pTarget, 5.0f))
+                                spell = SPELL_DELIRIOUS_SLASH_2;
 
-                        if (DoCastSpellIfCan(pTarget, spell) == CAST_OK)
-                            m_uiDeliriousSlashTimer = 15000;
+                            if (DoCastSpellIfCan(pTarget, spell) == CAST_OK)
+                                m_uiDeliriousSlashTimer = 15000;
+                        }
                     }
+                    else
+                        m_uiDeliriousSlashTimer -= uiDiff;
                 }
-                else
-                    m_uiDeliriousSlashTimer -= uiDiff;
 
                 // Vampiric Bite
                 if (!m_bHasBitten)
