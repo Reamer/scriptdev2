@@ -1593,7 +1593,7 @@ enum mograine
     SAY_LIGHT_OF_DAWN67               = -1609267, // Highlord Tirion Fordring
     SAY_LIGHT_OF_DAWN68               = -1609268, // Highlord Darion Mograine
 
-    EMOTE_LIGHT_OF_DAWN01             = -1609269,  // Emotes
+    EMOTE_LIGHT_OF_DAWN01             = -1609269, // Emotes
     EMOTE_LIGHT_OF_DAWN02             = -1609270,
     EMOTE_LIGHT_OF_DAWN03             = -1609271,
     EMOTE_LIGHT_OF_DAWN04             = -1609272,
@@ -1714,7 +1714,7 @@ struct Locations
 static Locations LightofDawnLoc[]=
 {
     {2281.335f, -5300.409f, 85.170f, 0.0f},     // 0 Tirion Fordring loc
-    {2283.896f, -5287.914f, 83.066f, 1.55f},  // 1 Tirion Fordring loc2
+    {2283.896f, -5287.914f, 83.066f, 1.55f},    // 1 Tirion Fordring loc2
     {2281.461f, -5263.014f, 81.164f, 0.0f},     // 2 Tirion charges
     {2262.277f, -5293.477f, 82.167f, 0.0f},     // 3 Tirion run
     {2270.286f, -5287.73f, 82.262f, 0.0f},      // 4 Tirion relocate
@@ -1735,11 +1735,11 @@ static Locations LightofDawnLoc[]=
     {2289.02f, -5281.985f, 82.207f, 0.0f},      // 19 Koltira loc2
     {2273.289f, -5273.675f, 81.701f, 0.0f},     // 20 Thassarian loc1
     {2273.332f, -5275.544f, 81.849f, 0.0f},     // 21 Thassarian loc2
-    {2281.198f, -5257.397f, 80.224f, 4.66f},  // 22 Alexandros loc1
+    {2281.198f, -5257.397f, 80.224f, 4.66f},    // 22 Alexandros loc1
     {2281.156f, -5259.934f, 80.647f, 0.0f},     // 23 Alexandros loc2
-    {2281.294f, -5281.895f, 82.445f, 1.35f},  // 24 Darion loc1
+    {2281.294f, -5281.895f, 82.445f, 1.35f},    // 24 Darion loc1
     {2281.093f, -5263.013f, 81.125f, 0.0f},     // 25 Darion loc1
-    {2281.313f, -5250.282f, 79.322f, 4.69f},  // 26 Lich King spawns
+    {2281.313f, -5250.282f, 79.322f, 4.69f},    // 26 Lich King spawns
     {2281.523f, -5261.058f, 80.877f, 0.0f},     // 27 Lich king move forwards
     {2272.709f, -5255.552f, 78.226f, 0.0f},     // 28 Lich king kicked
     {2273.972f, -5257.676f, 78.862f, 0.0f}      // 29 Lich king moves forward
