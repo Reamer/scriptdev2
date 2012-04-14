@@ -63,6 +63,8 @@ enum
     SPELL_EYEBEAM_VISUAL_LEFT_2 = 63702,
     SPELL_EYEBEAM_VISUAL_RIGHT  = 63676,
 
+    SPELL_ARM_DEAD_DAMAGE       = 63629,
+    SPELL_ARM_DEAD_DAMAGE_H     = 63979,
     SPELL_ENRAGE                = 26662,
     //left arm
     SPELL_ARM_SWEEP             = 63766,
@@ -79,6 +81,7 @@ enum
     //both
     SPELL_ARM_VISUAL            = 64753,
     //rubble
+    SPELL_SUMMON_RUMBLE         = 63633,
     SPELL_RUMBLE                = 63818,    // on 10 man
     SPELL_STONE_NOVA            = 63978,    // on 25 man
     //NPC ids
@@ -181,6 +184,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
     ObjectGuid m_uiRightArmGuid;
     ObjectGuid m_uiLeftArmGuid;
+    ObjectGuid m_uiEyeBeamFollowTarget;
 
     void Reset()
     {
@@ -221,12 +225,12 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         DoScriptText(SAY_LEFT_ARM_LOST, m_creature);
         m_uiRespawnLeftTimer = 48000;
         m_bIsLeftDead = true;
-        for(uint8 i = 0; i < 5; i ++)
+        /*for(uint8 i = 0; i < 5; i ++)
         {
             if(Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, LeftArm[0] - urand(0, 5), LeftArm[1] + urand(0, 10), LeftArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pRubble->AddThreat(pTarget,0.0f);
-        }
+        }*/ 
         m_uiRubbleNo = m_uiRubbleNo +5;
         if (m_pInstance)
         {
@@ -246,12 +250,12 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         m_uiRespawnRightTimer = 48000;
         m_bIsRightDead = true;
         m_bOpenArms = false;
-        for(uint8 i = 0; i < 5; i ++)
+        /*for(uint8 i = 0; i < 5; i ++)
         {
             if(Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, RightArm[0] - urand(0, 5), RightArm[1] + urand(0, 10), RightArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pRubble->AddThreat(pTarget,0.0f);
-        }
+        }*/
         m_uiRubbleNo = m_uiRubbleNo +5;
         if (m_pInstance)
         {
@@ -273,6 +277,38 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         DoScriptText(SAY_AGGRO, m_creature);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    }
+
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_FOCUSED_EYEBEAM)
+        {
+            m_uiEyeBeamFollowTarget = pTarget->GetObjectGuid();
+        }
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_ARM_DEAD_DAMAGE || pSpell->Id == SPELL_ARM_DEAD_DAMAGE_H)
+        {
+            switch (pCaster->GetEntry())
+            {
+                case NPC_RIGHT_ARM: RightArmDead(); break;
+                case NPC_LEFT_ARM: LeftArmDead(); break;
+                default: m_creature->MonsterSay("An Unknow unit hit me", 0); break;
+            }
+        }
+    }
+
+    void JustSummoned(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_FOCUSED_EYEBEAM_LEFT || pSummoned->GetEntry() == NPC_FOCUSED_EYEBEAM_RIGHT)
+        {
+            if (Unit* pFollowTarget = m_creature->GetMap()->GetUnit(m_uiEyeBeamFollowTarget))
+            {
+                pSummoned->GetMotionMaster()->MoveFollow(pFollowTarget, 0.0f, 0.0f);
+            }
+        }
     }
 
     void KilledUnit(Unit* pVictim)
@@ -388,33 +424,36 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
         if (m_uiEyebeam_Timer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, m_bIsRegularMode ? 4 : 10))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, m_bIsRegularMode ? 0 : 0))
             {
                 if (pTarget->GetTypeId() == TYPEID_PLAYER)
                 {
-                    //DoCast(m_creature->getVictim(), SPELL_FOCUSED_EYEBEAM, true);
-                    if (Creature *pLeft = m_creature->SummonCreature(NPC_FOCUSED_EYEBEAM_LEFT, pTarget->GetPositionX(), pTarget->GetPositionY()-4.0f, pTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 10000))
+                    if (DoCastSpellIfCan(m_creature, SPELL_FOCUSED_EYEBEAM) == CAST_OK)
                     {
-                        pLeft->SetInCombatWithZone();
-                        pLeft->SetDisplayId(11686);
-                        pLeft->SetSpeedRate(MOVE_RUN, 1.0);
-                        pLeft->CastSpell(pLeft, m_bIsRegularMode ? SPELL_EYEBEAM_PERIODIC : SPELL_EYEBEAM_PERIODIC_H, true);
-                        pLeft->CastSpell(pLeft, SPELL_EYEBEAM_VISUAL_LEFT_2, true);
-                        pLeft->AI()->AttackStart(pTarget);
+                        /*if (Creature *pLeft = m_creature->SummonCreature(NPC_FOCUSED_EYEBEAM_LEFT, pTarget->GetPositionX(), pTarget->GetPositionY()-4.0f, pTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 10000))
+                        {
+                            pLeft->SetInCombatWithZone();
+                            pLeft->SetDisplayId(11686);
+                            pLeft->SetSpeedRate(MOVE_RUN, 1.0);
+                            pLeft->CastSpell(pLeft, m_bIsRegularMode ? SPELL_EYEBEAM_PERIODIC : SPELL_EYEBEAM_PERIODIC_H, true);
+                            pLeft->CastSpell(pLeft, SPELL_EYEBEAM_VISUAL_LEFT_2, true);
+                            pLeft->AI()->AttackStart(pTarget);
+                        }
+                        if (Creature *pRight = m_creature->SummonCreature(NPC_FOCUSED_EYEBEAM_RIGHT, pTarget->GetPositionX(), pTarget->GetPositionY()+4.0f, pTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 10000))
+                        {
+                            pRight->SetInCombatWithZone();
+                            pRight->SetDisplayId(11686);
+                            pRight->SetSpeedRate(MOVE_RUN, 1.0);
+                            pRight->CastSpell(pRight, SPELL_EYEBEAM_PERIODIC_VIS, true);
+                            pRight->CastSpell(pRight, SPELL_EYEBEAM_VISUAL_RIGHT, true);
+                            pRight->AI()->AttackStart(pTarget);
+                        }*/
+                        m_uiEyebeam_Timer = 10000 + urand(1000, 5000);
                     }
-                    if (Creature *pRight = m_creature->SummonCreature(NPC_FOCUSED_EYEBEAM_RIGHT, pTarget->GetPositionX(), pTarget->GetPositionY()+4.0f, pTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 10000))
-                    {
-                        pRight->SetInCombatWithZone();
-                        pRight->SetDisplayId(11686);
-                        pRight->SetSpeedRate(MOVE_RUN, 1.0);
-                        pRight->CastSpell(pRight, SPELL_EYEBEAM_PERIODIC_VIS, true);
-                        pRight->CastSpell(pRight, SPELL_EYEBEAM_VISUAL_RIGHT, true);
-                        pRight->AI()->AttackStart(pTarget);
-                    }
-                    m_uiEyebeam_Timer = 10000 + urand(1000, 5000);
                 }
             }
-        }else
+        }
+        else
             m_uiEyebeam_Timer -= uiDiff;
 
         // respawn arms
@@ -477,7 +516,7 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
     void Reset()
     {
         m_uiShockwave = 30000;
-        DoCast(m_creature, SPELL_ARM_VISUAL);
+        DoCastSpellIfCan(m_creature, SPELL_ARM_VISUAL, CAST_TRIGGERED);
     }
 
     void JustDied(Unit* pKiller)
@@ -485,17 +524,16 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
         if (!m_pInstance)
             return;
 
-        if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
+        DoCastSpellIfCan(m_creature, SPELL_SUMMON_RUMBLE, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARM_DEAD_DAMAGE : SPELL_ARM_DEAD_DAMAGE_H, CAST_TRIGGERED);
+        /*if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
         {
-            if (pKologarn->isAlive())
-                pKologarn->DealDamage(pKologarn, m_creature->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-
             boss_kologarnAI* KologarnAI = (boss_kologarnAI*)pKologarn->AI();
             if(KologarnAI)
             {
                 KologarnAI->LeftArmDead();    
             }
-        }
+        }*/
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -506,10 +544,13 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
         if (m_uiShockwave < uiDiff)
         {
             if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
-                DoScriptText(SAY_SHOCKWEAVE, pKologarn);
-
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_ARM_SWEEP : SPELL_ARM_SWEEP_H);
-            m_uiShockwave = 17000;
+            {
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARM_SWEEP : SPELL_ARM_SWEEP_H))
+                {
+                    DoScriptText(SAY_SHOCKWEAVE, pKologarn);
+                    m_uiShockwave = 17000;
+                }
+            }
         }
         else
             m_uiShockwave -= uiDiff;
@@ -541,7 +582,7 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
     void Reset()
     {
         m_uiStoneGrip           = 20000;
-        DoCast(m_creature, SPELL_ARM_VISUAL);
+        DoCastSpellIfCan(m_creature, SPELL_ARM_VISUAL, CAST_TRIGGERED);
     }
 
     void JustDied(Unit* pKiller)
@@ -549,17 +590,16 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
         if (!m_pInstance)
             return;
 
-        if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
+        DoCastSpellIfCan(m_creature, SPELL_SUMMON_RUMBLE, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARM_DEAD_DAMAGE : SPELL_ARM_DEAD_DAMAGE_H, CAST_TRIGGERED);
+        /*if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
         {
-            if (pKologarn->isAlive())
-                pKologarn->DealDamage(pKologarn, m_creature->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-
             boss_kologarnAI* KologarnAI = (boss_kologarnAI*)pKologarn->AI();
             if(KologarnAI)
             {
                 KologarnAI->RightArmDead();    
             }
-        }
+        }*/
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -588,7 +628,7 @@ CreatureAI* GetAI_boss_right_arm(Creature* pCreature)
 {
     return new boss_right_armAI(pCreature);
 }
-
+/*
 // Focused Eyebeam trigger mobs - just make them not attack in melee
 struct MANGOS_DLL_DECL mob_eyebeam_triggerAI : public ScriptedAI
 {
@@ -599,7 +639,7 @@ struct MANGOS_DLL_DECL mob_eyebeam_triggerAI : public ScriptedAI
 CreatureAI* GetAI_mob_eyebeam_trigger(Creature* pCreature)
 {
     return new mob_eyebeam_triggerAI(pCreature);
-}
+}*/
 
 // kologarn kill pit bunny - kills players that fall down into the pit. also handling bridge respawn after server restarts
 struct MANGOS_DLL_DECL mob_kologarn_pit_kill_bunnyAI : public ScriptedAI
@@ -674,10 +714,10 @@ void AddSC_boss_kologarn()
     NewScript->GetAI = &GetAI_boss_right_arm;
     NewScript->RegisterSelf();
 
-    NewScript = new Script;
+    /*NewScript = new Script;
     NewScript->Name = "mob_eyebeam_trigger";
     NewScript->GetAI = &GetAI_mob_eyebeam_trigger;
-    NewScript->RegisterSelf();
+    NewScript->RegisterSelf();*/
 
     NewScript = new Script;
     NewScript->Name = "mob_kologarn_pit_kill_bunny";
