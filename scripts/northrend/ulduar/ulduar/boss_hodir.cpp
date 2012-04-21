@@ -282,10 +282,8 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             if(m_bhardmode)
             {
                 m_pInstance->SetData(TYPE_HODIR_HARD, DONE);
-                m_pInstance->SetData(TYPE_HODIR, DONE);
             }
-            else
-                m_pInstance->SetData(TYPE_HODIR, DONE);
+            m_pInstance->SetData(TYPE_HODIR, DONE);
         }
         DoCast(m_creature, SPELL_HODIR_CREDIT, true);
         m_creature->ForcedDespawn();
@@ -299,10 +297,8 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             if(m_bhardmode)
             {
                 m_pInstance->SetData(TYPE_HODIR_HARD, DONE);
-                m_pInstance->SetData(TYPE_HODIR, DONE);
             }
-            else
-                m_pInstance->SetData(TYPE_HODIR, DONE);
+            m_pInstance->SetData(TYPE_HODIR, DONE);
         }
         DoCast(m_creature, SPELL_HODIR_CREDIT, true);
     }
@@ -587,6 +583,12 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
     uint32 m_uiSpellTimer;
     uint32 m_uiCeckMove;
 
+    void SummonFlashFreeze()
+    {
+        if (!m_creature->HasAura(SPELL_FLASH_FREEZE_NPC_STUN) &&  m_creature->isAlive())
+            DoCast(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC, true);
+    }
+
     void Reset()
     {
         m_creature->SetWalk(true);
@@ -594,13 +596,13 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
         m_uiSpellTimer = 5000;
         m_creature->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
         if (m_pInstance->GetData(TYPE_HODIR) != IN_PROGRESS)
-            DoCastSpellIfCan(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC);
+            SummonFlashFreeze();
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        if (pSpell->Id == SPELL_FLASH_FREEZE && !m_creature->HasAura(SPELL_SAFE_AREA_BUFF) && m_creature->isAlive() && !m_creature->HasAura(SPELL_FLASH_FREEZE_NPC_STUN))
-            DoCast(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC, true);
+        if (pSpell->Id == SPELL_FLASH_FREEZE && !m_creature->HasAura(SPELL_SAFE_AREA_BUFF))
+            SummonFlashFreeze();
     }
 
     void DamageTaken(Unit* pDoneby, uint32 &uiDamage)
@@ -617,8 +619,9 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        DoCastSpellIfCan(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC);
+        SummonFlashFreeze();
     }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -729,7 +732,6 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
         }
         else
             m_uiSpellTimer -= uiDiff;
-
     }
 };
 

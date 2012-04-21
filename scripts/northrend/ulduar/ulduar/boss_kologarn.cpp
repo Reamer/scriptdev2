@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: boss_kologarn
 SD%Complete: achievment Wenn Blicke töten könnten
-SDComment: eye beam
+SDComment: grap
 SDCategory: Ulduar
 EndScriptData */
 
@@ -52,6 +52,7 @@ enum
     SPELL_PETRIFYING_BREATH_H   = 63980,
     // Focused Eyebeam
     SPELL_FOCUSED_EYEBEAM       = 63342,
+    SPELL_FOCUSED_EYEBEAM_DUMMY_BUFF = 67351,
     NPC_FOCUSED_EYEBEAM_RIGHT   = 33802,
     NPC_FOCUSED_EYEBEAM_LEFT    = 33632,
     SPELL_EYEBEAM_PERIODIC      = 63347,
@@ -101,10 +102,6 @@ enum
     ACHIEV_IF_LOOKS_COULD_KILL_H= 2956,
 };
 
-float LeftArm[3] = {1784.742f, -39.962f, 448.805f}; 
-float RightArm[3] = {1785.615f, -5.516f, 448.810f};
-const float KoloFront[3] = {1771.683f, -24.230f, 448.806f};
-
 // Rubble
 struct MANGOS_DLL_DECL mob_ulduar_rubbleAI : public ScriptedAI
 {
@@ -136,9 +133,11 @@ struct MANGOS_DLL_DECL mob_ulduar_rubbleAI : public ScriptedAI
 
         if (m_uiStone_Nova_Timer < diff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_RUMBLE : SPELL_STONE_NOVA);
-            m_uiStone_Nova_Timer = urand(7000, 9000);
-        }else m_uiStone_Nova_Timer -= diff;
+            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_RUMBLE : SPELL_STONE_NOVA) == CAST_OK)
+                m_uiStone_Nova_Timer = urand(7000, 9000);
+        }
+        else
+            m_uiStone_Nova_Timer -= diff;
 
         DoMeleeAttackIfReady();
     }
@@ -173,38 +172,25 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     uint32 m_uiEnrageTimer;
 
     uint32 m_uiRubbleNo;
-    bool m_bHasLeftDied;
-    bool m_bHasRightDied;
     uint32 m_uiDisarmedTimer;
     bool m_bOpenArms;
     bool m_bReset;
-
-    bool m_bIsRightDead;
-    bool m_bIsLeftDead;
-
-    ObjectGuid m_uiRightArmGuid;
-    ObjectGuid m_uiLeftArmGuid;
-    ObjectGuid m_uiEyeBeamFollowTarget;
 
     void Reset()
     {
         if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
-        m_uiSpell_Timer     = 10000;
-        m_uiRange_Timer     = 1000;
-        m_uiEnrageTimer     = 600000;
-        m_uiEyebeam_Timer   = 10000 + urand(1000, 5000);
-
-        m_bIsRightDead      = false;
-        m_bIsLeftDead       = false;
+        m_uiSpell_Timer         = 10000;;
+        m_uiRange_Timer         = 1000;
+        m_uiEyebeam_Timer       = 10000 + urand(1000, 5000);
+        m_uiRespawnRightTimer   = 0;
+        m_uiRespawnLeftTimer    = 0;
+        m_uiEnrageTimer         = 600000;;
 
         m_bReset            = false;
 
-
         m_uiRubbleNo        = 0;
-        m_bHasLeftDied      = false;
-        m_bHasRightDied     = false;
         m_bOpenArms         = true;
         m_uiDisarmedTimer   = 0;
 
@@ -224,20 +210,13 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     {
         DoScriptText(SAY_LEFT_ARM_LOST, m_creature);
         m_uiRespawnLeftTimer = 48000;
-        m_bIsLeftDead = true;
-        /*for(uint8 i = 0; i < 5; i ++)
-        {
-            if(Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, LeftArm[0] - urand(0, 5), LeftArm[1] + urand(0, 10), LeftArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    pRubble->AddThreat(pTarget,0.0f);
-        }*/ 
         m_uiRubbleNo = m_uiRubbleNo +5;
         if (m_pInstance)
         {
             m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_OPEN_ARMS, false);
             if (m_uiRubbleNo >= 25)
                 m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_RUBBLE_AND_ROLL, true);
-            if (m_bIsRightDead)
+            if (m_uiRespawnRightTimer > 0)
                 m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_DISARMED, true);
             else
                 m_uiDisarmedTimer = 0;
@@ -248,21 +227,14 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     {
         DoScriptText(SAY_RIGHT_ARM_LOST, m_creature);
         m_uiRespawnRightTimer = 48000;
-        m_bIsRightDead = true;
         m_bOpenArms = false;
-        /*for(uint8 i = 0; i < 5; i ++)
-        {
-            if(Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, RightArm[0] - urand(0, 5), RightArm[1] + urand(0, 10), RightArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    pRubble->AddThreat(pTarget,0.0f);
-        }*/
-        m_uiRubbleNo = m_uiRubbleNo +5;
+        m_uiRubbleNo += 5;
         if (m_pInstance)
         {
             m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_OPEN_ARMS, false);
             if (m_uiRubbleNo >= 25)
                 m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_RUBBLE_AND_ROLL, true);
-            if (m_bIsLeftDead)
+            if (m_uiRespawnLeftTimer > 0)
                 m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_DISARMED, true);
             else
                 m_uiDisarmedTimer = 0;
@@ -279,13 +251,6 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
     }
 
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
-    {
-        if (pSpell->Id == SPELL_FOCUSED_EYEBEAM)
-        {
-            m_uiEyeBeamFollowTarget = pTarget->GetObjectGuid();
-        }
-    }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
@@ -295,18 +260,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
             {
                 case NPC_RIGHT_ARM: RightArmDead(); break;
                 case NPC_LEFT_ARM: LeftArmDead(); break;
-                default: m_creature->MonsterSay("An Unknow unit hit me", 0); break;
-            }
-        }
-    }
-
-    void JustSummoned(Creature* pSummoned)
-    {
-        if (pSummoned->GetEntry() == NPC_FOCUSED_EYEBEAM_LEFT || pSummoned->GetEntry() == NPC_FOCUSED_EYEBEAM_RIGHT)
-        {
-            if (Unit* pFollowTarget = m_creature->GetMap()->GetUnit(m_uiEyeBeamFollowTarget))
-            {
-                pSummoned->GetMotionMaster()->MoveFollow(pFollowTarget, 0.0f, 0.0f);
+                default: m_creature->MonsterSay("An Unknow unit hit me with arm damage", 0); break;
             }
         }
     }
@@ -320,22 +274,21 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_KOLOGARN, FAIL);
+        vehicle->InstallAllAccessories(m_creature->GetEntry());
     }
 
     void InstallRightArm()
     {
         vehicle->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_RIGHT_ARM);
         DoScriptText(EMOTE_RIGHT_ARM, m_creature);
-        m_uiRespawnRightTimer = 48000;
-        m_bIsRightDead = false;
+        m_uiRespawnRightTimer = 0;
     }
     
     void InstallLeftArm()
     {
         vehicle->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_LEFT_ARM);
         DoScriptText(EMOTE_LEFT_ARM, m_creature);
-        m_uiRespawnLeftTimer = 48000;
-        m_bIsLeftDead = false;
+        m_uiRespawnLeftTimer = 0;
     }
 
     void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
@@ -351,7 +304,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
             return;
 
         // disarmed achiev check
-        if (m_bHasLeftDied || m_bHasRightDied)
+        if (m_uiRespawnLeftTimer > 0 || m_uiRespawnRightTimer > 0)
             m_uiDisarmedTimer += uiDiff;
 
         if (m_uiDisarmedTimer > 12 * IN_MILLISECONDS)
@@ -385,87 +338,46 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         }else
             m_uiRange_Timer -= uiDiff;
 
-        // Hack for unexpected lose of one arm; often the right arm
-        /*if (!vehicle->GetPassenger(LEFT_ARM_SLOT))
+        if (m_uiSpell_Timer < uiDiff)
         {
-            if (Map* pMap = m_creature->GetMap())
-                if (Creature* pLeftArm = pMap->GetCreature(m_uiLeftArmGuid))
-                    if (pLeftArm->isAlive())
-                        pLeftArm->EnterVehicle(vehicle, LEFT_ARM_SLOT);
-        }
-
-        if (!vehicle->GetPassenger(RIGHT_ARM_SLOT))
-        {
-            if (Map* pMap = m_creature->GetMap())
-                if (Creature* pRightArm = pMap->GetCreature(m_uiRightArmGuid))
-                    if (pRightArm->isAlive())
-                        pRightArm->EnterVehicle(vehicle, RIGHT_ARM_SLOT);
-        }*/
-
-        /*if (m_uiSpell_Timer < uiDiff)
-        {
-            if (!m_bIsRightDead && !m_bIsLeftDead)
+            if (m_uiRespawnRightTimer == 0 && m_uiRespawnLeftTimer == 0)
             {
-                DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_OVERHEAD_SMASH : SPELL_OVERHEAD_SMASH_H);
-                m_uiSpell_Timer = 20000;
+                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_OVERHEAD_SMASH : SPELL_OVERHEAD_SMASH_H) == CAST_OK)
+                    m_uiSpell_Timer = 20000;
             }
-            else if (m_bIsRightDead && m_bIsLeftDead)
+            else if (m_uiRespawnRightTimer > 0 && m_uiRespawnRightTimer > 0)
             {
-                DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_STONE_SHOUT : SPELL_STONE_SHOUT_H);
-                m_uiSpell_Timer = 2000;
+                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_STONE_SHOUT : SPELL_STONE_SHOUT_H) == CAST_OK)
+                    m_uiSpell_Timer = 2000;
             }
             else
             {
-                DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_ONE_ARMED_SMASH : SPELL_ONE_ARMED_SMASH_H);
-                m_uiSpell_Timer = 20000;
+                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_ONE_ARMED_SMASH : SPELL_ONE_ARMED_SMASH_H) == CAST_OK)
+                    m_uiSpell_Timer = 20000;
             }
         }else
-            m_uiSpell_Timer -= uiDiff;*/
+            m_uiSpell_Timer -= uiDiff;
 
         if (m_uiEyebeam_Timer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, m_bIsRegularMode ? 0 : 0))
+            if (DoCastSpellIfCan(m_creature, SPELL_FOCUSED_EYEBEAM) == CAST_OK)
             {
-                if (pTarget->GetTypeId() == TYPEID_PLAYER)
-                {
-                    if (DoCastSpellIfCan(m_creature, SPELL_FOCUSED_EYEBEAM) == CAST_OK)
-                    {
-                        /*if (Creature *pLeft = m_creature->SummonCreature(NPC_FOCUSED_EYEBEAM_LEFT, pTarget->GetPositionX(), pTarget->GetPositionY()-4.0f, pTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 10000))
-                        {
-                            pLeft->SetInCombatWithZone();
-                            pLeft->SetDisplayId(11686);
-                            pLeft->SetSpeedRate(MOVE_RUN, 1.0);
-                            pLeft->CastSpell(pLeft, m_bIsRegularMode ? SPELL_EYEBEAM_PERIODIC : SPELL_EYEBEAM_PERIODIC_H, true);
-                            pLeft->CastSpell(pLeft, SPELL_EYEBEAM_VISUAL_LEFT_2, true);
-                            pLeft->AI()->AttackStart(pTarget);
-                        }
-                        if (Creature *pRight = m_creature->SummonCreature(NPC_FOCUSED_EYEBEAM_RIGHT, pTarget->GetPositionX(), pTarget->GetPositionY()+4.0f, pTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 10000))
-                        {
-                            pRight->SetInCombatWithZone();
-                            pRight->SetDisplayId(11686);
-                            pRight->SetSpeedRate(MOVE_RUN, 1.0);
-                            pRight->CastSpell(pRight, SPELL_EYEBEAM_PERIODIC_VIS, true);
-                            pRight->CastSpell(pRight, SPELL_EYEBEAM_VISUAL_RIGHT, true);
-                            pRight->AI()->AttackStart(pTarget);
-                        }*/
-                        m_uiEyebeam_Timer = 10000 + urand(1000, 5000);
-                    }
-                }
+                m_uiEyebeam_Timer = 10000 + urand(1000, 5000);
             }
         }
         else
             m_uiEyebeam_Timer -= uiDiff;
 
         // respawn arms
-        if (m_bIsLeftDead)
+        if (m_uiRespawnLeftTimer)
         {
-            if (m_uiRespawnLeftTimer < uiDiff && m_bIsLeftDead)
+            if (m_uiRespawnLeftTimer < uiDiff)
             {
                 InstallLeftArm();
             }else
                 m_uiRespawnLeftTimer -= uiDiff;
         }
-        if (m_bIsRightDead)
+        if (m_uiRespawnRightTimer)
         {
             if (m_uiRespawnRightTimer < uiDiff)
             {
@@ -478,14 +390,19 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         if (m_creature->GetCombatDistance(m_creature->getVictim()) >= ATTACK_DISTANCE)
             DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_PETRIFYING_BREATH : SPELL_PETRIFYING_BREATH_H);
 
-        if(m_uiEnrageTimer < uiDiff)
+        if (m_uiEnrageTimer)
         {
-            DoScriptText(SAY_BERSERK, m_creature);
-            DoCast(m_creature, SPELL_ENRAGE);
-            m_uiEnrageTimer = 30000;
+            if(m_uiEnrageTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
+                {
+                    DoScriptText(SAY_BERSERK, m_creature);
+                    m_uiEnrageTimer = 0;
+                }
+            }
+            else
+                m_uiEnrageTimer -= uiDiff;
         }
-        else
-            m_uiEnrageTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
@@ -526,14 +443,6 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
 
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_RUMBLE, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARM_DEAD_DAMAGE : SPELL_ARM_DEAD_DAMAGE_H, CAST_TRIGGERED);
-        /*if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
-        {
-            boss_kologarnAI* KologarnAI = (boss_kologarnAI*)pKologarn->AI();
-            if(KologarnAI)
-            {
-                KologarnAI->LeftArmDead();    
-            }
-        }*/
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -592,14 +501,6 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
 
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_RUMBLE, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARM_DEAD_DAMAGE : SPELL_ARM_DEAD_DAMAGE_H, CAST_TRIGGERED);
-        /*if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
-        {
-            boss_kologarnAI* KologarnAI = (boss_kologarnAI*)pKologarn->AI();
-            if(KologarnAI)
-            {
-                KologarnAI->RightArmDead();    
-            }
-        }*/
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -628,18 +529,63 @@ CreatureAI* GetAI_boss_right_arm(Creature* pCreature)
 {
     return new boss_right_armAI(pCreature);
 }
-/*
-// Focused Eyebeam trigger mobs - just make them not attack in melee
+
+// Focused Eyebeam trigger mobs - just make them not attack in melee - Move to EventAI
 struct MANGOS_DLL_DECL mob_eyebeam_triggerAI : public ScriptedAI
 {
-    mob_eyebeam_triggerAI(Creature* pCreature) : ScriptedAI(pCreature){}
+    mob_eyebeam_triggerAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+    }
+
+    bool m_bIsRegularMode;
+
     void Reset(){}
-    void UpdateAI(const uint32 uiDiff){}
+    void UpdateAI(const uint32 uiDiff)
+    {
+        switch (m_creature->GetEntry())
+        {
+            case NPC_FOCUSED_EYEBEAM_LEFT:
+            {
+                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_EYEBEAM_PERIODIC : SPELL_EYEBEAM_PERIODIC_H, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+                DoCastSpellIfCan(m_creature, SPELL_EYEBEAM_VISUAL_LEFT_2, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+                break;
+            }
+            case NPC_FOCUSED_EYEBEAM_RIGHT:
+            {
+                DoCastSpellIfCan(m_creature, SPELL_EYEBEAM_PERIODIC_VIS, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+                DoCastSpellIfCan(m_creature, SPELL_EYEBEAM_VISUAL_RIGHT, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+                break;
+            }
+            default:
+                m_creature->MonsterSay("Unknow Creature-id for Eyebeam Script", 0);
+                break;
+        }
+        if (!m_creature->getVictim())
+        {
+            if (Map* pMap = m_creature->GetMap())
+            {
+                Map::PlayerList const& pPlayers = pMap->GetPlayers();
+                if (!pPlayers.isEmpty())
+                {
+                    for (Map::PlayerList::const_iterator itr = pPlayers.begin(); itr != pPlayers.end(); ++itr)
+                    {
+                        Player* pTarget = itr->getSource();
+                        if (pTarget->HasAura(SPELL_FOCUSED_EYEBEAM_DUMMY_BUFF))
+                        {
+                            AttackStart(pTarget);
+                        }
+                    }
+                }
+            }
+        }
+    }
 };
+
 CreatureAI* GetAI_mob_eyebeam_trigger(Creature* pCreature)
 {
     return new mob_eyebeam_triggerAI(pCreature);
-}*/
+}
 
 // kologarn kill pit bunny - kills players that fall down into the pit. also handling bridge respawn after server restarts
 struct MANGOS_DLL_DECL mob_kologarn_pit_kill_bunnyAI : public ScriptedAI
@@ -714,10 +660,10 @@ void AddSC_boss_kologarn()
     NewScript->GetAI = &GetAI_boss_right_arm;
     NewScript->RegisterSelf();
 
-    /*NewScript = new Script;
+    NewScript = new Script;
     NewScript->Name = "mob_eyebeam_trigger";
     NewScript->GetAI = &GetAI_mob_eyebeam_trigger;
-    NewScript->RegisterSelf();*/
+    NewScript->RegisterSelf();
 
     NewScript = new Script;
     NewScript->Name = "mob_kologarn_pit_kill_bunny";
