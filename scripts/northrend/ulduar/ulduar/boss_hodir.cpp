@@ -127,11 +127,21 @@ struct MANGOS_DLL_DECL mob_npc_flashFreezeAI : public ScriptedAI
 
     instance_ulduar* m_pInstance;
 
-    uint32  m_uiFreezeNPCTimer;
+    uint32  m_uiFreezeCheck;
 
     void Reset()
     {
-        m_uiFreezeNPCTimer = 300;
+        m_uiFreezeCheck = 150;
+        if (Unit* pCreator = m_creature->GetCreator())
+        {
+            if (!pCreator->HasAura(SPELL_FLASH_FREEZE_NPC_STUN))
+            {
+                m_creature->InterruptNonMeleeSpells(false);
+                DoCastSpellIfCan(pCreator, SPELL_FLASH_FREEZE_NPC_STUN, CAST_TRIGGERED);
+            }
+            else
+                m_creature->ForcedDespawn();
+        }
     }
 
     void DamageTaken(Unit* pDonyby, uint32 &uiDamage)
@@ -162,7 +172,7 @@ struct MANGOS_DLL_DECL mob_npc_flashFreezeAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_uiFreezeNPCTimer < uiDiff)
+        if (m_uiFreezeCheck < uiDiff)
         {
             if (Unit* pCreator = m_creature->GetCreator())
             {
@@ -172,11 +182,10 @@ struct MANGOS_DLL_DECL mob_npc_flashFreezeAI : public ScriptedAI
                     DoCastSpellIfCan(pCreator, SPELL_FLASH_FREEZE_NPC_STUN, CAST_TRIGGERED);
                 }
             }
-            m_uiFreezeNPCTimer = 1000;
+            m_uiFreezeCheck = 1000;
         }
         else
-            m_uiFreezeNPCTimer -= uiDiff;
-
+            m_uiFreezeCheck -= uiDiff;
     }
 };
 
@@ -206,7 +215,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     uint32 m_uiOutroTimer;
     uint32 m_uiStep;
 
-    bool   m_bhardmode;
+    bool   m_bHardmode;
 
     void Reset()
     {
@@ -219,7 +228,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
         m_uiOutroTimer          = 10000;
         m_uiStep                = 1;
         m_bIsOutro              = false;
-        m_bhardmode             = true;
+        m_bHardmode             = true;
 
         if (Creature* pMage = m_pInstance->GetSingleCreatureFromStorage(NPC_HELPER_MAGE))
         {
@@ -279,7 +288,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     {
         if(m_pInstance)
         {
-            if(m_bhardmode)
+            if(m_bHardmode)
             {
                 m_pInstance->SetData(TYPE_HODIR_HARD, DONE);
             }
@@ -294,7 +303,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     {
         if(m_pInstance)
         {
-            if(m_bhardmode)
+            if(m_bHardmode)
             {
                 m_pInstance->SetData(TYPE_HODIR_HARD, DONE);
             }
@@ -349,12 +358,12 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
                 EnterEvadeMode();
 
             // hard mode check
-            if (m_bhardmode)
+            if (m_bHardmode)
             {
                 m_uiSpeedKillTimer += uiDiff;
                 if (m_uiSpeedKillTimer > 180000)
                 {
-                    m_bhardmode = false;
+                    m_bHardmode = false;
                     DoScriptText(EMOTE_SPEEDKILL, m_creature);
                     if (m_pInstance)
                         m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_RARE_CACHE, false);
@@ -573,20 +582,25 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         SetCombatMovement(false);
+        m_bInIce = false;
         Reset();
     }
 
     instance_ulduar *m_pInstance;
 
     bool m_bIsRegularMode;
+    bool m_bInIce;
 
     uint32 m_uiSpellTimer;
     uint32 m_uiCeckMove;
 
     void SummonFlashFreeze()
     {
-        if (!m_creature->HasAura(SPELL_FLASH_FREEZE_NPC_STUN) &&  m_creature->isAlive())
+        if (!m_creature->HasAura(SPELL_FLASH_FREEZE_NPC_STUN) &&  m_creature->isAlive() && !m_bInIce)
+        {
             DoCast(m_creature, SPELL_FLASH_FREEZE_SUMMON_NPC, true);
+            m_bInIce = true;
+        }
     }
 
     void Reset()
@@ -609,6 +623,20 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
     {
         if (m_creature->HasAura(SPELL_FLASH_FREEZE_NPC_STUN))
             uiDamage = 0;
+    }
+
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_FLASH_FREEZE_NPC && m_pInstance->GetData(TYPE_HODIR) == IN_PROGRESS)
+        {
+            if(Creature *pHodir = m_pInstance->GetSingleCreatureFromStorage(NPC_HODIR))
+            {
+                AttackStart(pHodir);
+                m_bInIce = false;
+            }
+        }
+        else
+            m_creature->MonsterSay("Unknow NPC", LANG_UNIVERSAL);
     }
 
     void JustDied( Unit* pKiller)
@@ -725,6 +753,9 @@ struct MANGOS_DLL_DECL npc_hodir_helperAI : public ScriptedAI
                             result = DoCastSpellIfCan(m_creature, SPELL_TOASTY_FIRE);
                             break;
                     }
+                    break;
+                default:
+                    m_creature->MonsterSay("Unknow NPC", LANG_UNIVERSAL);
                     break;
             }
             if (result == CAST_OK)
