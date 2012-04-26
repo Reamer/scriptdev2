@@ -34,6 +34,9 @@ void instance_pinnacle::Initialize()
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     for (uint8 i = 0; i < MAX_SPECIAL_ACHIEV_CRITS; ++i)
         m_abAchievCriteria[i] = false;
+        
+    m_uiMoveTimer = 0;
+    m_uiGordokSubBossCount = 0;
 }
 
 void instance_pinnacle::OnObjectCreate(GameObject* pGo)
@@ -165,6 +168,14 @@ void instance_pinnacle::OnCreatureDeath(Creature * pCreature)
             m_abAchievCriteria[TYPE_ACHIEV_THE_INCREDIBLE_HULK] = true;
         }
     }
+    else if (IsCreatureGortokSubboss(pCreature->GetEntry()))
+    {
+        DoOrbAction();
+    }
+    else if (pCreature->GetEntry() == NPC_GORTOK)
+    {
+        SetData(TYPE_GORTOK, DONE); // orb despawn with next update
+    }
 }
 
 bool instance_pinnacle::CheckAchievementCriteriaMeet(uint32 criteria_id, Player const* source, Unit const* target, uint32 miscvalue1)
@@ -245,9 +256,118 @@ void instance_pinnacle::DoMakeFreezingCloud()
     }
 }
 
+void instance_pinnacle::OnCreatureEvade(Creature * pCreature)
+{
+    if (IsCreatureGortokSubboss(pCreature->GetEntry()) || pCreature->GetEntry() == NPC_GORTOK)
+    {
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        SetData(TYPE_GORTOK, FAIL); // orb despawn with next update
+    }
+}
+
+bool instance_pinnacle::IsCreatureGortokSubboss(uint32 entry)
+{
+    return entry >= NPC_WORGEN && entry <= NPC_RHINO;
+}
+
+void instance_pinnacle::Update(uint32 const uiDiff)
+{
+    if (Creature* pGortokOrb = instance->GetCreature(m_gortokOrb)
+    {
+        if (m_pInstance->GetData(TYPE_GORTOK) != IN_PROGRESS)
+        {
+            pGortokOrb->ForcedDespawn();
+        }
+
+        if (m_uiMoveTimer)
+        {
+            if (m_uiMoveTimer < uiDiff)
+            {
+                switch (m_uiStep)
+                {
+                    case 1:
+                    {
+                        pGortokOrb->GetMotionMaster()->MovePoint(0, 238.61f, -460.71f, 109.57f + 4.0f, false);
+                        m_uiStepTimer = 4000;
+                        ++m_uiStep;
+                        break;
+                    }
+                    case 2:
+                    {
+                        pGortokOrb->GetMotionMaster()->MovePoint(1, 279.11f, -452.01f, 109.57f + 2.0f, false);
+                        m_uiStepTimer = 10000;
+                        ++m_uiStep;
+                        break;
+                    }
+                    case 3:
+                    {
+                        DoOrbAction();
+                        m_uiMoveTimer = 0;
+                        break;
+                    }
+                    default:  // should never appear
+                    {
+                        SetData(TYPE_GORTOK, FAIL);
+                        break;
+                    }
+                }
+            }
+            else
+                m_uiMoveTimer -= uiDiff;
+        }
+    }
+}
+
+void instance_pinnacle::InitializeOrb(ObjectGuid orb)
+{
+    
+    if (Creature* pGortokOrb = instance->GetCreature(m_gortokOrb))
+    {
+        m_gortokOrb = orb;
+        m_uiMoveTimer = 4000;
+        m_uiStep = 1;
+        m_uiBossCount = 0;
+        pGortokOrb->SetLevitate(true);
+        pGortokOrb->SetDisplayId(16925);
+        pGortokOrb->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
+        pGortokOrb->CastSpell(m_creature, SPELL_ORB_VISUAL, true);
+        SetData(TYPE_GORTOK, IN_PROGRESS);
+    }
+}
+
+void instance_pinnacle::DoOrbAction()
+{
+    if (Creature* pGortokOrb = instance->GetCreature(m_gortokOrb))
+    {
+        ++m_uiGordokSubBossCount;
+        bool nextBoss = m_uiBossCount > (m_bIsRegularMode ? 2 : 4);
+        pGortokOrb->CastSpell(m_creature, nextBoss ? SPELL_WAKEUP_GORTOK : SPELL_WAKEUP_SUBBOSS, false);
+    }
+}
+
 InstanceData* GetInstanceData_instance_pinnacle(Map* pMap)
 {
     return new instance_pinnacle(pMap);
+}
+
+bool ProcessEventId_event_start_gortok(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIsStart)
+{
+    if (pSource->isType(TYPEMASK_WORLDOBJECT))
+    {
+        WorldObject* pObject = (WorldObject*)pSource;
+        if (instance_pinnacle* m_pInstance = (instance_pinnacle*)pObject->GetInstanceData())
+        {
+            if (m_pInstance->GetData(TYPE_GORTOK) == NOT_STARTED || m_pInstance->GetData(TYPE_GORTOK) == FAIL)
+            {
+                if (Creature* pGortokOrb = pObject->SummonCreature(NPC_STASIS_CONTROLLER, 238.61f, -460.71f, 109.57f, 0, TEMPSUMMON_DEAD_DESPAWN, 0))
+                {
+                    m_pInstance->InitializeOrb(pGortokOrb->getObjectGuid())
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void AddSC_instance_pinnacle()
@@ -257,5 +377,10 @@ void AddSC_instance_pinnacle()
     pNewScript = new Script;
     pNewScript->Name = "instance_pinnacle";
     pNewScript->GetInstanceData = &GetInstanceData_instance_pinnacle;
+    pNewScript->RegisterSelf();
+    
+    pNewScript = new Script;
+    pNewScript->Name = "event_start_gortok";
+    pNewScript->pProcessEventId= &ProcessEventId_event_start_gortok;
     pNewScript->RegisterSelf();
 }

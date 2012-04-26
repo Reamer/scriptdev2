@@ -44,152 +44,7 @@ enum
     SPELL_WITHERING_ROAR_H  = 59267,
 
     SPELL_ARCING_SMASH      = 48260,
-
-    // orb handling
-    SPELL_FREEZE            = 16245,
-
-    SPELL_WAKEUP_GORTOK     = 47670,
-    SPELL_WAKEUP_SUBBOSS    = 47669,
-
-    SPELL_ORB_VISUAL        = 48044,
-    
-    SPELL_GORTOK_EVENT      = 48055,
-    SPELL_ORB_CHANNEL       = 48048,
 };
-
-struct MANGOS_DLL_DECL npc_gortok_orbAI : public ScriptedAI
-{
-    npc_gortok_orbAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (instance_pinnacle*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
-    }
-    
-    instance_pinnacle* m_pInstance;
-    bool m_bIsRegularMode;
-
-    uint32 m_uiStepTimer;
-    uint32 m_uiCheckTimer;
-    uint8 m_uiStep;
-    bool m_bTimeToAct;
-    uint8 m_uiBossCount;
-    
-    ObjectGuid m_currentBossGuid;
-    
-
-    void Reset()
-    {
-        m_uiStepTimer = 4000;
-        m_uiCheckTimer = 2000;
-        m_uiStep = 1;
-        m_bTimeToAct = true;
-        m_uiBossCount = 0;
-        m_creature->SetLevitate(true);
-        m_creature->SetDisplayId(16925);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->CastSpell(m_creature, SPELL_ORB_VISUAL, true);
-    }
-
-    void MovementInform(uint32 uiType, uint32 uiPointId)
-    {
-        if (uiType != POINT_MOTION_TYPE)
-            return;
-
-        if (uiPointId == 1)
-            DoAction();
-    }
-
-    void DoAction()
-    {
-        m_uiStepTimer = 2000;
-        m_uiStep = 3;
-        m_bTimeToAct = true;
-    }
-    
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
-    {
-        if ((pSpell->Id == SPELL_WAKEUP_SUBBOSS || pSpell->Id == SPELL_WAKEUP_GORTOK) && pTarget->GetTypeId() == TYPEID_UNIT)
-        {
-            m_currentBossGuid = pTarget->GetObjectGuid();
-            pTarget->RemoveAurasDueToSpell(SPELL_FREEZE);
-            pTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            ((Creature*)pTarget)->SetInCombatWithZone();
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_pInstance)
-            return;
-
-        if (m_pInstance->GetData(TYPE_GORTOK) != IN_PROGRESS)
-            m_creature->ForcedDespawn();
-
-        if (!m_bTimeToAct)
-        {
-            if (m_uiCheckTimer < uiDiff)
-            {
-                if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_currentBossGuid))
-                {
-                    if (pTemp->isDead())
-                        DoAction();
-                    else if (!pTemp->isInCombat())
-                        m_pInstance->SetData(TYPE_GORTOK, FAIL);
-                }
-                m_uiCheckTimer = 2000;
-            }
-            else
-                m_uiCheckTimer -= uiDiff;
-        }
-        else
-        {
-            if (m_uiStepTimer < uiDiff)
-            {
-                switch (m_uiStep)
-                {
-                    case 1:
-                    {
-                        m_creature->GetMotionMaster()->MovePoint(0, 238.61f, -460.71f, 109.57f + 4.0f, false);
-                        m_uiStepTimer = 4000;
-                        ++m_uiStep;
-                        break;
-                    }
-                    case 2:
-                    {
-                        m_creature->GetMotionMaster()->MovePoint(1, 279.11f, -452.01f, 109.57f + 2.0f, false);
-                        m_bTimeToAct = false;
-                        ++m_uiStep;
-                        break;
-                    }
-                    case 3:
-                    {
-                        ++m_uiBossCount;
-                        bool nextBoss = m_uiBossCount > (m_bIsRegularMode ? 2 : 4);
-                        if (DoCastSpellIfCan(m_creature, nextBoss ? SPELL_WAKEUP_GORTOK : SPELL_WAKEUP_SUBBOSS) == CAST_OK)
-                        {
-                            m_bTimeToAct = false;
-                        }
-                        break;
-                    }
-                    default:
-                    {
-                        if (m_pInstance)
-                            m_pInstance->SetData(TYPE_GORTOK, FAIL); // should never appear
-                        break;
-                    }
-                }
-            }
-            else
-                m_uiStepTimer -= uiDiff;
-        }
-    }
-};
-
-CreatureAI* GetAI_npc_gortok_orb(Creature* pCreature)
-{
-    return new npc_gortok_orbAI(pCreature);
-}
 
 /*######
 ## boss_gortok
@@ -199,12 +54,10 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
 {
     boss_gortokAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (instance_pinnacle*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
-    instance_pinnacle* m_pInstance;
     bool m_bIsRegularMode;
 
     uint32 m_uiWitheringRoar;
@@ -231,16 +84,6 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_GORTOK, DONE);
-    }
-
-    void EnterEvadeMode()
-    {
-        ScriptedAI::EnterEvadeMode();
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_GORTOK, FAIL);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -287,24 +130,6 @@ CreatureAI* GetAI_boss_gortok(Creature* pCreature)
     return new boss_gortokAI(pCreature);
 }
 
-bool ProcessEventId_event_start_gortok(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIsStart)
-{
-    if (pSource->isType(TYPEMASK_WORLDOBJECT))
-    {
-        WorldObject* pObject = (WorldObject*)pSource;
-        if (instance_pinnacle* m_pInstance = (instance_pinnacle*)pObject->GetInstanceData())
-        {
-            if (m_pInstance->GetData(TYPE_GORTOK) == NOT_STARTED || m_pInstance->GetData(TYPE_GORTOK) == FAIL)
-            {
-                pObject->SummonCreature(NPC_STASIS_CONTROLLER, 238.61f, -460.71f, 109.57f, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
-                m_pInstance->SetData(TYPE_GORTOK, IN_PROGRESS);
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 void AddSC_boss_gortok()
 {
     Script* pNewScript;
@@ -312,15 +137,5 @@ void AddSC_boss_gortok()
     pNewScript = new Script;
     pNewScript->Name = "boss_gortok";
     pNewScript->GetAI = &GetAI_boss_gortok;
-    pNewScript->RegisterSelf();
-    
-    pNewScript = new Script;
-    pNewScript->Name = "npc_gortok_orb";
-    pNewScript->GetAI = &GetAI_npc_gortok_orb;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "event_start_gortok";
-    pNewScript->pProcessEventId= &ProcessEventId_event_start_gortok;
     pNewScript->RegisterSelf();
 }
