@@ -91,9 +91,6 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
             
-        if (m_pInstance->GetData(TYPE_GORTOK) != IN_PROGRESS) // something wrong with Orb
-            EnterEvadeMode();
-
         if (m_uiWitheringRoar < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_WITHERING_ROAR : SPELL_WITHERING_ROAR_H) == CAST_OK)

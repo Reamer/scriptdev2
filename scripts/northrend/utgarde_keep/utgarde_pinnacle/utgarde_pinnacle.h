@@ -84,7 +84,7 @@ class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
 
         void OnCreatureDeath(Creature * pCreature);
         void OnCreatureEvade(Creature * pCreature);
-        void Update(uint32 uiDiff)
+        void Update(uint32 uiDiff);
 
         const char* Save() { return m_strInstData.c_str(); }
         void Load(const char* chrIn);
@@ -93,7 +93,7 @@ class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         void DoMakeFreezingCloud();
         void DoOrbAction();
         bool IsCreatureGortokSubboss(uint32 entry);
-        void InitializeOrb(ObjectGuid orb)
+        void InitializeOrb(ObjectGuid orb);
 
     protected:
         bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
@@ -110,6 +110,7 @@ class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         ObjectGuid m_gortokOrb;
         
         uint32 m_uiMoveTimer;
+        uint8 m_uiStep;
         uint8 m_uiGordokSubBossCount;
 };
 
