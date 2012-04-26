@@ -20,8 +20,10 @@ enum
 
     NPC_SCOURGE_HULK                = 26555,
 
-    NPC_FURBOLG                     = 26684,
+    NPC_STASIS_CONTROLLER           = 22515,
+
     NPC_WORGEN                      = 26683,
+    NPC_FURBOLG                     = 26684,
     NPC_JORMUNGAR                   = 26685,
     NPC_RHINO                       = 26686,
 
