@@ -514,7 +514,7 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STONE_GRIP_GRAB : SPELL_STONE_GRIP_GRAB_H) == CAST_OK)
                 {
-                    DoScriptText(SAY_GRAB, pKologarn);
+                    //DoScriptText(SAY_GRAB, pKologarn);
                     DoScriptText(EMOTE_STONE_GRIP, m_creature);
                     m_uiStoneGrip = 30000;
                 }                
