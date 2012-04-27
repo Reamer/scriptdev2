@@ -282,7 +282,7 @@ void instance_pinnacle::Update(uint32 const uiDiff)
 
         if (m_uiMoveTimer)
         {
-            if (m_uiMoveTimer < uiDiff)
+            if (m_uiMoveTimer <= uiDiff)
             {
                 switch (m_uiStep)
                 {
@@ -313,27 +313,23 @@ void instance_pinnacle::Update(uint32 const uiDiff)
                     }
                 }
             }
+            
             else
                 m_uiMoveTimer -= uiDiff;
         }
     }
 }
 
-void instance_pinnacle::InitializeOrb(ObjectGuid orb)
+void instance_pinnacle::InitializeOrb(Creature* pGortokOrb)
 {
-    
-    if (Creature* pGortokOrb = instance->GetCreature(m_gortokOrb))
-    {
-        m_gortokOrb = orb;
-        m_uiMoveTimer = 4000;
-        m_uiStep = 1;
-        m_uiGordokSubBossCount = 0;
-        pGortokOrb->SetLevitate(true);
-        pGortokOrb->SetDisplayId(16925);
-        pGortokOrb->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
-        pGortokOrb->CastSpell(pGortokOrb, SPELL_ORB_VISUAL, true);
-        SetData(TYPE_GORTOK, IN_PROGRESS);
-    }
+    m_gortokOrb = pGortokOrb->GetObjectGuid();
+    m_uiMoveTimer = 4000;
+    m_uiStep = 1;
+    m_uiGordokSubBossCount = 0;
+    pGortokOrb->SetLevitate(true);
+    pGortokOrb->SetDisplayId(16925);
+    pGortokOrb->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
+    pGortokOrb->CastSpell(pGortokOrb, SPELL_ORB_VISUAL, true);
 }
 
 void instance_pinnacle::DoOrbAction()
@@ -356,13 +352,18 @@ bool ProcessEventId_event_start_gortok(uint32 uiEventId, Object* pSource, Object
     if (pSource->isType(TYPEMASK_WORLDOBJECT))
     {
         WorldObject* pObject = (WorldObject*)pSource;
+        pObject->MonsterSay("Hier 1", 0);
         if (instance_pinnacle* m_pInstance = (instance_pinnacle*)pObject->GetInstanceData())
         {
+            pObject->MonsterSay("Hier 2", 0);
             if (m_pInstance->GetData(TYPE_GORTOK) == NOT_STARTED || m_pInstance->GetData(TYPE_GORTOK) == FAIL)
             {
+                pObject->MonsterSay("Hier 3", 0);
+                m_pInstance->SetData(TYPE_GORTOK, IN_PROGRESS);
                 if (Creature* pGortokOrb = pObject->SummonCreature(NPC_STASIS_CONTROLLER, 238.61f, -460.71f, 109.57f, 0, TEMPSUMMON_DEAD_DESPAWN, 0))
                 {
-                    m_pInstance->InitializeOrb(pGortokOrb->GetObjectGuid());
+                    pObject->MonsterSay("Hier 4", 0);
+                    m_pInstance->InitializeOrb(pGortokOrb);
                     return true;
                 }
             }

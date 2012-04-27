@@ -93,7 +93,7 @@ class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         void DoMakeFreezingCloud();
         void DoOrbAction();
         bool IsCreatureGortokSubboss(uint32 entry);
-        void InitializeOrb(ObjectGuid orb);
+        void InitializeOrb(Creature * pCreature);
 
     protected:
         bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
