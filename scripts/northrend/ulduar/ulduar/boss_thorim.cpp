@@ -73,8 +73,20 @@ enum
     SPELL_LIGHTNING_CHARGE_ORB      = 62466,
     SPELL_UNBALANCING_STRIKE        = 62130,
     SPELL_BERSERK                   = 26662,    // 5 min phase 2
+    
+    // TODO: more lighting stuff
+    // LIGHTING
+    SPELL_LIGHTNING_CHARGE          = 62186,     // 33378 cast on self -> triggerd 62278 after 8 seconds, but aura only presetn 5 seconds
+    SPELL_LIGHTNING_PILLAR          = 62976,    // 33378 (maybe orb down) -> 33378 (orb up),but not the same npc
+    SPELL_LIGHTNING_BOLT            = 64098,    // 33378 -> thorim
+    SPELL_LIGHTNING_ORB_CHARGER     = 62278,    // 33378 (maybe orb up) -> thorim, after hit thorim turn to 33378 and fires 62466
+    SPELL_ACTIVATE_LIGHTNING_ORB_PERIODIC = 62184, // cast from 32879 Thorim Controller (thorim controller have a lot of spells on blizzard, but no spell is in spell.dbc)
+    
+    SPELL_LIGHTNING_FIELD           = 64972,    // gecastet von 32892
 
     // hard mode
+    SPELL_FROST_BOLT                = 62583,    // TODO: need implement
+    SPELL_FROST_BOLT_H              = 62601,    // TODO: need implement
     SPELL_FROSTBOLT_VOLLEY          = 62580,
     SPELL_FROSTBOLT_VOLLEY_H        = 62604,
     SPELL_FROST_NOVA                = 62597,
@@ -685,12 +697,6 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
             
     }
-    // support CORE!!!
-    void SpellHitTarget(Unit* pSpellTarget, const SpellEntry* pSpell)
-    {
-        if(pSpell->Id == SPELL_STORMHAMMER)
-            pSpellTarget->CastSpell(pSpellTarget, SPELL_DEAFENING_THUNDER, false,0,0,m_creature->GetObjectGuid());
-    }
 
     void JustReachedHome()
     {
@@ -1012,11 +1018,11 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 // doesn't work right, needs fixing
                 if(m_uiChargeOrbTimer < uiDiff)
                 {
-                    if (Creature* pOrb = SelectRandomOrb())
-                        DoCast(pOrb, SPELL_CHARGE_ORB);
-                    m_uiChargeOrbTimer = 20000;
+                    if (DoCastSpellIfCan(pOrb, SPELL_CHARGE_ORB) == CAST_OK)
+                        m_uiChargeOrbTimer = 20000;
                 }
-                else m_uiChargeOrbTimer -= uiDiff; 
+                else
+                    m_uiChargeOrbTimer -= uiDiff; 
 
                 // storm hammer
                 if(m_uiStormHammerTimer < uiDiff)
@@ -1026,12 +1032,13 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                         // should target only the players in the arena!
                         if(pTarget->IsInRange2d(2134.0f, -263.0f ,0 , 50))  // middle point of arena - width of arena ~45m
                         {
-                            DoCast(pTarget, SPELL_STORMHAMMER);
-                            m_uiStormHammerTimer = 15000;
+                            if (DoCastSpellIfCan(pTarget, SPELL_STORMHAMMER) == CAST_OK)
+                                m_uiStormHammerTimer = 15000;
                         }
                     }
                 }
-                else m_uiStormHammerTimer -= uiDiff; 
+                else
+                    m_uiStormHammerTimer -= uiDiff; 
 
                 if(m_uiArenaYellTimer < uiDiff)
                 {
@@ -1087,19 +1094,25 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 if(m_uiOrbChargeTimer < uiDiff)
                 {
                     if (Creature* pOrb = SelectRandomOrb())
-                        DoCast(pOrb, SPELL_LIGHTNING_CHARGE_ORB);
-                    m_uiOrbChargeTimer = 20000;
+                    {
+                        if (DoCastSpellIfCan(pOrb, SPELL_LIGHTNING_CHARGE_ORB) == CAST_OK)
+                            m_uiOrbChargeTimer = 20000;
+                    }
                 }
-                else m_uiOrbChargeTimer -= uiDiff;
+                else
+                    m_uiOrbChargeTimer -= uiDiff;
 
                 // unbalancing strike
                 if(m_uiUnbalancingStrikeTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
-                        DoCast(pTarget, SPELL_UNBALANCING_STRIKE);
-                    m_uiUnbalancingStrikeTimer = 25000;
+                    {
+                        if (DoCastSpellIfCan(pTarget, SPELL_UNBALANCING_STRIKE) == CAST_OK)
+                            m_uiUnbalancingStrikeTimer = 25000;
+                    }
                 }
-                else m_uiUnbalancingStrikeTimer -= uiDiff; 
+                else
+                    m_uiUnbalancingStrikeTimer -= uiDiff; 
 
                 // phase 2 berserk
                 if(m_uiBerserkTimer < uiDiff)
