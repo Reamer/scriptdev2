@@ -277,7 +277,6 @@ struct MANGOS_DLL_DECL boss_elder_brightleafAI : public ScriptedAI
     uint32 m_uiUnstableSunBeanTimer;
     uint32 m_uiUnstabelEnergyTimer;
     uint32 m_uiHealTimer;
-    bool m_bHasSunbeam;
 
     void Reset()
     {
@@ -285,7 +284,6 @@ struct MANGOS_DLL_DECL boss_elder_brightleafAI : public ScriptedAI
         m_uiSolarFlareTimer         = 10000 + urand(1000, 5000);
         m_uiUnstableSunBeanTimer    = 15000;
         m_uiUnstabelEnergyTimer     = 30000;
-        m_bHasSunbeam               = false;
     }
 
     void Aggro(Unit* pWho)
