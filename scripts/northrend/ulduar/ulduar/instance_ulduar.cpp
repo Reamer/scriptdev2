@@ -100,11 +100,21 @@ void instance_ulduar::OnCreatureCreate(Creature* pCreature)
     case NPC_THORIM:
     case NPC_RUNIC_COLOSSUS:
         break;
-    case NPC_RIGHT_HAND_TRIGGER:
-        m_lRightHandTriggerGuids.push_back(pCreature->GetObjectGuid());
+    case NPC_THUNDER_ORB:
+    {
+        if (pCreature->GetPositionZ() > 425.0f)
+        {
+            m_lUpperOrbs.push_back(pCreature->GetObjectGuid());
+        }
+        else
+        {
+            m_lLowerOrbs.push_back(pCreature->GetObjectGuid());
+        }
         return;
+    }
+    case NPC_RIGHT_HAND_TRIGGER:
     case NPC_LEFT_HAND_TRIGGER:
-        m_lLeftHandTriggerGuids.push_back(pCreature->GetObjectGuid());
+        SortHandTrigger(pCreature);
         return;
     case NPC_RUNE_GIANT:
     case NPC_JORMUNGAR_BEHEMOTH:
@@ -353,6 +363,12 @@ void instance_ulduar::DoOpenMadnessDoorIfCan()
         OpenDoor(GO_ANCIENT_GATE);
 }
 
+void instance_ulduar::DoColossusExplosion(ExplosionSide explosionSide)
+{
+    m_explosionSide = explosionSide;
+    m_uiExplosionRow = 0;
+    m_uiExplosionTimer = 250;
+}
 void instance_ulduar::SetData(uint32 uiType, uint32 uiData)
 {
     switch(uiType)
@@ -944,7 +960,55 @@ bool instance_ulduar::CheckConditionCriteriaMeet(Player const* source, uint32 ma
     return false;
 }
 
-void instance_ulduar::Update(uint32 uiDiff)
+void instance_ulduar::SortHandTrigger(Creature* pCreature)
+{
+    // only Handtrigger NPC
+    if (pCreature->GetEntry() != NPC_RIGHT_HAND_TRIGGER && pCreature->GetEntry() != NPC_LEFT_HAND_TRIGGER)
+        return;
+
+    if (pCreature->GetPositionY() < -376)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][0].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -376 && pCreature->GetPositionY() < -363)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][1].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -363 && pCreature->GetPositionY() < -351)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][2].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -351 && pCreature->GetPositionY() < -337)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][3].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -337 && pCreature->GetPositionY() < -322)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][4].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -322 && pCreature->GetPositionY() < -308)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][5].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -308 && pCreature->GetPositionY() < -293)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][6].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -293 && pCreature->GetPositionY() < -279)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][7].push_back(pCreature->GetObjectGuid());
+    }
+    else if (pCreature->GetPositionY() >= -279 && pCreature->GetPositionY() < -265)
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][8].push_back(pCreature->GetObjectGuid());
+    }
+    else
+    {
+        m_lHandTriggerGuids[pCreature->GetEntry() == NPC_RIGHT_HAND_TRIGGER ? RIGHT_EXPLOSION : LEFT_EXPLOSION][9].push_back(pCreature->GetObjectGuid());
+    }
+}
+
+void instance_ulduar::Update(uint32 const uiDiff)
 {
     if (m_bOneIsDeath)
     {
@@ -955,6 +1019,34 @@ void instance_ulduar::Update(uint32 uiDiff)
         else
             m_uiShatterTimer -= uiDiff;
     }
+
+    if (m_uiExplosionTimer < uiDiff)
+    {
+        if (m_explosionSide != NO_EXPLOSION)
+        {
+            if (m_uiExplosionRow > 9)
+            {
+                m_explosionSide = NO_EXPLOSION;
+            }
+            else
+            {
+                if (Creature* pColossus = GetSingleCreatureFromStorage(NPC_RUNIC_COLOSSUS))
+                {
+                    for (GUIDList::iterator itr = m_lHandTriggerGuids[m_explosionSide][m_uiExplosionRow].begin(); itr != m_lHandTriggerGuids[m_explosionSide][m_uiExplosionRow].end(); ++itr)
+                    {
+                        if (Unit* trigger = instance->GetUnit(*itr))
+                        {
+                            trigger->CastSpell(trigger, SPELL_RUNIC_SMASH_DMG, false, 0, 0, pColossus->GetObjectGuid());
+                        }
+                    }
+                }
+                ++m_uiExplosionRow;
+                m_uiExplosionTimer = 250;
+            }
+        }
+    }
+    else
+        m_uiExplosionTimer -= uiDiff;
 }
 
 uint32 instance_ulduar::GetData(uint32 uiType)
