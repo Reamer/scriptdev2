@@ -38,6 +38,7 @@ void instance_pinnacle::Initialize()
     m_uiMoveTimer = 0;
     m_uiGordokSubBossCount = 0;
     m_uiStep = 1;
+    m_bNeedMovement = false;
 }
 
 void instance_pinnacle::OnObjectCreate(GameObject* pGo)
@@ -278,9 +279,10 @@ void instance_pinnacle::Update(uint32 const uiDiff)
         if (GetData(TYPE_GORTOK) != IN_PROGRESS)
         {
             pGortokOrb->ForcedDespawn();
+            return;
         }
 
-        if (m_uiMoveTimer)
+        if (m_bNeedMovement)
         {
             if (m_uiMoveTimer <= uiDiff)
             {
@@ -303,7 +305,7 @@ void instance_pinnacle::Update(uint32 const uiDiff)
                     case 3:
                     {
                         DoOrbAction();
-                        m_uiMoveTimer = 0;
+                        m_bNeedMovement = false;
                         break;
                     }
                     default:  // should never appear
@@ -313,7 +315,6 @@ void instance_pinnacle::Update(uint32 const uiDiff)
                     }
                 }
             }
-            
             else
                 m_uiMoveTimer -= uiDiff;
         }
@@ -324,6 +325,7 @@ void instance_pinnacle::InitializeOrb(Creature* pGortokOrb)
 {
     m_gortokOrb = pGortokOrb->GetObjectGuid();
     m_uiMoveTimer = 4000;
+    m_bNeedMovement = true;
     m_uiStep = 1;
     m_uiGordokSubBossCount = 0;
     pGortokOrb->SetLevitate(true);

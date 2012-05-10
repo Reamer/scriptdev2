@@ -482,7 +482,7 @@ void AddSC_boss_auriaya()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
-    pNewScript->Name = "mob_feral_defender";
+    pNewScript->Name = "boss_feral_defender";
     pNewScript->GetAI = &GetAI_boss_feral_defender;
     pNewScript->RegisterSelf();
 }

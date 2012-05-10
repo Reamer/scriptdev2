@@ -110,6 +110,7 @@ class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         ObjectGuid m_gortokOrb;
         
         uint32 m_uiMoveTimer;
+        bool m_bNeedMovement;
         uint8 m_uiStep;
         uint8 m_uiGordokSubBossCount;
 };
