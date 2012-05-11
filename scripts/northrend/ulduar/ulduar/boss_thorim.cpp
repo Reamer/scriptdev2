@@ -116,42 +116,6 @@ enum
     SPELL_PARALYTIC_FIELD           = 63540,
     SPELL_PARALYTIC_FIELD2          = 62241,
 
-    // mobs spells
-    // acolyte
-    SPELL_GREATER_HEAL              = 62334,
-    SPELL_GREATER_HEAL_H            = 62442,
-    SPELL_RENEW                     = 62333,
-    SPELL_RENEW_H                   = 62441,
-    SPELL_HOLY_SMITE                = 62335,
-    SPELL_HOLY_SMITE_H              = 62443,
-    // champion
-    SPELL_MORTAL_STRIKE             = 35054,
-    SPELL_CHARGE_CHAMPION           = 32323,
-    SPELL_WHIRLWIND                 = 15578,
-    // commoner         
-    SPELL_LOW_BLOW                  = 62326,
-    SPELL_PUMMEL                    = 38313,
-    // evoker
-    SPELL_RUNIC_LIGHTNING           = 62327,
-    SPELL_RUNIC_LIGHTNING_H         = 62445,
-    SPELL_RUNIC_MENDING             = 62328,
-    SPELL_RUNIC_MENDING_H           = 62446,
-    SPELL_RUNIC_SHIELD              = 62321,
-    SPELL_RUNIC_SHIELD_H            = 62529,
-    // warbringer
-    SPELL_RUNIC_STRIKE              = 62322,
-    SPELL_AURA_CELERITY             = 62320,
-
-    // ring guard
-    SPELL_WHIRLING_TRIP             = 64151,
-    SPELL_IMPALE                    = 62331,
-    SPELL_IMPALE_H                  = 62418,
-    // honor guard
-    SPELL_CLEAVE                    = 42724, 
-    SPELL_HAMSTRING                 = 48639,
-    SPELL_SHIELD_SMASH              = 62332,
-    SPELL_SHIELD_SMASH_H            = 62420,
-
     // Colossus
     SPELL_SMASH                     = 62339,
     //SPELL_SMASH_RIGHT             = 62414,
@@ -318,8 +282,9 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
     // mob list check
     GUIDList lIronDwarfes;
-    GUIDList m_lOrbsGUIDList;
     GUIDList m_lArenaSummonGUID;
+
+
 
     void Reset()
     {
@@ -353,7 +318,6 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         m_uiIntroStep           = 1;
         m_bIsOutro              = false;
         lIronDwarfes.clear();
-        m_lOrbsGUIDList.clear();
 
         // exploit check
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); 
@@ -468,7 +432,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
     ObjectGuid SelectRandomLowerOrb()
     {
-        if (m_pInstance->m_lLowerOrbs.empty())
+        if (!m_pInstance || m_pInstance->m_lLowerOrbs.empty())
             return ObjectGuid((uint64)0);
 
         GUIDList::iterator iter = m_pInstance->m_lLowerOrbs.begin();
@@ -477,9 +441,48 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         return *iter;
     }
 
+    Creature* GetNearestOtherOrb(Creature* pInitialOrb, bool lower)
+    {
+        if (!m_pInstance || !pInitialOrb)
+            return NULL;
+        Creature* nearestOrb = NULL;
+        float distance = 50.0f;
+        if (lower)
+        {
+            for (GUIDList::const_iterator itr = m_pInstance->m_lLowerOrbs.begin(); itr != m_pInstance->m_lLowerOrbs.end(); ++itr)
+            {
+                if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
+                {
+                    float tempDistance = pTemp->GetDistance(pInitialOrb);
+                    if (tempDistance < distance)
+                    {
+                        nearestOrb = pTemp;
+                        distance = tempDistance;
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (GUIDList::const_iterator itr = m_pInstance->m_lUpperOrbs.begin(); itr != m_pInstance->m_lUpperOrbs.end(); ++itr)
+            {
+                if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
+                {
+                    float tempDistance = pTemp->GetDistance(pInitialOrb);
+                    if (tempDistance < distance)
+                    {
+                        nearestOrb = pTemp;
+                        distance = tempDistance;
+                    }
+                }
+            }
+        }
+        return nearestOrb;
+    }
+
     ObjectGuid SelectRandomUpperOrb()
     {
-        if (m_pInstance->m_lUpperOrbs.empty())
+        if (!m_pInstance || m_pInstance->m_lUpperOrbs.empty())
             return ObjectGuid((uint64)0);
 
         GUIDList::iterator iter = m_pInstance->m_lUpperOrbs.begin();
@@ -707,7 +710,6 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
                 // phase 1 spells
                 // charge orb
-                // doesn't work right, needs fixing
                 if(m_uiChargeOrbTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_CHARGE_ORB) == CAST_OK)
@@ -780,12 +782,14 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
                 if(m_uiOrbChargeTimer < uiDiff)
                 {
-
-                    if (Creature* pOrb = m_creature->GetMap()->GetCreature(SelectRandomLowerOrb()))
+                    if (Creature* pLowerOrb = m_creature->GetMap()->GetCreature(SelectRandomLowerOrb()))
                     {
-                        pOrb->CastSpell(pOrb, SPELL_LIGHTNING_CHARGE, true);
-                        pOrb->CastSpell(pOrb, SPELL_LIGHTNING_PILLAR, true);
-                        m_uiOrbChargeTimer = 20000;
+                        if (Creature* pUpperOrb = GetNearestOtherOrb(pLowerOrb, false))
+                        {
+                            pUpperOrb->CastSpell(pUpperOrb, SPELL_LIGHTNING_CHARGE, true);
+                            pLowerOrb->CastSpell(pUpperOrb, SPELL_LIGHTNING_PILLAR, true);
+                            m_uiOrbChargeTimer = 20000;
+                        }
                     }
                 }
                 else
@@ -1308,23 +1312,32 @@ struct MANGOS_DLL_DECL npc_sifAI : public ScriptedAI
 
         if (m_uiSpellTimer < uiDiff)
         {
-            switch(urand(0, 2))
+            CanCastResult result = CAST_FAIL_OTHER;
+            switch(urand(0, 3))
             {
                 case 0:
-                    DoCast(m_creature, m_bIsRegularMode? SPELL_FROSTBOLT_VOLLEY : SPELL_FROSTBOLT_VOLLEY_H);
+                    result = DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_FROSTBOLT_VOLLEY : SPELL_FROSTBOLT_VOLLEY_H);
                     break;
                 case 1:
-                    DoCast(m_creature, m_bIsRegularMode? SPELL_FROST_NOVA : SPELL_FROST_NOVA_H);
+                    result = DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_FROST_NOVA : SPELL_FROST_NOVA_H);
                     break;
                 case 2:
                     // it should be casted around the room!
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                        DoCast(pTarget, m_bIsRegularMode? SPELL_BLIZZARD : SPELL_BLIZZARD_H);
+                        result = DoCastSpellIfCan(pTarget, m_bIsRegularMode? SPELL_BLIZZARD : SPELL_BLIZZARD_H);
+                    break;
+                case 3:
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, m_bIsRegularMode ? SPELL_FROST_BOLT : SPELL_FROST_BOLT_H, SELECT_FLAG_PLAYER))
+                        result = DoCastSpellIfCan(pTarget, SPELL_FROST_BOLT);
+                    break;
+                default:
                     break;
             }
-
-            m_uiSpellTimer = urand(3000, 6000);
-        }else m_uiSpellTimer -= uiDiff;
+            if (result == CAST_OK)
+                m_uiSpellTimer = urand(3000, 6000);
+        }
+        else
+            m_uiSpellTimer -= uiDiff;
     }
 };
 
@@ -1386,42 +1399,6 @@ CreatureAI* GetAI_npc_lightning_orb(Creature* pCreature)
     return new npc_lightning_orbAI(pCreature);
 }
 
-// script for the orb on the hallway which should wipe the raid. Needs more research!
-struct MANGOS_DLL_DECL npc_thorim_thunder_orbAI : public ScriptedAI
-{
-    npc_thorim_thunder_orbAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        SetCombatMovement(false);
-        Reset();
-    }
-
-    instance_ulduar* m_pInstance;
-    bool m_bIsRegularMode;
-
-
-    void Reset()
-    {
-    }
-
-    void AttackStart(Unit* pWho)
-    {
-        return;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-
-    }
-};
-
-CreatureAI* GetAI_npc_thorim_thunder_orb(Creature* pCreature)
-{
-    return new npc_thorim_thunder_orbAI(pCreature);
-}
-
 void AddSC_boss_thorim()
 {
     Script *newscript;
@@ -1438,11 +1415,6 @@ void AddSC_boss_thorim()
     newscript = new Script;
     newscript->Name = "boss_ancient_rune_giant";
     newscript->GetAI = &GetAI_boss_ancient_rune_giant;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "npc_thorim_thunder_orb";
-    newscript->GetAI = &GetAI_npc_thorim_thunder_orb;
     newscript->RegisterSelf();
 
     newscript = new Script;
