@@ -53,7 +53,7 @@ enum
     ACHIEV_CRIT_MY_GIRL_LOVES_SKADI_ALL_THE_TIME = 7595,
 
     ACHIEV_START_SKADY_ID           = 17726,
-    
+
     // orb handling
     SPELL_FREEZE            = 16245,
 
@@ -61,7 +61,7 @@ enum
     SPELL_WAKEUP_SUBBOSS    = 47669,
 
     SPELL_ORB_VISUAL        = 48044,
-    
+
     SPELL_GORTOK_EVENT      = 48055,
     SPELL_ORB_CHANNEL       = 48048,
 };
@@ -106,9 +106,9 @@ class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
 
         GUIDList m_lFlameBreathTriggerRight;
         GUIDList m_lFlameBreathTriggerLeft;
-        
+
         ObjectGuid m_gortokOrb;
-        
+
         uint32 m_uiMoveTimer;
         bool m_bNeedMovement;
         uint8 m_uiStep;

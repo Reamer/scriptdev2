@@ -90,7 +90,7 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-            
+
         if (m_uiWitheringRoar < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_WITHERING_ROAR : SPELL_WITHERING_ROAR_H) == CAST_OK)
@@ -98,7 +98,7 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
         }
         else
             m_uiWitheringRoar -= uiDiff;
-        
+
         if (m_uiImpale < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 0.0f, SELECT_FLAG_PLAYER))
@@ -117,7 +117,7 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
         }
         else
             m_uiArcingSmash -= uiDiff;
-                
+
         DoMeleeAttackIfReady();
     }
 };
