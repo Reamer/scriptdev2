@@ -86,9 +86,9 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if (m_pInstance->GetData(TYPE_PHASE) > 9) return;
+        //if (m_pInstance->GetData(TYPE_PHASE) > 9) return;
 
-        if (m_pInstance->GetData(TYPE_MALGANIS) != IN_PROGRESS) return;
+        //if (m_pInstance->GetData(TYPE_MALGANIS) != IN_PROGRESS) return;
 
         if (!pWho || pWho == m_creature)
             return;
@@ -177,8 +177,8 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
 
         if (m_creature->GetHealthPercent() < 5.0f)
         {
-            m_pInstance->SetData(TYPE_PHASE, 10);
-            m_pInstance->SetData(TYPE_MALGANIS, DONE);
+            //m_pInstance->SetData(TYPE_PHASE, 10);
+            //m_pInstance->SetData(TYPE_MALGANIS, DONE);
             DoCastSpellIfCan(m_creature, SPELL_ACHIEV_CHECK, CAST_TRIGGERED);
             EnterEvadeMode();
         }

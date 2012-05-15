@@ -73,8 +73,8 @@ struct MANGOS_DLL_DECL boss_meathookAI : public ScriptedAI
     void JustDied(Unit *pKiller)
     {
         DoScriptText(SAY_MEATHOOK_DEATH, m_creature);
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_PHASE, 3);
+       // if (m_pInstance)
+            //m_pInstance->SetData(TYPE_PHASE, 3);
     }
 
     void KilledUnit(Unit* pVictim)

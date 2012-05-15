@@ -133,7 +133,7 @@ struct MANGOS_DLL_DECL npc_cs_gnoulAI : public ScriptedAI
         {
           if(MoveTimer < uiDiff)
           {   
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -164,7 +164,7 @@ struct MANGOS_DLL_DECL npc_cs_gnoulAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -320,7 +320,7 @@ struct MANGOS_DLL_DECL npc_cs_necromancerAI : public ScriptedAI
         {
           if(MoveTimer < uiDiff)
           {
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -351,7 +351,7 @@ struct MANGOS_DLL_DECL npc_cs_necromancerAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -510,7 +510,7 @@ struct MANGOS_DLL_DECL npc_cs_fieldAI : public ScriptedAI
         {
           if(MoveTimer < uiDiff)
           {   
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -541,7 +541,7 @@ struct MANGOS_DLL_DECL npc_cs_fieldAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -714,7 +714,7 @@ struct MANGOS_DLL_DECL npc_cs_acolyteAI : public ScriptedAI
         {
           if(MoveTimer < uiDiff)
           {
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -745,7 +745,7 @@ struct MANGOS_DLL_DECL npc_cs_acolyteAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -913,7 +913,7 @@ struct MANGOS_DLL_DECL npc_cs_butcherAI : public ScriptedAI
         {
           if(MoveTimer < uiDiff)
           {
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -944,7 +944,7 @@ struct MANGOS_DLL_DECL npc_cs_butcherAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if(m_pInstance->GetData(TYPE_MEATHOOK_EVENT) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -1021,10 +1021,12 @@ struct MANGOS_DLL_DECL npc_time_riftCSAI : public ScriptedAI
               break;
            case 2:
               m_creature->ForcedDespawn();
-              Step++; 
+              Step++;
               break;
          }
-       } else m_uiStepTimer -= uiDiff;
+       }
+       else
+           m_uiStepTimer -= uiDiff;
    }
 };
 

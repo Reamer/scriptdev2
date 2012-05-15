@@ -86,8 +86,8 @@ struct MANGOS_DLL_DECL boss_salrammAI : public ScriptedAI
     void JustDied(Unit *pKiller)
     {
         DoScriptText(SAY_SALRAMM_DEATH, m_creature);
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_ENCOUNTER, DONE);
+        //if (m_pInstance)
+            //m_pInstance->SetData(TYPE_ENCOUNTER, DONE);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -219,7 +219,7 @@ struct MANGOS_DLL_DECL npc_salramm_gnoulAI : public ScriptedAI
 
         if (m_uiBlowTimer < uiDiff)
         {
-            if (Creature* pSalramm = m_pInstance->GetSingleCreatureFromStorage(NPC_SALRAMM))
+            if (Creature* pSalramm = m_pInstance->GetSingleCreatureFromStorage(NPC_SALRAMM_THE_FLESHCRAFTER))
             {
                if (pSalramm->isDead())
                    return;

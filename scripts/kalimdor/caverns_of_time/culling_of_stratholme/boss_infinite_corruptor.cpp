@@ -53,14 +53,14 @@ struct MANGOS_DLL_DECL boss_infinite_corruptorAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BONUS, SPECIAL);
+        //if (m_pInstance)
+            //m_pInstance->SetData(TYPE_BONUS, SPECIAL);
     }
 
     void JustDied(Unit *pKiller)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BONUS, DONE);
+        //if (m_pInstance)
+            //m_pInstance->SetData(TYPE_BONUS, DONE);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -83,8 +83,8 @@ struct MANGOS_DLL_DECL boss_infinite_corruptorAI : public ScriptedAI
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon();
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BONUS, IN_PROGRESS);
+        //if (m_pInstance)
+            //m_pInstance->SetData(TYPE_BONUS, IN_PROGRESS);
 
         if (m_creature->isAlive())
             m_creature->GetMotionMaster()->MoveTargetedHome();
