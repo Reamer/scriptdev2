@@ -131,7 +131,6 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
         m_pInstance = (instance_culling_of_stratholme*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         m_creature->SetActiveObjectState(true);
-        m_creature->SetSpeedRate(MOVE_RUN, 1);
         Reset();
     }
 
@@ -148,8 +147,10 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
     uint32 m_uiStepTimer;
     uint32 m_uiHealTimer;
     uint32 m_uiExorcismTimer;
+    uint32 m_uiSummonZombie;
+    uint32 m_uiStrongerNPC;
 
-    bool StartEvent;
+    bool m_bStartEvent;
     bool m_bTalkWithUther;
     bool m_bStartEnterEvent;
     bool m_bInHouseEvent;
@@ -157,13 +158,24 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
 
     void Reset()
     {
+        m_bStartEvent       = false;
+        m_bTalkWithUther    = false;
+        m_bStartEnterEvent  = false;
+        m_bInHouseEvent     = false;
+        m_bInEpocEvent      = false;
+        m_uiStep            = 0;
+        m_uiStepTimer       = 100;
+        m_uiHealTimer       = 20 * IN_MILLISECONDS;
+        m_uiExorcismTimer   = 7300;
+        m_uiSummonZombie    = 5 * IN_MILLISECONDS;
+        m_uiStrongerNPC     = 40 * IN_MILLISECONDS;
+
         if (!m_pInstance) return;
 
         m_creature->SetSpeedRate(MOVE_RUN, 1);
 
         if (m_pInstance->GetInstancePosition() == POS_ARTHAS_INTRO)
         {
-            //m_creature->setFaction(35);
             RemoveGossip();
         }
 
@@ -201,10 +213,10 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
     void StartAI()
     {
          SummonPeople();
-         m_uiStep = 0;
-         m_uiStepTimer = 100;
-         StartEvent = true;
-         m_bTalkWithUther = true;
+         m_uiStep           = 0;
+         m_uiStepTimer      = 100;
+         m_bStartEvent         = true;
+         m_bTalkWithUther   = true;
     }
 
     void SummonedCreatureJustDied(Creature* pSummoned)
@@ -720,11 +732,31 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
          }
     }
 
+    uint32 GetRandomWaveNPC()
+    {
+        uint32 entry = NPC_PATCHWORK_CONSTRUCT;
+        switch (urand(0,8))
+        {
+            case 0: entry = NPC_ENTAGING_GHOUL; break;
+            case 1: entry = NPC_DEVOURING_GHOUL; break;
+            case 2: entry = NPC_DARK_NECROMANCER; break;
+            case 3: entry = NPC_DARK_NECROMANCER; break;
+            case 4: entry = NPC_CRYPT_FIEND; break;
+            case 5: entry = NPC_TOMB_STALKER; break;
+            case 6: entry = NPC_ACOLYTE; break;
+            case 7: entry = NPC_BILE_GOLEM; break;
+            case 8: entry = NPC_PATCHWORK_CONSTRUCT; break;
+            default:
+                break;
+        }
+        return entry;
+    }
+
     void UpdateEscortAI(const uint32 uiDiff)
     {
         if (!m_pInstance) return;
 
-        if (StartEvent == true)
+        if (m_bStartEvent == true)
         {
             switch(m_pInstance->GetInstancePosition())
             {
@@ -752,7 +784,21 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
                 }
                 case POS_ARTHAS_WAVES:
                 {
-                    // Do nothing, Instance handling the Wave Summon
+                    if (m_uiSummonZombie < uiDiff)
+                    {
+                        if (Player* pPlayer = m_pInstance->GetPlayerInMap(true))
+                        {
+                            float x, y, z;
+                            float distX, distY, distZ;
+                            float dist = frand(0, 10.0f);
+                            pPlayer->GetRandomPoint(pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), dist, x, y,z);
+                            pPlayer->GetTerrain()->CheckPathAccurate(x, y, z, distX, distY, distZ);
+                            m_creature->SummonCreature(NPC_ZOMBIE, distX, distY, distZ, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3 * MINUTE * IN_MILLISECONDS);
+                            m_uiSummonZombie = 5 * IN_MILLISECONDS;
+                        }
+                    }
+                    else
+                        m_uiSummonZombie -= uiDiff;
                     break;
                 }
                 case POS_ARTHAS_TOWNHALL: // Arthas move to pub
@@ -767,7 +813,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
                             m_uiStepTimer -= uiDiff;
                     }
                     else if (m_bInEpocEvent)
-                    {                    
+                    {
                         if(m_uiStepTimer < uiDiff)
                         {
                             EpochEvent();
@@ -779,15 +825,32 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
                 }
                 case POS_ARTHAS_ESCORTING:
                 {
-                    // Do nothing, only run
-/*                    if (m_pInstance->GetData(TYPE_PHASE) == 10)
+                    if (m_uiSummonZombie < uiDiff)
                     {
-                        SetEscortPaused(true);
-                        ResetStep(1000);
-                        m_creature->AttackStop();
-                        m_pInstance->SetData(TYPE_PHASE, 11);
+                        float x, y, z;
+                        float distX, distY, distZ;
+                        float dist = frand(0, 10.0f);
+                        m_creature->GetRandomPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), dist, x, y,z);
+                        m_creature->GetTerrain()->CheckPathAccurate(x, y, z, distX, distY, distZ);
+                        m_creature->SummonCreature(NPC_ZOMBIE, distX, distY, distZ, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3 * MINUTE * IN_MILLISECONDS);
+                        m_uiSummonZombie = 5 * IN_MILLISECONDS;
                     }
-                    break;*/
+                    else
+                        m_uiSummonZombie -= uiDiff;
+
+                    if (m_uiStrongerNPC < uiDiff)
+                    {
+                        float x, y, z;
+                        float distX, distY, distZ;
+                        float dist = frand(0, 10.0f);
+                        m_creature->GetRandomPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), dist, x, y,z);
+                        m_creature->GetTerrain()->CheckPathAccurate(x, y, z, distX, distY, distZ);
+                        m_creature->SummonCreature(GetRandomWaveNPC(), distX, distY, distZ, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3 * MINUTE * IN_MILLISECONDS);
+                        m_uiStrongerNPC = 30 * IN_MILLISECONDS;
+                    }
+                    else
+                        m_uiStrongerNPC -= uiDiff;
+
                 }
                 case POS_ARTHAS_MALGANIS:
                 {
@@ -805,7 +868,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
                     return;
                 }
             }
-        } 
+        }
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -832,90 +895,6 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
         else
             m_uiHealTimer -= uiDiff;
 
-    }
-};
-/*###
-## npc_uther
-###*/
-
-struct MANGOS_DLL_DECL npc_utherAI : public npc_escortAI
-{
-    npc_utherAI(Creature* pCreature) : npc_escortAI(pCreature)
-    {
-        m_pInstance = (instance_culling_of_stratholme*)pCreature->GetInstanceData();
-        m_creature->SetActiveObjectState(true);
-        Reset();
-    }
-
-    instance_culling_of_stratholme* m_pInstance;
-
-    uint32 m_uiStep;
-    uint32 m_uiStepTimer;
-    bool StartEvent;
-
-    void Reset()
-    {
-          m_creature->SetVisibility(VISIBILITY_OFF);
-          m_uiStep = 0;
-          m_uiStepTimer = 100;
-    }
-
-    void StartAI()
-    {
-           //m_pInstance->SetWeather(WEATHER_STATE_MEDIUM_RAIN, 0.9999f);
-           StartEvent = true;
-           m_creature->SetVisibility(VISIBILITY_ON);
-           Start(true);
-
-           if (Creature* pKnight01 = m_creature->SummonCreature(NPC_KNIGHT,m_creature->GetPositionX(),m_creature->GetPositionY(),m_creature->GetPositionZ(),m_creature->GetOrientation(),TEMPSUMMON_TIMED_DESPAWN,110000))
-           {
-               pKnight01->SetWalk(false);
-               pKnight01->GetMotionMaster()->MoveFollow(m_creature,PET_FOLLOW_DIST,M_PI_F/2);
-           }
-
-           if (Creature* pKnight02 = m_creature->SummonCreature(NPC_KNIGHT,m_creature->GetPositionX(),m_creature->GetPositionY(),m_creature->GetPositionZ(),m_creature->GetOrientation(),TEMPSUMMON_TIMED_DESPAWN,110000))
-           {
-               pKnight02->SetWalk(false);
-               pKnight02->GetMotionMaster()->MoveFollow(m_creature,PET_FOLLOW_DIST,M_PI_F/4);
-           }
-
-           if (Creature* pKnight03 = m_creature->SummonCreature(NPC_KNIGHT,m_creature->GetPositionX(),m_creature->GetPositionY(),m_creature->GetPositionZ(),m_creature->GetOrientation(),TEMPSUMMON_TIMED_DESPAWN,110000))
-           {
-               pKnight03->SetWalk(false);
-               pKnight03->GetMotionMaster()->MoveFollow(m_creature,PET_FOLLOW_DIST,M_PI_F/3);
-           }
-    }
-
-    void WaypointReached(uint32 uiPointId)
-    {
-        switch(uiPointId)
-        {
-            case 3:
-                if (Creature* pArthas = m_pInstance->GetSingleCreatureFromStorage(NPC_ARTHAS))
-                {
-                    pArthas->SetWalk(false);
-                    pArthas->SetGuidValue(UNIT_FIELD_TARGET, m_creature->GetObjectGuid());
-                    pArthas->GetMotionMaster()->MovePoint(0, 1902.974f, 1291.635f, 143.337f);
-                }
-                break;
-            case 4:
-                SetRun(false);
-                if (Creature *pArthas = m_pInstance->GetSingleCreatureFromStorage(NPC_ARTHAS))
-                   ((npc_arthasAI*)pArthas->AI())->StartAI();
-                break;
-            case 6:
-                m_creature->SetVisibility(VISIBILITY_OFF);
-                if (Creature* pJaina = m_pInstance->GetSingleCreatureFromStorage(NPC_JAINA_PROUDMOORE))
-                    pJaina->SetVisibility(VISIBILITY_OFF);
-                break;
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-       npc_escortAI::UpdateAI(uiDiff);
-
-       if (!m_pInstance) return;
     }
 };
 
@@ -976,7 +955,7 @@ bool GossipSelect_npc_arthas(Player* pPlayer, Creature* pCreature, uint32 uiSend
     instance_culling_of_stratholme* m_pInstance = ((instance_culling_of_stratholme*)pCreature->GetInstanceData());
 
     switch (uiAction)
-    { 
+    {
         case GOSSIP_ACTION_INFO_DEF + 1:
             ((npc_arthasAI*)pCreature->AI())->EnableEscort();
             ((npc_arthasAI*)pCreature->AI())->RemoveGossip();
@@ -998,368 +977,90 @@ bool GossipSelect_npc_arthas(Player* pPlayer, Creature* pCreature, uint32 uiSend
 }
 
 /*###
-## npc_arthas_priest
+## npc_uther
 ###*/
 
-struct MANGOS_DLL_DECL npc_arthas_priestAI : public ScriptedAI
+struct MANGOS_DLL_DECL npc_utherAI : public npc_escortAI
 {
-   npc_arthas_priestAI(Creature *c) : ScriptedAI(c)
-   {
-        SetCombatMovement(false);
+    npc_utherAI(Creature* pCreature) : npc_escortAI(pCreature)
+    {
+        m_pInstance = (instance_culling_of_stratholme*)pCreature->GetInstanceData();
+        m_creature->SetActiveObjectState(true);
         Reset();
-   }
-
-   uint32 m_uiSmiteTimer;
-   uint32 m_uiHealTimer;
-
-   void Reset()
-   {
-     m_uiSmiteTimer = 100;
-     m_uiHealTimer = 1000;
-   }
-
-   void AttackStart(Unit* pWho)
-   {
-      if (!pWho)
-          return;
-
-      if (m_creature->Attack(pWho, true))
-      {
-        m_creature->AddThreat(pWho);
-        m_creature->SetInCombatWith(pWho);
-        pWho->SetInCombatWith(m_creature);
-      }
-   }
-
-   void EnterEvadeMode()
-   {
-      m_creature->RemoveAllAuras();
-      m_creature->DeleteThreatList();
-      m_creature->CombatStop(true);
-      m_creature->LoadCreatureAddon();
-
-      m_creature->SetLootRecipient(NULL);
-
-      Reset();
-   }
-
-    void MoveInLineOfSight(Unit* pWho)
-    {
-        if (!pWho)
-            return;
-
-        if (!m_creature->hasUnitState(UNIT_STAT_STUNNED) && pWho->isTargetableForAttack() &&
-            m_creature->IsHostileTo(pWho) && pWho->isInAccessablePlaceFor(m_creature))
-        {
-            if (!m_creature->CanFly() && m_creature->GetDistanceZ(pWho) > CREATURE_Z_ATTACK_RANGE)
-                return;
-
-            float attackRadius = m_creature->GetAttackDistance(pWho);
-            if (m_creature->IsWithinDistInMap(pWho, attackRadius) && m_creature->IsWithinLOSInMap(pWho))
-            {
-                if (!m_creature->getVictim())
-                {
-                    AttackStart(pWho);
-                    pWho->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
-                }
-                else if (m_creature->GetMap()->IsDungeon())
-                {
-                    pWho->SetInCombatWith(m_creature);
-                    m_creature->AddThreat(pWho, 0.0f);
-                }
-            }
-        }
-   }
-
-   void UpdateAI(const uint32 uiDiff)
-   {
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_uiSmiteTimer < uiDiff)
-        {
-           DoCast(m_creature->getVictim(), SPELL_SMITE);
-           m_uiSmiteTimer = 3000;
-        }
-        else m_uiSmiteTimer -= uiDiff;
-
-        if (m_uiHealTimer < uiDiff)
-        {
-          if (m_creature->GetHealthPercent() <= 40.0f)
-          {
-             m_creature->InterruptNonMeleeSpells(false);
-             DoCast(m_creature, SPELL_HEAL);
-             m_uiHealTimer = 3000;
-          }
-        }
-        else m_uiHealTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
-
-        return;
-   }
-};
-
-/*###
-## npc_arthas_marine
-###*/
-
-struct MANGOS_DLL_DECL npc_arthas_marineAI : public ScriptedAI
-{
-   npc_arthas_marineAI(Creature *c) : ScriptedAI(c)
-   {
-       Reset();
-   }
-
-   uint32 m_uiHealTimer;
-   uint32 m_uiHeroicTimer;
-   uint32 m_uiDefendTimer;
-
-   void Reset()
-   {
-       m_uiHealTimer = 3000;
-       m_uiHeroicTimer = 7000;
-       m_uiDefendTimer = 9000;
-   }
-
-   void Aggro(Unit* who)
-   {
-   }
-
-   void AttackStart(Unit* pWho)
-   {
-      if (!pWho)
-          return;
-
-      if (m_creature->Attack(pWho, true))
-      {
-          m_creature->AddThreat(pWho);
-          m_creature->SetInCombatWith(pWho);
-          pWho->SetInCombatWith(m_creature);
-
-          if (IsCombatMovement())
-              m_creature->GetMotionMaster()->MoveChase(pWho);
-      }
-   }
-
-   void EnterEvadeMode()
-   {
-      m_creature->RemoveAllAuras();
-      m_creature->DeleteThreatList();
-      m_creature->CombatStop(true);
-      m_creature->LoadCreatureAddon();
-
-      m_creature->SetLootRecipient(NULL);
-
-      /*if (m_creature->GetEntry() == NPC_MARINE_1)
-          m_creature->GetMotionMaster()->MovePoint(POINT_LAST_POINT, Last1X, Last1Y, Last1Z);
-      if (m_creature->GetEntry() == NPC_MARINE_2)
-          m_creature->GetMotionMaster()->MovePoint(POINT_LAST_POINT, Last2X, Last2Y, Last2Z);
-      if (m_creature->GetEntry() == NPC_MARINE_3)
-          m_creature->GetMotionMaster()->MovePoint(POINT_LAST_POINT, Last3X, Last3Y, Last3Z);
-      if (m_creature->GetEntry() == NPC_MARINE_4)
-          m_creature->GetMotionMaster()->MovePoint(POINT_LAST_POINT, Last4X, Last4Y, Last4Z);*/
-
-      Reset();
     }
 
-    void MoveInLineOfSight(Unit* pWho)
+    instance_culling_of_stratholme* m_pInstance;
+
+    uint32 m_uiStep;
+    uint32 m_uiStepTimer;
+    bool m_bStartEvent;
+
+    void Reset()
     {
-        if (!pWho)
-            return;
-
-        if (!m_creature->hasUnitState(UNIT_STAT_STUNNED) && pWho->isTargetableForAttack() &&
-            m_creature->IsHostileTo(pWho) && pWho->isInAccessablePlaceFor(m_creature))
-        {
-            if (!m_creature->CanFly() && m_creature->GetDistanceZ(pWho) > CREATURE_Z_ATTACK_RANGE)
-                return;
-
-            float attackRadius = m_creature->GetAttackDistance(pWho);
-            if (m_creature->IsWithinDistInMap(pWho, attackRadius) && m_creature->IsWithinLOSInMap(pWho))
-            {
-                if (!m_creature->getVictim())
-                {
-                    AttackStart(pWho);
-                    pWho->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
-                }
-                else if (m_creature->GetMap()->IsDungeon())
-                {
-                    pWho->SetInCombatWith(m_creature);
-                    m_creature->AddThreat(pWho, 0.0f);
-                }
-            }
-        }
+          m_creature->SetVisibility(VISIBILITY_OFF);
+          m_uiStep = 0;
+          m_uiStepTimer = 100;
     }
 
-   void UpdateAI(const uint32 uiDiff)
-   {
+    void StartAI()
+    {
+           //m_pInstance->SetWeather(WEATHER_STATE_MEDIUM_RAIN, 0.9999f);
+           m_bStartEvent = true;
+           m_creature->SetVisibility(VISIBILITY_ON);
+           Start(true);
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        /*if (m_uiHealTimer < uiDiff)
-        {
-           if (m_creature->GetHealthPercent() <= 40.0f)
+           if (Creature* pKnight01 = m_creature->SummonCreature(NPC_KNIGHT_OF_UTHER,m_creature->GetPositionX(),m_creature->GetPositionY(),m_creature->GetPositionZ(),m_creature->GetOrientation(),TEMPSUMMON_TIMED_DESPAWN,110000))
            {
-              if (Creature* pHeal = GetClosestCreatureWithEntry(m_creature, NPC_PRIEST_1, 70.0f))
-              {
-                 if (pHeal->GetHealthPercent() > 40.0f)
-                 {
-                    pHeal->InterruptNonMeleeSpells(false);
-                    pHeal->CastSpell(m_creature, SPELL_HEAL, false);
-                    m_uiHealTimer = 3000;
-                 }
-              }
-              else if (Creature* pHeal2 = GetClosestCreatureWithEntry(m_creature, NPC_PRIEST_2, 70.0f))
-              {
-                 if (pHeal2->GetHealthPercent() > 40.0f)
-                 {
-                    pHeal2->InterruptNonMeleeSpells(false);
-                    pHeal2->CastSpell(m_creature, SPELL_HEAL, false);
-                    m_uiHealTimer = 3000;
-                 }
-              }
+               pKnight01->SetWalk(false);
+               pKnight01->GetMotionMaster()->MoveFollow(m_creature,PET_FOLLOW_DIST,M_PI_F/2);
            }
-        }
-        else
-            m_uiHealTimer -= uiDiff;*/
 
-        if (m_uiHeroicTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEROIC_STRIKE) == CAST_OK)
-                m_uiHeroicTimer = 7000;
-        }
-        else
-            m_uiHeroicTimer -= uiDiff;
+           if (Creature* pKnight02 = m_creature->SummonCreature(NPC_KNIGHT_OF_UTHER,m_creature->GetPositionX(),m_creature->GetPositionY(),m_creature->GetPositionZ(),m_creature->GetOrientation(),TEMPSUMMON_TIMED_DESPAWN,110000))
+           {
+               pKnight02->SetWalk(false);
+               pKnight02->GetMotionMaster()->MoveFollow(m_creature,PET_FOLLOW_DIST,M_PI_F/4);
+           }
 
-        if (m_uiDefendTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_DEFEND) == CAST_OK)
-                m_uiDefendTimer = 9000;
-        }
-        else
-            m_uiDefendTimer -= uiDiff;
+           if (Creature* pKnight03 = m_creature->SummonCreature(NPC_KNIGHT_OF_UTHER,m_creature->GetPositionX(),m_creature->GetPositionY(),m_creature->GetPositionZ(),m_creature->GetOrientation(),TEMPSUMMON_TIMED_DESPAWN,110000))
+           {
+               pKnight03->SetWalk(false);
+               pKnight03->GetMotionMaster()->MoveFollow(m_creature,PET_FOLLOW_DIST,M_PI_F/3);
+           }
+    }
 
-        DoMeleeAttackIfReady();
-   }
-};
-
-/*###
-## npc_dark_conversion
-###*/
-
-/*enum
-{
-   SAY_PEOPLE01         = -1594099,
-   SAY_PEOPLE02         = -1594100,
-   SAY_PEOPLE03         = -1594101,
-   SAY_PEOPLE04         = -1594102,
-   SAY_PEOPLE05         = -1594103,
-};*/
-
-struct MANGOS_DLL_DECL npc_dark_conversionAI : public ScriptedAI
-{
-   npc_dark_conversionAI(Creature *pCreature) : ScriptedAI(pCreature)
-   {
-    m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-    m_creature->SetActiveObjectState(true);
-
-//    if (m_pInstance && m_pInstance->GetData(TYPE_ENCOUNTER) == IN_PROGRESS)
-        //m_creature->UpdateEntry(NPC_ZOMBIE);
-
-    Reset();
-   }
-
-ScriptedInstance* m_pInstance;
-
-bool Special;
-bool Conversion;
-uint32 m_uiStep;
-uint32 m_uiStepTimer;
-
-   void Reset()
-   {
-       //m_creature->setFaction(35);
-       Conversion = false;
-       Special = false;
-       m_uiStep = 1;
-       m_uiStepTimer = 5000;
-
-       //if (m_pInstance && m_pInstance->GetData(TYPE_ENCOUNTER) == IN_PROGRESS)
-         //   m_creature->UpdateEntry(NPC_ZOMBIE);
-   }
-
-   /*void MalganisScared(Creature* target, float horizontalSpeed, float verticalSpeed)
-   {
-        float angle = target->GetAngle(m_creature);
-        float vsin = sin(angle);
-        float vcos = cos(angle);
-
-        float ox, oy, oz;
-        m_creature->GetPosition(ox, oy, oz);
-
-        float g = 19.23f;// seems that physic constant g(earth's gravity) in world of warcraft is about 2 times larger than real
-        float dh = verticalSpeed*verticalSpeed / (2*g); // maximum parabola height
-        float time = sqrtf(dh/(0.124976 * verticalSpeed));  //full move time in seconds     // should be  time = 2*Vert_speed/g, but..
-
-        float dis = time * horizontalSpeed;
-        float fx = ox + dis * vcos;
-        float fy = oy + dis * vsin;
-        float fz = oz;
-
-        m_creature->UpdateGroundPositionZ(fx, fy, fz);
-
-        m_creature->SetWalk(false);
-        m_creature->GetMotionMaster()->MovePoint(0, fx, fy, fz);
-   }
-
-   void DarkConversion(bool Move)
-   {
-        m_creature->UpdateEntry(NPC_ZOMBIE);
-        if(Move == true)
-        {
-           if(Creature* pArthas = m_pInstance->GetSingleCreatureFromStorage(NPC_ARTHAS))
-              m_creature->GetMotionMaster()->MovePoint(0, pArthas->GetPositionX(), pArthas->GetPositionY(), pArthas->GetPositionZ());
-        }
-   }
-
-   void UpdateAI(const uint32 uiDiff)
+    void WaypointReached(uint32 uiPointId)
     {
+        switch(uiPointId)
+        {
+            case 3:
+                if (Creature* pArthas = m_pInstance->GetSingleCreatureFromStorage(NPC_ARTHAS))
+                {
+                    pArthas->SetWalk(false);
+                    pArthas->SetGuidValue(UNIT_FIELD_TARGET, m_creature->GetObjectGuid());
+                    pArthas->GetMotionMaster()->MovePoint(0, 1902.974f, 1291.635f, 143.337f);
+                }
+                break;
+            case 4:
+                SetRun(false);
+                if (Creature *pArthas = m_pInstance->GetSingleCreatureFromStorage(NPC_ARTHAS))
+                   ((npc_arthasAI*)pArthas->AI())->StartAI();
+                break;
+            case 6:
+                m_creature->SetVisibility(VISIBILITY_OFF);
+                if (Creature* pJaina = m_pInstance->GetSingleCreatureFromStorage(NPC_JAINA_PROUDMOORE))
+                    pJaina->SetVisibility(VISIBILITY_OFF);
+                break;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+       npc_escortAI::UpdateAI(uiDiff);
+
        if (!m_pInstance) return;
-
-       if (m_pInstance->GetData(TYPE_ENCOUNTER) == IN_PROGRESS)
-       {
-          if (Creature* pMalganis = GetClosestCreatureWithEntry(m_creature, NPC_MALGANIS, 20.0f))
-          {
-               if (Special == false)
-               {
-                  float Dist = m_creature->GetDistance2d(pMalganis->GetPositionX(), pMalganis->GetPositionY());
-                  Dist = Dist + 2.0f;
-                  MalganisScared(pMalganis, Dist, 1.0f);
-                  m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_COWER);
-                  m_uiStepTimer = 5000;
-                  Special = true;
-               }
-          }
-
-          if (m_uiStepTimer < uiDiff && Conversion != true)
-          {
-             Conversion = true;
-             if (Special != false)
-                DarkConversion(true);
-             else
-                DarkConversion(false);
-          }
-          else m_uiStepTimer -= uiDiff;
-
-       }
-
-       DoMeleeAttackIfReady();
-
-       return;
-    }*/
+    }
 };
+
 
 enum
 {
@@ -1592,19 +1293,21 @@ CreatureAI* GetAI_npc_arthas(Creature* pCreature)
     return new npc_arthasAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_arthas_priest(Creature* pCreature)
+bool AreaTrigger_at_culling_of_stratholme_event_inn(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
-    return new npc_arthas_priestAI(pCreature);
-}
+    if (pAt->id == AREATRIGGER_INN)
+    {
+        if (pPlayer->isGameMaster() || pPlayer->isDead())
+            return false;
 
-CreatureAI* GetAI_npc_arthas_marine(Creature* pCreature)
-{
-    return new npc_arthas_marineAI(pCreature);
-}
+        instance_culling_of_stratholme* pInstance = (instance_culling_of_stratholme*)pPlayer->GetInstanceData();
 
-CreatureAI* GetAI_npc_dark_conversion(Creature* pCreature)
-{
-    return new npc_dark_conversionAI(pCreature);
+        if (!pInstance)
+            return false;
+
+        pInstance->StartCratesEvent(NPC_MICHAEL_BELFAST);
+    }
+    return true;
 }
 
 void AddSC_culling_of_stratholme()
@@ -1636,18 +1339,8 @@ void AddSC_culling_of_stratholme()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
-    pNewScript->Name = "npc_arthas_priest";
-    pNewScript->GetAI = &GetAI_npc_arthas_priest;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_arthas_marine";
-    pNewScript->GetAI = &GetAI_npc_arthas_marine;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_dark_conversion";
-    pNewScript->GetAI = &GetAI_npc_dark_conversion;
+    pNewScript->Name = "at_culling_of_stratholme";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_culling_of_stratholme_event_inn;
     pNewScript->RegisterSelf();
 }
 

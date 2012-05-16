@@ -71,6 +71,11 @@ static const sSpawnLocation m_aWaveSpawnLoc[] =
     {2224.79f, 1331.750f, 127.16f, 3.5f},                   // Left Spawn Location
 };
 
+static const sSpawnLocation m_aInfiniteCorruptorSpawnLoc[] =
+{
+    {2333.510f, 1277.315f, 132.885f, 3.44f},                // InfiniteCorruptor
+    {2339.371f, 1280.550f, 135.345f, 3.44f},                // InfiniteCorruptor Portal
+};
 struct StratholmWave
 {
     uint32 m_uiSide;                                        // Stores the side wher mobs spawn
@@ -120,7 +125,6 @@ void instance_culling_of_stratholme::Initialize()
 
 void instance_culling_of_stratholme::OnCreatureCreate(Creature* pCreature)
 {
-    pCreature->SetActiveObjectState(true);
     switch(pCreature->GetEntry())
     {
         case NPC_CHROMIE_ENTRANCE:
@@ -163,7 +167,11 @@ void instance_culling_of_stratholme::OnCreatureCreate(Creature* pCreature)
             break;
         case NPC_AGIATED_STRATHOLME_CITIZEN:    m_lAgiatedCitizenGUIDList.push_back(pCreature->GetObjectGuid());  break;
         case NPC_AGIATED_STRATHOLME_RESIDENT:   m_lAgiatedResidentGUIDList.push_back(pCreature->GetObjectGuid()); break;
+        default:
+            break;
     }
+    if (IsWaveNPC(pCreature->GetEntry()))
+        pCreature->SetActiveObjectState(true);
 }
 
 void instance_culling_of_stratholme::OnObjectCreate(GameObject* pGo)
@@ -174,7 +182,7 @@ void instance_culling_of_stratholme::OnObjectCreate(GameObject* pGo)
             if (m_auiEncounter[TYPE_EPOCH_EVENT] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
-        case GO_EXIT:
+        case GO_EXIT_DOOR:
             if (m_auiEncounter[TYPE_MALGANIS_EVENT] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
@@ -276,6 +284,7 @@ void instance_culling_of_stratholme::SetData(uint32 uiType, uint32 uiData)
                     if (!m_auiEncounter[TYPE_INFINITE_CORRUPTER_TIME])
                         SetData(TYPE_INFINITE_CORRUPTER_TIME, MINUTE*25*IN_MILLISECONDS);
                     DoUpdateWorldState(WORLD_STATE_TIME, 1);// Show Timer
+                    DoSpawnInfiniteCorruptorIfNeed();
                     break;
                 case DONE:
                     SetData(TYPE_INFINITE_CORRUPTER_TIME, 0);
@@ -427,7 +436,7 @@ void instance_culling_of_stratholme::TeleportMalganisAndSpawnIfNeeded(bool entra
     {
         if (Creature* pArthas = GetSingleCreatureFromStorage(NPC_ARTHAS))
         {
-            if (Creature* pMalganis = pArthas->SummonCreature(NPC_MALGANIS, 2296.665f, 1502.362f, 128.362, 1.37f,TEMPSUMMON_DEAD_DESPAWN,29000))
+            if (Creature* pMalganis = pArthas->SummonCreature(NPC_MALGANIS, 2296.665f, 1502.362f, 128.362f, 1.37f,TEMPSUMMON_DEAD_DESPAWN,29000))
                 TeleportMalganisAndSpawnIfNeeded(entrance);
         }
     }
@@ -484,6 +493,21 @@ uint8 instance_culling_of_stratholme::GetInstancePosition()
         return POS_ARTHAS_INTRO;
     else
         return 0;
+}
+
+bool instance_culling_of_stratholme::IsWaveNPC(uint32 entry)
+{
+    if (entry == NPC_ZOMBIE ||
+        entry == NPC_ENTAGING_GHOUL ||
+        entry == NPC_DEVOURING_GHOUL ||
+        entry == NPC_DARK_NECROMANCER ||
+        entry == NPC_CRYPT_FIEND ||
+        entry == NPC_TOMB_STALKER ||
+        entry == NPC_ACOLYTE ||
+        entry == NPC_BILE_GOLEM ||
+        entry == NPC_PATCHWORK_CONSTRUCT)
+        return true;
+    return false;
 }
 
 void instance_culling_of_stratholme::GetResidentOrderedList(std::list<Creature*> &lList)
@@ -576,6 +600,18 @@ void instance_culling_of_stratholme::DoSpawnMalcomAndScruffyIfNeed()
     }
 }
 
+void instance_culling_of_stratholme::DoSpawnInfiniteCorruptorIfNeed()
+{
+    if (Creature* pInfiniteCorruptor = GetSingleCreatureFromStorage(NPC_INFINITE_CORRUPTER))
+        return;
+
+    if (Creature* pArthas = GetSingleCreatureFromStorage(NPC_ARTHAS))
+    {
+        pArthas->SummonCreature(NPC_INFINITE_CORRUPTER, m_aInfiniteCorruptorSpawnLoc[0].m_fX, m_aInfiniteCorruptorSpawnLoc[0].m_fY, m_aInfiniteCorruptorSpawnLoc[0].m_fZ, m_aInfiniteCorruptorSpawnLoc[0].m_fO, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 25*MINUTE*IN_MILLISECONDS);
+        pArthas->SummonCreature(NPC_TIME_RIFT_2, m_aInfiniteCorruptorSpawnLoc[1].m_fX, m_aInfiniteCorruptorSpawnLoc[1].m_fY, m_aInfiniteCorruptorSpawnLoc[1].m_fZ, m_aInfiniteCorruptorSpawnLoc[1].m_fO, TEMPSUMMON_TIMED_DESPAWN, 25*MINUTE*IN_MILLISECONDS);
+    }
+}
+
 void instance_culling_of_stratholme::Update(uint32 uiDiff)
 {
     // 25min Run - decrease time, update worldstate every ~20s
@@ -592,7 +628,7 @@ void instance_culling_of_stratholme::Update(uint32 uiDiff)
         }
 
         // This part is needed for a small "hurry up guys" note, TODO, verify 20min
-        if (m_auiEncounter[TYPE_INFINITE_CORRUPTER] == IN_PROGRESS && m_auiEncounter[TYPE_INFINITE_CORRUPTER_TIME] <= 24*MINUTE*IN_MILLISECONDS)
+        if (m_auiEncounter[TYPE_INFINITE_CORRUPTER] == IN_PROGRESS && m_auiEncounter[TYPE_INFINITE_CORRUPTER_TIME] <= 20*MINUTE*IN_MILLISECONDS)
             SetData(TYPE_INFINITE_CORRUPTER, SPECIAL);
     }
 
@@ -644,6 +680,16 @@ void instance_culling_of_stratholme::Update(uint32 uiDiff)
             m_uiZombieConvertTimer -= uiDiff;
     }
 
+    if (m_uiMichaelBelfastInnEvent)
+    {
+        if (m_uiMichaelBelfastInnEvent <= uiDiff)
+        {
+            m_uiMichaelBelfastInnEvent = MichaelBelfastInnEvent();
+        }
+        else
+            m_uiMichaelBelfastInnEvent -= uiDiff;
+    }
+
     if (m_uiRogerOwensEvent)
     {
         if (m_uiRogerOwensEvent <= uiDiff)
@@ -663,7 +709,7 @@ void instance_culling_of_stratholme::Update(uint32 uiDiff)
         else
             m_uiSergeantMoriganEvent -= uiDiff;
     }
-    
+
     if (m_uiJenaAndersonEvent)
     {
         if (m_uiJenaAndersonEvent <= uiDiff)
@@ -673,7 +719,7 @@ void instance_culling_of_stratholme::Update(uint32 uiDiff)
         else
             m_uiJenaAndersonEvent -= uiDiff;
     }
-    
+
     if (m_uiMalcomMooreEvent)
     {
         if (m_uiMalcomMooreEvent <= uiDiff)
@@ -683,7 +729,7 @@ void instance_culling_of_stratholme::Update(uint32 uiDiff)
         else
             m_uiMalcomMooreEvent -= uiDiff;
     }
-    
+
     if (m_uiBartlebyBattsonEvent)
     {
         if (m_uiBartlebyBattsonEvent <= uiDiff)
@@ -727,7 +773,7 @@ void instance_culling_of_stratholme::SummonWave()
                 }
             }
             m_uiWaveSummonCounter++;
-            DoUpdateWorldState(WORLD_STATE_COS_WAVE_COUNT, m_uiWaveSummonCounter);
+            DoUpdateWorldState(WORLD_STATE_WAVE, m_uiWaveSummonCounter);
             //DoScriptText(SAY_MEATHOOK_SPAWN, pMeathook); // Should be done by ACID
             //DoScriptText(SAY_SALRAMM_SPAWN, pSalramm); // Should be done by ACID
         }
@@ -739,6 +785,16 @@ bool instance_culling_of_stratholme::StartCratesEvent(uint32 npcEntry)
     bool bEventAlreadyInProgress = false;
     switch(npcEntry)
     {
+        case NPC_MICHAEL_BELFAST:
+        {
+            if (m_uiMichaelBelfastInnEvent == 0)
+            {
+                m_uiMichaelBelfastInnEvent = 1000;
+                m_uiMichaelBelfastInnEventCounter = 0;
+            }
+            else
+                bEventAlreadyInProgress = true;
+        }
         case NPC_ROGER_OWENS:
         {
             if (m_uiRogerOwensEvent == 0)
@@ -1282,6 +1338,99 @@ uint32 instance_culling_of_stratholme::BartlebyBattsonEvent()
     ++m_uiBartlebyBattsonEventCounter;
     return m_uiStepTimer;
 
+}
+
+uint32 instance_culling_of_stratholme::MichaelBelfastInnEvent()
+{
+    uint32 m_uiStepTimer = 1000;
+    if(Creature* pMichaekBelfast = GetSingleCreatureFromStorage(NPC_MICHAEL_BELFAST))
+    {
+        switch(m_uiMichaelBelfastInnEventCounter)
+        {
+           case 0:
+              DoScriptText(SAY_MIKE01, pMichaekBelfast);
+              m_uiStepTimer = 4000;
+              break;
+           case 1:
+              pMichaekBelfast->SetGuidValue(UNIT_FIELD_TARGET, ObjectGuid());
+              m_uiStepTimer = 5000;
+              break;
+           case 2:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_HEARTHSINGER_FORRESTEN))
+                 DoScriptText(SAY_FORRESTER02, pTemp);
+              m_uiStepTimer = 6000;
+              break;
+           case 3:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_FOOTMAN_JAMES))
+                 DoScriptText(SAY_JAMES03, pTemp);
+              m_uiStepTimer = 5000;
+              break;
+           case 4:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_FRAS_SIABI))
+                 DoScriptText(SAY_SIABI04, pTemp);
+              m_uiStepTimer = 2000;
+              break;
+           case 5:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_FRAS_SIABI))
+                 pTemp->HandleEmoteCommand(EMOTE_SHOT);
+              pMichaekBelfast->SetStandState(UNIT_STAND_STATE_STAND);
+              m_uiStepTimer = 5000;
+              break;
+           case 6:
+              pMichaekBelfast->GetMotionMaster()->MovePoint(0, 1554.849f, 588.465f, 99.775f);
+              m_uiStepTimer = 3000;
+              break;
+           case 7:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_FRAS_SIABI))
+                 pTemp->HandleEmoteCommand(EMOTE_LAUGH);
+              m_uiStepTimer = 3000;
+              break;
+           case 8:
+              DoScriptText(SAY_MIKE05, pMichaekBelfast);
+              m_uiStepTimer = 2000;
+              break;
+           case 9:
+              pMichaekBelfast->HandleEmoteCommand(EMOTE_SHOT);
+              m_uiStepTimer = 1000;
+              break;
+           case 10:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_MAL_CORRICKS))
+                 DoScriptText(SAY_CORICKS06, pTemp);
+              m_uiStepTimer = 4000;
+              break;
+           case 11:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_MAL_CORRICKS))
+                 pTemp->HandleEmoteCommand(EMOTE_TALK);
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_GRYAN_STOUTMANTLE))
+                 DoScriptText(SAY_GRIAN07, pTemp);
+              m_uiStepTimer = 11000;
+              break;
+           case 12:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_MAL_CORRICKS))
+                 DoScriptText(SAY_CORICKS08, pTemp);
+              pMichaekBelfast->GetMotionMaster()->MovePoint(0, 1549.609f, 575.544f, 100.052f);
+              m_uiStepTimer = 2000;
+              break;
+           case 13:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_FOOTMAN_JAMES))
+                 DoScriptText(SAY_JAMES09, pTemp);
+              m_uiStepTimer = 2000;
+              break;
+           case 14:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_FOOTMAN_JAMES))
+                 pTemp->HandleEmoteCommand(EMOTE_TALK);
+              m_uiStepTimer = 5000;
+              break;
+           case 15:
+              if (Creature* pTemp = GetSingleCreatureFromStorage(NPC_HEARTHSINGER_FORRESTEN))
+                 DoScriptText(SAY_FORRESTER10, pTemp);
+              break;
+           default:
+               m_uiStepTimer = 0;
+        }
+    }
+    ++m_uiMichaelBelfastInnEventCounter;
+    return m_uiStepTimer;
 }
 
 InstanceData* GetInstanceData_instance_culling_of_stratholme(Map* pMap)

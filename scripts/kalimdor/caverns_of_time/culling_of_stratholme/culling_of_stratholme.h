@@ -25,43 +25,6 @@ EndScriptData */
 #ifndef DEF_CULLING_OF_STRATHOLME_H
 #define DEF_CULLING_OF_STRATHOLME_H
 
-enum Data
-{
-    GO_CRATE_LIGHT              = 190117,
-
-    NPC_KNIGHT              = 28612,
-    NPC_INVIS_STALKER       = 20562,
-    WORLD_STATE_COS_WAVE_COUNT    = 3504,
-
-    MALGANIS_KC_BUNNY      = 31006,
-
-///-> end
-
-    NPC_CHROMI03            = 30997,
-
-    NPC_INFINITE_ADVERSARY  = 27742,
-    NPC_INFINITE_HUNTER     = 27743,
-    NPC_INFINITE_AGENT      = 27744,
-    NPC_TIME_RIFT           = 28409,
-    NPC_TIME_RIFT_2         = 28439,
-    
-    NPC_STALKER             = 28199,  ///->??? might be typo for invis_stalker
-    NPC_INFINITE_CORRUPTOR  = 32273,
-
-    GO_MALGANIS_GATE1      = 187711,
-    GO_MALGANIS_GATE2      = 187723,
-    GO_MALGANIS_CHEST      = 190663,
-    GO_MALGANIS_CHEST_H    = 193597,
-    GO_EXIT                = 191788,
-
-
-    WORLD_STATE_COS_TIME_ON       = 3932,
-    WORLD_STATE_COS_TIME_COUNT    = 3931,
-
-    RIGHT               = 0,
-    LEFT                = 1,
-};
-
 enum
 {
     MAX_WAVE_MOB                    = 10,
@@ -85,6 +48,7 @@ enum
     NPC_ARTHAS                      = 26499,
     NPC_JAINA_PROUDMOORE            = 26497,
     NPC_UTHER_THE_LIGHTBRINGER      = 26528,
+    NPC_KNIGHT_OF_UTHER             = 28612,
     NPC_MEATHOOK                    = 26529,
     NPC_SALRAMM_THE_FLESHCRAFTER    = 26530,
     NPC_CHRONO_LORD_EPOCH           = 26532,
@@ -117,7 +81,7 @@ enum
     NPC_SILVIO_PERELLI              = 27876,
     NPC_JENA_ANDERSON               = 27885,
     NPC_MARTHA_GOSLIN               = 27884,
-    NPC_MALCOM_MOORE                = 27891,                // Not (yet?) spawned
+    NPC_MALCOM_MOORE                = 27891,                // Not (yet?) spawned - spawn in DoSpawnMalcomAndScruffyIfNeed()
     NPC_SCRUFFY                     = 27892,                // Not (yet?) spawned
     NPC_BARTLEBY_BATTSON            = 27907,
     NPC_CRATES_BUNNY                = 30996,
@@ -139,6 +103,14 @@ enum
     NPC_EMERY_NEILL                 = 30570,
     NPC_EDWARD_ORRICK               = 31018,
     NPC_OLIVIA_ZENITH               = 31020,
+    NPC_INVIS_STALKER               = 20562,
+
+    //House Event NPCs
+    NPC_INFINITE_ADVERSARY          = 27742,
+    NPC_INFINITE_HUNTER             = 27743,
+    NPC_INFINITE_AGENT              = 27744,
+    NPC_TIME_RIFT                   = 28409,
+    NPC_TIME_RIFT_2                 = 28439,
 
     // Townhall Event NPCs
     NPC_AGIATED_STRATHOLME_CITIZEN  = 31126,
@@ -147,9 +119,16 @@ enum
     NPC_STRATHOLME_RESIDENT_HOUSE   = 28341,
 
     // Gameobjects
+    GO_MALGANIS_GATE1               = 187711,
+    GO_MALGANIS_GATE2               = 187723,
+    GO_EXIT_DOOR                    = 191788,
     GO_DOOR_BOOKCASE                = 188686,
     GO_DARK_RUNED_CHEST             = 190663,
     GO_DARK_RUNED_CHEST_H           = 193597,
+
+    // to sign the side of waves
+    RIGHT                           = 0,
+    LEFT                            = 1,
 
     // World States
     WORLD_STATE_CRATES              = 3479,
@@ -172,6 +151,18 @@ enum
     5253 Angelicas boutique
     5256 townhall
     5291 Inn */
+/*###
+## npc_dark_conversion
+###*/
+
+/*enum
+{
+   SAY_PEOPLE01         = -1594099,
+   SAY_PEOPLE02         = -1594100,
+   SAY_PEOPLE03         = -1594101,
+   SAY_PEOPLE04         = -1594102,
+   SAY_PEOPLE05         = -1594103,
+};*/
 };
 enum eInstancePosition
 {
@@ -234,6 +225,27 @@ enum
     SAY_BARTLEBY04         = -1597303,
     SAY_BARTLEBY05         = -1597304,
 };
+
+enum
+{
+   SAY_MIKE01                = -1597270,
+   SAY_FORRESTER02           = -1597271,
+   SAY_JAMES03               = -1597272,
+   SAY_SIABI04               = -1597273,
+   SAY_MIKE05                = -1597274,
+   SAY_CORICKS06             = -1597275,
+   SAY_GRIAN07               = -1597276,
+   SAY_CORICKS08             = -1597277,
+   SAY_JAMES09               = -1597278,
+   SAY_FORRESTER10           = -1597279,
+
+   EMOTE_SHOT                = 5,
+   EMOTE_TALK                = 1,
+   EMOTE_POINT               = 25,
+   EMOTE_NO                  = 274,
+   EMOTE_LAUGH               = 11
+};
+
 class MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
 {
     public:
@@ -253,20 +265,15 @@ class MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
 
         void Update(uint32 uiDiff);
         void StartWaveEvent();
-        void SummonWave(); 
 
         // crates event
         bool StartCratesEvent(uint32 npcEntry);
-        uint32 RogerOwensEvent();
-        uint32 SergeantMoriganEvent();
-        uint32 JenaAndersonEvent();
-        uint32 MalcomMooreEvent();
-        uint32 BartlebyBattsonEvent();
 
         GUIDList GetStratAgiatedCitizenList(){ return m_lAgiatedCitizenGUIDList; };
         GUIDList GetStratAgiatedResidentList(){ return m_lAgiatedResidentGUIDList; };
-        void ConvertCityToDeath();
+
         void TeleportMalganisAndSpawnIfNeeded(bool entrance);
+        void ConvertCityToDeath();
 
         void GetCratesBunnyOrderedList(std::list<Creature*> &lList);
         Creature* GetStratIntroFootman();
@@ -274,13 +281,25 @@ class MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
         void DoSpawnArthasIfNeeded();
         void DoSpawnChromieIfNeeded();
         void DoSpawnUtherAndJainaIfNeeded();
-        void DoSpawnMalcomAndScruffyIfNeed();
         uint8 GetInstancePosition();
         void ArthasJustDied();
 
     protected:
+        void SummonWave();
+
+        void DoSpawnMalcomAndScruffyIfNeed();
+        void DoSpawnInfiniteCorruptorIfNeed();
         void OnPlayerEnter(Player* pPlayer);
         void DoChromieHurrySpeech();
+
+        bool IsWaveNPC(uint32 entry);
+
+        uint32 RogerOwensEvent();
+        uint32 SergeantMoriganEvent();
+        uint32 JenaAndersonEvent();
+        uint32 MalcomMooreEvent();
+        uint32 BartlebyBattsonEvent();
+        uint32 MichaelBelfastInnEvent();
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
@@ -296,6 +315,8 @@ class MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
         uint32 m_uiZombieConvertTimer;
 
         // crates event
+        uint32 m_uiMichaelBelfastInnEvent;
+        uint32 m_uiMichaelBelfastInnEventCounter;
         uint32 m_uiRogerOwensEvent;
         uint32 m_uiRogerOwensEventCounter;
         uint32 m_uiSergeantMoriganEvent;
