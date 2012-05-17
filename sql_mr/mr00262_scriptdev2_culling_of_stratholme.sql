@@ -145,7 +145,7 @@ REPLACE INTO script_texts (entry, content_default, content_loc8, sound, type, la
 (-1594187, 'ENOUGH! I waste my time here...I must gather my strength on the home world...', 'Я лишь зря трачу тут свое время. Мне нужно собраться силами в моем родном мире.',14428,1,0,0, '26499');
 
 -- for official Sd2 --> DB clean up query
-DELETE FROM gossip_texts WHERE entry BETWEEN -3595005 AND -3595000;
+-- DELETE FROM gossip_texts WHERE entry BETWEEN -3595005 AND -3595000;
 
 DELETE FROM script_waypoint WHERE entry=26528;
 DELETE FROM script_waypoint WHERE entry=26499;
@@ -180,7 +180,7 @@ INSERT INTO script_waypoint VALUES
    (26499, 18, 2320.374,1179.954,133.926, 0, 'WP19'),
    (26499, 19, 2354.626,1192.099,130.535, 0, 'WP20'),
    (26499, 20, 2363.374,1194.101,131.414, 0, 'WP21 - pause'),
-   (26499, 21, 2364.749,1194.660,131.672, 3000, 'WP22 - say'),
+   (26499, 21, 2373.749,1199.660,134.672, 3000, 'WP22 - say'),
    (26499, 22, 2390.256,1204.235,134.125, 0, 'WP21 - pause escort and start event'), #2500  2396.035 1206.942 134.038
    (26499, 23, 2442.023,1219.205,133.999, 0, 'WP22'),
    (26499, 24, 2446.945,1192.559,148.100, 0, 'WP23'),
@@ -192,7 +192,6 @@ INSERT INTO script_waypoint VALUES
    (26499, 30, 2417.584,1121.026,148.082, 10000, 'WP29'),
    (26499, 31, 2420.949,1119.944,148.075, 29000, 'WP30 - pause'),
    (26499, 32, 2444.682,1111.705,148.076, 0, 'WP31 - Stop'),
-
    (26499, 33, 2457.133,1120.941,150.008, 0, 'House WP11'),
    (26499, 34, 2459.694,1127.012,150.008, 0, 'House WP12'),
    (26499, 35, 2469.617,1122.274,150.008, 0, 'House WP13'),
