@@ -792,7 +792,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
                             float distX, distY, distZ;
                             float dist = frand(0, 10.0f);
                             pPlayer->GetRandomPoint(pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), dist, x, y,z);
-                            pPlayer->GetTerrain()->CheckPathAccurate(x, y, z, distX, distY, distZ);
+                            pPlayer->GetTerrain()->getHitPosition(x, y, z, distX, distY, distZ, distX, distY, distZ, pPlayer->GetPhaseMask(), -0.1f);
                             m_creature->SummonCreature(NPC_ZOMBIE, distX, distY, distZ, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3 * MINUTE * IN_MILLISECONDS);
                             m_uiSummonZombie = 5 * IN_MILLISECONDS;
                         }
@@ -831,7 +831,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
                         float distX, distY, distZ;
                         float dist = frand(0, 10.0f);
                         m_creature->GetRandomPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), dist, x, y,z);
-                        m_creature->GetTerrain()->CheckPathAccurate(x, y, z, distX, distY, distZ);
+                        m_creature->GetTerrain()->getHitPosition(x, y, z, distX, distY, distZ, distX, distY, distZ, m_creature->GetPhaseMask(), -0.1f);
                         m_creature->SummonCreature(NPC_ZOMBIE, distX, distY, distZ, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3 * MINUTE * IN_MILLISECONDS);
                         m_uiSummonZombie = 5 * IN_MILLISECONDS;
                     }
@@ -844,7 +844,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
                         float distX, distY, distZ;
                         float dist = frand(0, 10.0f);
                         m_creature->GetRandomPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), dist, x, y,z);
-                        m_creature->GetTerrain()->CheckPathAccurate(x, y, z, distX, distY, distZ);
+                        m_creature->GetTerrain()->getHitPosition(x, y, z, distX, distY, distZ, distX, distY, distZ, m_creature->GetPhaseMask(), -0.1f);
                         m_creature->SummonCreature(GetRandomWaveNPC(), distX, distY, distZ, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3 * MINUTE * IN_MILLISECONDS);
                         m_uiStrongerNPC = 30 * IN_MILLISECONDS;
                     }
