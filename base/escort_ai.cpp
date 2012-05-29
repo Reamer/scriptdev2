@@ -210,6 +210,18 @@ void npc_escortAI::JustRespawned()
     if (m_creature->getFaction() != m_creature->GetCreatureInfo()->faction_A)
         m_creature->setFaction(m_creature->GetCreatureInfo()->faction_A);
 
+    if (SpawnAtWaypoint != WaypointList.begin())
+    {
+        // teleport in near for that the SpecialPoint trigger MovementInform
+        // with next Update Creature should walk to SpawnAtWaypoint
+        float spawnX = SpawnAtWaypoint->fX + (urand(0,1) ? -3.0f : 3.0f);
+        float spawnY = SpawnAtWaypoint->fY + (urand(0,1) ? -3.0f : 3.0f);
+        float spawnZ = SpawnAtWaypoint->fZ;
+        m_creature->GetMap()->CreatureRelocation(m_creature, spawnX, spawnY, spawnZ, 0.0f);
+        m_creature->Relocate(spawnX, spawnY, spawnZ);
+        CurrentWP = SpawnAtWaypoint;
+        AddEscortState(STATE_ESCORT_ESCORTING);
+    }
     Reset();
 }
 
@@ -484,6 +496,18 @@ void npc_escortAI::SetRun(bool bRun)
     m_bIsRunning = bRun;
 }
 
+void npc_escortAI::SetSpawnPoint(uint32 uiPointId)
+{
+    for (std::list<Escort_Waypoint>::iterator itr = WaypointList.begin(); itr != WaypointList.end(); ++itr)
+    {
+        if (itr->uiId == uiPointId)
+        {
+            SpawnAtWaypoint = itr;                                // Set to found itr
+            break;
+        }
+    }
+}
+
 //TODO: get rid of this many variables passed in function.
 void npc_escortAI::Start(bool bRun, const Player* pPlayer, const Quest* pQuest, bool bInstantRespawn, bool bCanLoopPath)
 {
@@ -535,6 +559,7 @@ void npc_escortAI::Start(bool bRun, const Player* pPlayer, const Quest* pQuest, 
     debug_log("SD2: EscortAI started with %u waypoints. Run = %d, PlayerGuid = %u", WaypointList.size(), m_bIsRunning, m_playerGuid.GetCounter());
 
     CurrentWP = WaypointList.begin();
+    SpawnAtWaypoint = WaypointList.begin();
 
     //Set initial speed
     m_creature->SetWalk(!m_bIsRunning);

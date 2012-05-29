@@ -72,6 +72,7 @@ struct MANGOS_DLL_DECL npc_escortAI : public ScriptedAI
 
         void SetRun(bool bRun = true);
         void SetEscortPaused(bool uPaused);
+        void SetSpawnPoint(uint32 point);
 
         bool HasEscortState(uint32 uiEscortState) { return (m_uiEscortState & uiEscortState); }
 
@@ -100,6 +101,7 @@ struct MANGOS_DLL_DECL npc_escortAI : public ScriptedAI
 
         std::list<Escort_Waypoint> WaypointList;
         std::list<Escort_Waypoint>::iterator CurrentWP;
+        std::list<Escort_Waypoint>::iterator SpawnAtWaypoint;
 
         bool m_bIsRunning;                                  //all creatures are walking by default (has flag SPLINEFLAG_WALKMODE)
         bool m_bCanInstantRespawn;                          //if creature should respawn instantly after escort over (if not, database respawntime are used)
