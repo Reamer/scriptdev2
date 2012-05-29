@@ -113,7 +113,22 @@ static const StratholmWave aStratholmWaveNormal[]=
 instance_culling_of_stratholme::instance_culling_of_stratholme(Map* pMap) : ScriptedInstance(pMap),
     m_uiGrainCrateCount(0),
     m_uiRemoveCrateStateTimer(0),
-    m_uiArthasRespawnTimer(0)
+    m_uiArthasRespawnTimer(0),
+    m_uiWaveSummonTimer(0),
+    m_uiWaveSummonCounter(0),
+    m_uiZombieConvertTimer(0),
+    m_uiMichaelBelfastInnEvent(0),
+    m_uiMichaelBelfastInnEventCounter(0),
+    m_uiRogerOwensEvent(0),
+    m_uiRogerOwensEventCounter(0),
+    m_uiSergeantMoriganEvent(0),
+    m_uiSergeantMoriganEventCounter(0),
+    m_uiJenaAndersonEvent(0),
+    m_uiJenaAndersonEventCounter(0),
+    m_uiMalcomMooreEvent(0),
+    m_uiMalcomMooreEventCounter(0),
+    m_uiBartlebyBattsonEvent(0),
+    m_uiBartlebyBattsonEventCounter(0)
 {
     Initialize();
 }
@@ -262,7 +277,13 @@ void instance_culling_of_stratholme::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[TYPE_MALGANIS_EVENT] = uiData;
             if (uiData == DONE)
             {
+                DoUseDoorOrButton(GO_EXIT_DOOR);
                 DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_DARK_RUNED_CHEST : GO_DARK_RUNED_CHEST_H, 30*MINUTE);
+                // hack
+                if (GameObject* pChest = GetSingleGameObjectFromStorage(instance->IsRegularDifficulty() ? GO_DARK_RUNED_CHEST : GO_DARK_RUNED_CHEST_H))
+                {
+                    pChest->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+                }
                 DoSpawnChromieIfNeeded();
             }
             break;
@@ -277,7 +298,7 @@ void instance_culling_of_stratholme::SetData(uint32 uiType, uint32 uiData)
                 DoUpdateWorldState(WORLD_STATE_TIME_COUNTER, uiData/(MINUTE*IN_MILLISECONDS));
             break;
         case TYPE_INFINITE_CORRUPTER:
-            m_auiEncounter[uiType] = uiData;
+            m_auiEncounter[TYPE_INFINITE_CORRUPTER] = uiData;
             switch(uiData)
             {
                 case IN_PROGRESS:
@@ -401,9 +422,10 @@ void instance_culling_of_stratholme::ConvertCityToDeath()
         {
             if (pCityMan->GetEntry() != NPC_ZOMBIE)
                 pCityMan->UpdateEntry(NPC_ZOMBIE);
+            if (GetData(TYPE_SALRAMM_EVENT) != DONE)
+                pCityMan->SetInCombatWithZone();
         }
     }
-    m_uiZombieConvertTimer = 1000;
 }
 
 void instance_culling_of_stratholme::TeleportMalganisAndSpawnIfNeeded(bool entrance)
@@ -540,7 +562,7 @@ void instance_culling_of_stratholme::DoSpawnArthasIfNeeded()
     if (uiPosition && uiPosition <= MAX_ARTHAS_SPAWN_POS)
     {
         if (Player* pPlayer = GetPlayerInMap())
-            pPlayer->SummonCreature(NPC_ARTHAS, m_aArthasSpawnLocs[uiPosition-1].m_fX, m_aArthasSpawnLocs[uiPosition-1].m_fY, m_aArthasSpawnLocs[uiPosition-1].m_fZ, m_aArthasSpawnLocs[uiPosition-1].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_ARTHAS, m_aArthasSpawnLocs[uiPosition-1].m_fX, m_aArthasSpawnLocs[uiPosition-1].m_fY, m_aArthasSpawnLocs[uiPosition-1].m_fZ, m_aArthasSpawnLocs[uiPosition-1].m_fO, TEMPSUMMON_MANUAL_DESPAWN, 10000);
     }
 }
 
@@ -662,7 +684,7 @@ void instance_culling_of_stratholme::Update(uint32 uiDiff)
         if (m_uiWaveSummonTimer <= uiDiff)
         {
             SummonWave();
-            m_uiWaveSummonTimer = 5000; // MINUTE*IN_MILLISECONDS
+            m_uiWaveSummonTimer = 45*IN_MILLISECONDS;
         }
         else
             m_uiWaveSummonTimer -= uiDiff;
@@ -675,6 +697,7 @@ void instance_culling_of_stratholme::Update(uint32 uiDiff)
         if (m_uiZombieConvertTimer <= uiDiff)
         {
             ConvertCityToDeath();
+            m_uiZombieConvertTimer = 1000;
         }
         else
             m_uiZombieConvertTimer -= uiDiff;
@@ -745,6 +768,8 @@ void instance_culling_of_stratholme::StartWaveEvent()
 {
     m_uiWaveSummonTimer = 1000;
     m_uiWaveSummonCounter = 0;
+    if (GetData(TYPE_MEATHOOK_EVENT) == DONE)
+        m_uiWaveSummonCounter = 5;
 }
 
 void instance_culling_of_stratholme::SummonWave()
@@ -767,8 +792,9 @@ void instance_culling_of_stratholme::SummonWave()
                 {
                     if (Creature* pTemp = pArthas->SummonCreature(pWaveData->m_auiMobEntry[i], m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fX + irand(-3, +3), m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fY + irand(-3, +3), m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fZ, m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fO, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
                     {
-                        if (Player* pPlayer = GetPlayerInMap(true))
-                            pTemp->AI()->AttackStart(pPlayer);
+                        //if (Player* pPlayer = GetPlayerInMap(true))
+                          //  pTemp->AI()->AttackStart(pPlayer);
+                        pTemp->SetInCombatWithZone();
                     }
                 }
             }
@@ -794,6 +820,7 @@ bool instance_culling_of_stratholme::StartCratesEvent(uint32 npcEntry)
             }
             else
                 bEventAlreadyInProgress = true;
+            break;
         }
         case NPC_ROGER_OWENS:
         {
