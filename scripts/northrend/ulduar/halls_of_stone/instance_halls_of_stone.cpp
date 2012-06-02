@@ -270,7 +270,7 @@ void instance_halls_of_stone::SortFaces()
     }
 
     // FACE_KADDRAK
-    pFace = instance->GetGameObject(m_aFaces[FACE_KADDRAK].m_goFaceGuid)
+    pFace = instance->GetGameObject(m_aFaces[FACE_KADDRAK].m_goFaceGuid);
     if (pFace)
     {
         // Find Kaddrak NPCs
