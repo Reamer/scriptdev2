@@ -876,21 +876,6 @@
     <ClCompile Include="..\scripts\kalimdor\boss_azuregos.cpp">
       <Filter>scripts\kalimdor</Filter>
     </ClCompile>
-    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_infinite_corruptor.cpp">
-      <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_lord_epoch.cpp">
-      <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_malganis.cpp">
-      <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_meathook.cpp">
-      <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_salramm.cpp">
-      <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
-    </ClCompile>
     <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\culling_of_stratholme.cpp">
       <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
     </ClCompile>
@@ -898,9 +883,6 @@
       <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
     </ClCompile>
     <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\instance_culling_of_stratholme.cpp">
-      <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\trash_culling_of_stratholme.cpp">
       <Filter>scripts\kalimdor\caverns_of_time\culling_of_stratholme</Filter>
     </ClCompile>
     <ClCompile Include="..\scripts\kalimdor\caverns_of_time\dark_portal\boss_aeonus.cpp">
