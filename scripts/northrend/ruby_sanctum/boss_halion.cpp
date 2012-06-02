@@ -998,10 +998,14 @@ struct MANGOS_DLL_DECL mob_halion_orbAI : public BSWScriptedAI
         pInstance->SetData(m_flag, IN_PROGRESS);
         MovementStarted = true;
         m_direction = ((float)pInstance->GetData(DATA_ORB_DIRECTION)/1000 + m_delta);
-        if (m_direction > 2.0f*M_PI_F) m_direction = m_direction - 2.0f*M_PI_F;
-        if (focus = pInstance->GetSingleCreatureFromStorage(NPC_ORB_ROTATION_FOCUS))
+        if (m_direction > 2.0f*M_PI_F)
+            m_direction = m_direction - 2.0f*M_PI_F;
+
+        focus = pInstance->GetSingleCreatureFromStorage(NPC_ORB_ROTATION_FOCUS);
+        if (focus)
             focus->GetNearPoint2D(x, y, FR_RADIUS, m_direction);
-            else m_creature->ForcedDespawn();
+        else
+            m_creature->ForcedDespawn();
 //        debug_log("EventMGR: creature %u go to move point %u ",m_creature->GetEntry(),id);
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MovePoint(id, x, y,  m_creature->GetPositionZ());

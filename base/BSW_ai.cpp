@@ -744,7 +744,8 @@ bool BSWScriptedAI::_doAura(uint32 SpellID, Unit* pTarget, SpellEffectIndex inde
             }
 
 
-            if (aura = holder->GetAuraByEffectIndex(index))
+            aura = holder->GetAuraByEffectIndex(index);
+            if (aura)
             {
                 if (isStack)
                     holder->ModStackAmount(1);

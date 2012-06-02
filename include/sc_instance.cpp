@@ -260,7 +260,7 @@ void DialogueHelper::StartNextDialogueText(int32 iTextEntry)
 void DialogueHelper::DoNextDialogueStep()
 {
     // Last Dialogue Entry done?
-    if (m_pCurrentEntry && !m_pCurrentEntry->iTextEntry || m_pCurrentEntryTwoSide && !m_pCurrentEntryTwoSide->iTextEntry)
+    if ((m_pCurrentEntry && !m_pCurrentEntry->iTextEntry) || (m_pCurrentEntryTwoSide && !m_pCurrentEntryTwoSide->iTextEntry))
     {
         m_uiTimer = 0;
         return;

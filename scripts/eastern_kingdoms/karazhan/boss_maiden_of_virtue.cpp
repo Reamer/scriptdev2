@@ -121,7 +121,8 @@ struct MANGOS_DLL_DECL boss_maiden_of_virtueAI : public ScriptedAI
 
             if (target_list.size())
             {
-                if (pTarget = *(target_list.begin()+rand()%target_list.size()))
+                pTarget = *(target_list.begin()+rand()%target_list.size());
+                if (pTarget)
                     DoCastSpellIfCan(pTarget,SPELL_HOLYFIRE);
             }
 

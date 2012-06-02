@@ -236,7 +236,8 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
             pSpell->Id == SPELL_BREATH_NORTH_TO_SOUTH)
         {
             // This was sent with SendMonsterMove - which resulted in better speed than now
-            if (m_pPointData = GetMoveData())
+            m_pPointData = GetMoveData();
+            if (m_pPointData)
                 m_creature->GetMotionMaster()->MovePoint(m_pPointData->uiLocId, m_pPointData->fX, m_pPointData->fY, m_pPointData->fZ);
         }
     }
@@ -382,7 +383,8 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                     {
                         case 0:                             // breath
                         case 1:
-                            if (m_pPointData = GetMoveData())
+                            m_pPointData = GetMoveData();
+                            if (m_pPointData)
                             {
                                 DoScriptText(EMOTE_BREATH, m_creature);
                                 DoCastSpellIfCan(m_creature, m_pPointData->uiSpellId, CAST_INTERRUPT_PREVIOUS);
@@ -400,8 +402,8 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                             ++m_uiMovePoint %= m_uiMaxBreathPositions;
                             break;
                     }
-
-                    if (m_pPointData = GetMoveData())
+                    m_pPointData = GetMoveData();
+                    if (m_pPointData)
                         m_creature->GetMotionMaster()->MovePoint(m_pPointData->uiLocId, m_pPointData->fX, m_pPointData->fY, m_pPointData->fZ);
                 }
                 else

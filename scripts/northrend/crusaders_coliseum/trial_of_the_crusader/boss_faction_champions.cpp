@@ -356,8 +356,7 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
         ThreatList::const_iterator iter;
         for (iter = tList.begin(); iter!=tList.end(); ++iter)
         {
-            Unit *target;
-            if (target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
+            if (Unit* target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
                 if (target->getPowerType() == POWER_MANA)
                     return target;
         }
@@ -370,8 +369,7 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
         ThreatList::const_iterator iter;
         for (iter = tList.begin(); iter!=tList.end(); ++iter)
         {
-            Unit *target;
-            if (target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
+            if (Unit *target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
                 if (target->GetHealthPercent() < 30.0f)
                     return target;
         }
@@ -1722,8 +1720,7 @@ struct MANGOS_DLL_DECL mob_toc_warriorAI : public boss_faction_championsAI
         ThreatList::const_iterator iter;
         for (iter = tList.begin(); iter!=tList.end(); ++iter)
         {
-            Unit *target;
-            if (target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
+            if (Unit* target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
                 if (target->HasAura(SPELL_DIVINE_SHIELD))
                     return target;
         }
@@ -1737,8 +1734,7 @@ struct MANGOS_DLL_DECL mob_toc_warriorAI : public boss_faction_championsAI
         ThreatList::const_iterator iter;
         for (iter = tList.begin(); iter!=tList.end(); ++iter)
         {
-            Unit *target;
-            if (target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
+            if (Unit* target = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
                 if (target->HasAura(SPELL_ICE_BLOCK))
                     return target;
         }

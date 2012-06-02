@@ -98,6 +98,7 @@ struct DialogueEntryTwoSide
 class DialogueHelper
 {
     public:
+        virtual ~DialogueHelper(){}
         // The array MUST be terminated by {0,0,0}
         DialogueHelper(DialogueEntry const* pDialogueArray);
         // The array MUST be terminated by {0,0,0,0,0}

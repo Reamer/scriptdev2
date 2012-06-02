@@ -285,7 +285,7 @@ struct MANGOS_DLL_DECL boss_malacrassAI : public ScriptedAI
                 //object already removed, not exist
                 if (!pAdd)
                 {
-                    if (pAdd = m_creature->SummonCreature((*itr), m_afAddPosX[j], ADD_POS_Y, ADD_POS_Z, ADD_ORIENT, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                    if (Creature* pAdd = m_creature->SummonCreature((*itr), m_afAddPosX[j], ADD_POS_Y, ADD_POS_Z, ADD_ORIENT, TEMPSUMMON_CORPSE_DESPAWN, 0))
                         m_aAddGuid[j] = pAdd->GetObjectGuid();
                 }
                 ++j;
