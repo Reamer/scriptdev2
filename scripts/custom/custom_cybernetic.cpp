@@ -314,7 +314,7 @@ bool GossipHello_custum_cybernetic_3(Player* pPlayer, Creature* pCreature)
         {
             int32 duration = pAura->GetAuraDuration() / 1000;
             std::ostringstream oss;
-            oss << "Die Auradauer der Zaubers " <<Auras[i].Name << " beträgt noch " << duration << " Sekunden";
+            oss << "Die Aura " <<Auras[i].Name << " wirkt noch " << duration << " Sekunden";
             std::string AuraText = oss.str();
             pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, AuraText , GOSSIP_SENDER_MAIN, 555+i);
         }
