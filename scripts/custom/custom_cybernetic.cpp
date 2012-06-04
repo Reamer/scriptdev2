@@ -288,31 +288,38 @@ bool GossipSelect_custum_cybernetic_2(Player *pPlayer, Creature *pCreature, uint
     return true;
 }
 
+struct CyberAura
+{
+    uint32 AuraId;                      // Stores the id from Cyber buff
+    std::string Name;                   // Stores the name of Cyber buffCreature Entries to be summoned in Waves
+};
+
+const static CyberAura Auras[] =
+{
+    {100001, "Cyber Geschwindigkeitboost"},
+    {100002, "Cyber Lebensboost"},
+    {100003, "Cyber Energieboost"},
+    {100004, "Cyber Wutboost"},
+    {100005, "Cyber Manaboost"},
+};
+
 bool GossipHello_custum_cybernetic_3(Player* pPlayer, Creature* pCreature)
 {
+    if (pCreature->isQuestGiver())
+        pPlayer->PrepareQuestMenu(pCreature->GetObjectGuid());
 
-    pPlayer->PrepareGossipMenu(pCreature, pCreature->GetCreatureInfo()->GossipMenuId);
-    pPlayer->SendPreparedGossip(pCreature);
-    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT,"Ich will meinen Super Tollen Ring haben.", GOSSIP_SENDER_MAIN, 555);
-    pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE,pCreature->GetObjectGuid());
-    return true;
-}
-
-bool GossipSelect_custum_cybernetic_3(Player *pPlayer, Creature *pCreature, uint32 sender, uint32 action )
-{
-    if (action == 555)
+    for (int i = 0; i < 5; ++i)
     {
-        uint32 charCount = GetCharCountWithAccountId(pPlayer->GetSession()->GetAccountId());
-        if (charCount > 1 || pPlayer->GetItemCount(ITEM_RING, true) >= 1)
+        if (Aura* pAura = pPlayer->GetAura(Auras[i].AuraId, EFFECT_INDEX_0))
         {
-            pCreature->MonsterSay("Den Ring des Meister bekommt man nur einmal mit seinen ERSTEN Charakter", LANG_UNIVERSAL);
-        }
-        else
-        {
-            addItem(pPlayer, 1, ITEM_RING);
+            int32 duration = pAura->GetAuraDuration() / 1000;
+            std::ostringstream oss;
+            oss << "Die Auradauer der Zaubers " <<Auras[i].Name << " beträgt noch " << duration << " Sekunden";
+            std::string AuraText = oss.str();
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, AuraText , GOSSIP_SENDER_MAIN, 555+i);
         }
     }
-    pPlayer->CLOSE_GOSSIP_MENU();
+    pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE,pCreature->GetObjectGuid());
     return true;
 }
 
@@ -336,7 +343,6 @@ void AddSC_custom_cybernetic()
     newscript = new Script;
     newscript->Name = "custom_cybernetic_3";
     newscript->pGossipHello = &GossipHello_custum_cybernetic_3;
-    newscript->pGossipSelect = &GossipSelect_custum_cybernetic_3;
     newscript->RegisterSelf();
 }
 
