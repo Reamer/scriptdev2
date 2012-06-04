@@ -323,6 +323,13 @@ bool GossipHello_custum_cybernetic_3(Player* pPlayer, Creature* pCreature)
     return true;
 }
 
+bool GossipSelect_custum_cybernetic_3(Player *pPlayer, Creature *pCreature, uint32 sender, uint32 action )
+{
+    // Main menu
+    pPlayer->CLOSE_GOSSIP_MENU();
+    return true;
+}
+
 void AddSC_custom_cybernetic()
 {
     Script *newscript;
@@ -343,6 +350,7 @@ void AddSC_custom_cybernetic()
     newscript = new Script;
     newscript->Name = "custom_cybernetic_3";
     newscript->pGossipHello = &GossipHello_custum_cybernetic_3;
+    newscript->pGossipSelect = &GossipSelect_custum_cybernetic_3;
     newscript->RegisterSelf();
 }
 
