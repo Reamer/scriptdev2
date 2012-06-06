@@ -225,7 +225,7 @@ void SendDefaultMenu_custom_cybernetic_2(Player *pPlayer, Creature *pCreature, u
                         int32 subtract = 5;
                         member->DestroyItemCount(ITEM_SCHNELLSTES_DUNGEON, -subtract, true, false);
 
-                        if (addItem(member,anzahlmarken, ITEM_CYBER_CREDIT) != EQUIP_ERR_OK)
+                        if (!addItem(member,anzahlmarken, ITEM_CYBER_CREDIT))
                             member->MonsterSay("Ich habe nichts bekommen.", LANG_UNIVERSAL);
                     }
                 }
