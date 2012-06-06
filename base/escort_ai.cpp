@@ -210,19 +210,22 @@ void npc_escortAI::JustRespawned()
     if (m_creature->getFaction() != m_creature->GetCreatureInfo()->faction_A)
         m_creature->setFaction(m_creature->GetCreatureInfo()->faction_A);
 
-    if (SpawnAtWaypoint && !WaypointList.empty())
+    if (!WaypointList.empty())
     {
-        if (SpawnAtWaypoint != WaypointList.begin())
+        if (SpawnAtWaypoint != NULL)
         {
-            // teleport in near for that the SpecialPoint trigger MovementInform
-            // with next Update Creature should walk to SpawnAtWaypoint
-            float spawnX = SpawnAtWaypoint->fX + (urand(0,1) ? -3.0f : 3.0f);
-            float spawnY = SpawnAtWaypoint->fY + (urand(0,1) ? -3.0f : 3.0f);
-            float spawnZ = SpawnAtWaypoint->fZ;
-            m_creature->GetMap()->CreatureRelocation(m_creature, spawnX, spawnY, spawnZ, 0.0f);
-            m_creature->Relocate(spawnX, spawnY, spawnZ);
-            CurrentWP = SpawnAtWaypoint;
-            AddEscortState(STATE_ESCORT_ESCORTING);
+            if (SpawnAtWaypoint != WaypointList.begin())
+            {
+                // teleport in near for that the SpecialPoint trigger MovementInform
+                // with next Update Creature should walk to SpawnAtWaypoint
+                float spawnX = SpawnAtWaypoint->fX + (urand(0,1) ? -3.0f : 3.0f);
+                float spawnY = SpawnAtWaypoint->fY + (urand(0,1) ? -3.0f : 3.0f);
+                float spawnZ = SpawnAtWaypoint->fZ;
+                m_creature->GetMap()->CreatureRelocation(m_creature, spawnX, spawnY, spawnZ, 0.0f);
+                m_creature->Relocate(spawnX, spawnY, spawnZ);
+                CurrentWP = SpawnAtWaypoint;
+                AddEscortState(STATE_ESCORT_ESCORTING);
+            }
         }
     }
     Reset();
