@@ -141,19 +141,6 @@ bool GossipHello_custum_cybernetic_2(Player* pPlayer, Creature* pCreature)
     return true;
 }
 
-bool addItem(Player* pPlayer, uint32 anzahl, uint32 itemId)
-{
-    ItemPosCountVec dest;
-    InventoryResult msg = pPlayer->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, itemId , anzahl);
-    if (msg == EQUIP_ERR_OK)
-    {
-        Item* item = pPlayer->StoreNewItem( dest, itemId, true);
-        pPlayer->SendNewItem(item,anzahl,false,true);
-        return true;
-    }
-    return false;
-}
-
 void SendDefaultMenu_custom_cybernetic_2(Player *pPlayer, Creature *pCreature, uint32 action )
 {
     switch(action)
@@ -238,7 +225,7 @@ void SendDefaultMenu_custom_cybernetic_2(Player *pPlayer, Creature *pCreature, u
                         int32 subtract = 5;
                         member->DestroyItemCount(ITEM_SCHNELLSTES_DUNGEON, -subtract, true, false);
 
-                        if (!addItem(member,anzahlmarken, ITEM_CYBER_CREDIT))
+                        if (addItem(member,anzahlmarken, ITEM_CYBER_CREDIT) != EQUIP_ERR_OK)
                             member->MonsterSay("Ich habe nichts bekommen.", LANG_UNIVERSAL);
                     }
                 }
