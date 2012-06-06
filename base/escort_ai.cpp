@@ -212,7 +212,7 @@ void npc_escortAI::JustRespawned()
 
     if (!WaypointList.empty())
     {
-        if (SpawnAtWaypoint != NULL)
+        if (SpawnAtWaypoint)
         {
             if (SpawnAtWaypoint != WaypointList.begin())
             {
