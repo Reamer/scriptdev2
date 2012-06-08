@@ -376,7 +376,7 @@ struct boss_skadi_graufAI : public ScriptedAI
         }
         if (isInFlight)
         {
-            if (uiMovementTimer < uiDiff)
+            if (uiMovementTimer < uiDiff && uiWaypointId < 8)
             {
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->GetMotionMaster()->MovePoint(uiWaypointId, FlightPosition[uiWaypointId].x, FlightPosition[uiWaypointId].y, FlightPosition[uiWaypointId].z, false);
