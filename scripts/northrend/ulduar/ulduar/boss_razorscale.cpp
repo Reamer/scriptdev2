@@ -206,6 +206,7 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
                         break;
                     default:
                         m_uiSpeechTimer = 100000;
+                        break;
                 }
             }
             else
