@@ -340,7 +340,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
                     {
                         float fX, fY, fZ;
                         m_pInstance->GetChamberCenterCoords(fX, fY, fZ);
-                        pSummoned->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
+                        pSummoned->GetMotionMaster()->MovePoint(0, fX, fY, fZ, true, true);
                     }
                 }
 

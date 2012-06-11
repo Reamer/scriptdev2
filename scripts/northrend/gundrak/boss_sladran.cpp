@@ -88,7 +88,7 @@ struct MANGOS_DLL_DECL mob_sladran_summon_targetAI : public ScriptedAI
         {
             float fPosX, fPosY, fPosZ;
             pSladran->GetPosition(fPosX, fPosY, fPosZ);
-            pSummoned->GetMotionMaster()->MovePoint(0, fPosX, fPosY, fPosZ);
+            pSummoned->GetMotionMaster()->MovePoint(0, fPosX, fPosY, fPosZ, true, true);
         }
     }
 

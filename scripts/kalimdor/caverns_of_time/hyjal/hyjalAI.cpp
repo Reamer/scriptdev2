@@ -278,7 +278,7 @@ void hyjalAI::JustSummoned(Creature* pSummoned)
         pSummoned->GetRandomPoint(pMove->m_fX, pMove->m_fY, pMove->m_fZ, 10.0f, fX, fY, fZ);
 
         pSummoned->SetWalk(false);
-        pSummoned->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
+        pSummoned->GetMotionMaster()->MovePoint(0, fX, fY, fZ, true, true);
     }
 
     // Check if creature is a boss.
@@ -462,7 +462,7 @@ void hyjalAI::UpdateAI(const uint32 uiDiff)
                         continue;
 
                     pTemp->SetWalk(false);
-                    pTemp->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
+                    pTemp->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), true, true);
                 }
             }
             m_uiWaveMoveTimer = 10000;

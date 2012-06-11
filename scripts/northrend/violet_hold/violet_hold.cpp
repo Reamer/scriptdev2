@@ -285,7 +285,7 @@ struct MANGOS_DLL_DECL mob_vh_dragonsAI : public ScriptedAI
             {
                 if (WayPoint != WayPointList.end())
                 {
-                    m_creature->GetMotionMaster()->MovePoint(WayPoint->id, WayPoint->x, WayPoint->y,WayPoint->z);
+                    m_creature->GetMotionMaster()->MovePoint(WayPoint->id, WayPoint->x, WayPoint->y,WayPoint->z, true, true);
                     WalkTimer = 0;
                 }
             }else WalkTimer -= uiDiff;
