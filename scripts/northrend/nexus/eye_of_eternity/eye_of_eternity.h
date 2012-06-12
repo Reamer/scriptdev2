@@ -31,7 +31,8 @@ enum
     VEHICLE_VORTEX                  = 168,
 
     //////////////// PHASE 2 ////////////////
-    NPC_HOVER_DISK                  = 30248,
+    NPC_HOVER_DISK_MELEE            = 30234,
+    NPC_HOVER_DISK_CASTER           = 30248,
     NPC_NEXUS_LORD                  = 30245, // 2 (normal) and 4 (heroic) of them are spawned on beginning of phase 2
     NPC_SCION_OF_ETERNITY           = 30249, // 4 (normal) and 8 (heroic) of them are spawned on beginning of phase 2
     NPC_ARCANE_OVERLOAD             = 30282,

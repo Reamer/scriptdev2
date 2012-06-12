@@ -76,7 +76,8 @@ void instance_eye_of_eternity::OnCreatureCreate(Creature* pCreature)
         case NPC_SCION_OF_ETERNITY:
             m_lScionOfEternity.push_back(pCreature->GetObjectGuid());
             break;
-        case NPC_HOVER_DISK:
+        case NPC_HOVER_DISK_MELEE:
+        case NPC_HOVER_DISK_CASTER:
             m_lHoverDisk.push_back(pCreature->GetObjectGuid());
             break;
         case NPC_STATIC_FIELD:
@@ -149,7 +150,7 @@ void instance_eye_of_eternity::SetData(uint32 uiType, uint32 uiData)
                     DespawnCreatures(NPC_ARCANE_OVERLOAD);
                     DespawnCreatures(NPC_NEXUS_LORD);
                     DespawnCreatures(NPC_SCION_OF_ETERNITY);
-                    DespawnCreatures(NPC_HOVER_DISK);
+                    DespawnCreatures(NPC_HOVER_DISK_CASTER);
                     DespawnCreatures(NPC_STATIC_FIELD);
                     break;
                 }
@@ -264,7 +265,8 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
             m_lScionOfEternity.clear();
             break;
         }
-        case NPC_HOVER_DISK:
+        case NPC_HOVER_DISK_MELEE:
+        case NPC_HOVER_DISK_CASTER:
         {
             for (GUIDList::iterator iter = m_lHoverDisk.begin(); iter != m_lHoverDisk.end(); ++iter)
             {
@@ -337,11 +339,9 @@ ObjectGuid instance_eye_of_eternity::GetRandomSparkPortal()
 {
     GUIDList::iterator pTargetSparkPortalGUID = m_lSparkPortal.begin();
     advance(pTargetSparkPortalGUID, urand(0, m_lSparkPortal.size()-1));
-    m_LastSparkPortal = pTargetSparkPortalGUID;
-    return pTargetSparkPortalGUID;
+    m_LastSparkPortal = *pTargetSparkPortalGUID;
+    return *pTargetSparkPortalGUID;
 }
-
-
 
 InstanceData* GetInstanceData_instance_eye_of_eternity(Map* pMap)
 {
