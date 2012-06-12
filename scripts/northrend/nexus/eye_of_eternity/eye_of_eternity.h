@@ -1,3 +1,4 @@
+
 #ifndef DEF_EYE_OF_ETERNITY_H
 #define DEF_EYE_OF_ETERNITY_H
 
@@ -42,6 +43,11 @@ enum
     NPC_ALEXSTRASZA                 = 32295,
     NPC_ALEXSTRASZAS_GIFT           = 32448,
     NPC_ALEXSTRASZA_THE_LIFE_BINDER = 31253, // maybe trigger npc
+
+    // ********************************* Some Spells *************************************//
+    SPELL_VORTEX_VISUAL             = 55873, // visual effect around platform
+    SPELL_DESTROY_PLATFORM_PRE      = 58842, // lights all over the platform
+    SPELL_DESTROY_PLATFORM_BOOM     = 59084, // Big Blue boom
 };
 
 struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
@@ -63,6 +69,12 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         void Load(const char* chrIn);
 
         void DespawnCreatures(uint32 uiEntry);
+        void ActivateVisualOfVortex();
+        void DestroyVisualOfVortex(bool boom);
+        bool IsAnyAddAtLife();
+        ObjectGuid GetRandomSparkPortal();
+        ObjectGuid GetLastSparkPortal() { return m_LastSparkPortal; }
+        void SetLastSparkPortal(ObjectGuid pLast) { m_LastSparkPortal = pLast;}
 
     private:
         std::string strInstData;
@@ -72,6 +84,8 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         uint32 m_uiFocusingIrisGUID;
         uint32 m_uiGiftGUID;
         uint32 m_uiHeartGUID;
+
+        ObjectGuid m_LastSparkPortal;
 
         GUIDList m_lPowerSparkList;
         GUIDList m_lArcaneOverload;

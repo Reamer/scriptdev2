@@ -289,6 +289,60 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
     }
 }
 
+void instance_eye_of_eternity::ActivateVisualOfVortex()
+{
+    for (GUIDList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++ iter)
+    {
+        if (Creature* pVortex = instance->GetCreature(*iter))
+        {
+            pVortex->CastSpell(pVortex, SPELL_VORTEX_VISUAL, false);
+        }
+    }
+}
+
+void instance_eye_of_eternity::DestroyVisualOfVortex(bool boom)
+{
+    for (GUIDList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++ iter)
+    {
+        if (Creature* pVortex = instance->GetCreature(*iter))
+        {
+            pVortex->CastSpell(pVortex, (boom ? SPELL_DESTROY_PLATFORM_BOOM : SPELL_DESTROY_PLATFORM_PRE), false);
+        }
+    }
+}
+
+//TODO: better count down
+bool instance_eye_of_eternity::IsAnyAddAtLife()
+{
+    for (GUIDList::const_iterator iter = m_lNexusLord.begin(); iter != m_lNexusLord.end(); ++iter)
+    {
+        if (Creature* pNexusLord = instance->GetCreature(*iter))
+        {
+            if (pNexusLord->isAlive())
+                return true;
+        }
+    }
+    for (GUIDList::const_iterator iter = m_lScionOfEternity.begin(); iter != m_lScionOfEternity.end(); ++iter)
+    {
+        if (Creature* pScionOfEternity = instance->GetCreature(*iter))
+        {
+            if (pScionOfEternity->isAlive())
+                return true;
+        }
+    }
+    return false;
+}
+
+ObjectGuid instance_eye_of_eternity::GetRandomSparkPortal()
+{
+    GUIDList::iterator pTargetSparkPortalGUID = m_lSparkPortal.begin();
+    advance(pTargetSparkPortalGUID, urand(0, m_lSparkPortal.size()-1));
+    m_LastSparkPortal = pTargetSparkPortalGUID;
+    return pTargetSparkPortalGUID;
+}
+
+
+
 InstanceData* GetInstanceData_instance_eye_of_eternity(Map* pMap)
 {
     return new instance_eye_of_eternity(pMap);
