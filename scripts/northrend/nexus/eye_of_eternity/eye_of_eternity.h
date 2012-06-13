@@ -73,9 +73,6 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         void ActivateVisualOfVortex();
         void DestroyVisualOfVortex(bool boom);
         bool IsAnyAddAtLife();
-        ObjectGuid GetRandomSparkPortal();
-        ObjectGuid GetLastSparkPortal() { return m_LastSparkPortal; }
-        void SetLastSparkPortal(ObjectGuid pLast) { m_LastSparkPortal = pLast;}
 
     private:
         std::string strInstData;
@@ -85,8 +82,6 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         uint32 m_uiFocusingIrisGUID;
         uint32 m_uiGiftGUID;
         uint32 m_uiHeartGUID;
-
-        ObjectGuid m_LastSparkPortal;
 
         GUIDList m_lPowerSparkList;
         GUIDList m_lArcaneOverload;

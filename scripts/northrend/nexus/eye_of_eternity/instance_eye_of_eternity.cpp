@@ -140,12 +140,6 @@ void instance_eye_of_eternity::SetData(uint32 uiType, uint32 uiData)
                         pExitPortal->SetPhaseMask(1, true);
                     if (GameObject* pPlatform = GetSingleGameObjectFromStorage(GO_PLATFORM))
                         pPlatform->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
-                    if (!m_lSparkPortal.empty())
-                    {
-                        for (GUIDList::iterator itr = m_lSparkPortal.begin(); itr != m_lSparkPortal.end(); ++itr)
-                            if (Creature* pSparkPortal = instance->GetCreature(*itr))
-                                pSparkPortal->Respawn();
-                    }
                     DespawnCreatures(NPC_POWER_SPARK);
                     DespawnCreatures(NPC_ARCANE_OVERLOAD);
                     DespawnCreatures(NPC_NEXUS_LORD);
@@ -333,14 +327,6 @@ bool instance_eye_of_eternity::IsAnyAddAtLife()
         }
     }
     return false;
-}
-
-ObjectGuid instance_eye_of_eternity::GetRandomSparkPortal()
-{
-    GUIDList::iterator pTargetSparkPortalGUID = m_lSparkPortal.begin();
-    advance(pTargetSparkPortalGUID, urand(0, m_lSparkPortal.size()-1));
-    m_LastSparkPortal = *pTargetSparkPortalGUID;
-    return *pTargetSparkPortalGUID;
 }
 
 InstanceData* GetInstanceData_instance_eye_of_eternity(Map* pMap)
