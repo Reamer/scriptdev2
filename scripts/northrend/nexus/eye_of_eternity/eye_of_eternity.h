@@ -72,6 +72,7 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         void DespawnCreatures(uint32 uiEntry);
         void ActivateVisualOfVortex();
         void DestroyVisualOfVortex(bool boom);
+
         bool IsAnyAddAtLife();
 
     private:
