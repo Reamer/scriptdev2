@@ -1002,11 +1002,11 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
     uint32 m_uiArcaneShockTimer;
     uint32 m_uiHasteTimer;
 
-    ObjectGuid m_LastTarget;
+    uint32 m_uiMoveTimer;
 
     void Reset()
     {
-        m_LastTarget.Clear();
+        m_uiMoveTimer = 2000;
         SetCombatMovement(false);
         m_uiArcaneShockTimer = urand(8000, 9000);
         m_uiHasteTimer = urand(10000, 12000);
@@ -1017,7 +1017,7 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_LastTarget != m_creature->getVictim()->GetObjectGuid())
+        if (m_uiMoveTimer <=uiDiff)
         {
             if (VehicleKit* pVehicleBase = m_creature->GetVehicle())
             {
@@ -1025,10 +1025,12 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
                 {
                     pDisk->GetMotionMaster()->Clear();
                     pDisk->GetMotionMaster()->MoveChase(m_creature->getVictim());
-                    m_LastTarget = m_creature->getVictim()->GetObjectGuid();
                 }
             }
+            m_uiMoveTimer = 2000;
         }
+        else
+            m_uiMoveTimer -= uiDiff;
 
         if (m_uiArcaneShockTimer <= uiDiff)
         {
@@ -1069,6 +1071,7 @@ struct MANGOS_DLL_DECL npc_scion_of_eternityAI : public ScriptedAI
 
     void Reset()
     {
+        m_uiMoveTimer = 2000;
         SetCombatMovement(false);
         m_uiArcaneBarrageTimer = urand(4000, 12000);
     }
@@ -1103,6 +1106,7 @@ struct MANGOS_DLL_DECL npc_scion_of_eternityAI : public ScriptedAI
                     pDisk->GetMotionMaster()->MovePoint(0, urand(PLATFORM_MIN_X, PLATFORM_MAX_X), urand(PLATFORM_MIN_Y, PLATFORM_MAX_Y), FLOOR_Z+10.0f+urand(0, 15), false);
                 }
             }
+            m_uiMoveTimer = 10000;
         }
         else
             m_uiMoveTimer -= uiDiff;
