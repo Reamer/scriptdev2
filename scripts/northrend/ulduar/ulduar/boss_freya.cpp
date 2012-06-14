@@ -1135,7 +1135,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         }
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        m_creature->SetRespawnDelay(DAY);           
+        m_creature->SetRespawnDelay(DAY);
     }
 
     void AttackStart(Unit* pWho)

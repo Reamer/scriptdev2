@@ -1006,7 +1006,7 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
 
     void Reset()
     {
-        m_LastTarget = ObjectGuid().Clear();
+        m_LastTarget.Clear();
         SetCombatMovement(false);
         m_uiArcaneShockTimer = urand(8000, 9000);
         m_uiHasteTimer = urand(10000, 12000);

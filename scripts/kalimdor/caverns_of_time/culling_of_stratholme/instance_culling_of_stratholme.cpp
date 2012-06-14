@@ -629,7 +629,7 @@ void instance_culling_of_stratholme::DoSpawnInfiniteCorruptorIfNeed()
 
     if (Creature* pArthas = GetSingleCreatureFromStorage(NPC_ARTHAS))
     {
-        pArthas->SummonCreature(NPC_INFINITE_CORRUPTER, m_aInfiniteCorruptorSpawnLoc[0].m_fX, m_aInfiniteCorruptorSpawnLoc[0].m_fY, m_aInfiniteCorruptorSpawnLoc[0].m_fZ, m_aInfiniteCorruptorSpawnLoc[0].m_fO, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 25*MINUTE*IN_MILLISECONDS);
+        pArthas->SummonCreature(NPC_INFINITE_CORRUPTER, m_aInfiniteCorruptorSpawnLoc[0].m_fX, m_aInfiniteCorruptorSpawnLoc[0].m_fY, m_aInfiniteCorruptorSpawnLoc[0].m_fZ, m_aInfiniteCorruptorSpawnLoc[0].m_fO, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 25*MINUTE*IN_MILLISECONDS);
         pArthas->SummonCreature(NPC_TIME_RIFT_2, m_aInfiniteCorruptorSpawnLoc[1].m_fX, m_aInfiniteCorruptorSpawnLoc[1].m_fY, m_aInfiniteCorruptorSpawnLoc[1].m_fZ, m_aInfiniteCorruptorSpawnLoc[1].m_fO, TEMPSUMMON_TIMED_DESPAWN, 25*MINUTE*IN_MILLISECONDS);
     }
 }
