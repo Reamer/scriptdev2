@@ -46,6 +46,7 @@ enum
     NPC_ALEXSTRASZA_THE_LIFE_BINDER = 31253, // maybe trigger npc
 
     // ********************************* Some Spells *************************************//
+    SPELL_VORTEX_RIDE_AURA          = 56266, // on 10 sec, deal 2000 damage all player around caster
     SPELL_VORTEX_VISUAL             = 55873, // visual effect around platform
     SPELL_DESTROY_PLATFORM_PRE      = 58842, // lights all over the platform
     SPELL_DESTROY_PLATFORM_BOOM     = 59084, // Big Blue boom
@@ -69,8 +70,10 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         void Load(const char* chrIn);
 
         void DespawnCreatures(uint32 uiEntry);
+
         void ActivateVisualOfVortex();
         void DestroyVisualOfVortex(bool boom);
+        void HandleRiderOfVortex(Unit* pTarget);
 
         bool IsAnyAddAtLife();
 
@@ -92,5 +95,8 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
 
         GUIDList m_lSparkPortal;
         GUIDList m_lVortex;
+
+        uint8 m_uiVortexCounter;
+        uint8 m_uiVortexSeatCounter;
 };
 #endif

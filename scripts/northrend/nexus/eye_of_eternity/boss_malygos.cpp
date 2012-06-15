@@ -49,8 +49,6 @@ enum
 
     SPELL_VORTEX_SPAWN              = 59670, // visual spawn effect for vortex
     SPELL_VORTEX                    = 56105,
-    SPELL_VORTEX_DMG_AURA           = 56266, // on 10 sec, deal 2000 damage all player around caster
-
     SPELL_VORTEX_CHANNEL            = 56237, // Malygos Channel Effect
 
     //////////////// PHASE 2 ////////////////
@@ -316,23 +314,23 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         }
     }
 
-    void SpellHitTarget(Unit* pUnit, const SpellEntry* pSpell)
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
     {
         switch (pSpell->Id)
         {
             case SPELL_ARCANE_BOMB_MISSILE:
             {
-                if (pUnit->GetEntry() == NPC_ARCANE_OVERLOAD)
+                if (pTarget->GetEntry() == NPC_ARCANE_OVERLOAD)
                 {
-                    pUnit->CastSpell(pUnit, SPELL_ARCANE_BOMB_DAMAGE, false);
-                    pUnit->CastSpell(pUnit, SPELL_ARCANE_OVERLOAD, false);
-                    ((Creature*)pUnit)->ForcedDespawn(45000);
+                    pTarget->CastSpell(pTarget, SPELL_ARCANE_BOMB_DAMAGE, false);
+                    pTarget->CastSpell(pTarget, SPELL_ARCANE_OVERLOAD, false);
+                    ((Creature*)pTarget)->ForcedDespawn(45000);
                 }
                 break;
             }
             case SPELL_VORTEX:
             {
-                pUnit->CastSpell(pUnit, SPELL_VORTEX_DMG_AURA, true);
+                m_pInstance->HandleRiderOfVortex(pTarget);
                 break;
             }
             default:

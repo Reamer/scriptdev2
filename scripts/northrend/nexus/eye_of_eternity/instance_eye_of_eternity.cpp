@@ -296,6 +296,8 @@ void instance_eye_of_eternity::ActivateVisualOfVortex()
             pVortex->CastSpell(pVortex, SPELL_VORTEX_VISUAL, false);
         }
     }
+    m_uiVortexCounter = 0;
+    m_uiVortexSeatCounter = 0;
 }
 
 void instance_eye_of_eternity::DestroyVisualOfVortex(bool boom)
@@ -305,6 +307,25 @@ void instance_eye_of_eternity::DestroyVisualOfVortex(bool boom)
         if (Creature* pVortex = instance->GetCreature(*iter))
         {
             pVortex->CastSpell(pVortex, (boom ? SPELL_DESTROY_PLATFORM_BOOM : SPELL_DESTROY_PLATFORM_PRE), false);
+        }
+    }
+}
+
+void instance_eye_of_eternity::HandleRiderOfVortex(Unit* pTarget)
+{
+    uint8 loopCounter = 0;
+    for (GUIDList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++iter)
+    {
+        if (loopCounter != m_uiVortexCounter)
+            continue;
+
+        if (Creature* pVortex = instance->GetCreature(*iter))
+        {
+            int32 seat = m_uiVortexSeatCounter;
+            pTarget->CastCustomSpell(pVortex, SPELL_VORTEX_RIDE_AURA, &seat, &0, &0, true, NULL, NULL, pVortex->GetObjectGuid(), NULL);
+            ++m_uiVortexSeatCounter;
+            if (m_uiVortexSeatCounter >= 5)
+                ++m_uiVortexCounter;
         }
     }
 }
