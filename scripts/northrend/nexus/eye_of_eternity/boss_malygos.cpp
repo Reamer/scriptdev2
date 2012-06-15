@@ -340,8 +340,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned)
     {
-        uint32 uiEntry = pSummoned->GetEntry();
-        switch (uiEntry)
+        switch (pSummoned->GetEntry())
         {
             case NPC_STATIC_FIELD:
             {

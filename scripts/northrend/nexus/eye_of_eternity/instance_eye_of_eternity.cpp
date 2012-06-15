@@ -325,7 +325,10 @@ void instance_eye_of_eternity::HandleRiderOfVortex(Unit* pTarget)
             pTarget->CastCustomSpell(pVortex, SPELL_VORTEX_RIDE_AURA, &seat, &0, &0, true, NULL, NULL, pVortex->GetObjectGuid(), NULL);
             ++m_uiVortexSeatCounter;
             if (m_uiVortexSeatCounter >= 5)
-                ++m_uiVortexCounter;
+            {
+                ++m_uiVortexCounter; // next vortex
+                m_uiVortexSeatCounter = 0; // begin at seat 0
+            }
         }
     }
 }
