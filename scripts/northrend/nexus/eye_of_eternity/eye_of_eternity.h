@@ -60,7 +60,6 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
 
         void OnCreatureCreate(Creature* pCreature);
         void OnObjectCreate(GameObject* pGo);
-
         bool IsEncounterInProgress() const;
 
         void SetData(uint32 uiType, uint32 uiData);

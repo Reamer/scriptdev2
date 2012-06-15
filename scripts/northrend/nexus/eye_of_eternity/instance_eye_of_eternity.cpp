@@ -69,6 +69,8 @@ void instance_eye_of_eternity::OnCreatureCreate(Creature* pCreature)
             break;
         case NPC_ARCANE_OVERLOAD:
             m_lArcaneOverload.push_back(pCreature->GetObjectGuid());
+            pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
             break;
         case NPC_NEXUS_LORD:
             m_lNexusLord.push_back(pCreature->GetObjectGuid());
