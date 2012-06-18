@@ -438,9 +438,6 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        if (!m_pInstance)
-            return;
-
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_RUMBLE, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARM_DEAD_DAMAGE : SPELL_ARM_DEAD_DAMAGE_H, CAST_TRIGGERED);
     }
@@ -496,9 +493,6 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        if (!m_pInstance)
-            return;
-
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_RUMBLE, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARM_DEAD_DAMAGE : SPELL_ARM_DEAD_DAMAGE_H, CAST_TRIGGERED);
     }
