@@ -321,8 +321,9 @@ void instance_eye_of_eternity::HandleRiderOfVortex(Unit* pTarget)
 
         if (Creature* pVortex = instance->GetCreature(*iter))
         {
-            int32 seat = m_uiVortexSeatCounter;
-            pTarget->CastCustomSpell(pVortex, SPELL_VORTEX_RIDE_AURA, &seat, &0, &0, true, NULL, NULL, pVortex->GetObjectGuid(), NULL);
+            //int32 seat = m_uiVortexSeatCounter;
+            //pTarget->CastCustomSpell(pVortex, SPELL_VORTEX_RIDE_AURA, &seat, NULL, NULL, true, NULL, NULL, pVortex->GetObjectGuid(), NULL);
+            pTarget->CastSpell(pTarget, SPELL_VORTEX_RIDE_AURA, true);
             ++m_uiVortexSeatCounter;
             if (m_uiVortexSeatCounter >= 5)
             {
