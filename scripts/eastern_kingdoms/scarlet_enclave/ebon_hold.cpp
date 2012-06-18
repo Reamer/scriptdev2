@@ -3339,6 +3339,7 @@ struct MANGOS_DLL_DECL npc_valkyr_battle_maidenAI : ScriptedAI
                     break;
                 case 3:
                     m_creature->ForcedDespawn();
+                    break;
                 default:
                     break;
             }

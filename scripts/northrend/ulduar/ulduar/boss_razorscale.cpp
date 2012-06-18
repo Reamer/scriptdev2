@@ -886,6 +886,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             }
             default:
                 EnterEvadeMode();
+                break;
         }
 
         // ground adds only in Air and grounded phase NOT in Permagrounded Phase

@@ -884,6 +884,7 @@ bool instance_ulduar::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player c
                 if (pSource->HasAura(SPELL_IRON_BOOT_AURA))
                     return true;
             }
+            break;
         }
         case ACHIEV_CRIT_DISARMED:
         case ACHIEV_CRIT_DISARMED_H:

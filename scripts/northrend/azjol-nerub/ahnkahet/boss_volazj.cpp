@@ -260,7 +260,8 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                     break;
                 }
                 default:
-                    pTarget->MonsterSay("Fehler",0);
+                    pTarget->MonsterSay("Mistake in SpellHitTarget",0);
+                    break;
             }
             m_bIsInInsanity = true;
             m_uiCount++;
@@ -369,7 +370,8 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                                 pClone->SetMaxHealth(m_bIsRegularMode ? CLONE_HEALTH_DK : CLONE_HEALTH_DK_H);
                                 pClone->GetMotionMaster()->MoveChase(pTargetPhase);
                                 break;
-                            default: break;
+                            default:
+                                break;
                         }
                         if (m_bIsRegularMode)
                         {
@@ -409,7 +411,8 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                                 p_lm_bClone256Guid.push_back(pClone->GetObjectGuid());
                                 break;
                             default:
-                                pTargetPhase->MonsterSay("Fehler in der Phasenzuweisung.", 0);
+                                pTargetPhase->MonsterSay("Mistake in CreateClonesForUnitInPhase.", 0);
+                                break;
                         }
                     }
                 }

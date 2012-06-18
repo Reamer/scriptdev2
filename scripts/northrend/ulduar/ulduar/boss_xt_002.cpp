@@ -521,7 +521,7 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                 case 2: 
                 case 3: addentry = NPC_BOOMBOT;  break;
                 case 4: addentry = NPC_PUMMELER; break;
-                default:addentry = NPC_SCRAPBOT;
+                default:addentry = NPC_SCRAPBOT; break;
             }
             uint8 i = urand(0, 3);
             if (Creature* pTemp = m_creature->SummonCreature(addentry, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 180000))

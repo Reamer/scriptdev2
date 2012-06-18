@@ -877,6 +877,7 @@ bool instance_culling_of_stratholme::StartCratesEvent(uint32 npcEntry)
             }
             else
                 bEventAlreadyInProgress = true;
+            break;
         }
         default:
             break;
@@ -1454,6 +1455,7 @@ uint32 instance_culling_of_stratholme::MichaelBelfastInnEvent()
               break;
            default:
                m_uiStepTimer = 0;
+               break;
         }
     }
     ++m_uiMichaelBelfastInnEventCounter;

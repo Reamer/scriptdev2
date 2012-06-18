@@ -307,12 +307,18 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
                 {
                     case 4:
                         m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_10_ORBIT_UARY : ACHIEV_25_ORBIT_UARY);
+                        /* no break */
                     case 3:
                         m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_10_NUKED_FROM_ORBIT : ACHIEV_25_NUKED_FROM_ORBIT);
+                        /* no break */
                     case 2:
                         m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_10_ORBITAL_DEVASTATION : ACHIEV_25_ORBITAL_DEVASTATION);
+                        /* no break */
                     case 1:
                         m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_10_ORBITAL_BOMBARDMENT : ACHIEV_25_ORBITAL_BOMBARDMENT);
+                        break;
+                    default:
+                        break;
                 }
             }
         }

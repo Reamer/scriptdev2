@@ -70,6 +70,7 @@ struct MANGOS_DLL_DECL instance_oculus : public ScriptedInstance
         {
             case NPC_VAROS:
                 pCreature->SetActiveObjectState(true);
+                /* no break */
             case NPC_DRAKOS:
             case NPC_UROM:
             case NPC_EREGOS:

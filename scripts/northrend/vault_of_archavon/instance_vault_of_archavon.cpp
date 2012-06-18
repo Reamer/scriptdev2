@@ -78,7 +78,10 @@ void instance_vault_of_archavon::SetData(uint32 uiType, uint32 uiData)
                     }
                 }
             }
+            break;
         }
+        default:
+            break;
     }
 
     if (uiData == DONE)

@@ -671,8 +671,10 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
                 case 3:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_KNOCK_KNOCK_KNOCK_WOOD, true);
                     m_pInstance->SetData(TYPE_FREYA_HARD, DONE);
+                    /* no break */
                 case 2:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_KNOCK_KNOCK_WOOD, true);
+                    /* no break */
                 case 1:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_KNOCK_WOOD, true);
                     break;
@@ -693,8 +695,10 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
                 case 3:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_KNOCK_KNOCK_KNOCK_WOOD, true);
                     m_pInstance->SetData(TYPE_FREYA_HARD, DONE);
+                    /* no break */
                 case 2:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_KNOCK_KNOCK_WOOD, true);
+                    /* no break */
                 case 1:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_KNOCK_WOOD, true);
                     break;
@@ -1428,6 +1432,7 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
             case NPC_SNAPLASHER:
             {
                 DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_HARDENED_BARK : SPELL_HARDENED_BARK_H, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+                break;
             }
             default:
                 break;

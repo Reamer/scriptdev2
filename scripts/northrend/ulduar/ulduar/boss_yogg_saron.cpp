@@ -550,12 +550,16 @@ struct MANGOS_DLL_DECL boss_yogg_saronAI : public ScriptedAI
             {
                 case 0:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_ALONE, true);
+                    /* no break */
                 case 1:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_ONE_LIGHT, true);
+                    /* no break */
                 case 2:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_TWO_LIGHTS, true);
+                    /* no break */
                 case 3:
                     m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_THREE_LIGHTS, true);
+                    /* no break */
             }
 
             if(Creature* pSara = m_pInstance->GetSingleCreatureFromStorage(NPC_SARA))
@@ -2663,6 +2667,7 @@ bool pGossipSelect_adventurer(Player* pPlayer, Creature* pCreature, uint32 uiSen
         break;
     default:
         pCreature->MonsterSay("Unbekannte Antwort", LANG_UNIVERSAL);
+        break;
     }
     return true;
 }

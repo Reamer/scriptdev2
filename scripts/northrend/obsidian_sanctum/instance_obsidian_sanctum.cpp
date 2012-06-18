@@ -49,6 +49,7 @@ void instance_obsidian_sanctum::OnCreatureCreate(Creature* pCreature)
         case NPC_SHADRON:
         case NPC_VESPERON:
             pCreature->SetActiveObjectState(true);
+            break;
         case NPC_SARTHARION:
             break;
         case NPC_ACOLYTE_OF_SHADRON:

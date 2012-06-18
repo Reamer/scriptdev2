@@ -213,7 +213,10 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                     m_uiPoisonedSpear -= uiDiff;
 
                 DoMeleeAttackIfReady();
+                break;
             }
+            default:
+                break;
         }
     }
 };

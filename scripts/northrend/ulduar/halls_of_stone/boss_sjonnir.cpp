@@ -188,6 +188,7 @@ struct MANGOS_DLL_DECL boss_sjonnirAI : public ScriptedAI
                 case 50:
                     if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_SUMMON_MALFORMED_OOZE : SPELL_SUMMON_MALFORMED_OOZE_H, CAST_TRIGGERED) == CAST_OK)
                         m_uiHpCheck = 15;
+                    break;
                 case 15:
                     if (DoFrenzyIfCan())
                         m_uiHpCheck = 0;
