@@ -193,8 +193,6 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         m_uiRubbleNo        = 0;
         m_bOpenArms         = true;
         m_uiDisarmedTimer   = 0;
-
-        vehicle->InstallAllAccessories(m_creature->GetEntry());
     }
 
     void JustDied(Unit* pKiller)
@@ -274,7 +272,6 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_KOLOGARN, FAIL);
-        vehicle->InstallAllAccessories(m_creature->GetEntry());
     }
 
     void InstallRightArm()
