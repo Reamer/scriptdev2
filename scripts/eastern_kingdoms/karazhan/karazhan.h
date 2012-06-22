@@ -24,7 +24,18 @@ enum
     DATA_OPERA_PERFORMANCE          = 11,
     DATA_OPERA_OZ_DEATHCOUNT        = 12,
 
+    NPC_MIDNIGHT                    = 16151,
+    NPC_ATTUMEN                     = 15550,
+    NPC_ATTUMEN_MOUNTED             = 16152,
     NPC_MOROES                      = 15687,
+    NPC_LADY_KEIRA_BERRYBUCK        = 17007,
+    NPC_LADY_CATRIONA_VON_INDI      = 19872,
+    NPC_LORD_CRISPIN_FERENCE        = 19873,
+    NPC_BARON_RAFE_DREUGER          = 19874,
+    NPC_BARONESS_DOROTHEA_MILLSTIPE = 19875,
+    NPC_LORD_ROBIN_DARIS            = 19876,
+
+
     // NPC_TERESTIAN                = 15688,
     NPC_NIGHTBANE                   = 17225,
 
@@ -67,6 +78,8 @@ class MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
         bool IsEncounterInProgress() const;
 
         void OnCreatureCreate(Creature* pCreature);
+        void OnCreatureEvade(Creature * pCreature);
+        void OnCreatureEnterCombat(Creature * pCreature);
         void OnObjectCreate(GameObject* pGo);
 
         void SetData(uint32 uiType, uint32 uiData);
@@ -75,12 +88,16 @@ class MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
         void Load(const char* chrIn);
         const char* Save() { return m_strInstData.c_str(); }
 
+        bool IsMoroesOrGuest(uint32 entry);
+        ObjectGuid GetMoroesOrGuestRandom();
+
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
 
         uint32 m_uiOperaEvent;
         uint32 m_uiOzDeathCount;
+        GUIDList m_MoroesAndGuest;
 };
 
 class MANGOS_DLL_DECL npc_fiendish_portalAI : public ScriptedAI

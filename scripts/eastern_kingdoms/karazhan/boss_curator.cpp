@@ -53,7 +53,6 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
     uint32 m_uiHatefulBoltTimer;
     uint32 m_uiBerserkTimer;
 
-    bool m_bIsBerserk;
     bool m_bIsEnraged;
 
     void Reset()
@@ -61,7 +60,6 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
         m_uiFlareTimer = 10000;
         m_uiHatefulBoltTimer = 15000;                       // This time may be wrong
         m_uiBerserkTimer = 12*MINUTE*IN_MILLISECONDS;
-        m_bIsBerserk = false;
         m_bIsEnraged = false;
 
         m_creature->ApplySpellImmune(0, IMMUNITY_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, true);
@@ -105,7 +103,7 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
             return;
 
         // always decrease BerserkTimer
-        if (!m_bIsBerserk)
+        if (m_uiBerserkTimer)
         {
             if (m_uiBerserkTimer < uiDiff)
             {
@@ -117,9 +115,7 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
                 {
                     // ScriptText needs confirmation
                     DoScriptText(SAY_ENRAGE, m_creature);
-
-                    // don't know if he's supposed to do summon/evocate after hard enrage (probably not)
-                    m_bIsBerserk = true;
+                    m_uiBerserkTimer = 0;
                 }
             }
             else
@@ -130,13 +126,13 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
         if (m_creature->HasAura(SPELL_EVOCATION))
             return;
 
-        if (!m_bIsEnraged && !m_bIsBerserk)
+        if (!m_creature->HasAura(SPELL_ENRAGE))
         {
             if (m_uiFlareTimer < uiDiff)
             {
                 m_uiFlareTimer = 10000;
 
-                // summon Astral Flare
+                // summon Astral Flare - no Summon Spell found
                 DoSpawnCreature(NPC_ASTRAL_FLARE, rand()%37, rand()%37, 0.0f, 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 5000);
 
                 // reduce mana by 10% of maximum
@@ -148,11 +144,7 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
                     if (m_creature->GetPower(POWER_MANA)*10 < m_creature->GetMaxPower(POWER_MANA))
                     {
                         DoScriptText(SAY_EVOCATE, m_creature);
-
-                        if (m_creature->IsNonMeleeSpellCasted(false))
-                            m_creature->InterruptNonMeleeSpells(false);
-
-                        m_creature->CastSpell(m_creature, SPELL_EVOCATION, false);
+                        DoCastSpellIfCan(m_creature, SPELL_EVOCATION, CAST_INTERRUPT_PREVIOUS | CAST_FORCE_TARGET_SELF);
 
                         //this small delay should make first flare appear fast after evocate, and also prevent possible spawn flood
                         m_uiFlareTimer = 1000;
@@ -170,24 +162,25 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
             }
             else
                 m_uiFlareTimer -= uiDiff;
+        }
 
-            if (m_creature->GetHealthPercent() < 15.0f)
+        if (m_creature->GetHealthPercent() < 15.0f)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE, CAST_AURA_NOT_PRESENT) == CAST_OK)
             {
-                if (!m_creature->IsNonMeleeSpellCasted(false))
-                {
-                    m_bIsEnraged = true;
-                    DoScriptText(SAY_ENRAGE, m_creature);
-                    DoCastSpellIfCan(m_creature, SPELL_ENRAGE);
-                }
+                DoScriptText(SAY_ENRAGE, m_creature);
             }
         }
 
         if (m_uiHatefulBoltTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 1))
-                m_creature->CastSpell(pTarget, SPELL_HATEFUL_BOLT, false);
-
-            m_uiHatefulBoltTimer = m_bIsEnraged ? 7000 : 15000;
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_HATEFUL_BOLT) == CAST_OK)
+                {
+                    m_uiHatefulBoltTimer = m_bIsEnraged ? 7000 : 15000;
+                }
+            }
         }
         else
             m_uiHatefulBoltTimer -= uiDiff;

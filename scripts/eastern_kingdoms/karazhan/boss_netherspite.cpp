@@ -56,6 +56,9 @@ enum
     SPELL_BEAM_DOM              = 30402,
     SPELL_BEAM_SER              = 30401,
     SPELL_BEAM_PER              = 30400,
+    SPELL_BEAM_RED              = 30465,
+    SPELL_BEAM_GREEN            = 30464,
+    SPELL_BEAM_BLUE             = 30463,
     SPELL_BLUE_PORTAL           = 30491,
     SPELL_GREEN_PORTAL          = 30490,
     SPELL_RED_PORTAL            = 30487,
@@ -65,13 +68,39 @@ enum
     EMOTE_PHASE_BANISH          = -1532090,
 
     //npcs
-    NPC_PORTAL_CREATURE         = 17369,
+    NPC_PORTAL_RED              = 17369,
+    NPC_PORTAL_GREEN            = 17367,
+    NPC_PORTAL_BLUE             = 17368,
     NPC_VOID_ZONE               = 16697
 };
 
 struct SpawnLocation
 {
     float x, y, z;
+};
+
+enum Netherspite_Portal{
+    RED_PORTAL = 0, // Perseverence
+    GREEN_PORTAL = 1, // Serenity
+    BLUE_PORTAL = 2 // Dominance
+};
+
+struct NetherspidePortal
+{
+    uint8  color;
+    uint32 entry;
+    uint32 SpellIdVisual;
+    uint32 SpellIdBeam;
+    uint32 SpellIdPlayerBuff;
+    uint32 SpellIdNetherspiteBuff;
+    uint32 SpellIdPlayerDebuff;
+};
+
+const static NetherspidePortal Portals[3] =
+{
+    {RED_PORTAL, NPC_PORTAL_RED, SPELL_RED_PORTAL, SPELL_BEAM_RED, SPELL_PERSEVERENCE_PLR, SPELL_PERSEVERENCE_NS,  SPELL_EXHAUSTION_PER},
+    {GREEN_PORTAL, NPC_PORTAL_GREEN, SPELL_GREEN_PORTAL, SPELL_BEAM_GREEN, SPELL_SERENITY_PLR, SPELL_SERENITY_NS, SPELL_EXHAUSTION_SER},
+    {BLUE_PORTAL, NPC_PORTAL_GREEN, SPELL_BLUE_PORTAL, SPELL_BEAM_BLUE, SPELL_DOMINANCE_PLR, SPELL_DOMINANCE_NS, SPELL_EXHAUSTION_DOM}
 };
 
 // at first spawn portals got fixed coords, should be shuffled in subsequent beam phases
@@ -82,7 +111,7 @@ static SpawnLocation PortalCoordinates[] =
     {-11137.846680f, -1685.607422f, 278.239258f}
 };
 
-enum Phases
+enum NetherspitePhases
 {
     BEAM_PHASE   = 0,
     BANISH_PHASE = 1,
@@ -92,14 +121,16 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
 {
     boss_netherspiteAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_karazhan*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_karazhan* m_pInstance;
 
     bool m_bIsEnraged;
-    uint8 m_uiActivePhase;
+    NetherspitePhases m_ActivePhase;
+
+    GUIDList m_Portals;
 
     uint32 m_uiEnrageTimer;
     uint32 m_uiVoidZoneTimer;
@@ -109,7 +140,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
     void Reset()
     {
         m_bIsEnraged    = false;
-        m_uiActivePhase = BEAM_PHASE;
+        m_ActivePhase = BEAM_PHASE;
 
         m_uiEnrageTimer       = MINUTE*9*IN_MILLISECONDS;
         m_uiVoidZoneTimer     = 15000;
@@ -133,30 +164,77 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_NETHERSPITE, NOT_STARTED);
+            m_pInstance->SetData(TYPE_NETHERSPITE, FAIL);
+    }
+
+    void SummonPortals()
+    {
+        uint8 r = rand()%4;
+        uint8 pos[3];
+        pos[RED_PORTAL] = ((r % 2) ? (r > 1 ? 2 : 1) : 0);
+        pos[GREEN_PORTAL] = ((r % 2) ? 0 : (r > 1 ? 2 : 1));
+        pos[BLUE_PORTAL] = (r > 1 ? 1 : 2); // Blue Portal not on the left side (0)
+
+        for (int i=0; i<3; ++i)
+        {
+            if (Creature* pPortal = m_creature->SummonCreature(Portals[i].entry, PortalCoordinates[pos[i]].x, PortalCoordinates[pos[i]].y, PortalCoordinates[pos[i]].z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
+            {
+                m_Portals.push_back(pPortal->GetObjectGuid());
+                pPortal->SetFacingToObject(m_creature);
+            }
+        }
     }
 
     void SwitchPhases()
     {
-        if (m_uiActivePhase == BEAM_PHASE)
+        if (m_ActivePhase == BEAM_PHASE)
         {
-            m_uiActivePhase = BANISH_PHASE;
+            m_ActivePhase = BANISH_PHASE;
             DoScriptText(EMOTE_PHASE_BANISH, m_creature);
 
             m_uiNetherbreathTimer = 500;
-            m_uiPhaseSwitchTimer  = (MINUTE/2)*IN_MILLISECONDS;
+            m_uiPhaseSwitchTimer  = 30*IN_MILLISECONDS;
+            m_Portals.clear();
         }
         else
         {
-            m_uiActivePhase = BEAM_PHASE;
+            m_ActivePhase = BEAM_PHASE;
             DoScriptText(EMOTE_PHASE_BEAM, m_creature);
             DoCastSpellIfCan(m_creature, SPELL_NETHERSPITE_ROAR);
+            SummonPortals();
 
             m_uiPhaseSwitchTimer = MINUTE*IN_MILLISECONDS;
         }
 
         //reset threat every phase switch
         DoResetThreat();
+    }
+
+    void UpdateBeam(const uint32 uiDiff)
+    {
+        for (GUIDList::const_iterator iter = m_Portals.begin(); iter != m_Portals.end(); ++iter)
+        {
+            if (Creature* pPortal = m_creature->GetMap()->GetCreature(*iter))
+            {
+                float distanceToNP = pPortal->GetDistance(m_creature);
+                float AngleToNP = pPortal->GetAngle(m_creature);
+                Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
+
+                std::list<Player*> possiblePlayersInArcAndDistance;
+                for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                {
+                    if (pPortal->GetDistance(itr->getSource()) > distanceToNP)
+                        continue;
+
+                    if (pPortal->GetAngle(itr->getSource()) - AngleToNP < M_PI_F/12)
+                    {
+
+                    }
+
+
+                }
+            }
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -180,7 +258,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
                 m_uiEnrageTimer -= uiDiff;
         }
 
-        if (m_uiActivePhase == BEAM_PHASE)
+        if (m_ActivePhase == BEAM_PHASE)
         {
             if (m_uiVoidZoneTimer < uiDiff)
             {
@@ -192,6 +270,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
             else
                 m_uiVoidZoneTimer -= uiDiff;
 
+            UpdateBeam(uiDiff);
         }
         else
         {

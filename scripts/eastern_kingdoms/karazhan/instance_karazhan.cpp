@@ -65,10 +65,50 @@ void instance_karazhan::OnCreatureCreate(Creature* pCreature)
 {
     switch (pCreature->GetEntry())
     {
+        case NPC_MIDNIGHT:
+        case NPC_ATTUMEN:
+        case NPC_ATTUMEN_MOUNTED:
         case NPC_MOROES:
         case NPC_NIGHTBANE:
             m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
+        default:
+            break;
+    }
+    if (IsMoroesOrGuest(pCreature->GetEntry()))
+        m_MoroesAndGuest.push_back(pCreature->GetObjectGuid());
+}
+
+void instance_karazhan::OnCreatureEvade(Creature * pCreature)
+{
+    if (IsMoroesOrGuest(pCreature->GetEntry()))
+    {
+        for (GUIDList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)
+        {
+            if (Creature* pTemp = instance->GetCreature(*iter))
+            {
+                pTemp->AI()->EnterEvadeMode();
+                if (GetData(TYPE_MOROES) != FAIL)
+                    SetData(TYPE_MOROES, FAIL);
+            }
+        }
+    }
+}
+
+void instance_karazhan::OnCreatureEnterCombat(Creature * pCreature)
+{
+    if (IsMoroesOrGuest(pCreature->GetEntry()))
+    {
+        for (GUIDList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)
+        {
+            if (Creature* pTemp = instance->GetCreature(*iter))
+            {
+                if (Unit* pTarget = pCreature->getVictim())
+                    pTemp->AI()->AttackStart(pTarget);
+                //else
+                  //  pTemp->SetInCombatWithZone();
+            }
+        }
     }
 }
 
@@ -132,6 +172,13 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
     {
         case TYPE_ATTUMEN:
             m_auiEncounter[0] = uiData;
+            if (uiData == FAIL)
+            {
+                if (Creature* pMidnight = GetSingleCreatureFromStorage(NPC_MIDNIGHT))
+                {
+                    pMidnight->Respawn();
+                }
+            }
             break;
         case TYPE_MOROES:
             if (m_auiEncounter[1] != DONE)
@@ -206,17 +253,17 @@ uint32 instance_karazhan::GetData(uint32 uiType)
 {
     switch (uiType)
     {
-        case TYPE_ATTUMEN:              return m_auiEncounter[0];
-        case TYPE_MOROES:               return m_auiEncounter[1];
-        case TYPE_MAIDEN:               return m_auiEncounter[2];
-        case TYPE_OPERA:                return m_auiEncounter[3];
-        case TYPE_CURATOR:              return m_auiEncounter[4];
-        case TYPE_TERESTIAN:            return m_auiEncounter[5];
-        case TYPE_ARAN:                 return m_auiEncounter[6];
-        case TYPE_NETHERSPITE:          return m_auiEncounter[7];
-        case TYPE_CHESS:                return m_auiEncounter[8];
-        case TYPE_MALCHEZZAR:           return m_auiEncounter[9];
-        case TYPE_NIGHTBANE:            return m_auiEncounter[10];
+        case TYPE_ATTUMEN:              return m_auiEncounter[TYPE_ATTUMEN];
+        case TYPE_MOROES:               return m_auiEncounter[TYPE_MOROES];
+        case TYPE_MAIDEN:               return m_auiEncounter[TYPE_MAIDEN];
+        case TYPE_OPERA:                return m_auiEncounter[TYPE_OPERA];
+        case TYPE_CURATOR:              return m_auiEncounter[TYPE_CURATOR];
+        case TYPE_TERESTIAN:            return m_auiEncounter[TYPE_TERESTIAN];
+        case TYPE_ARAN:                 return m_auiEncounter[TYPE_ARAN];
+        case TYPE_NETHERSPITE:          return m_auiEncounter[TYPE_NETHERSPITE];
+        case TYPE_CHESS:                return m_auiEncounter[TYPE_CHESS];
+        case TYPE_MALCHEZZAR:           return m_auiEncounter[TYPE_MALCHEZZAR];
+        case TYPE_NIGHTBANE:            return m_auiEncounter[TYPE_NIGHTBANE];
 
         case DATA_OPERA_PERFORMANCE:    return m_uiOperaEvent;
         case DATA_OPERA_OZ_DEATHCOUNT:  return m_uiOzDeathCount;
@@ -247,6 +294,26 @@ void instance_karazhan::Load(const char* chrIn)
             m_auiEncounter[i] = NOT_STARTED;
 
     OUT_LOAD_INST_DATA_COMPLETE;
+}
+
+bool instance_karazhan::IsMoroesOrGuest(uint32 entry)
+{
+    if (entry == NPC_MOROES ||
+        entry == NPC_LADY_KEIRA_BERRYBUCK ||
+        entry == NPC_LADY_CATRIONA_VON_INDI ||
+        entry == NPC_LORD_CRISPIN_FERENCE ||
+        entry == NPC_BARON_RAFE_DREUGER ||
+        entry == NPC_BARONESS_DOROTHEA_MILLSTIPE ||
+        entry == NPC_LORD_ROBIN_DARIS)
+        return true;
+    return false;
+}
+
+ObjectGuid instance_karazhan::GetMoroesOrGuestRandom()
+{
+    GUIDList::const_iterator iter = m_MoroesAndGuest.begin();
+    advance(iter, urand(0, m_MoroesAndGuest.size()-1));
+    return *iter;
 }
 
 InstanceData* GetInstanceData_instance_karazhan(Map* pMap)
