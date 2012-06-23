@@ -161,6 +161,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_NETHERSPITE, IN_PROGRESS);
 
+        SummonPortals();
         DoCastSpellIfCan(m_creature, SPELL_NETHERBURN);
     }
 
@@ -224,58 +225,69 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
 
     void UpdateBeam(const uint32 uiDiff)
     {
-        for (std::list<NetherPortalWithLastTarget>::const_iterator iter = m_Portals.begin(); iter != m_Portals.end(); ++iter)
+        for (std::list<NetherPortalWithLastTarget>::iterator iter = m_Portals.begin(); iter != m_Portals.end(); ++iter)
         {
             if (Creature* pPortal = m_creature->GetMap()->GetCreature(iter->guid))
             {
-                if (Unit* pLastTarget = m_creature->GetMap()->GetUnit(iter->lastTarget))
+                // start values portal to Netherspite
+                float distance = pPortal->GetDistance(m_creature);
+                float AngleToNP = pPortal->GetAngle(m_creature);
+
+                // analyse color
+                NetherspitePortalColor color = RED_PORTAL;
+                switch (pPortal->GetEntry())
                 {
-                    // start values portal to Netherspite
-                    float distance = pPortal->GetDistance(m_creature);
-                    float AngleToNP = pPortal->GetAngle(m_creature);
+                    case NPC_PORTAL_RED: color = RED_PORTAL; break;
+                    case NPC_PORTAL_GREEN: color = GREEN_PORTAL; break;
+                    case NPC_PORTAL_BLUE: color = BLUE_PORTAL; break;
+                    default:
+                        break;
+                }
 
-                    // analyse color
-                    NetherspitePortalColor color = RED_PORTAL;
-                    switch (pPortal->GetEntry())
+                Player* pBeamTargetPlayer = NULL;
+                Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
+                for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                {
+                    Player* pPlayer = itr->getSource();
+                    // Debuff-Check: if player has debuff, this player is no a possible target
+                    if (pPlayer->HasAura(Portals[color].SpellIdPlayerDebuff))
+                        continue;
+
+                    // Position-Check: don't use z
+                    float distanceToPlayer = pPortal->GetDistance(pPlayer);
+                    if (IsInArc(pPlayer, pPortal, AngleToNP) && distanceToPlayer < distance)
                     {
-                        case NPC_PORTAL_RED: color = RED_PORTAL; break;
-                        case NPC_PORTAL_GREEN: color = GREEN_PORTAL; break;
-                        case NPC_PORTAL_BLUE: color = BLUE_PORTAL; break;
-                        default:
-                            break;
+                        pBeamTargetPlayer = itr->getSource();
+                        distance = distanceToPlayer;
                     }
+                }
 
-                    Player* pBeamTarget = NULL;
-                    Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
-                    for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                if (pBeamTargetPlayer)
+                {
+
+                    pPortal->CastSpell(pBeamTargetPlayer, Portals[color].SpellIdPlayerBuff, true);
+                    // Player Change
+                    if (pBeamTargetPlayer->GetObjectGuid() != iter->lastTarget)
                     {
-                        Player* pPlayer = itr->getSource();
-                        // Debuff-Check: if player has debuff, this player is no a possible target
-                        if (pPlayer->HasAura(Portals[color].SpellIdPlayerDebuff))
-                            continue;
-
-                        // Position-Check: don't use z
-                        float distanceToPlayer = pPortal->GetDistance(pPlayer);
-                        if (IsInArc(pPlayer, pPortal, AngleToNP) && distanceToPlayer < distance)
+                        if (iter->lastTarget.IsPlayer())
                         {
-                            pBeamTarget = itr->getSource();
-                            distance = distanceToPlayer;
+                            if (Unit* pLastTarget = m_creature->GetMap()->GetUnit(iter->lastTarget))
+                            {
+                                pPortal->CastSpell(pLastTarget, Portals[color].SpellIdPlayerDebuff, true);
+                            }
                         }
+                        pPortal->CastSpell(pBeamTargetPlayer, Portals[color].SpellIdBeam, true);
+                        iter->lastTarget = pBeamTargetPlayer->GetObjectGuid();
                     }
-
-                    if (pBeamTarget)
-                    {
-                        pPortal->CastSpell(pBeamTarget, Portals[color].SpellIdBeam, true);
-                        pPortal->CastSpell(pBeamTarget, Portals[color].SpellIdPlayerBuff, true);
-                        if (pBeamTarget->GetObjectGuid() != pLastTarget->GetObjectGuid())
-                        {
-                            pPortal->CastSpell(pLastTarget, Portals[color].SpellIdPlayerDebuff, true);
-                        }
-                    }
-                    else
+                }
+                else
+                {
+                    pPortal->CastSpell(m_creature, Portals[color].SpellIdNetherspiteBuff, true);
+                    // beam change from Player to Netherspite
+                    if (m_creature->GetObjectGuid() == iter->lastTarget)
                     {
                         pPortal->CastSpell(m_creature, Portals[color].SpellIdBeam, true);
-                        pPortal->CastSpell(m_creature, Portals[color].SpellIdNetherspiteBuff, true);
+                        iter->lastTarget = m_creature->GetObjectGuid();
                     }
                 }
             }
