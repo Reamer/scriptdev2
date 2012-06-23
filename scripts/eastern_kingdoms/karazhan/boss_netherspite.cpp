@@ -79,15 +79,21 @@ struct SpawnLocation
     float x, y, z;
 };
 
-enum Netherspite_Portal{
+enum NetherspitePortalColor{
     RED_PORTAL = 0, // Perseverence
     GREEN_PORTAL = 1, // Serenity
     BLUE_PORTAL = 2 // Dominance
 };
 
+struct NetherPortalWithLastTarget
+{
+    ObjectGuid guid;
+    ObjectGuid lastTarget;
+};
+
 struct NetherspidePortal
 {
-    uint8  color;
+    NetherspitePortalColor color;
     uint32 entry;
     uint32 SpellIdVisual;
     uint32 SpellIdBeam;
@@ -130,12 +136,14 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
     bool m_bIsEnraged;
     NetherspitePhases m_ActivePhase;
 
-    GUIDList m_Portals;
+    std::list<NetherPortalWithLastTarget> m_Portals;
 
     uint32 m_uiEnrageTimer;
     uint32 m_uiVoidZoneTimer;
     uint32 m_uiPhaseSwitchTimer;
     uint32 m_uiNetherbreathTimer;
+
+    uint32 m_uiPortalUpdate;
 
     void Reset()
     {
@@ -145,6 +153,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
         m_uiEnrageTimer       = MINUTE*9*IN_MILLISECONDS;
         m_uiVoidZoneTimer     = 15000;
         m_uiPhaseSwitchTimer  = MINUTE*IN_MILLISECONDS;
+        m_uiPortalUpdate = 1000; // possible official spell 30397 -> periode 1000
     }
 
     void Aggro(Unit* pWho)
@@ -179,7 +188,10 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
         {
             if (Creature* pPortal = m_creature->SummonCreature(Portals[i].entry, PortalCoordinates[pos[i]].x, PortalCoordinates[pos[i]].y, PortalCoordinates[pos[i]].z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
             {
-                m_Portals.push_back(pPortal->GetObjectGuid());
+                NetherPortalWithLastTarget netherPortal;
+                netherPortal.guid = pPortal->GetObjectGuid();
+                netherPortal.lastTarget = m_creature->GetObjectGuid();
+                m_Portals.push_back(netherPortal);
                 pPortal->SetFacingToObject(m_creature);
             }
         }
@@ -212,29 +224,79 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
 
     void UpdateBeam(const uint32 uiDiff)
     {
-        for (GUIDList::const_iterator iter = m_Portals.begin(); iter != m_Portals.end(); ++iter)
+        for (std::list<NetherPortalWithLastTarget>::const_iterator iter = m_Portals.begin(); iter != m_Portals.end(); ++iter)
         {
-            if (Creature* pPortal = m_creature->GetMap()->GetCreature(*iter))
+            if (Creature* pPortal = m_creature->GetMap()->GetCreature(iter->guid))
             {
-                float distanceToNP = pPortal->GetDistance(m_creature);
-                float AngleToNP = pPortal->GetAngle(m_creature);
-                Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
-
-                std::list<Player*> possiblePlayersInArcAndDistance;
-                for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                if (Unit* pLastTarget = m_creature->GetMap()->GetUnit(iter->lastTarget))
                 {
-                    if (pPortal->GetDistance(itr->getSource()) > distanceToNP)
-                        continue;
+                    // start values portal to Netherspite
+                    float distance = pPortal->GetDistance(m_creature);
+                    float AngleToNP = pPortal->GetAngle(m_creature);
 
-                    if (pPortal->GetAngle(itr->getSource()) - AngleToNP < M_PI_F/12)
+                    // analyse color
+                    NetherspitePortalColor color = RED_PORTAL;
+                    switch (pPortal->GetEntry())
                     {
-
+                        case NPC_PORTAL_RED: color = RED_PORTAL; break;
+                        case NPC_PORTAL_GREEN: color = GREEN_PORTAL; break;
+                        case NPC_PORTAL_BLUE: color = BLUE_PORTAL; break;
+                        default:
+                            break;
                     }
 
+                    Player* pBeamTarget = NULL;
+                    Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
+                    for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                    {
+                        Player* pPlayer = itr->getSource();
+                        // Debuff-Check: if player has debuff, this player is no a possible target
+                        if (pPlayer->HasAura(Portals[color].SpellIdPlayerDebuff))
+                            continue;
 
+                        // Position-Check: don't use z
+                        float distanceToPlayer = pPortal->GetDistance(pPlayer);
+                        if (IsInArc(pPlayer, pPortal, AngleToNP) && distanceToPlayer < distance)
+                        {
+                            pBeamTarget = itr->getSource();
+                            distance = distanceToPlayer;
+                        }
+                    }
+
+                    if (pBeamTarget)
+                    {
+                        pPortal->CastSpell(pBeamTarget, Portals[color].SpellIdBeam, true);
+                        pPortal->CastSpell(pBeamTarget, Portals[color].SpellIdPlayerBuff, true);
+                        if (pBeamTarget->GetObjectGuid() != pLastTarget->GetObjectGuid())
+                        {
+                            pPortal->CastSpell(pLastTarget, Portals[color].SpellIdPlayerDebuff, true);
+                        }
+                    }
+                    else
+                    {
+                        pPortal->CastSpell(m_creature, Portals[color].SpellIdBeam, true);
+                        pPortal->CastSpell(m_creature, Portals[color].SpellIdNetherspiteBuff, true);
+                    }
                 }
             }
         }
+    }
+
+    /*
+     * Arc is 15°- possible official spell is 30469 with TARGET_NARROW_FRONTAL_CONE -> 15°
+     */
+    bool IsInArc(Player* CheckedPlayer, Creature* pPortal, float AngleToNP)
+    {
+        float AngelToPlayer = pPortal->GetAngle(CheckedPlayer);
+        float lborder =  -1 * (M_PI_F/24);                       // in range -pi..0
+        float rborder = (M_PI_F/24);                             // in range 0..pi
+
+        AngelToPlayer -= AngleToNP;
+        // move angle to range -pi ... +pi
+        AngelToPlayer = MapManager::NormalizeOrientation(AngelToPlayer);
+        if (AngelToPlayer > M_PI_F)
+            AngelToPlayer -= 2.0f*M_PI_F;
+        return ( AngelToPlayer >= lborder ) && ( AngelToPlayer <= rborder );
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -270,7 +332,13 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
             else
                 m_uiVoidZoneTimer -= uiDiff;
 
-            UpdateBeam(uiDiff);
+            if (m_uiPortalUpdate < uiDiff)
+            {
+                UpdateBeam(uiDiff);
+                m_uiPortalUpdate = 1000;
+            }
+            else
+                m_uiPortalUpdate -= uiDiff;
         }
         else
         {
