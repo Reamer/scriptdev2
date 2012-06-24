@@ -106,7 +106,7 @@ const static NetherspidePortal Portals[3] =
 {
     {RED_PORTAL, NPC_PORTAL_RED, SPELL_RED_PORTAL, SPELL_BEAM_RED, SPELL_PERSEVERENCE_PLR, SPELL_PERSEVERENCE_NS,  SPELL_EXHAUSTION_PER},
     {GREEN_PORTAL, NPC_PORTAL_GREEN, SPELL_GREEN_PORTAL, SPELL_BEAM_GREEN, SPELL_SERENITY_PLR, SPELL_SERENITY_NS, SPELL_EXHAUSTION_SER},
-    {BLUE_PORTAL, NPC_PORTAL_GREEN, SPELL_BLUE_PORTAL, SPELL_BEAM_BLUE, SPELL_DOMINANCE_PLR, SPELL_DOMINANCE_NS, SPELL_EXHAUSTION_DOM}
+    {BLUE_PORTAL, NPC_PORTAL_BLUE, SPELL_BLUE_PORTAL, SPELL_BEAM_BLUE, SPELL_DOMINANCE_PLR, SPELL_DOMINANCE_NS, SPELL_EXHAUSTION_DOM}
 };
 
 // at first spawn portals got fixed coords, should be shuffled in subsequent beam phases
@@ -133,7 +133,6 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
 
     instance_karazhan* m_pInstance;
 
-    bool m_bIsEnraged;
     NetherspitePhases m_ActivePhase;
 
     std::list<NetherPortalWithLastTarget> m_Portals;
@@ -147,7 +146,6 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
 
     void Reset()
     {
-        m_bIsEnraged    = false;
         m_ActivePhase = BEAM_PHASE;
 
         m_uiEnrageTimer       = MINUTE*9*IN_MILLISECONDS;
@@ -250,7 +248,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
                 {
                     Player* pPlayer = itr->getSource();
                     // Debuff-Check: if player has debuff, this player is no a possible target
-                    if (pPlayer->HasAura(Portals[color].SpellIdPlayerDebuff))
+                    if (pPlayer->HasAura(Portals[color].SpellIdPlayerDebuff) || !pPlayer->isAlive())
                         continue;
 
                     // Position-Check: don't use z
@@ -273,7 +271,10 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
                         {
                             if (Unit* pLastTarget = m_creature->GetMap()->GetUnit(iter->lastTarget))
                             {
-                                pPortal->CastSpell(pLastTarget, Portals[color].SpellIdPlayerDebuff, true);
+                                if (pLastTarget->isAlive())
+                                {
+                                    pPortal->CastSpell(pLastTarget, Portals[color].SpellIdPlayerDebuff, true);
+                                }
                             }
                         }
                         pPortal->CastSpell(pBeamTargetPlayer, Portals[color].SpellIdBeam, true);
@@ -284,8 +285,18 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
                 {
                     pPortal->CastSpell(m_creature, Portals[color].SpellIdNetherspiteBuff, true);
                     // beam change from Player to Netherspite
-                    if (m_creature->GetObjectGuid() == iter->lastTarget)
+                    if (m_creature->GetObjectGuid() != iter->lastTarget)
                     {
+                        if (iter->lastTarget.IsPlayer())
+                        {
+                            if (Unit* pLastTarget = m_creature->GetMap()->GetUnit(iter->lastTarget))
+                            {
+                                if (pLastTarget->isAlive())
+                                {
+                                    pPortal->CastSpell(pLastTarget, Portals[color].SpellIdPlayerDebuff, true);
+                                }
+                            }
+                        }
                         pPortal->CastSpell(m_creature, Portals[color].SpellIdBeam, true);
                         iter->lastTarget = m_creature->GetObjectGuid();
                     }
@@ -321,12 +332,12 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
         else
             m_uiPhaseSwitchTimer -= uiDiff;
 
-        if (!m_bIsEnraged)
+        if (m_uiEnrageTimer)
         {
             if (m_uiEnrageTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, SPELL_NETHER_INFUSION, CAST_FORCE_CAST);
-                m_bIsEnraged = true;
+                if (DoCastSpellIfCan(m_creature, SPELL_NETHER_INFUSION) == CAST_OK)
+                    m_uiEnrageTimer = 0;
             }
             else
                 m_uiEnrageTimer -= uiDiff;
@@ -337,9 +348,10 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
             if (m_uiVoidZoneTimer < uiDiff)
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCastSpellIfCan(pTarget, SPELL_VOID_ZONE, true);
-
-                m_uiVoidZoneTimer = 15000;
+                {
+                    if (DoCastSpellIfCan(pTarget, SPELL_VOID_ZONE) == CAST_OK)
+                        m_uiVoidZoneTimer = 15000;
+                }
             }
             else
                 m_uiVoidZoneTimer -= uiDiff;
@@ -357,9 +369,10 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
             if (m_uiNetherbreathTimer < uiDiff)
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCastSpellIfCan(pTarget, SPELL_NETHERBREATH);
-
-                m_uiNetherbreathTimer = urand(4000, 5000);
+                {
+                    if (DoCastSpellIfCan(pTarget, SPELL_NETHERBREATH) == CAST_OK)
+                        m_uiNetherbreathTimer = urand(4000, 5000);
+                }
             }
             else
                 m_uiNetherbreathTimer -= uiDiff;
