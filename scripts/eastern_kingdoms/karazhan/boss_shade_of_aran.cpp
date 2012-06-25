@@ -88,11 +88,11 @@ struct MANGOS_DLL_DECL boss_aranAI : public ScriptedAI
 {
     boss_aranAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_karazhan*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_karazhan* m_pInstance;
 
     uint32 m_uiSecondarySpell_Timer;
     uint32 m_uiNormalCast_Timer;
@@ -377,10 +377,10 @@ struct MANGOS_DLL_DECL boss_aranAI : public ScriptedAI
                 case SUPER_AE:
                     DoScriptText(urand(0, 1) ? SAY_EXPLOSION1 : SAY_EXPLOSION2, m_creature);
 
-                    m_creature->CastSpell(m_creature, SPELL_BLINK_CENTER, true);
-                    m_creature->CastSpell(m_creature, SPELL_PLAYERPULL, true);
-                    m_creature->CastSpell(m_creature, SPELL_MASSSLOW, true);
-                    m_creature->CastSpell(m_creature, SPELL_AEXPLOSION, false);
+                    DoCast(m_creature, SPELL_BLINK_CENTER, true);
+                    DoCast(m_creature, SPELL_PLAYERPULL, true);
+                    DoCast(m_creature, SPELL_MASSSLOW, true);
+                    DoCast(m_creature, SPELL_AEXPLOSION, false);
                     break;
 
                 case SUPER_FLAME:

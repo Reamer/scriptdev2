@@ -110,14 +110,16 @@ struct MANGOS_DLL_DECL boss_midnightAI : public ScriptedAI
                 }
                 break;
             case 2:
-                if (m_creature->GetHealthPercent() < 25.0f)
-                {
-                    m_pInstance->SetData(TYPE_ATTUMEN, SPECIAL);
-                }
-                else if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL)
+                if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL)
                 {
                     m_creature->ForcedDespawn();
                 }
+                else if (m_creature->GetHealthPercent() < 25.0f)
+                {
+                    m_pInstance->SetData(TYPE_ATTUMEN, SPECIAL);
+                }
+                break;
+            default:
                 break;
         }
         if (m_uiKnockDown < uiDiff)
@@ -233,17 +235,16 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
         }
         else
         {
-            if (m_creature->GetHealthPercent() < 25.0f)
+            if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL)
             {
-
                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_ATTUMEN_MOUNTED) == CAST_OK)
                 {
-                    m_pInstance->SetData(TYPE_ATTUMEN, SPECIAL);
+                    m_creature->ForcedDespawn(1000);
                 }
             }
-            else if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL)
+            else if (m_creature->GetHealthPercent() < 25.0f)
             {
-                m_creature->ForcedDespawn();
+                m_pInstance->SetData(TYPE_ATTUMEN, SPECIAL);
             }
         }
 
