@@ -168,6 +168,12 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
         DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
+    void Aggro(Unit* pWho)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ATTUMEN, IN_PROGRESS);
+    }
+
     void SpellHit(Unit* pSource, const SpellEntry* pSpell)
     {
         if (pSpell->Mechanic == MECHANIC_DISARM)
