@@ -38,6 +38,8 @@ enum
 
     // NPC_TERESTIAN                = 15688,
     NPC_NIGHTBANE                   = 17225,
+    NPC_PRINZ_MALCHEZAAR            = 15690,
+    NPC_INFERNAL_TARGET             = 17644,
 
     GO_STAGE_CURTAIN                = 183932,
     GO_STAGE_DOOR_LEFT              = 184278,
@@ -90,6 +92,7 @@ class MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
 
         bool IsMoroesOrGuest(uint32 entry);
         ObjectGuid GetMoroesOrGuestRandom();
+        ObjectGuid GetRandomInfernalTarget();
 
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
@@ -98,19 +101,6 @@ class MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
         uint32 m_uiOperaEvent;
         uint32 m_uiOzDeathCount;
         GUIDList m_MoroesAndGuest;
+        GUIDList m_InfernalTarget;
 };
-
-class MANGOS_DLL_DECL npc_fiendish_portalAI : public ScriptedAI
-{
-    public:
-        npc_fiendish_portalAI(Creature* pCreature);
-        ~npc_fiendish_portalAI() {}
-
-        void Reset();
-        void JustSummoned(Creature* pSummoned);
-        void UpdateAI(const uint32 uiDiff);
-
-        uint32 m_uiSummonTimer;
-};
-
 #endif

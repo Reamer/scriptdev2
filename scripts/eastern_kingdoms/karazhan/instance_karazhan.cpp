@@ -70,7 +70,11 @@ void instance_karazhan::OnCreatureCreate(Creature* pCreature)
         case NPC_ATTUMEN_MOUNTED:
         case NPC_MOROES:
         case NPC_NIGHTBANE:
+        case NPC_PRINZ_MALCHEZAAR:
             m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            break;
+        case NPC_INFERNAL_TARGET:
+            m_InfernalTarget.push_back(pCreature->GetObjectGuid());
             break;
         default:
             break;
@@ -313,6 +317,13 @@ ObjectGuid instance_karazhan::GetMoroesOrGuestRandom()
 {
     GUIDList::const_iterator iter = m_MoroesAndGuest.begin();
     advance(iter, urand(0, m_MoroesAndGuest.size()-1));
+    return *iter;
+}
+
+ObjectGuid instance_karazhan::GetRandomInfernalTarget()
+{
+    GUIDList::const_iterator iter = m_InfernalTarget.begin();
+    advance(iter, urand(0, m_InfernalTarget.size()-1));
     return *iter;
 }
 
