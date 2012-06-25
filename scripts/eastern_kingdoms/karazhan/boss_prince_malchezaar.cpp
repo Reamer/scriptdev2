@@ -295,12 +295,10 @@ struct MANGOS_DLL_DECL boss_malchezaarAI : public ScriptedAI
                 {
                     m_creature->GetMap()->CreatureRelocation(pInfernalTarget, itr->point.x, itr->point.y, INFERNAL_Z, 0.0f);
                     pInfernalTarget->Relocate(itr->point.x, itr->point.y, INFERNAL_Z);
-                    if (DoCastSpellIfCan(pInfernalTarget, SPELL_SUMMON_INFERNAL) == CAST_OK)
-                    {
-                        DoScriptText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
-                        itr->hasInfernal = true;
-                        return true;
-                    }
+                    pInfernalTarget->CastSpell(pInfernalTarget, SPELL_SUMMON_INFERNAL, false);
+                    DoScriptText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
+                    itr->hasInfernal = true;
+                    return true;
                 }
             }
         }

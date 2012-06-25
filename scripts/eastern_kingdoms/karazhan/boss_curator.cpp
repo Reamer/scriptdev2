@@ -22,6 +22,7 @@ SDCategory: Karazhan
 EndScriptData */
 
 #include "precompiled.h"
+#include "karazhan.h"
 
 enum
 {
@@ -47,7 +48,13 @@ enum
 
 struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
 {
-    boss_curatorAI(Creature* pCreature) : ScriptedAI(pCreature) {Reset();}
+    boss_curatorAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (instance_karazhan*) pCreature->GetInstanceData();
+        Reset();
+    }
+
+    instance_karazhan* m_pInstance;
 
     uint32 m_uiFlareTimer;
     uint32 m_uiHatefulBoltTimer;
@@ -73,27 +80,34 @@ struct MANGOS_DLL_DECL boss_curatorAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_CURATOR, DONE);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_CURATOR, FAIL);
     }
 
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_CURATOR, IN_PROGRESS);
     }
 
     void JustSummoned(Creature* pSummoned)
     {
         if (pSummoned->GetEntry() == NPC_ASTRAL_FLARE)
         {
-            // Flare start with agro on it's target, should be immune to arcane
+            // Flare start with aggro on it's target, should be immune to arcane
             pSummoned->CastSpell(pSummoned, SPELL_ASTRAL_FLARE_PASSIVE, false);
             pSummoned->ApplySpellImmune(0, IMMUNITY_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, true);
+            pSummoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
-            if (m_creature->getVictim())
-            {
-                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
-
-                pSummoned->AddThreat(pTarget ? pTarget : m_creature->getVictim(), 1000.0f);
-            }
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+                pSummoned->AI()->AttackStart(pTarget);
         }
     }
 

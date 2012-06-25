@@ -146,7 +146,6 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
         {
             case NPC_KILREK:
                 pSummoned->CastSpell(pSummoned, SPELL_BROKEN_PACT, true);
-                m_uiSummonKilrekTimer = 45000;
                 break;
             case NPC_DEMONCHAINS:
                 if (Unit* pLastChainTarget = m_creature->GetMap()->GetUnit(m_ChainTarget))
@@ -176,13 +175,18 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_uiSummonKilrekTimer)
+        if (!m_creature->GetPet() || !m_creature->GetPet()->isAlive())
         {
             if (m_uiSummonKilrekTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP) == CAST_OK)
+                if (Pet* pKilreg = m_creature->GetPet())
                 {
-                    m_uiSummonKilrekTimer = 0;
+                    pKilreg->Respawn();
+                    m_uiSummonKilrekTimer = 45000;
+                }
+                else if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP) == CAST_OK)
+                {
+                    m_uiSummonKilrekTimer = 45000;
                 }
             }
             else
@@ -238,10 +242,8 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
                 advance(itr, urand(0, m_PortalGuid.size() - 1 ));
                 if (Creature* pPortal = m_creature->GetMap()->GetCreature(*itr))
                 {
-                    if (DoCastSpellIfCan(pPortal, SPELL_SUMMON_FIENDISH_IMP) == CAST_OK)
-                    {
-                        m_uiSummonImp = 5000;
-                    }
+                    pPortal->CastSpell(pPortal, SPELL_SUMMON_FIENDISH_IMP, true);
+                    m_uiSummonImp = 5000;
                 }
             }
         }
