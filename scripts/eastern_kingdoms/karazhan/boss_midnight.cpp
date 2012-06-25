@@ -245,7 +245,7 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_ATTUMEN_MOUNTED) == CAST_OK)
                 {
-                    m_creature->ForcedDespawn(1000);
+                    m_creature->ForcedDespawn();
                 }
             }
             else if (m_creature->GetHealthPercent() < 25.0f)
