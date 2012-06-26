@@ -80,6 +80,12 @@ struct MANGOS_DLL_DECL boss_midnightAI : public ScriptedAI
         }
     }
 
+    void Aggro(Unit* pWho)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ATTUMEN, IN_PROGRESS);
+    }
+
     void JustSummoned(Creature* pSummoned)
     {
         if (pSummoned->GetEntry() == NPC_ATTUMEN)
@@ -154,6 +160,8 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
     uint32 m_uiRandomYellTimer;
     uint32 m_uiChargeTimer;                                 //only when mounted
 
+    bool m_bHasSummonRider;
+
 
     void Reset()
     {
@@ -161,17 +169,13 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
         m_uiCurseTimer = 30000;
         m_uiRandomYellTimer = urand(30000, 60000);          //Occasionally yell
         m_uiChargeTimer = 20000;
+
+        m_bHasSummonRider = false;
     }
 
     void KilledUnit(Unit* pVictim)
     {
         DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
-    }
-
-    void Aggro(Unit* pWho)
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_ATTUMEN, IN_PROGRESS);
     }
 
     void SpellHit(Unit* pSource, const SpellEntry* pSpell)
@@ -241,11 +245,12 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
         }
         else
         {
-            if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL)
+            if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL && !m_bHasSummonRider)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_ATTUMEN_MOUNTED) == CAST_OK)
                 {
-                    m_creature->ForcedDespawn();
+                    m_creature->ForcedDespawn(1000);
+                    m_bHasSummonRider = true;
                 }
             }
             else if (m_creature->GetHealthPercent() < 25.0f)

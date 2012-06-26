@@ -111,8 +111,6 @@ void instance_karazhan::OnCreatureEnterCombat(Creature * pCreature)
             {
                 if (Unit* pTarget = pCreature->getVictim())
                     pTemp->AI()->AttackStart(pTarget);
-                //else
-                  //  pTemp->SetInCombatWithZone();
             }
         }
     }

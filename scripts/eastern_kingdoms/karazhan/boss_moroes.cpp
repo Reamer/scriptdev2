@@ -168,7 +168,7 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
             uint8 i = 0;
             for (std::vector<uint32>::iterator itr = vAddList.begin(); itr != vAddList.end(); ++itr, ++i)
             {
-                if (Creature* pCreature = m_creature->SummonCreature(*itr, afLocations[i][0], afLocations[i][1], afLocations[i][2], afLocations[i][3], TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000))
+                if (Creature* pCreature = m_creature->SummonCreature(*itr, afLocations[i][0], afLocations[i][1], afLocations[i][2], afLocations[i][3], TEMPSUMMON_DEAD_DESPAWN, 10000))
                 {
                     m_Guest[i].guid = pCreature->GetObjectGuid();
                     m_Guest[i].entry = *itr;
@@ -195,7 +195,7 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
                 }
                 else
                 {                                           // Does not exist
-                    if (Creature* pCreature = m_creature->SummonCreature(m_Guest[i].entry, afLocations[i][0], afLocations[i][1], afLocations[i][2], afLocations[i][3], TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000))
+                    if (Creature* pCreature = m_creature->SummonCreature(m_Guest[i].entry, afLocations[i][0], afLocations[i][1], afLocations[i][2], afLocations[i][3], TEMPSUMMON_DEAD_DESPAWN, 10000))
                         m_Guest[i].guid = pCreature->GetObjectGuid();
                 }
             }
