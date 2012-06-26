@@ -175,16 +175,11 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->GetPet() || !m_creature->GetPet()->isAlive())
+        if (!m_creature->GetPet())
         {
             if (m_uiSummonKilrekTimer < uiDiff)
             {
-                if (Pet* pKilreg = m_creature->GetPet())
-                {
-                    pKilreg->Respawn();
-                    m_uiSummonKilrekTimer = 45000;
-                }
-                else if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP) == CAST_OK)
                 {
                     m_uiSummonKilrekTimer = 45000;
                 }

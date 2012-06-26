@@ -35,6 +35,14 @@ enum
     NPC_BARONESS_DOROTHEA_MILLSTIPE = 19875,
     NPC_LORD_ROBIN_DARIS            = 19876,
 
+    // Opera
+    NPC_DOROTHEE                    = 17535,
+    NPC_ROAR                        = 17546,
+    NPC_TINHEAD                     = 17547,
+    NPC_STRAWMAN                    = 17543,
+    NPC_GRANDMOTHER                 = 17603,
+    NPC_JULIANNE                    = 17534,
+    NPC_ROMULO                      = 17533,
 
     // NPC_TERESTIAN                = 15688,
     NPC_NIGHTBANE                   = 17225,

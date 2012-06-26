@@ -71,6 +71,8 @@ void instance_karazhan::OnCreatureCreate(Creature* pCreature)
         case NPC_MOROES:
         case NPC_NIGHTBANE:
         case NPC_PRINZ_MALCHEZAAR:
+        case NPC_ROMULO:
+        case NPC_JULIANNE:
             m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         case NPC_INFERNAL_TARGET:

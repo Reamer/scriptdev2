@@ -88,13 +88,13 @@ struct Spawn
 // Entries and spawn locations for creatures in Oz event
 Spawn aSpawns_OZ[4]=
 {
-    {17535, -10896.0f},                                     // Dorothee
-    {17546, -10891.0f},                                     // Roar
-    {17547, -10884.0f},                                     // Tinhead
-    {17543, -10902.0f},                                     // Strawman
+    {NPC_DOROTHEE, -10896.0f},                                  // Dorothee
+    {NPC_ROAR, -10891.0f},                                      // Roar
+    {NPC_TINHEAD, -10884.0f},                                   // Tinhead
+    {NPC_STRAWMAN, -10902.0f},                                  // Strawman
 };
-Spawn Spawn_HOOD = {17603, -10892.0f};                      // Grandmother
-Spawn Spawn_RAJ  = {17534, -10900.0f};                      // Julianne
+Spawn Spawn_HOOD = {NPC_GRANDMOTHER, -10892.0f};                // Grandmother
+Spawn Spawn_RAJ  = {NPC_JULIANNE, -10900.0f};                   // Julianne
 
 enum
 {
@@ -114,11 +114,11 @@ struct MANGOS_DLL_DECL npc_barnesAI : public npc_escortAI
     {
         m_bRaidWiped = false;
         m_uiEventId  = 0;
-        m_pInstance  = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance  = (instance_karazhan*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_karazhan* m_pInstance;
 
     ObjectGuid m_spotlightGuid;
 
