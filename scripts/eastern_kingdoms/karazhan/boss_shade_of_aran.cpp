@@ -338,7 +338,7 @@ struct MANGOS_DLL_DECL boss_aranAI : public ScriptedAI
                     break;
             }
 
-            m_uiLastSuperSpell = auiAvailable[urand(0, 2)];
+            m_uiLastSuperSpell = auiAvailable[urand(0, 1)];
 
             switch (m_uiLastSuperSpell)
             {
