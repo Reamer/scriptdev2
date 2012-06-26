@@ -99,12 +99,6 @@ struct MANGOS_DLL_DECL boss_midnightAI : public ScriptedAI
         }
     }
 
-    void Aggro(Unit* pWho)
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_ATTUMEN, IN_PROGRESS);
-    }
-
     void JustReachedHome()
     {
         if (m_pInstance)
