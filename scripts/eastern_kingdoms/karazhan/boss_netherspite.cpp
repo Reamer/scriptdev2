@@ -297,9 +297,9 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
                                 }
                             }
                         }
-                        pPortal->CastSpell(m_creature, Portals[color].SpellIdBeam, true);
                         iter->lastTarget = m_creature->GetObjectGuid();
                     }
+                    pPortal->CastSpell(m_creature, Portals[color].SpellIdBeam, true);
                 }
             }
         }

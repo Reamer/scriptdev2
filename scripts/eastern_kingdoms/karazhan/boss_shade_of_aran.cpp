@@ -301,38 +301,6 @@ struct MANGOS_DLL_DECL boss_aranAI : public ScriptedAI
         if (m_bDrinking)
             return;
 
-        //Normal casts
-        if (m_uiNormalCast_Timer < uiDiff)
-        {
-            if (!m_creature->IsNonMeleeSpellCasted(false))
-            {
-                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-                if (!pTarget)
-                    return;
-
-                uint32 auiSpells[3];
-                uint8 uiAvailableSpells = 0;
-
-                //Check for what spells are not on cooldown
-                if (!m_uiArcaneCooldown)
-                    auiSpells[uiAvailableSpells++] = SPELL_ARCMISSLE;
-                if (!m_uiFireCooldown)
-                    auiSpells[uiAvailableSpells++] = SPELL_FIREBALL;
-                if (!m_uiFrostCooldown)
-                    auiSpells[uiAvailableSpells++] = SPELL_FROSTBOLT;
-
-                //If no available spells wait 1 second and try again
-                if (uiAvailableSpells)
-                {
-                    m_uiCurrentNormalSpell = auiSpells[rand() % uiAvailableSpells];
-                    DoCastSpellIfCan(pTarget, m_uiCurrentNormalSpell);
-                }
-            }
-            m_uiNormalCast_Timer = 1000;
-        }
-        else
-            m_uiNormalCast_Timer -= uiDiff;
-
         if (m_uiSecondarySpell_Timer < uiDiff)
         {
             switch(urand(0, 1))
@@ -472,6 +440,38 @@ struct MANGOS_DLL_DECL boss_aranAI : public ScriptedAI
             else
                 m_uiFlameWreathCheck_Timer -= uiDiff;
         }
+
+                //Normal casts
+        if (m_uiNormalCast_Timer < uiDiff)
+        {
+            if (!m_creature->IsNonMeleeSpellCasted(false))
+            {
+                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+                if (!pTarget)
+                    return;
+
+                uint32 auiSpells[3];
+                uint8 uiAvailableSpells = 0;
+
+                //Check for what spells are not on cooldown
+                if (!m_uiArcaneCooldown)
+                    auiSpells[uiAvailableSpells++] = SPELL_ARCMISSLE;
+                if (!m_uiFireCooldown)
+                    auiSpells[uiAvailableSpells++] = SPELL_FIREBALL;
+                if (!m_uiFrostCooldown)
+                    auiSpells[uiAvailableSpells++] = SPELL_FROSTBOLT;
+
+                //If no available spells wait 1 second and try again
+                if (uiAvailableSpells)
+                {
+                    m_uiCurrentNormalSpell = auiSpells[rand() % uiAvailableSpells];
+                    DoCastSpellIfCan(pTarget, m_uiCurrentNormalSpell);
+                }
+            }
+            m_uiNormalCast_Timer = 1000;
+        }
+        else
+            m_uiNormalCast_Timer -= uiDiff;
 
         if (m_uiArcaneCooldown && m_uiFireCooldown && m_uiFrostCooldown)
             DoMeleeAttackIfReady();

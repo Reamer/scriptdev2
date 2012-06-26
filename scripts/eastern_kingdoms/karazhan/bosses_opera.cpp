@@ -1376,7 +1376,7 @@ void boss_julianneAI::UpdateAI(const uint32 diff)
         {
             DoScriptText(SAY_JULIANNE_AGGRO, m_creature);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            //m_creature->setFaction(16);
+            m_creature->setFaction(16);
             AggroYellTimer = 0;
         }
         else
@@ -1404,6 +1404,7 @@ void boss_julianneAI::UpdateAI(const uint32 diff)
             if (Creature* pRomulo = m_creature->SummonCreature(NPC_ROMULO, ROMULO_X, ROMULO_Y, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, HOUR*2*IN_MILLISECONDS))
             {
                 pRomulo->AI()->AttackStart(m_creature->getVictim());
+                pRomulo->setFaction(16);
             }
             SummonedRomulo = true;
         }

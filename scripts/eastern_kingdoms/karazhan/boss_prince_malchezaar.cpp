@@ -205,7 +205,7 @@ struct MANGOS_DLL_DECL boss_malchezaarAI : public ScriptedAI
                 m_Axe = pSummoned->GetObjectGuid();
                 if (Unit* pVictim = m_creature->getVictim())
                 {
-                    pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
                     pSummoned->AI()->AttackStart(pVictim);
                 }
                 break;

@@ -151,7 +151,7 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
         switch (pSummoned->GetEntry())
         {
             case NPC_KILREK:
-                pSummoned->CastSpell(pSummoned, SPELL_BROKEN_PACT, true);
+                DoCastSpellIfCan(m_creature, SPELL_BROKEN_PACT, CAST_TRIGGERED);
                 break;
             case NPC_DEMONCHAINS:
                 if (Unit* pLastChainTarget = m_creature->GetMap()->GetUnit(m_ChainTarget))
