@@ -223,7 +223,6 @@ struct MANGOS_DLL_DECL boss_malchezaarAI : public ScriptedAI
                 if (pTarget->GetEntry() == NPC_NETHERSPITE_INFERNAL)
                 {
                     pTarget->CastSpell(pTarget, SPELL_HELLFIRE, false);
-                    pTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 }
                 break;
             }
