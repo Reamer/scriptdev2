@@ -91,7 +91,7 @@ struct NetherPortalWithLastTarget
     ObjectGuid lastTarget;
 };
 
-struct NetherspidePortal
+struct NetherspitePortal
 {
     NetherspitePortalColor color;
     uint32 entry;
@@ -102,7 +102,7 @@ struct NetherspidePortal
     uint32 SpellIdPlayerDebuff;
 };
 
-const static NetherspidePortal Portals[3] =
+const static NetherspitePortal Portals[3] =
 {
     {RED_PORTAL, NPC_PORTAL_RED, SPELL_RED_PORTAL, SPELL_BEAM_RED, SPELL_PERSEVERENCE_PLR, SPELL_PERSEVERENCE_NS,  SPELL_EXHAUSTION_PER},
     {GREEN_PORTAL, NPC_PORTAL_GREEN, SPELL_GREEN_PORTAL, SPELL_BEAM_GREEN, SPELL_SERENITY_PLR, SPELL_SERENITY_NS, SPELL_EXHAUSTION_SER},

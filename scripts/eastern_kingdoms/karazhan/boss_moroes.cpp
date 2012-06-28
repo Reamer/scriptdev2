@@ -18,7 +18,6 @@
 SDName: Boss_Moroes
 SD%Complete: 90
 SDComment:
-Remove Hack for Vanish, at the moment this spell handle a EnterevadeMode for Moroes
 Find better way for remove Garrote spell
 SDCategory: Karazhan
 EndScriptData */
@@ -103,9 +102,6 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
         m_bEnrage           = false;
         m_bInVanish         = false;
 
-        // HACK for Vanish Spell
-        m_creature->SetVisibility(VISIBILITY_ON);
-
         SpawnAdds();
     }
 
@@ -126,15 +122,19 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
         }
     }
 
+    void EnterEvadeMode()
+    {
+        if (m_bInVanish)
+            return;
+        ScriptedAI::EnterEvadeMode();
+    }
+
     void JustDied(Unit* pVictim)
     {
         DoScriptText(SAY_DEATH, m_creature);
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_MOROES, DONE);
-
-        // HACK for Vanish Spell
-        m_creature->SetVisibility(VISIBILITY_ON);
 
         //remove aura from spell Garrote when Moroes dies
         Map* pMap = m_creature->GetMap();
@@ -147,8 +147,7 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
 
             for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
             {
-                if (i->getSource()->isAlive() && i->getSource()->HasAura(SPELL_GARROTE))
-                    i->getSource()->RemoveAurasDueToSpell(SPELL_GARROTE);
+                i->getSource()->RemoveAurasDueToSpell(SPELL_GARROTE);
             }
         }
     }
@@ -218,14 +217,12 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
             // Cast Vanish, then Garrote random victim
             if (m_uiVanish_Timer < uiDiff)
             {
-                // HACK for Vanish Spell
-                //if (DoCastSpellIfCan(m_creature, SPELL_VANISH) == CAST_OK)
-                //{
-                m_creature->SetVisibility(VISIBILITY_OFF);
+                if (DoCastSpellIfCan(m_creature, SPELL_VANISH) == CAST_OK)
+                {
                     m_bInVanish      = true;
                     m_uiVanish_Timer = 30000;
                     m_uiWait_Timer   = 5000;
-                //}
+                }
             }
             else
                 m_uiVanish_Timer -= uiDiff;
@@ -234,9 +231,6 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
             {
                 if (m_uiWait_Timer < uiDiff)
                 {
-                    // HACK for Vanish Spell
-                    m_creature->SetVisibility(VISIBILITY_ON);
-
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                         pTarget->CastSpell(pTarget, SPELL_GARROTE, true);
                     DoScriptText(urand(0, 1) ? SAY_SPECIAL_1 : SAY_SPECIAL_2, m_creature);

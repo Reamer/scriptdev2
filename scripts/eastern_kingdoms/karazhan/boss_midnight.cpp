@@ -187,6 +187,8 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
     void JustDied(Unit* pVictim)
     {
         DoScriptText(SAY_DEATH, m_creature);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ATTUMEN, DONE);
     }
 
     void JustReachedHome()
