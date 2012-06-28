@@ -135,6 +135,12 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
             case NPC_DEMONCHAINS:
                 pSummoned->CastSpell(pSummoned, SPELL_DEMON_CHAINS, true);
                 break;
+            case NPC_FIENDISHIMP:
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    pSummoned->AI()->AttackStart(pTarget);
+                }
+                break;
             default:
                 break;
         }
@@ -145,7 +151,7 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
         switch (pSummoned->GetEntry())
         {
             case NPC_KILREK:
-                pSummoned->CastSpell(pSummoned, SPELL_BROKEN_PACT, true);
+                DoCastSpellIfCan(m_creature, SPELL_BROKEN_PACT, CAST_TRIGGERED);
                 break;
             case NPC_DEMONCHAINS:
                 if (Unit* pLastChainTarget = m_creature->GetMap()->GetUnit(m_ChainTarget))
@@ -237,7 +243,7 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
                 advance(itr, urand(0, m_PortalGuid.size() - 1 ));
                 if (Creature* pPortal = m_creature->GetMap()->GetCreature(*itr))
                 {
-                    pPortal->CastSpell(pPortal, SPELL_SUMMON_FIENDISH_IMP, true);
+                    pPortal->CastSpell(pPortal, SPELL_SUMMON_FIENDISH_IMP, true, NULL, NULL, m_creature->GetObjectGuid());
                     m_uiSummonImp = 5000;
                 }
             }

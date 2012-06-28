@@ -99,6 +99,12 @@ struct MANGOS_DLL_DECL boss_midnightAI : public ScriptedAI
         }
     }
 
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ATTUMEN, FAIL);
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -162,7 +168,6 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
 
     bool m_bHasSummonRider;
 
-
     void Reset()
     {
         m_uiCleaveTimer = urand(10000, 16000);
@@ -201,9 +206,6 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
     {
         //Return since we have no target
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE))
             return;
 
         if (m_uiCleaveTimer < uiDiff)
@@ -247,12 +249,15 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
         }
         else
         {
-            if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL && !m_bHasSummonRider)
+            if (m_pInstance->GetData(TYPE_ATTUMEN) == SPECIAL)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_ATTUMEN_MOUNTED) == CAST_OK)
+                if (!m_bHasSummonRider)
                 {
-                    m_creature->ForcedDespawn(1000);
-                    m_bHasSummonRider = true;
+                    if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_ATTUMEN_MOUNTED) == CAST_OK)
+                    {
+                        m_bHasSummonRider = true;
+                        m_creature->ForcedDespawn(1000);
+                    }
                 }
             }
             else if (m_creature->GetHealthPercent() < 25.0f)
