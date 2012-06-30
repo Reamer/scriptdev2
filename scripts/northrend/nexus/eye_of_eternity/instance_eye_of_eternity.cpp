@@ -24,7 +24,7 @@
 
 #include "precompiled.h"
 #include "eye_of_eternity.h"
-#include "vehicle.h"
+#include "Vehicle.h"
 
 instance_eye_of_eternity::instance_eye_of_eternity(Map* pMap) :
         ScriptedInstance(pMap)
