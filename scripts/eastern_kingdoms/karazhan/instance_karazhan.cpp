@@ -63,6 +63,8 @@ bool instance_karazhan::IsEncounterInProgress() const
 
 void instance_karazhan::OnCreatureCreate(Creature* pCreature)
 {
+    pCreature->CastSpell(pCreature, SPELL_CYBER_INSTANZ_BOOST, true);
+
     switch (pCreature->GetEntry())
     {
         case NPC_MIDNIGHT:
@@ -103,6 +105,9 @@ void instance_karazhan::OnCreatureEvade(Creature * pCreature)
 
 void instance_karazhan::OnCreatureEnterCombat(Creature * pCreature)
 {
+    if (!pCreature->HasAura(SPELL_CYBER_INSTANZ_BOOST))
+        pCreature->CastSpell(pCreature, SPELL_CYBER_INSTANZ_BOOST, true);
+
     if (IsMoroesOrGuest(pCreature->GetEntry()))
     {
         for (GUIDList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)

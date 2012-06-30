@@ -71,6 +71,8 @@ enum
     GO_RAJ_BALCONY                  = 183495,
 
     SPELL_VANISH                    = 29448,
+    // custom stuff
+    SPELL_CYBER_INSTANZ_BOOST       = 100010,
 };
 
 enum OperaEvents
