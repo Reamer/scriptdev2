@@ -37,7 +37,6 @@ enum
     SAY_KILL_3          = -1532016,
     SAY_DEATH           = -1532017,
 
-    SPELL_VANISH        = 29448,
     SPELL_GARROTE       = 37066,
     SPELL_BLIND         = 34694,
     SPELL_GOUGE         = 29425,
@@ -81,26 +80,22 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
 
     Guest m_Guest[MAX_GUESTS];
 
-    uint32 m_uiVanish_Timer;
-    uint32 m_uiBlind_Timer;
-    uint32 m_uiGouge_Timer;
-    uint32 m_uiWait_Timer;
-    uint32 m_uiCheckAdds_Timer;
+    uint32 m_uiVanishTimer;
+    uint32 m_uiBlindTimer;
+    uint32 m_uiGougeTimer;
+    uint32 m_uiGorroteTimer;
 
     bool m_bFirstTime;
-    bool m_bInVanish;
     bool m_bEnrage;
 
     void Reset()
     {
-        m_uiVanish_Timer    = 30000;
-        m_uiBlind_Timer     = 35000;
-        m_uiGouge_Timer     = 23000;
-        m_uiWait_Timer      = 0;
-        m_uiCheckAdds_Timer = 5000;
+        m_uiVanishTimer    = 30000;
+        m_uiBlindTimer     = 35000;
+        m_uiGougeTimer     = 23000;
+        m_uiGorroteTimer      = 0;
 
         m_bEnrage           = false;
-        m_bInVanish         = false;
 
         SpawnAdds();
     }
@@ -124,7 +119,7 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
 
     void EnterEvadeMode()
     {
-        if (m_bInVanish)
+        if (m_creature->HasAura(SPELL_VANISH))
             return;
         ScriptedAI::EnterEvadeMode();
     }
@@ -215,53 +210,50 @@ struct MANGOS_DLL_DECL boss_moroesAI : public ScriptedAI
         if (!m_bEnrage)
         {
             // Cast Vanish, then Garrote random victim
-            if (m_uiVanish_Timer < uiDiff)
+            if (m_uiVanishTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_VANISH) == CAST_OK)
                 {
-                    m_bInVanish      = true;
-                    m_uiVanish_Timer = 30000;
-                    m_uiWait_Timer   = 5000;
+                    m_uiVanishTimer = 30000;
+                    m_uiGorroteTimer   = 5000;
                 }
             }
             else
-                m_uiVanish_Timer -= uiDiff;
+                m_uiVanishTimer -= uiDiff;
 
-            if (m_bInVanish)
+            if (m_uiGorroteTimer < uiDiff)
             {
-                if (m_uiWait_Timer < uiDiff)
-                {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                        pTarget->CastSpell(pTarget, SPELL_GARROTE, true);
-                    DoScriptText(urand(0, 1) ? SAY_SPECIAL_1 : SAY_SPECIAL_2, m_creature);
-                    m_bInVanish = false;
-                }
-                else
-                    m_uiWait_Timer -= uiDiff;
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    pTarget->CastSpell(pTarget, SPELL_GARROTE, true);
+                DoScriptText(urand(0, 1) ? SAY_SPECIAL_1 : SAY_SPECIAL_2, m_creature);
+                m_uiGorroteTimer = m_uiVanishTimer + 5000;
             }
+            else
+                m_uiGorroteTimer -= uiDiff;
+
 
             //Gouge highest aggro, and attack second highest
-            if (m_uiGouge_Timer < uiDiff)
+            if (m_uiGougeTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_GOUGE) == CAST_OK)
-                    m_uiGouge_Timer = 40000;
+                    m_uiGougeTimer = 40000;
             }
             else
-                m_uiGouge_Timer -= uiDiff;
+                m_uiGougeTimer -= uiDiff;
 
-            if (m_uiBlind_Timer < uiDiff)
+            if (m_uiBlindTimer < uiDiff)
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_BLIND, SELECT_FLAG_PLAYER))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_BLIND) == CAST_OK)
-                        m_uiBlind_Timer = 40000;
+                        m_uiBlindTimer = 40000;
                 }
             }
             else
-                m_uiBlind_Timer -= uiDiff;
+                m_uiBlindTimer -= uiDiff;
         }
 
-        if (!m_bInVanish)
+        if (!m_creature->HasAura(SPELL_VANISH))
             DoMeleeAttackIfReady();
     }
 };

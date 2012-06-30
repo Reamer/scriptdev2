@@ -87,7 +87,7 @@ void instance_karazhan::OnCreatureCreate(Creature* pCreature)
 
 void instance_karazhan::OnCreatureEvade(Creature * pCreature)
 {
-    if (IsMoroesOrGuest(pCreature->GetEntry()))
+    if (IsMoroesOrGuest(pCreature->GetEntry()) && !pCreature->HasAura(SPELL_VANISH))
     {
         for (GUIDList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)
         {

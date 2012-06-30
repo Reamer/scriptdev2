@@ -69,6 +69,8 @@ enum
     GO_RAJ_BACKDROP                 = 183443,
     GO_RAJ_MOON                     = 183494,
     GO_RAJ_BALCONY                  = 183495,
+
+    SPELL_VANISH                    = 29448,
 };
 
 enum OperaEvents
