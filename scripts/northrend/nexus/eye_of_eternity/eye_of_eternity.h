@@ -92,7 +92,5 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         GUIDList m_lSparkPortal;
         GUIDList m_lVortex;
 
-        uint8 m_uiVortexCounter;
-        uint8 m_uiVortexSeatCounter;
 };
 #endif

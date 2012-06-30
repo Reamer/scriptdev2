@@ -24,6 +24,7 @@
 
 #include "precompiled.h"
 #include "eye_of_eternity.h"
+#include "vehicle.h"
 
 instance_eye_of_eternity::instance_eye_of_eternity(Map* pMap) :
         ScriptedInstance(pMap)
@@ -279,8 +280,6 @@ void instance_eye_of_eternity::ActivateVisualOfVortex()
             pVortex->CastSpell(pVortex, SPELL_VORTEX_VISUAL, false);
         }
     }
-    m_uiVortexCounter = 0;
-    m_uiVortexSeatCounter = 0;
 }
 
 void instance_eye_of_eternity::DestroyVisualOfVortex(bool boom)
@@ -296,22 +295,17 @@ void instance_eye_of_eternity::DestroyVisualOfVortex(bool boom)
 
 void instance_eye_of_eternity::HandleRiderOfVortex(Unit* pTarget)
 {
-    uint8 loopCounter = 0;
     for (GUIDList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++iter)
     {
-        if (loopCounter != m_uiVortexCounter)
-            continue;
-
         if (Creature* pVortex = instance->GetCreature(*iter))
         {
-            //int32 seat = m_uiVortexSeatCounter;
-            //pTarget->CastCustomSpell(pVortex, SPELL_VORTEX_RIDE_AURA, &seat, NULL, NULL, true, NULL, NULL, pVortex->GetObjectGuid(), NULL);
-            pTarget->CastSpell(pTarget, SPELL_VORTEX_RIDE_AURA, true);
-            ++m_uiVortexSeatCounter;
-            if (m_uiVortexSeatCounter >= 5)
+            if (VehicleKit* pVehicle = pVortex->GetVehicleKit())
             {
-                ++m_uiVortexCounter; // next vortex
-                m_uiVortexSeatCounter = 0; // begin at seat 0
+                if (pVehicle->GetNextEmptySeatWithFlag(0) != -1)
+                {
+                    pTarget->CastSpell(pTarget, SPELL_VORTEX_RIDE_AURA, true);
+                    return;
+                }
             }
         }
     }
