@@ -63,6 +63,7 @@ bool instance_karazhan::IsEncounterInProgress() const
 
 void instance_karazhan::OnCreatureCreate(Creature* pCreature)
 {
+    pCreature->SetLevel(82);
     pCreature->CastSpell(pCreature, SPELL_CYBER_INSTANZ_BOOST, true);
 
     switch (pCreature->GetEntry())

@@ -82,10 +82,6 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         Difficulty difficulty;
 
-        uint32 m_uiFocusingIrisGUID;
-        uint32 m_uiGiftGUID;
-        uint32 m_uiHeartGUID;
-
         GUIDList m_lPowerSparkList;
         GUIDList m_lArcaneOverload;
         GUIDList m_lNexusLord;

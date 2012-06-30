@@ -35,23 +35,6 @@ instance_eye_of_eternity::instance_eye_of_eternity(Map* pMap) :
 void instance_eye_of_eternity::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
-
-    switch (difficulty)
-    {
-        case RAID_DIFFICULTY_10MAN_NORMAL:
-            m_uiFocusingIrisGUID = GO_FOCUSING_IRIS;
-            m_uiGiftGUID = GO_ALEXSTRASZAS_GIFT;
-            m_uiHeartGUID = GO_HEART_OF_MAGIC;
-            break;
-        case RAID_DIFFICULTY_25MAN_NORMAL:
-            m_uiFocusingIrisGUID = GO_FOCUSING_IRIS_H;
-            m_uiGiftGUID = GO_ALEXSTRASZAS_GIFT_H;
-            m_uiHeartGUID = GO_HEART_OF_MAGIC_H;
-            break;
-        default:
-            break;
-    }
-
 }
 
 void instance_eye_of_eternity::OnCreatureCreate(Creature* pCreature)
@@ -133,7 +116,7 @@ void instance_eye_of_eternity::SetData(uint32 uiType, uint32 uiData)
                 case FAIL:
                 case NOT_STARTED:
                 {
-                    if (GameObject* pFocusingIris = GetSingleGameObjectFromStorage(m_uiFocusingIrisGUID))
+                    if (GameObject* pFocusingIris = GetSingleGameObjectFromStorage(difficulty == RAID_DIFFICULTY_10MAN_NORMAL ? GO_FOCUSING_IRIS : GO_FOCUSING_IRIS_H))
                     {
                         pFocusingIris->SetGoState(GO_STATE_READY);
                         pFocusingIris->SetPhaseMask(1, true);
@@ -152,7 +135,7 @@ void instance_eye_of_eternity::SetData(uint32 uiType, uint32 uiData)
                 }
                 case IN_PROGRESS:
                 {
-                    if (GameObject* pFocusingIris = GetSingleGameObjectFromStorage(m_uiFocusingIrisGUID))
+                    if (GameObject* pFocusingIris = GetSingleGameObjectFromStorage(difficulty == RAID_DIFFICULTY_10MAN_NORMAL ? GO_FOCUSING_IRIS : GO_FOCUSING_IRIS_H))
                         pFocusingIris->SetPhaseMask(2, true);
                     if (GameObject* pExitPortal = GetSingleGameObjectFromStorage(GO_EXIT_PORTAL))
                         pExitPortal->SetPhaseMask(2, true);
@@ -162,8 +145,8 @@ void instance_eye_of_eternity::SetData(uint32 uiType, uint32 uiData)
                 {
                     if (GameObject* pExitPortal = GetSingleGameObjectFromStorage(GO_EXIT_PORTAL))
                         pExitPortal->SetPhaseMask(1, true);
-                    DoRespawnGameObject(m_uiGiftGUID, HOUR * IN_MILLISECONDS);
-                    DoRespawnGameObject(m_uiHeartGUID, HOUR * IN_MILLISECONDS);
+                    DoRespawnGameObject(difficulty == RAID_DIFFICULTY_10MAN_NORMAL ? GO_ALEXSTRASZAS_GIFT : GO_ALEXSTRASZAS_GIFT_H, HOUR * IN_MILLISECONDS);
+                    DoRespawnGameObject(difficulty == RAID_DIFFICULTY_10MAN_NORMAL ? GO_HEART_OF_MAGIC : GO_HEART_OF_MAGIC_H, HOUR * IN_MILLISECONDS);
                     break;
                 }
                 default:
