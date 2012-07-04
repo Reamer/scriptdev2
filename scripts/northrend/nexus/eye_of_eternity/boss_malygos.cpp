@@ -17,8 +17,15 @@
 /* ScriptData
 SDName: Boss_Malygos
 SD%Complete: 98%
-SDComment: Hacks, hacks, hacks...
-SDAuthor: Tasssadar + PSZ + some corrections from MaxXx2021 and /dev/rsa
+SDComment:
+Some Vehicle-Core problems with need improvments:
+    Hover Disks are unsummon, if player leave it
+    Dragon spell handling. Healing other player is a little bit strange
+Possible improvements:
+    Make a entry in vehicle_accessory for hover disk 30234 and 30248 with passengers Nexus Lord and Scion of Eternity
+Other things:
+    Remove spell_dbc hack for spell 56046
+SDAuthor: Reamer + Tasssadar + PSZ + some corrections from MaxXx2021 and /dev/rsa
 SDCategory: Nexus, Eye of Eternity
 EndScriptData */
 
