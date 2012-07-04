@@ -19,131 +19,13 @@
 #include "BSW_ai.h"
 #include "BSW_instance.h"
 
-enum
+enum Achievments
 {
-    TYPE_STAGE                  = 0,
-    TYPE_BEASTS                 = 1,
-    TYPE_JARAXXUS               = 2,
-    TYPE_CRUSADERS              = 3,
-    TYPE_VALKIRIES              = 4,
-    TYPE_LICH_KING              = 5,
-    TYPE_ANUBARAK               = 6,
-    TYPE_COUNTER                = 7,
-    TYPE_EVENT                  = 8,
-    MAX_ENCOUNTERS              = 9,
-
-    TYPE_UPPER_BACK_PAIN        = 0,
-    TYPE_SIXTY_PAIN_SPIKE       = 1,
-    TYPE_SALT_AND_PEPPER        = 2,
-    TYPE_SKILL                  = 3,
-    TYPE_MAD_SKILL              = 4,
-    TYPE_INSANITY               = 5,
-    TYPE_DEDICATED_INSANITY     = 6,
-    TYPE_IMMORTALITY            = 7,
-    MAX_SPECIAL_ACHIEV_CRITS    = 8,
-
-    NPC_BARRENT                 = 34816,
-    NPC_TIRION                  = 34996,
-    NPC_FIZZLEBANG              = 35458,
-    NPC_GARROSH                 = 34995,
-    NPC_RINN                    = 34990,
-    NPC_LICH_KING_0             = 16980,
-    NPC_LICH_KING_1             = 35877,
-
-    NPC_THRALL                  = 34994,
-    NPC_PROUDMOORE              = 34992,
-    NPC_TRIGGER                 = 22517,
-    NPC_WILFRED_PORTAL          = 35651,
-
-    NPC_ICEHOWL                 = 34797,
-    NPC_GORMOK                  = 34796,
-    NPC_DREADSCALE              = 34799,
-    NPC_ACIDMAW                 = 35144,
-
-    NPC_JARAXXUS                = 34780,
-
-    NPC_CRUSADER_1_1            = 34460, //Druid
-    NPC_CRUSADER_1_2            = 34463, //Shaman
-    NPC_CRUSADER_1_3            = 34461, //DK
-    NPC_CRUSADER_1_4            = 34472, //Rogue
-    NPC_CRUSADER_1_5            = 34475, //Warrior
-    NPC_CRUSADER_1_6            = 34471, //Retro pal
-    NPC_CRUSADER_1_7            = 34473, //Shadow priest
-    NPC_CRUSADER_1_8            = 34468, //Mage
-    NPC_CRUSADER_1_9            = 34467, //Hunter
-    NPC_CRUSADER_1_10           = 34474, //Warlock
-    NPC_CRUSADER_1_11           = 34470, //Enh shaman
-    NPC_CRUSADER_1_12           = 34466, //Priest
-    NPC_CRUSADER_1_13           = 34465, //Holy paladin
-    NPC_CRUSADER_1_14           = 34469, //Moonkin
-
-    NPC_CRUSADER_2_1            = 34451, //Druid
-    NPC_CRUSADER_2_2            = 34455, //Shaman
-    NPC_CRUSADER_2_3            = 34458, //DK
-    NPC_CRUSADER_2_4            = 34454, //Rogue
-    NPC_CRUSADER_2_5            = 34453, //Warrior
-    NPC_CRUSADER_2_6            = 34456, //Retro pal
-    NPC_CRUSADER_2_7            = 34441, //Shadow Priest
-    NPC_CRUSADER_2_8            = 34449, //Mage
-    NPC_CRUSADER_2_9            = 34448, //Hunter
-    NPC_CRUSADER_2_10           = 34450, //Warlock
-    NPC_CRUSADER_2_11           = 34444, //Enh shaman
-    NPC_CRUSADER_2_12           = 34447, //Priest
-    NPC_CRUSADER_2_13           = 34445, //Holy paladin
-    NPC_CRUSADER_2_14           = 34459, //Moonkin
-
-    NPC_CRUSADER_0_1            = 35465,
-    NPC_CRUSADER_0_2            = 35610,
-
-    NPC_LIGHTBANE               = 34497,
-    NPC_DARKBANE                = 34496,
-
-    NPC_ANUBARAK                = 34564,
-
-    GO_CRUSADERS_CACHE_10       = 195631,
-    GO_CRUSADERS_CACHE_25       = 195632,
-    GO_CRUSADERS_CACHE_10_H     = 195633,
-    GO_CRUSADERS_CACHE_25_H     = 195635,
-
-    GO_TRIBUTE_CHEST_10H_25     = 195665,
-    GO_TRIBUTE_CHEST_10H_45     = 195666,
-    GO_TRIBUTE_CHEST_10H_50     = 195667,
-    GO_TRIBUTE_CHEST_10H_99     = 195668,
-
-    GO_TRIBUTE_CHEST_25H_25     = 195669,
-    GO_TRIBUTE_CHEST_25H_45     = 195670,
-    GO_TRIBUTE_CHEST_25H_50     = 195671,
-    GO_TRIBUTE_CHEST_25H_99     = 195672,
-
-    GO_ARGENT_COLISEUM_FLOOR    = 195527, //20943
-    GO_MAIN_GATE_DOOR           = 195647,
-    GO_WEB_DOOR                 = 195485,
-
-    GO_WEST_PORTCULLIS          = 195589,
-    GO_SOUTH_PORTCULLIS         = 195590,
-    GO_NORTH_PORTCULLIS         = 195591,
-
-    TYPE_DIFFICULTY             = 101,
-    TYPE_EVENT_TIMER            = 102,
-    TYPE_EVENT_NPC              = 103,
-    TYPE_NORTHREND_BEASTS       = 104,
-    TYPE_CRUSADERS_COUNT        = 105,
-
-    DATA_HEALTH_EYDIS           = 201,
-    DATA_HEALTH_FJOLA           = 202,
-
-    DESPAWN_TIME                = 300000,
-
-    CRITERIA_ACHIEV_UPPER_BACK_PAIN_10N             = 11779,
+    CRITERIA_ACHIEV_UPPER_BACK_PAIN_10N             = 11779, // Gormok
     CRITERIA_ACHIEV_UPPER_BACK_PAIN_25N             = 11780,
 
-    CRITERIA_ACHIEV_SIXTY_PAIN_SPIKE_10N            = 11838,
+    CRITERIA_ACHIEV_SIXTY_PAIN_SPIKE_10N            = 11838, // Lord Jaraxxus
     CRITERIA_ACHIEV_SIXTY_PAIN_SPIKE_25N            = 11839,
-
-    CRITERIA_ACHIEV_SALT_AND_PEPPER_10N             = 11778,
-    CRITERIA_ACHIEV_SALT_AND_PEPPER_10H             = 12258,
-    CRITERIA_ACHIEV_SALT_AND_PEPPER_25N             = 11818,
-    CRITERIA_ACHIEV_SALT_AND_PEPPER_25H             = 11860,
 
     CRITERIA_ACHIEV_TRIBUTE_TO_SKILL_10             = 12344,
     CRITERIA_ACHIEV_TRIBUTE_TO_SKILL_25             = 12338,
@@ -154,6 +36,18 @@ enum
     CRITERIA_ACHIEV_TRIBUTE_TO_IMMORTALITY_HORDE    = 12247,
     CRITERIA_ACHIEV_TRIBUTE_TO_IMMORTALITY_ALLY     = 12359,
     CRITERIA_ACHIEV_TRIBUTE_TO_DEDICATED_INSANITY   = 12360,
+
+    ACHIEV_START_VALYKYR_ID                         = 21853,
+
+//    TYPE_UPPER_BACK_PAIN        = 0,
+    TYPE_SIXTY_PAIN_SPIKE       = 1,
+    TYPE_SKILL                  = 2,
+    TYPE_MAD_SKILL              = 3,
+    TYPE_INSANITY               = 4,
+    TYPE_DEDICATED_INSANITY     = 5,
+    TYPE_IMMORTALITY            = 6,
+    MAX_SPECIAL_ACHIEV_CRITS    = 7,
+
 };
 
 static Locations SpawnLoc[]=
@@ -213,23 +107,218 @@ static Locations SpawnLoc[]=
     {794.34f,     150.48f,     142.68f    }, // 52 - Frost Sphere 8
 };
 
+enum
+{
+    MAX_ENCOUNTER               = 6,
+
+    TYPE_WIPE_COUNT             = 0,
+    TYPE_NORTHREND_BEASTS       = 1,
+    TYPE_JARAXXUS               = 2,
+    TYPE_FACTION_CHAMPIONS      = 3,
+    TYPE_TWIN_VALKYR            = 4,
+    TYPE_ANUBARAK               = 5,
+
+    TYPE_NORTHREND_BEAST_STATE  = 101,
+    TYPE_EVENT_TIMER            = 102,
+    TYPE_EVENT_NPC              = 103,
+    TYPE_CRUSADERS_COUNT        = 104,
+
+    GORMOK_NOT_STARTED          = 1000 + NOT_STARTED,
+    GORMOK_IN_PROGRESS          = 1000 + IN_PROGRESS,
+    GORMOK_FAIL                 = 1000 + FAIL,
+    GORMOK_DONE                 = 1000 + DONE,
+    SNAKES_NOT_STARTED          = 2000 + NOT_STARTED,
+    SNAKES_IN_PROGRESS          = 2000 + IN_PROGRESS,
+    SNAKES_FAIL                 = 2000 + FAIL,
+    SNAKES_DONE                 = 2000 + DONE,
+    SNAKES_SPECIAL              = 2000 + SPECIAL,
+    ICEHOWL_NOT_STARTED         = 3000 + NOT_STARTED,
+    ICEHOWL_IN_PROGRESS         = 3000 + IN_PROGRESS,
+    ICEHOWL_FAIL                = 3000 + FAIL,
+    ICEHOWL_DONE                = 3000 + DONE,
+
+    EVENT_OPEN_PORTAL           = 6,
+    EVENT_KILL_FIZZLEBANG       = 7,
+    EVENT_JARAXXUS_START_ATTACK = 8,
+    EVENT_SUMMON_FACTION_CHAMPIONS = 9,
+    EVENT_SUMMON_TWINS          = 10,
+    EVENT_TWINS_KILLED          = 11,
+    EVENT_ARTHAS_PORTAL         = 12,
+    EVENT_SUMMON_THE_LICHKING   = 13,
+    EVENT_DESTROY_FLOOR         = 14,
+
+    FACTION_CHAMPIONS_HEALER_AMOUNT_10  = 3,
+    FACTION_CHAMPIONS_HEALER_AMOUNT_25  = 2,
+    FACTION_CHAMPIONS_MELEE_DD_AMOUNT_10= 2,
+    FACTION_CHAMPIONS_MELEE_DD_AMOUNT_25= 2,
+    FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10= 2,
+    FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25= 2,
+
+    NPC_GORMOK                  = 34796,
+    NPC_SNOBOLD_VASSAL          = 34800,
+    NPC_ACIDMAW                 = 35144,
+    NPC_DREADSCALE              = 34799,
+    NPC_ICEHOWL                 = 34797,
+    NPC_JARAXXUS                = 34780,
+    NPC_MISTRESS                = 34826,
+    NPC_LIGHT_FJOLA             = 34497,
+    NPC_DARK_EYDIS              = 34496,
+    NPC_ANUBARAK                = 34564,
+
+    // Allianz Champions
+    NPC_CRUSADER_1_1            = 34460, //Druid
+    NPC_CRUSADER_1_2            = 34463, //Shaman
+    NPC_CRUSADER_1_3            = 34461, //DK
+    NPC_CRUSADER_1_4            = 34472, //Rogue
+    NPC_CRUSADER_1_5            = 34475, //Warrior
+    NPC_CRUSADER_1_6            = 34471, //Retro pal
+    NPC_CRUSADER_1_7            = 34473, //Shadow priest
+    NPC_CRUSADER_1_8            = 34468, //Mage
+    NPC_CRUSADER_1_9            = 34467, //Hunter
+    NPC_CRUSADER_1_10           = 34474, //Warlock
+    NPC_CRUSADER_1_11           = 34470, //Enh shaman
+    NPC_CRUSADER_1_12           = 34466, //Priest
+    NPC_CRUSADER_1_13           = 34465, //Holy paladin
+    NPC_CRUSADER_1_14           = 34469, //Moonkin
+
+    // Horde Champions
+    NPC_CRUSADER_2_1            = 34451, //Druid
+    NPC_CRUSADER_2_2            = 34455, //Shaman
+    NPC_CRUSADER_2_3            = 34458, //DK
+    NPC_CRUSADER_2_4            = 34454, //Rogue
+    NPC_CRUSADER_2_5            = 34453, //Warrior
+    NPC_CRUSADER_2_6            = 34456, //Retro pal
+    NPC_CRUSADER_2_7            = 34441, //Shadow Priest
+    NPC_CRUSADER_2_8            = 34449, //Mage
+    NPC_CRUSADER_2_9            = 34448, //Hunter
+    NPC_CRUSADER_2_10           = 34450, //Warlock
+    NPC_CRUSADER_2_11           = 34444, //Enh shaman
+    NPC_CRUSADER_2_12           = 34447, //Priest
+    NPC_CRUSADER_2_13           = 34445, //Holy paladin
+    NPC_CRUSADER_2_14           = 34459, //Moonkin
+
+    NPC_CRUSADER_0_1            = 35465,
+    NPC_CRUSADER_0_2            = 35610,
+
+    NPC_THRALL                  = 34994,
+    NPC_PROUDMOORE              = 34992,
+    NPC_TRIGGER                 = 22517,
+    NPC_WILFRED_PORTAL          = 35651,
+
+    NPC_TIRION_A                = 34996,
+    NPC_TIRION_B                = 36095, // Summoned after his text (Champions, you're alive! Not only have you defeated every challenge of the Trial of the Crusader, but also thwarted Arthas' plans! Your skill and cunning will prove to be a powerful weapon against the Scourge. Well done! Allow one of the Crusade's mages to transport you to the surface!) is said..
+    NPC_VARIAN                  = 34990,
+    NPC_GARROSH                 = 34995,
+    NPC_FIZZLEBANG              = 35458,
+    NPC_OPEN_PORTAL_TARGET      = 17965,
+    NPC_WORLD_TRIGGER_LARGE     = 22517, // Used for Lich King summon event
+    NPC_THE_LICHKING            = 16980,
+    NPC_THE_LICHKING_VISUAL     = 35877,
+    NPC_RAMSEY_1                = 34816,
+    NPC_RAMSEY_2                = 35035,
+    NPC_RAMSEY_3                = 35766,
+    NPC_RAMSEY_4                = 35770,
+    NPC_RAMSEY_5                = 35771,
+    NPC_RAMSEY_6                = 35895, // Unknown what these three NPCs are used for, maybe horde events?
+    NPC_RAMSEY_7                = 35909,
+    NPC_RAMSEY_8                = 35910,
+
+    NPC_PURPLE_RUNE             = 35651,
+
+    NPC_LIGHT_ESSENCE           = 34568,
+    NPC_DARK_ESSENCE            = 34567,
+
+    GO_MAIN_GATE                = 195647,
+    GO_COLISEUM_FLOOR           = 195527,
+
+    GO_WEST_PORTCULLIS          = 195589,
+    GO_SOUTH_PORTCULLIS         = 195590,
+    GO_NORTH_PORTCULLIS         = 195591,
+
+    GO_ARGENT_COLISEUM_FLOOR    = 195527, //20943
+    GO_WEB_DOOR                 = 195485,
+
+    GO_CRUSADERS_CACHE_10       = 195631,
+    GO_CRUSADERS_CACHE_25       = 195632,
+    GO_CRUSADERS_CACHE_10_H     = 195633,
+    GO_CRUSADERS_CACHE_25_H     = 195635,
+
+    GO_TRIBUTE_CHEST_10H_25     = 195665,
+    GO_TRIBUTE_CHEST_10H_45     = 195666,
+    GO_TRIBUTE_CHEST_10H_50     = 195667,
+    GO_TRIBUTE_CHEST_10H_99     = 195668,
+
+    GO_TRIBUTE_CHEST_25H_25     = 195669,
+    GO_TRIBUTE_CHEST_25H_45     = 195670,
+    GO_TRIBUTE_CHEST_25H_50     = 195671,
+    GO_TRIBUTE_CHEST_25H_99     = 195672,
+
+    SPELL_OPEN_PORTAL           = 67864,
+    SPELL_FEL_LIGHTNING_KILL    = 67888,
+    SPELL_WILFRED_PORTAL        = 68424,
+    SPELL_ARTHAS_PORTAL         = 51807,
+    SPELL_FROSTNOVA             = 68198,
+    SPELL_CORPSE_TELEPORT       = 69016, // NYI
+    SPELL_DESTROY_FLOOR_KNOCKUP = 68193,
+
+    DISPLAYID_DESTROYED_FLOOR   = 9060,
+    POINT_COMBAT_POSITION       = 10,
+
+};
+
+static const float aRamsayPositions[2][4] =
+{
+    {559.1528f, 90.55729f, 395.2734f, 5.078908f},   // Summon Position
+    {563.556f, 78.72571f, 395.2125f, 0.0f}          // Movement Position
+};
+
+static const float aSpawnPositions[][4] =
+{
+    {563.8941f, 137.3333f, 405.8467f, 0.0f},        // Beast combat stalker (Summoned when SAY_VARIAN_BEAST_1)
+    {563.9358f, 229.8299f, 394.8061f, 4.694936f},   // Gormok (vehicle) (Summoned when SAY_VARIAN_BEAST_1)
+    {564.3301f, 232.1549f, 394.8188f, 1.621917f},   // Dreadscale (Summoned when Tirion says SAY_TIRION_BEAST_2)
+    {549.5139f, 170.1389f, 394.7965f, 5.009095f},   // Acidmaw (Summoned(?) 14s after Dreadscale)
+    {563.6081f, 228.1491f, 394.7057f, 4.664022f},   // Icehowl (Summoned when SAY_TIRION_BEAST_3)
+    {563.6007f, 208.5278f, 395.2696f, 4.729842f},   // Fizzlebang
+    {563.8264f, 140.6563f, 393.9861f, 4.694936f},   // Jaraxxus
+    {571.684f, 204.9028f, 399.263f, 4.590216f},     // Fjola
+    {555.4514f, 205.8889f, 399.2634f, 4.886922f},   // Eydis
+    {563.6996f, 175.9826f, 394.5042f, 4.694936f},   // World Trigger Large
+    {563.5712f, 174.8351f, 394.4954f, 4.712389f},   // Lich King
+    {563.6858f, 139.4323f, 393.9862f, 4.694936f},   // Purple Rune / Center Position
+};
+
+static const float aMovePositions[][3] =
+{
+    {563.748f, 179.766f, 394.4862f},    // Gormok
+    {576.5347f, 168.9514f, 394.7064f},  // Dreadscale
+    {563.8577f, 176.5885f, 394.4417f},  // Icehowl
+    {563.7223f, 131.2344f, 393.9901f},  // Jaraxxus
+    {563.8137f, 149.3506f, 393.9902f},  // Fizzlebang
+    {583.7379f, 170.8314f, 394.7381f},  // Light Fjola
+    {543.2705f, 170.5823f, 394.7373f},  // Dark Eydis
+};
+
+static const float aEssencePositions[4][4] =
+{
+    { 541.021118f, 117.262932f, 395.314819f, 0.0f }, // Light essence
+    { 586.200562f, 162.145523f, 394.626129f, 0.0f }, // Light essence
+    { 586.060242f, 117.514809f, 394.314026f, 0.0f }, // Dark essence
+    { 541.602112f, 161.879837f, 394.587952f, 0.0f }, // Dark essence
+};
+
 enum uiWorldStates
 {
     UPDATE_STATE_UI_SHOW            = 4390,
     UPDATE_STATE_UI_COUNT           = 4389,
 };
 
-enum NorthrendBeasts
+enum DummyNPC
 {
-    GORMOK_IN_PROGRESS              = 1000,
-    GORMOK_DONE                     = 1001,
-    SNAKES_IN_PROGRESS              = 2000,
-    DREADSCALE_SUBMERGED            = 2001,
-    ACIDMAW_SUBMERGED               = 2002,
-    SNAKES_SPECIAL                  = 2003,
-    SNAKES_DONE                     = 2004,
-    ICEHOWL_IN_PROGRESS             = 3000,
-    ICEHOWL_DONE                    = 3001,
+    NPC_VALKYR_TWINS_BULLET_STALKER_DARK    = 34704,
+    NPC_VALKYR_TWINS_BULLET_STALKER_LIGHT   = 34720,
+    NPC_NERUBIAN_BURROW                     = 34862,
+    NPC_BEAST_COMBAT_STALKER                = 36549,
 };
 
 enum AnnounserMessages
@@ -242,55 +331,58 @@ enum AnnounserMessages
     MSG_ANUBARAK                    = 724006,
 };
 
-class MANGOS_DLL_DECL instance_trial_of_the_crusader : public BSWScriptedInstance
+class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, private DialogueHelper
 {
-public:
-    instance_trial_of_the_crusader(Map* pMap);
-    ~instance_trial_of_the_crusader() {}
+    public:
+        instance_trial_of_the_crusader(Map* pMap);
+        ~instance_trial_of_the_crusader() {}
 
-    void Initialize();
+        void Initialize();
 
-    bool IsEncounterInProgress() const;
-    void OnPlayerEnter(Player *m_player);
-    void OnPlayerDeath(Player *m_player);
+        bool IsEncounterInProgress() const;
+        void OnPlayerEnter(Player *m_player);
+        void OnPlayerDeath(Player *m_player);
 
-    bool IsRaidWiped();
-    void UpdateWorldState();
+        bool IsRaidWiped();
+        void UpdateWorldState();
 
-    void OnCreatureCreate(Creature* pCreature);
-    void OnObjectCreate(GameObject *pGo);
+        void OnCreatureCreate(Creature* pCreature);
+        void OnCreatureDeath(Creature * pCreature);
+        void OnCreatureEnterCombat(Creature * pCreature);
+        void OnCreatureEvade(Creature * pCreature);
+        void OnObjectCreate(GameObject *pGo);
 
-    bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
-    void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
+        void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);
 
-    void SetData(uint32 uiType, uint32 uiData);
-    uint32 GetData(uint32 uiType);
+        void SetData(uint32 uiType, uint32 uiData);
+        uint32 GetData(uint32 uiType);
 
-    const char* Save() { return m_strInstData.c_str(); }
+        const char* Save() { return m_strInstData.c_str(); }
 
-    void Load(const char* chrIn);
+        void Load(const char* chrIn);
 
-private:
+        void SummonFactionChampion();
 
-    uint32 m_auiEncounter[MAX_ENCOUNTERS+1];
-    uint32 m_auiEventTimer;
-    uint32 m_auiEventNPCId;
-    uint32 m_auiNorthrendBeasts;
-    uint8 Difficulty;
-    std::string m_strInstData;
-    bool needsave;
+    private:
+        void DoSummonRamsey(uint32 uiEntry);
+        void JustDidDialogueStep(int32 iEntry);
 
-    bool m_bAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
+        Team m_uiTeam;
 
-    uint32 m_uiDataDamageFjola;
-    uint32 m_uiDataDamageEydis;
+        uint32 m_auiEncounter[MAX_ENCOUNTER];
+        uint32 m_uiNorthrendBeastState;
+        std::string m_strInstData;
 
-    uint32 m_uiTributeChest1;
-    uint32 m_uiTributeChest2;
-    uint32 m_uiTributeChest3;
-    uint32 m_uiTributeChest4;
+        bool m_bAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
 
-    uint32 m_auiCrusadersCount;
+        GUIDList m_lBulletStalkerDark;
+        GUIDList m_lBulletStalkerLight;
+        GUIDList m_lNerubianBurrow;
+        GUIDList m_lFactionChampion;
+
+        uint8 m_uiSnoboldVassalLifeCounter;
+        uint8 m_uiMistressLifeCounter;
 };
 
 #endif

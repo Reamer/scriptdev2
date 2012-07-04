@@ -24,50 +24,150 @@ EndScriptData */
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
-instance_trial_of_the_crusader::instance_trial_of_the_crusader(Map* pMap) : BSWScriptedInstance(pMap)
+enum
 {
-    Difficulty = pMap->GetDifficulty();
+    SAY_TIRION_RAID_INTRO_LONG      = -1649000,
+    SAY_RAID_TRIALS_INTRO           = -1649001,
+
+    // Northrend Beasts
+    SAY_TIRION_BEAST_1              = -1649002,
+    SAY_VARIAN_BEAST_1              = -1649003,
+    SAY_GARROSH_BEAST_1             = -1649004,
+    SAY_TIRION_BEAST_SLAY           = -1649007,
+    SAY_TIRION_BEAST_WIPE           = -1649008,
+
+    // Jaraxxus Encounter
+    SAY_TIRION_JARAXXUS_INTRO_1     = -1649009,
+    SAY_WILFRED_JARAXXUS_INTRO_1    = -1649010,
+    SAY_WILFRED_JARAXXUS_INTRO_2    = -1649011,
+    SAY_WILFRED_JARAXXUS_INTRO_3    = -1649012,
+    SAY_JARAXXUS_JARAXXAS_INTRO_1   = -1649013,
+    SAY_WILFRED_DEATH               = -1649014,
+    SAY_TIRION_JARAXXUS_INTRO_2     = -1649015,
+    SAY_JARAXXUS_DEATH              = -1649043,
+    SAY_TIRION_JARAXXUS_EXIT_1      = -1649016,
+    SAY_GARROSH_JARAXXUS_EXIT_1     = -1649017,
+    SAY_VARIAN_JARAXXUS_SLAY        = -1649018,
+    SAY_TIRION_JARAXXUS_EXIT_2      = -1649019,
+
+    // Faction-Champions
+    SAY_TIRION_PVP_INTRO_1          = -1649020,
+    SAY_GARROSH_PVP_A_INTRO_1       = -1649021,
+    SAY_VARIAN_PVP_H_INTRO_1        = -1649022,
+    SAY_TIRION_PVP_INTRO_2          = -1649023,
+    SAY_VARIAN_PVP_H_INTRO_2        = -1649024,
+    SAY_GARROSH_PVP_A_INTRO_2       = -1649025,
+    SAY_VARIAN_PVP_A_WIN            = -1649026,
+    SAY_GARROSH_PVP_H_WIN           = -1649027,
+    SAY_TIRION_PVP_WIN              = -1649028,
+
+    // Twin Valkyrs
+    SAY_TIRION_TWINS_INTRO          = -1649029,
+    SAY_RAID_INTRO_SHORT            = -1649030,
+    SAY_VARIAN_TWINS_A_WIN          = -1649031,
+    SAY_GARROSH_TWINS_H_WIN         = -1649032,
+    SAY_TIRION_TWINS_WIN            = -1649033,
+
+    // Anub'Arak Encounter
+    SAY_LKING_ANUB_INTRO_1          = -1649034,
+    SAY_TIRION_ABUN_INTRO_1         = -1649035,
+    SAY_LKING_ANUB_INTRO_2          = -1649036,
+    SAY_LKING_ANUB_INTRO_3          = -1649037,
+};
+
+static const DialogueEntryTwoSide aTocDialogues[] =
+{
+    // Beasts related, summons in between not handled here
+    {TYPE_NORTHREND_BEASTS, 0, 0, 0, 24000},
+    {SAY_TIRION_BEAST_1, NPC_TIRION_A, 0, 0, 12000},
+    {SAY_VARIAN_BEAST_1, NPC_VARIAN, SAY_GARROSH_BEAST_1, NPC_GARROSH, 0},
+    {SAY_TIRION_BEAST_SLAY, NPC_TIRION_A, 0, 0, 8000},
+    {NPC_RAMSEY_2, 0, 0, 0, 0},
+    {SAY_TIRION_BEAST_WIPE, NPC_TIRION_A, 0, 0, 8000},
+    {NPC_RAMSEY_1, 0, 0, 0, 0},
+    // Jaruxxus (Intro)
+    {TYPE_JARAXXUS, 0, 0, 0, 1000},
+    {SAY_TIRION_JARAXXUS_INTRO_1, NPC_TIRION_A, 0, 0, 6000},
+    {NPC_FIZZLEBANG, 0, 0, 0, 26000},
+    {SAY_WILFRED_JARAXXUS_INTRO_1, NPC_FIZZLEBANG, 0, 0, 10000},
+    {SAY_WILFRED_JARAXXUS_INTRO_2, NPC_FIZZLEBANG, 0, 0, 7000},
+    {EVENT_OPEN_PORTAL, 0, 0, 0, 5000},
+    {SAY_WILFRED_JARAXXUS_INTRO_3, NPC_FIZZLEBANG, 0, 0, 12000}, // Summon also Jaraxxus
+    {SAY_JARAXXUS_JARAXXAS_INTRO_1, NPC_JARAXXUS, 0, 0, 6000},
+    {SAY_WILFRED_DEATH, NPC_FIZZLEBANG, 0, 0, 1000},
+    {EVENT_KILL_FIZZLEBANG, 0, 0, 0, 5000}, // Kill Fizzlebang
+    {SAY_TIRION_JARAXXUS_INTRO_2, NPC_TIRION_A, 0, 0, 6000},
+    {EVENT_JARAXXUS_START_ATTACK, 0, 0, 0, 0},
+    // Jaruxxus (Outro)
+    {SAY_JARAXXUS_DEATH, NPC_JARAXXUS, 0, 0, 6000}, // Jaraxxus Death
+    {SAY_TIRION_JARAXXUS_EXIT_1, NPC_TIRION_A, 0, 0, 5000},
+    {SAY_GARROSH_JARAXXUS_EXIT_1, NPC_GARROSH, 0, 0, 11000},
+    {SAY_VARIAN_JARAXXUS_SLAY, NPC_VARIAN, 0, 0, 8000},
+    {SAY_TIRION_JARAXXUS_EXIT_2, NPC_TIRION_A, 0, 0, 19000},
+    {NPC_RAMSEY_3, 0, 0, 0, 0},
+    // Grand Champions
+    {SAY_TIRION_PVP_INTRO_1, NPC_TIRION_A, 0, 0, 9000},
+    {SAY_GARROSH_PVP_A_INTRO_1, NPC_GARROSH, SAY_VARIAN_PVP_H_INTRO_1, NPC_VARIAN, 14000},
+    {SAY_TIRION_PVP_INTRO_2, NPC_TIRION_A, 0, 0, 1000},
+    {TYPE_FACTION_CHAMPIONS, 0, 0, 0, 5000},
+    {EVENT_SUMMON_FACTION_CHAMPIONS, 0, 0, 0, 1000},
+    {SAY_GARROSH_PVP_A_INTRO_2, NPC_GARROSH, SAY_VARIAN_PVP_H_INTRO_2, NPC_VARIAN, 0},
+    {SAY_VARIAN_PVP_A_WIN, NPC_VARIAN, SAY_GARROSH_PVP_H_WIN, NPC_GARROSH, 4000},
+    {SAY_TIRION_PVP_WIN, NPC_TIRION_A, 0, 0, 27000},
+    {NPC_RAMSEY_4, 0, 0, 0, 0},
+    // Twin Valkyrs
+    {TYPE_TWIN_VALKYR, 0, 0, 0, 17000},
+    {EVENT_SUMMON_TWINS, 0, 0, 0, 0},
+    {EVENT_TWINS_KILLED, 0, 0, 0, 2000},
+    {NPC_RAMSEY_5, 0, 0, 0, 4000},
+    {SAY_VARIAN_TWINS_A_WIN, NPC_VARIAN, SAY_GARROSH_TWINS_H_WIN, NPC_GARROSH, 1000},
+    {SAY_TIRION_TWINS_WIN, NPC_TIRION_A, 0, 0, 0},
+    // Anub'arak
+    {TYPE_ANUBARAK, 0, 0, 0, 19000},
+    {SAY_LKING_ANUB_INTRO_1, NPC_THE_LICHKING, 0, 0, 4000},
+    {EVENT_ARTHAS_PORTAL, 0, 0, 0, 2000},
+    {EVENT_SUMMON_THE_LICHKING, 0, 0, 0, 3000},
+    {SAY_TIRION_ABUN_INTRO_1, NPC_TIRION_A, 0, 0, 8000},
+    {SAY_LKING_ANUB_INTRO_2, NPC_THE_LICHKING_VISUAL, 0, 0, 18500},
+    {EVENT_DESTROY_FLOOR, 0, 0, 0, 2500},
+    {SAY_LKING_ANUB_INTRO_3, NPC_THE_LICHKING, 0, 0, 0},
+    {0, 0, 0, 0 ,0}
+};
+
+instance_trial_of_the_crusader::instance_trial_of_the_crusader(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aTocDialogues),
+        m_uiTeam(TEAM_NONE)
+{
     Initialize();
 }
 
 void instance_trial_of_the_crusader::Initialize()
 {
-    for (uint8 i = 0; i < MAX_ENCOUNTERS; ++i)
+    InitializeDialogueHelper(this);
+
+    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
         m_auiEncounter[i] = NOT_STARTED;
 
     for (uint8 i = 0; i < MAX_SPECIAL_ACHIEV_CRITS - 1; ++i)
         m_bAchievCriteria[i] = false;
 
     SetSpecialAchievementCriteria(TYPE_IMMORTALITY, true);
-
-    m_auiEncounter[TYPE_STAGE] = 0;
-    m_auiEncounter[TYPE_COUNTER] = 50;
-    m_auiEncounter[TYPE_EVENT] = 0;
-
-    m_auiNorthrendBeasts = NOT_STARTED;
-    m_auiEventTimer = 1000;
-    m_auiCrusadersCount = 6;
-    needsave = false;
 }
 
 bool instance_trial_of_the_crusader::IsEncounterInProgress() const
 {
-    for(uint8 i = 1; i < MAX_ENCOUNTERS-2 ; ++i)
+    for(uint8 i = TYPE_NORTHREND_BEASTS; i < MAX_ENCOUNTER ; ++i)
         if (m_auiEncounter[i] == IN_PROGRESS)
             return true;
-
-    if (m_auiEncounter[TYPE_NORTHREND_BEASTS] == SNAKES_SPECIAL)
-        return true;
 
     return false;
 }
 
 void instance_trial_of_the_crusader::OnPlayerEnter(Player *m_player)
 {
-    if (Difficulty == RAID_DIFFICULTY_10MAN_HEROIC || Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+    if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
     {
-        m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
-        m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
+        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
+        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
     }
 }
 
@@ -101,10 +201,10 @@ void instance_trial_of_the_crusader::UpdateWorldState()
     {
         if (Player* pPlayer = i->getSource())
         {
-            if (Difficulty == RAID_DIFFICULTY_10MAN_HEROIC || Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+            if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
             {
-                pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
-                pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
+                //pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
+                //pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
             }
         }
     }
@@ -112,10 +212,300 @@ void instance_trial_of_the_crusader::UpdateWorldState()
 
 void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
 {
-    if (!pCreature)
-        return;
+    switch (pCreature->GetEntry())
+    {
+        case NPC_FIZZLEBANG:
+        {
+            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[4][0], aMovePositions[4][1], aMovePositions[4][2]);
+            break;
+        }
+        case NPC_LIGHT_FJOLA:
+        {
+            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[5][0], aMovePositions[5][1], aMovePositions[5][2]);
+            break;
+        }
+        case NPC_DARK_EYDIS:
+        {
+            // don't open here the main gate! Done in part of Fjola (Sister)
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[6][0], aMovePositions[6][1], aMovePositions[6][2]);
+            break;
+        }
+        case NPC_GORMOK:
+        {
+            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[0][0], aMovePositions[0][1], aMovePositions[0][2]);
+            break;
+        }
+        case NPC_DREADSCALE:
+        {
+            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[1][0], aMovePositions[1][1], aMovePositions[1][2]);
+            break;
+        }
+        case NPC_ICEHOWL:
+        {
+            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[2][0], aMovePositions[2][1], aMovePositions[2][2]);
+            break;
+        }
+        case NPC_TIRION_A:
+        case NPC_TIRION_B:
+        case NPC_VARIAN:
+        case NPC_GARROSH:
+        case NPC_JARAXXUS:
+        case NPC_OPEN_PORTAL_TARGET:
+        case NPC_WORLD_TRIGGER_LARGE:
+        case NPC_THE_LICHKING:
+        case NPC_THE_LICHKING_VISUAL:
+            break;
+        case NPC_VALKYR_TWINS_BULLET_STALKER_DARK:
+            m_lBulletStalkerDark.push_back(pCreature->GetObjectGuid());
+            return;
+        case NPC_VALKYR_TWINS_BULLET_STALKER_LIGHT:
+            m_lBulletStalkerLight.push_back(pCreature->GetObjectGuid());
+            return;
+        case NPC_MISTRESS:
+            ++m_uiMistressLifeCounter;
+            return;
+        case NPC_SNOBOLD_VASSAL:
+            ++m_uiSnoboldVassalLifeCounter;
+            return;
+        default:
+            return;
+    }
 
     m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+}
+
+void instance_trial_of_the_crusader::OnCreatureEnterCombat(Creature* pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_GORMOK:
+        {
+            SetData(TYPE_NORTHREND_BEAST_STATE, GORMOK_IN_PROGRESS);
+            break;
+        }
+        case NPC_DREADSCALE:
+        case NPC_ACIDMAW:
+        {
+            if (m_uiNorthrendBeastState != SNAKES_IN_PROGRESS)
+                SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_IN_PROGRESS);
+            break;
+        }
+        case NPC_ICEHOWL:
+        {
+            SetData(TYPE_NORTHREND_BEAST_STATE, ICEHOWL_IN_PROGRESS);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void instance_trial_of_the_crusader::OnCreatureEvade(Creature * pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_GORMOK:
+        {
+            SetData(TYPE_NORTHREND_BEAST_STATE, GORMOK_FAIL);
+            break;
+        }
+        case NPC_DREADSCALE:
+        case NPC_ACIDMAW:
+        {
+            if (m_uiNorthrendBeastState != SNAKES_FAIL)
+                SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_FAIL);
+            break;
+        }
+        case NPC_ICEHOWL:
+        {
+            SetData(TYPE_NORTHREND_BEAST_STATE, ICEHOWL_FAIL);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void instance_trial_of_the_crusader::OnCreatureDeath(Creature* pCreature)
+{
+    if (!pCreature)
+        return;
+    switch (pCreature->GetEntry())
+    {
+        case NPC_GORMOK:
+        {
+            SetData(TYPE_NORTHREND_BEAST_STATE, GORMOK_DONE);
+            break;
+        }
+        case NPC_DREADSCALE:
+            if (Creature* pAcidmaw = GetSingleCreatureFromStorage(NPC_ACIDMAW))
+            {
+                if (pAcidmaw->isAlive())
+                    SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_SPECIAL);
+                else
+                    SetData(TYPE_NORTHREND_BEAST_STATE, DONE);
+            }
+            break;
+        case NPC_ACIDMAW:
+        {
+            if (Creature* pDreadscale = GetSingleCreatureFromStorage(NPC_DREADSCALE))
+            {
+                if (pDreadscale->isAlive())
+                    SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_SPECIAL);
+                else
+                    SetData(TYPE_NORTHREND_BEAST_STATE, DONE);
+            }
+            break;
+        }
+        case NPC_ICEHOWL:
+        {
+            SetData(TYPE_NORTHREND_BEAST_STATE, ICEHOWL_DONE);
+            break;
+        }
+        case NPC_MISTRESS:
+            m_uiMistressLifeCounter--;
+            break;
+        case NPC_SNOBOLD_VASSAL:
+            m_uiSnoboldVassalLifeCounter--;
+            break;
+        default:
+            break;
+    }
+}
+
+void instance_trial_of_the_crusader::DoSummonRamsey(uint32 uiEntry)
+{
+    Player* pPlayer = GetPlayerInMap();
+    if (!pPlayer)
+        return;
+
+    if (uiEntry)
+    {
+        pPlayer->SummonCreature(uiEntry, aRamsayPositions[0][0], aRamsayPositions[0][1], aRamsayPositions[0][2], aRamsayPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+        return;
+    }
+    // For initial case, figure which Ramsay to summon
+    if (m_auiEncounter[TYPE_TWIN_VALKYR] == DONE)
+        uiEntry = NPC_RAMSEY_5;
+    else if (m_auiEncounter[TYPE_FACTION_CHAMPIONS] == DONE)
+        uiEntry = NPC_RAMSEY_4;
+    else if (m_auiEncounter[TYPE_JARAXXUS] == DONE)
+        uiEntry = NPC_RAMSEY_3;
+    else if (m_auiEncounter[TYPE_NORTHREND_BEASTS] == DONE)
+        uiEntry = NPC_RAMSEY_2;
+    else
+        uiEntry = NPC_RAMSEY_1;
+
+    pPlayer->SummonCreature(uiEntry, aRamsayPositions[0][0], aRamsayPositions[0][1], aRamsayPositions[0][2], aRamsayPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+}
+
+void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
+{
+    switch (iEntry)
+    {
+        case NPC_RAMSEY_1:
+        case NPC_RAMSEY_2:
+        case NPC_RAMSEY_3:
+        case NPC_RAMSEY_4:
+        case NPC_RAMSEY_5:
+            DoSummonRamsey(iEntry);
+            break;
+        case SAY_VARIAN_BEAST_1:
+            if (Player* pPlayer = GetPlayerInMap())
+            {
+                if (Creature* pBeasts = pPlayer->SummonCreature(NPC_BEAST_COMBAT_STALKER, aSpawnPositions[0][0], aSpawnPositions[0][1], aSpawnPositions[0][2], aSpawnPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0))
+                    pBeasts->SummonCreature(NPC_GORMOK, aSpawnPositions[1][0], aSpawnPositions[1][1], aSpawnPositions[1][2], aSpawnPositions[1][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            }
+            break;
+        case NPC_FIZZLEBANG:
+            if (Player* pPlayer = GetPlayerInMap())
+                pPlayer->SummonCreature(NPC_FIZZLEBANG, aSpawnPositions[5][0], aSpawnPositions[5][1], aSpawnPositions[5][2], aSpawnPositions[5][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            break;
+        case SAY_WILFRED_JARAXXUS_INTRO_1:
+            DoUseDoorOrButton(GO_MAIN_GATE); // Close main gate
+            break;
+        case SAY_WILFRED_JARAXXUS_INTRO_2:
+            if (Creature* pFizzlebang = GetSingleCreatureFromStorage(NPC_FIZZLEBANG))
+            {
+                pFizzlebang->SummonCreature(NPC_PURPLE_RUNE, aSpawnPositions[11][0], aSpawnPositions[11][1], aSpawnPositions[11][2], aSpawnPositions[11][3], TEMPSUMMON_TIMED_DESPAWN, 15000);
+                pFizzlebang->CastSpell(pFizzlebang, SPELL_OPEN_PORTAL, false);
+            }
+            break;
+        case EVENT_OPEN_PORTAL:
+            if (Creature* pOpenPortalTarget = GetSingleCreatureFromStorage(NPC_OPEN_PORTAL_TARGET))
+            {
+                pOpenPortalTarget->CastSpell(pOpenPortalTarget, SPELL_WILFRED_PORTAL, true);
+                pOpenPortalTarget->ForcedDespawn(9000);
+            }
+            break;
+        case SAY_WILFRED_JARAXXUS_INTRO_3:
+            if (Player* pPlayer = GetPlayerInMap())
+                if (Creature* pJaraxxus = pPlayer->SummonCreature(NPC_JARAXXUS, aSpawnPositions[6][0], aSpawnPositions[6][1], aSpawnPositions[6][2], aSpawnPositions[6][3], TEMPSUMMON_DEAD_DESPAWN, 0))
+                    pJaraxxus->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[3][0], aMovePositions[3][1], aMovePositions[3][2]);
+            break;
+        case EVENT_KILL_FIZZLEBANG:
+            if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
+                pJaraxxus->CastSpell(pJaraxxus, SPELL_FEL_LIGHTNING_KILL, true);
+            break;
+        case EVENT_JARAXXUS_START_ATTACK:
+            if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
+                pJaraxxus->SetInCombatWithZone();
+            break;
+        case EVENT_SUMMON_FACTION_CHAMPIONS:
+            SummonFactionChampion();
+            break;
+        case EVENT_SUMMON_TWINS:
+            if (Player* pPlayer = GetPlayerInMap())
+            {
+                if (Creature* pFjola = pPlayer->SummonCreature(NPC_LIGHT_FJOLA, aSpawnPositions[7][0], aSpawnPositions[7][1], aSpawnPositions[7][2], aSpawnPositions[7][3], TEMPSUMMON_DEAD_DESPAWN, 0))
+                {
+                    pFjola->SummonCreature(NPC_DARK_EYDIS, aSpawnPositions[8][0], aSpawnPositions[8][1], aSpawnPositions[8][2], aSpawnPositions[8][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_LIGHT_ESSENCE, aEssencePositions[0][0], aEssencePositions[0][1], aEssencePositions[0][2], aEssencePositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_LIGHT_ESSENCE, aEssencePositions[1][0], aEssencePositions[1][1], aEssencePositions[1][2], aEssencePositions[1][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_DARK_ESSENCE, aEssencePositions[2][0], aEssencePositions[2][1], aEssencePositions[2][2], aEssencePositions[2][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_DARK_ESSENCE, aEssencePositions[3][0], aEssencePositions[3][1], aEssencePositions[3][2], aEssencePositions[3][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                }
+            }
+            break;
+        case SAY_LKING_ANUB_INTRO_1:
+            if (Player* pPlayer = GetPlayerInMap())
+                pPlayer->SummonCreature(NPC_WORLD_TRIGGER_LARGE, aSpawnPositions[9][0], aSpawnPositions[9][1], aSpawnPositions[9][2], aSpawnPositions[9][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            break;
+        case EVENT_ARTHAS_PORTAL:
+            if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
+                pWorldTriggerLarge->CastSpell(pWorldTriggerLarge, SPELL_ARTHAS_PORTAL, true);
+            break;
+        case EVENT_SUMMON_THE_LICHKING:
+            if (Player* pPlayer = GetPlayerInMap())
+                pPlayer->SummonCreature(NPC_THE_LICHKING_VISUAL, aSpawnPositions[10][0], aSpawnPositions[10][1], aSpawnPositions[10][2], aSpawnPositions[10][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            break;
+        case EVENT_DESTROY_FLOOR:
+            if (GameObject* pColiseumFloor = GetSingleGameObjectFromStorage(GO_COLISEUM_FLOOR))
+            {
+                pColiseumFloor->SetDisplayId(DISPLAYID_DESTROYED_FLOOR);
+                pColiseumFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT | GO_FLAG_NODESPAWN);
+                pColiseumFloor->SetGoState(GO_STATE_ACTIVE);
+            }
+
+            if (Creature* pLichKingVisual = GetSingleCreatureFromStorage(NPC_THE_LICHKING_VISUAL))
+            {
+                pLichKingVisual->CastSpell(pLichKingVisual, SPELL_FROSTNOVA, true);
+                //pLichKingVisual->CastSpell(pLichKingVisual, SPELL_CORPSE_TELEPORT, true); // NYI
+                pLichKingVisual->ForcedDespawn();
+            }
+
+            if (Creature* pLichKing = GetSingleCreatureFromStorage(NPC_THE_LICHKING))
+                pLichKing->CastSpell(pLichKing, SPELL_DESTROY_FLOOR_KNOCKUP, true);
+
+            if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
+                pWorldTriggerLarge->ForcedDespawn();
+            break;
+    }
 }
 
 void instance_trial_of_the_crusader::OnObjectCreate(GameObject *pGo)
@@ -123,6 +513,21 @@ void instance_trial_of_the_crusader::OnObjectCreate(GameObject *pGo)
     if (!pGo)
         return;
 
+    switch (pGo->GetEntry())
+    {
+        case GO_COLISEUM_FLOOR:
+            if (m_auiEncounter[TYPE_TWIN_VALKYR] == DONE)
+            {
+                pGo->SetDisplayId(DISPLAYID_DESTROYED_FLOOR);
+                pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT | GO_FLAG_NODESPAWN);
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            }
+            break;
+        case GO_MAIN_GATE:
+            break;
+        default:
+            return;
+    }
     m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
@@ -131,16 +536,12 @@ bool instance_trial_of_the_crusader::CheckAchievementCriteriaMeet(uint32 uiCrite
     switch (uiCriteriaId)
     {
         case CRITERIA_ACHIEV_UPPER_BACK_PAIN_10N:
+            return m_uiSnoboldVassalLifeCounter >= 2;
         case CRITERIA_ACHIEV_UPPER_BACK_PAIN_25N:
-            return m_bAchievCriteria[TYPE_UPPER_BACK_PAIN];
+            return m_uiSnoboldVassalLifeCounter >= 4;
         case CRITERIA_ACHIEV_SIXTY_PAIN_SPIKE_10N:
         case CRITERIA_ACHIEV_SIXTY_PAIN_SPIKE_25N:
-            return m_bAchievCriteria[TYPE_SIXTY_PAIN_SPIKE];
-        case CRITERIA_ACHIEV_SALT_AND_PEPPER_10N:
-        case CRITERIA_ACHIEV_SALT_AND_PEPPER_10H:
-        case CRITERIA_ACHIEV_SALT_AND_PEPPER_25N:
-        case CRITERIA_ACHIEV_SALT_AND_PEPPER_25H:
-            return m_bAchievCriteria[TYPE_SALT_AND_PEPPER];
+            return m_uiMistressLifeCounter >= 2;
         case CRITERIA_ACHIEV_TRIBUTE_TO_SKILL_10:
         case CRITERIA_ACHIEV_TRIBUTE_TO_SKILL_25:
             return m_bAchievCriteria[TYPE_SKILL];
@@ -168,344 +569,250 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
 {
     switch(uiType)
     {
-    case TYPE_STAGE:
-        m_auiEncounter[TYPE_STAGE] = uiData;
-        break;
-    case TYPE_BEASTS:
-        m_auiEncounter[TYPE_BEASTS] = uiData;
-        if (uiData == IN_PROGRESS)
-            SetSpecialAchievementCriteria(TYPE_UPPER_BACK_PAIN, false);
-        break;
-    case TYPE_JARAXXUS:
-        m_auiEncounter[TYPE_JARAXXUS] = uiData;
-        if (uiData == IN_PROGRESS)
-            SetSpecialAchievementCriteria(TYPE_SIXTY_PAIN_SPIKE, false);
-        break;
-    case TYPE_CRUSADERS:
-        if (uiData == FAIL && (m_auiEncounter[TYPE_CRUSADERS] == FAIL || m_auiEncounter[TYPE_CRUSADERS] == NOT_STARTED))
-            m_auiEncounter[TYPE_CRUSADERS] = NOT_STARTED;
-        else
-            m_auiEncounter[TYPE_CRUSADERS] = uiData;
-        if (uiData == DONE)
-        {
-            if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION))
+        case TYPE_WIPE_COUNT:
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_NORTHREND_BEASTS:
+            if (uiData == SPECIAL)
             {
-                Map* pMap = pTirion->GetMap();
-                Map::PlayerList const& pPlayers = pMap->GetPlayers();
-                if (!pPlayers.isEmpty())
+                if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION_A))
+                    DoScriptText(m_auiEncounter[uiType] != FAIL ? SAY_TIRION_RAID_INTRO_LONG : SAY_RAID_TRIALS_INTRO, pTirion);
+                StartNextDialogueText(TYPE_NORTHREND_BEASTS);
+            }
+            else if (uiData == FAIL)
+            {
+                SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+                StartNextDialogueText(SAY_TIRION_BEAST_WIPE);
+            }
+            else if (uiData == DONE)
+                StartNextDialogueText(SAY_TIRION_BEAST_SLAY);
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_NORTHREND_BEAST_STATE:
+            switch (uiData)
+            {
+                case GORMOK_IN_PROGRESS:
+                    SetData(TYPE_NORTHREND_BEASTS, IN_PROGRESS);
+                    /* no break */
+                case SNAKES_IN_PROGRESS:
+                case ICEHOWL_IN_PROGRESS:
+                    DoUseDoorOrButton(GO_MAIN_GATE); // close door
+                    break;
+                case GORMOK_FAIL:
+                case SNAKES_FAIL:
+                case ICEHOWL_FAIL:
+                    SetData(TYPE_NORTHREND_BEASTS, FAIL);
+                    break;
+                case GORMOK_DONE:
                 {
-                    for (Map::PlayerList::const_iterator itr = pPlayers.begin(); itr != pPlayers.end(); ++itr)
+                    if (Creature* pBeasts = GetSingleCreatureFromStorage(NPC_BEAST_COMBAT_STALKER))
+                        pBeasts->SummonCreature(NPC_DREADSCALE, aSpawnPositions[2][0], aSpawnPositions[2][1], aSpawnPositions[2][2], aSpawnPositions[2][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    break;
+                }
+                case SNAKES_DONE:
+                {
+                    if (Creature* pBeasts = GetSingleCreatureFromStorage(NPC_BEAST_COMBAT_STALKER))
+                        pBeasts->SummonCreature(NPC_ICEHOWL, aSpawnPositions[4][0], aSpawnPositions[4][1], aSpawnPositions[4][2], aSpawnPositions[4][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    break;
+                }
+                case GORMOK_NOT_STARTED:
+                case SNAKES_NOT_STARTED:
+                case SNAKES_SPECIAL:
+                case ICEHOWL_NOT_STARTED:
+                    break;
+                case ICEHOWL_DONE:
+                    SetData(TYPE_NORTHREND_BEASTS, DONE);
+                    break;
+                default:
+                    break;
+            }
+            m_uiNorthrendBeastState = uiData;
+            break;
+        case TYPE_JARAXXUS:
+            if (uiData == SPECIAL)
+                // TODO - What happen in wipe case?
+                StartNextDialogueText(TYPE_JARAXXUS);
+            else if (uiData == FAIL)
+            {
+                SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+                StartNextDialogueText(NPC_RAMSEY_2);
+            }
+            else if (uiData == DONE)
+                StartNextDialogueText(SAY_JARAXXUS_DEATH);
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_FACTION_CHAMPIONS:
+            if (m_auiEncounter[uiType] != uiData)
+            {
+                if (uiData == SPECIAL)
+                {
+                    StartNextDialogueText(m_auiEncounter[uiType] != FAIL ? SAY_TIRION_PVP_INTRO_1 : TYPE_FACTION_CHAMPIONS);
+                }
+                else if (uiData == FAIL)
+                {
+                    SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+                    StartNextDialogueText(NPC_RAMSEY_3);
+                }
+                else if (uiData == DONE)
+                    StartNextDialogueText(SAY_VARIAN_PVP_A_WIN);
+                m_auiEncounter[uiType] = uiData;
+            }
+            break;
+        case TYPE_TWIN_VALKYR:
+            if (uiData == SPECIAL)
+            {
+                if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION_A))
+                    DoScriptText(m_auiEncounter[uiType] != FAIL ? SAY_TIRION_TWINS_INTRO : SAY_RAID_INTRO_SHORT, pTirion);
+
+                StartNextDialogueText(TYPE_TWIN_VALKYR);
+            }
+            else if (uiData == FAIL)
+            {
+                SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+                StartNextDialogueText(NPC_RAMSEY_4);
+            }
+            else if (uiData == DONE)
+                StartNextDialogueText(EVENT_TWINS_KILLED);
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_ANUBARAK:
+            if (uiData == SPECIAL)
+                StartNextDialogueText(TYPE_ANUBARAK);
+            else if (uiData == FAIL)
+                SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_CRUSADERS_COUNT:
+        {
+            if (uiData == SPECIAL)
+            {
+                for (GUIDList::const_iterator itr = m_lFactionChampion.begin(); itr != m_lFactionChampion.end(); ++itr)
+                {
+                    if (Creature* pChampion = instance->GetCreature(*itr))
                     {
-                        Unit *pTarget = itr->getSource();
-                        if (pTarget)
-                            pTirion->CastSpell(pTarget, 68184, true);
+                        if (pChampion->isAlive())
+                            return;
                     }
                 }
+                SetData(TYPE_FACTION_CHAMPIONS, DONE);
             }
-
-            uint32 uiCacheEntry = GO_CRUSADERS_CACHE_10;
-
-            switch (instance->GetDifficulty())
-            {
-            case RAID_DIFFICULTY_10MAN_HEROIC:
-                uiCacheEntry = GO_CRUSADERS_CACHE_10_H;
-                break;
-            case RAID_DIFFICULTY_25MAN_NORMAL:
-                uiCacheEntry = GO_CRUSADERS_CACHE_25;
-                break;
-            case RAID_DIFFICULTY_25MAN_HEROIC:
-                uiCacheEntry = GO_CRUSADERS_CACHE_25_H;
-                break;
-            }
-            if (GameObject* pChest = GetSingleGameObjectFromStorage(uiCacheEntry))
-                if (!pChest->isSpawned())
-                    pChest->SetRespawnTime(7*DAY);
-        };
-        break;
-    case TYPE_CRUSADERS_COUNT:
-        if (uiData == 0)
-            --m_auiCrusadersCount;
-        else
-            m_auiCrusadersCount = uiData;
-        break;
-    case TYPE_VALKIRIES:
-        /*if (m_auiEncounter[4] == SPECIAL && uiData == SPECIAL)
-            uiData = DONE;*/
-        m_auiEncounter[TYPE_VALKIRIES] = uiData;
-        if (uiData == IN_PROGRESS)
-            SetSpecialAchievementCriteria(TYPE_SALT_AND_PEPPER, true);
-        break;
-    case TYPE_LICH_KING:
-        m_auiEncounter[TYPE_LICH_KING] = uiData;
-        break;
-    case TYPE_ANUBARAK:
-        m_auiEncounter[TYPE_ANUBARAK] = uiData;
-
-        if (uiData == IN_PROGRESS)
-        {
-            DoCloseDoor(GO_WEB_DOOR);
+            break;
         }
-        else
-            DoOpenDoor(GO_WEB_DOOR);
-
-        if (uiData == DONE)
-        {
-            if (Difficulty == RAID_DIFFICULTY_10MAN_HEROIC)
-            {
-                if (m_auiEncounter[TYPE_COUNTER] >= 25)
-                    m_uiTributeChest1 = GO_TRIBUTE_CHEST_10H_25;
-                if (m_auiEncounter[TYPE_COUNTER] >= 45)
-                    m_uiTributeChest2 = GO_TRIBUTE_CHEST_10H_45;
-                if (m_auiEncounter[TYPE_COUNTER] > 49)
-                    m_uiTributeChest3 = GO_TRIBUTE_CHEST_10H_50;
-
-                m_uiTributeChest4 = GO_TRIBUTE_CHEST_10H_99;
-            }
-            if (Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
-            {
-                if (m_auiEncounter[TYPE_COUNTER] >= 25)
-                    m_uiTributeChest1 = GO_TRIBUTE_CHEST_25H_25;
-                if (m_auiEncounter[TYPE_COUNTER] >= 45)
-                    m_uiTributeChest2 = GO_TRIBUTE_CHEST_25H_45;
-                if (m_auiEncounter[TYPE_COUNTER] > 49)
-                    m_uiTributeChest3 = GO_TRIBUTE_CHEST_25H_50;
-
-                m_uiTributeChest4 = GO_TRIBUTE_CHEST_25H_99;
-            }
-            // Attention! It is (may be) not off-like, but  spawning all Tribute Chests is real
-            // reward for clearing TOC instance
-            if (m_uiTributeChest1)
-                if (GameObject* pChest1 = GetSingleGameObjectFromStorage(m_uiTributeChest1))
-                    if (pChest1 && !pChest1->isSpawned())
-                        pChest1->SetRespawnTime(7*DAY);
-
-            if (m_uiTributeChest2)
-                if (GameObject* pChest2 = GetSingleGameObjectFromStorage(m_uiTributeChest2))
-                    if (pChest2 && !pChest2->isSpawned())
-                        pChest2->SetRespawnTime(7*DAY);
-
-            if (m_uiTributeChest3)
-                if (GameObject* pChest3 = GetSingleGameObjectFromStorage(m_uiTributeChest3))
-                    if (pChest3 && !pChest3->isSpawned())
-                        pChest3->SetRespawnTime(7*DAY);
-
-            if (m_uiTributeChest4)
-                if (GameObject* pChest4 = GetSingleGameObjectFromStorage(m_uiTributeChest4))
-                    if (pChest4 && !pChest4->isSpawned())
-                        pChest4->SetRespawnTime(7*DAY);
-        };
-        break;
-    case TYPE_COUNTER:
-        m_auiEncounter[TYPE_COUNTER] = uiData;
-        if (uiData < 25)
-            SetSpecialAchievementCriteria(TYPE_SKILL, false);
-        if (uiData < 45)
-            SetSpecialAchievementCriteria(TYPE_MAD_SKILL, false);
-        if (uiData < 50)
-            SetSpecialAchievementCriteria(TYPE_INSANITY, false);
-
-        //uiData = DONE;
-        break;
-    case TYPE_EVENT:
-        m_auiEncounter[TYPE_EVENT] = uiData;
-        uiData = NOT_STARTED;
-        break;
-    case TYPE_EVENT_TIMER:
-        m_auiEventTimer = uiData;
-        uiData = NOT_STARTED;
-        break;
-    case TYPE_NORTHREND_BEASTS:
-        m_auiNorthrendBeasts = uiData;
-        break;
-    case DATA_HEALTH_FJOLA:
-        m_uiDataDamageFjola = uiData; uiData = NOT_STARTED;
-        break;
-    case DATA_HEALTH_EYDIS:
-        m_uiDataDamageEydis = uiData; uiData = NOT_STARTED;
-        break;
+        default:
+            error_log("SD2: Instance Trial of The Crusader: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
+            return;
     }
 
-    if (IsEncounterInProgress()) 
-    {
-        DoCloseDoor(GO_WEST_PORTCULLIS);
-        DoCloseDoor(GO_NORTH_PORTCULLIS);
-        DoCloseDoor(GO_SOUTH_PORTCULLIS);
-
-        if (Creature* pBarrent = GetSingleCreatureFromStorage(NPC_BARRENT)) 
-            pBarrent->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-    }
-    else
-    {
-        DoOpenDoor(GO_WEST_PORTCULLIS);
-        DoCloseDoor(GO_NORTH_PORTCULLIS);
-        DoCloseDoor(GO_SOUTH_PORTCULLIS);
-
-        if (Creature* pBarrent = GetSingleCreatureFromStorage(NPC_BARRENT)) 
-            pBarrent->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-    };
-
-    if (uiData == FAIL && uiType != TYPE_STAGE && uiType != TYPE_EVENT && uiType != TYPE_COUNTER && uiType != TYPE_EVENT_TIMER)
-    {
-        if (IsRaidWiped())
-        {
-            --m_auiEncounter[TYPE_COUNTER];
-            needsave = true;
-            UpdateWorldState();
-        }
-        uiData = NOT_STARTED;
-    }
-
-    if ((uiData == DONE && uiType != TYPE_STAGE && uiType != TYPE_EVENT && uiType != TYPE_EVENT_TIMER) || needsave == true)
+    if (uiData == DONE || uiType == TYPE_WIPE_COUNT)
     {
         OUT_SAVE_INST_DATA;
 
         std::ostringstream saveStream;
-
-        for(uint8 i = 0; i < MAX_ENCOUNTERS; ++i)
-            saveStream << m_auiEncounter[i] << " ";
+        saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
+            << m_auiEncounter[3] << " " << m_auiEncounter[4] << " " << m_auiEncounter[5];
 
         m_strInstData = saveStream.str();
 
         SaveToDB();
         OUT_SAVE_INST_DATA_COMPLETE;
-        needsave = false;
     }
 }
 
-uint32 instance_trial_of_the_crusader::GetData(uint32 uiType)
+void instance_trial_of_the_crusader::Load(const char* chrIn)
 {
-    switch(uiType)
-    {
-        case TYPE_STAGE:                return m_auiEncounter[0];
-        case TYPE_BEASTS:               return m_auiEncounter[1];
-        case TYPE_JARAXXUS:             return m_auiEncounter[2];
-        case TYPE_CRUSADERS:            return m_auiEncounter[3];
-        case TYPE_VALKIRIES:            return m_auiEncounter[4];
-        case TYPE_LICH_KING:            return m_auiEncounter[5];
-        case TYPE_ANUBARAK:             return m_auiEncounter[6];
-        case TYPE_COUNTER:              return m_auiEncounter[7];
-        case TYPE_EVENT:                return m_auiEncounter[8];
-        case TYPE_DIFFICULTY:           return Difficulty;
-        case TYPE_NORTHREND_BEASTS:     return m_auiNorthrendBeasts;
-        case TYPE_EVENT_TIMER:          return m_auiEventTimer;
-        case TYPE_CRUSADERS_COUNT:      return m_auiCrusadersCount;
-        case TYPE_EVENT_NPC:
-            switch (m_auiEncounter[8]) 
-            {
-                case 110:
-                case 115:
-                case 116:
-                case 140:
-                case 150:
-                case 200:
-                case 205:
-                case 210:
-                case 300:
-                case 305:
-                case 310:
-                case 400:
-                case 666:
-                case 1010:
-                case 1180:
-                case 1999:
-                case 2000:
-                case 2030:
-                case 3000:
-                case 3001:
-                case 3060:
-                case 3061:
-                case 3090:
-                case 3091:
-                case 3100:
-                case 3110:
-                case 4000:
-                case 4010:
-                case 4015:
-                case 4040:
-                case 4050:
-                case 5000:
-                case 5005:
-                case 5020:
-                case 6000:
-                case 6005:
-                case 6010:
-                    m_auiEventNPCId = NPC_TIRION;
-                    break;
-                case 5010:
-                case 5030:
-                case 5040:
-                case 5050:
-                case 5060:
-                case 5070:
-                case 5080:
-                    m_auiEventNPCId = NPC_LICH_KING_1;
-                    break;
-                case 130:
-                case 2020:
-                case 3080:
-                case 3051:
-                case 3071:
-                case 4020:
-                    m_auiEventNPCId = NPC_RINN;
-                    break;
-                case 120:
-                case 2010:
-                case 3050:
-                case 3070:
-                case 3081:
-                case 4030:
-                    m_auiEventNPCId = NPC_GARROSH;
-                    break;
-                case 1110:
-                case 1120:
-                case 1130:
-                case 1132:
-                case 1134:
-                case 1135:
-                case 1140:
-                case 1142:
-                case 1144:
-                case 1145:
-                case 1150:
-                case 1160:
-                case 1170:
-                    m_auiEventNPCId = NPC_FIZZLEBANG;
-                    break;
-                default:
-                    m_auiEventNPCId = NPC_TIRION;
-                    break;
-            };
-            return m_auiEventNPCId;
-        case DATA_HEALTH_FJOLA: return m_uiDataDamageFjola;
-        case DATA_HEALTH_EYDIS: return m_uiDataDamageEydis;
-    }
-    return 0;
-}
-
-void instance_trial_of_the_crusader::Load(const char* strIn)
-{
-    if (!strIn)
+    if (!chrIn)
     {
         OUT_LOAD_INST_DATA_FAIL;
         return;
     }
 
-    OUT_LOAD_INST_DATA(strIn);
+    OUT_LOAD_INST_DATA(chrIn);
 
-    std::istringstream loadStream(strIn);
+    std::istringstream loadStream(chrIn);
+    loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
+        >> m_auiEncounter[4] >> m_auiEncounter[5];
 
-    for(uint8 i = 0; i < MAX_ENCOUNTERS; ++i)
-    {
-        loadStream >> m_auiEncounter[i];
-
-        if (m_auiEncounter[i] == IN_PROGRESS)
+    for(uint8 i = TYPE_NORTHREND_BEASTS; i < MAX_ENCOUNTER; ++i)
+        if (m_auiEncounter[i] == IN_PROGRESS) // Do not load an encounter as "In Progress" - reset it instead.
             m_auiEncounter[i] = NOT_STARTED;
-    }
-    m_auiEncounter[TYPE_EVENT] = 0;
-    m_auiEncounter[TYPE_STAGE] = 0;
 
     OUT_LOAD_INST_DATA_COMPLETE;
+}
 
+void instance_trial_of_the_crusader::SummonFactionChampion()
+{
+    bool bIs25Man = instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC;
+    std::list<uint32> lSummonHealerList;
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_1 : NPC_CRUSADER_2_1);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_2 : NPC_CRUSADER_2_2);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_12: NPC_CRUSADER_2_12);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_13: NPC_CRUSADER_2_13);
+    do
+    {
+        std::list<uint32>::iterator itr = lSummonHealerList.begin();
+        advance(itr , urand(0, lSummonHealerList.size()-1));
+        lSummonHealerList.erase(itr);
+    }while (lSummonHealerList.size() >= (bIs25Man ? FACTION_CHAMPIONS_HEALER_AMOUNT_25: FACTION_CHAMPIONS_HEALER_AMOUNT_10));
+
+    std::list<uint32> lSummonMeleeDDList;
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_3 : NPC_CRUSADER_2_3);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_4 : NPC_CRUSADER_2_4);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_5 : NPC_CRUSADER_2_5);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_6 : NPC_CRUSADER_2_6);
+    do
+    {
+        std::list<uint32>::iterator itr = lSummonMeleeDDList.begin();
+        advance(itr , urand(0, lSummonMeleeDDList.size()-1));
+        lSummonMeleeDDList.erase(itr);
+    }while (lSummonMeleeDDList.size() >= (bIs25Man ? FACTION_CHAMPIONS_MELEE_DD_AMOUNT_25: FACTION_CHAMPIONS_MELEE_DD_AMOUNT_10));
+
+    std::list<uint32> lSummonMagicDDList;
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_7 : NPC_CRUSADER_2_7);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_8 : NPC_CRUSADER_2_8);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_11 : NPC_CRUSADER_2_11);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_14 : NPC_CRUSADER_2_14);
+    do
+    {
+        std::list<uint32>::iterator itr = lSummonMagicDDList.begin();
+        advance(itr , urand(0, lSummonMagicDDList.size()-1));
+        lSummonMagicDDList.erase(itr);
+    }while (lSummonMagicDDList.size() >= (bIs25Man ? FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25: FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10));
+
+    if (bIs25Man)
+    {
+        lSummonMagicDDList.push_back(NPC_CRUSADER_1_9);  //Hunter+warlock
+        lSummonMagicDDList.push_back(NPC_CRUSADER_1_10);
+        lSummonMagicDDList.push_back(NPC_CRUSADER_0_1); // TODO: check this 2 NPC's
+        lSummonMagicDDList.push_back(NPC_CRUSADER_0_2);
+    }
+
+    if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION_A))
+    {
+        for(std::list<uint32>::const_iterator itr = lSummonHealerList.begin(); itr != lSummonHealerList.end(); ++itr)
+        {
+            uint8 position = 5 + urand(0,1);
+            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2] + irand(-3,3), 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
+            {
+                m_lFactionChampion.push_back(pChampion->GetObjectGuid());
+            }
+        }
+        for(std::list<uint32>::const_iterator itr = lSummonMagicDDList.begin(); itr != lSummonMagicDDList.end(); ++itr)
+        {
+            uint8 position = 5 + urand(0,1);
+            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2] + irand(-3,3), 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
+            {
+                m_lFactionChampion.push_back(pChampion->GetObjectGuid());
+            }
+        }
+        for(std::list<uint32>::const_iterator itr = lSummonMeleeDDList.begin(); itr != lSummonMeleeDDList.end(); ++itr)
+        {
+            uint8 position = 5 + urand(0,1);
+            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2] + irand(-3,3), 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
+            {
+                m_lFactionChampion.push_back(pChampion->GetObjectGuid());
+            }
+        }
+    }
 }
 
 InstanceData* GetInstanceData_instance_trial_of_the_crusader(Map* pMap)

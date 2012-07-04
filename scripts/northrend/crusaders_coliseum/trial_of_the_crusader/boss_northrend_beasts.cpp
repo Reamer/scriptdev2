@@ -19,7 +19,7 @@
 
 /* ScriptData
 SDName: northrend_beasts
-SD%Complete: 90% 
+SD%Complete: 90%
 SDComment: by /dev/rsa
 SDCategory:
 EndScriptData */
@@ -29,6 +29,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
+#include "Vehicle.h"
 
 enum Emotes
 {
@@ -46,7 +47,6 @@ enum Equipment
 
 enum Summons
 {
-    NPC_SNOBOLD_VASSAL          = 34800,
     NPC_SLIME_POOL              = 35176,
     NPC_FIRE_BOMB               = 34854,
 };
@@ -54,6 +54,7 @@ enum Summons
 enum BossSpells
 {
     // Gormok
+    HACK_SPELL_AURA_FOR_RIDE    = 999999,
     SPELL_IMPALE                = 66331,
     SPELL_STAGGERING_STOMP      = 67648,
     SPELL_RISING_ANGER          = 66636,
@@ -103,13 +104,14 @@ enum Models
     MODEL_DREADSCALE_MOBILE     = 24564,
 };
 
-enum Phases
+enum SnakePhase
 {
-    // Snakes
     PHASE_EMERGED               = 0,
     PHASE_SUBMERGED             = 1,
+};
 
-    // Icehowl
+enum IcehowlPhase
+{
     PHASE_NORMAL                = 0,
     PHASE_MOVING                = 1,
     PHASE_TRAMPLE               = 2,
@@ -125,108 +127,81 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
 {
     boss_gormokAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
         m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
         m_bIsHeroic = m_uiMapDifficulty > RAID_DIFFICULTY_25MAN_NORMAL;
         m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_trial_of_the_crusader* m_pInstance;
     Difficulty m_uiMapDifficulty;
-    Unit* pFocus;
 
     bool m_bIsHeroic;
     bool m_bIs25Man;
 
-    uint8 SnoboldsCount;
+    uint8 NextSnoboldSeat;
 
     uint32 m_uiImpaleTimer;
     uint32 m_uiStaggeringStompTimer;
-    uint32 m_uiSummonSnoboldTimer;
+    uint32 m_uiThrowSnoboldTimer;
 
-    std::list<ObjectGuid> mobsGUIDList;
-
-    void Reset() 
-    {
-        if (!m_pInstance) 
-            return;
-
-        SetEquipmentSlots(false, EQUIP_MAIN, -1, -1);
-        m_creature->SetRespawnDelay(7*DAY);
-        m_creature->SetInCombatWithZone();
-
-        SnoboldsCount = m_bIs25Man? 5 : 4;
-
-        pFocus = NULL;
-
-        m_uiImpaleTimer           = urand(15000, 30000);
-        m_uiStaggeringStompTimer  = urand(20000, 25000);
-        m_uiSummonSnoboldTimer    = urand(20000, 30000);
-
-        mobsGUIDList.clear();
-    }
-
-    void SummonAdds()
+    void Reset()
     {
         if (!m_pInstance)
             return;
 
-        for (uint32 i = 0; i < SnoboldsCount; i++)
-        {
-            Unit *pTemp = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
-            pTemp->EnterVehicle(m_creature->GetVehicleKit(), i);
-            mobsGUIDList.push_back(pTemp->GetObjectGuid());
-        }
+        SetEquipmentSlots(false, EQUIP_MAIN, -1, -1);
+
+        NextSnoboldSeat = 0;
+
+        m_uiImpaleTimer           = urand(15000, 30000);
+        m_uiStaggeringStompTimer  = urand(20000, 25000);
+        m_uiThrowSnoboldTimer     = 30 * IN_MILLISECONDS;
     }
 
-    void ThrowAdd(Unit *pTarget)
+    bool ThrowSnobold(Unit *pTarget)
     {
-        if (!m_pInstance || mobsGUIDList.empty())
-            return;
-
-        for(std::list<ObjectGuid>::iterator itr = mobsGUIDList.begin(); itr != mobsGUIDList.end(); ++itr)
+        Unit* pSnoboldVassal = NULL;
+        if (VehicleKit* pGormokVehicle = m_creature->GetVehicleKit())
         {
-            if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
+            for (int i = 0; i < MAX_VEHICLE_SEAT; ++i)
             {
-                if (pTemp->isAlive())
-                {
-                    pTemp->ExitVehicle();
-                    pTemp->SetInCombatWithZone();
-                    pTemp->AddThreat(pTarget, 10000.0f);
-                    pTemp->AI()->AttackStart(pTarget);
-                    mobsGUIDList.remove(pTemp->GetObjectGuid());
+                pSnoboldVassal = pGormokVehicle->GetPassenger(i);
+                if (pSnoboldVassal)
                     break;
+            }
+        }
+        if (pSnoboldVassal)
+        {
+            if (VehicleKit* pPlayerVehicle = pTarget->GetVehicleKit())
+            {
+                if (pPlayerVehicle->HasEmptySeat(0))
+                {
+                    pSnoboldVassal->EnterVehicle(pTarget,0);
+                    return true;
                 }
             }
         }
+        return false;
     }
 
-    void JustDied(Unit* pKiller)
+    void MovementInform(uint32 uiMovementType, uint32 uiData)
     {
-        if (!m_pInstance) 
-            return;
-
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_DONE);
+        if (uiData == POINT_COMBAT_POSITION)
+        {
+            m_creature->SetInCombatWithZone();
+        }
     }
 
     void JustReachedHome()
     {
-        if (!m_pInstance) 
-            return;
-
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, FAIL);
-
         m_creature->ForcedDespawn();
     }
 
     void Aggro(Unit* pWho)
     {
-        if (!m_pInstance)
-            return;
-
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_IN_PROGRESS);
-        SummonAdds();
+        DoCastSpellIfCan(m_creature, HACK_SPELL_AURA_FOR_RIDE);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -250,17 +225,19 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         else
             m_uiStaggeringStompTimer -= uiDiff;
 
-        if (m_uiSummonSnoboldTimer <= uiDiff && SnoboldsCount > 0)
+        if (m_uiThrowSnoboldTimer < uiDiff)
         {
-            DoScriptText(EMOTE_SUMMON_SNOBOLD, m_creature);
-            ThrowAdd(pFocus = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0));
-            pFocus->_AddAura(SPELL_SNOBOLLED);
-            m_creature->_AddAura(SPELL_RISING_ANGER);
-            --SnoboldsCount;
-            m_uiSummonSnoboldTimer = 20000;
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
+            {
+                if (ThrowSnobold(pTarget))
+                {
+                    DoScriptText(EMOTE_SUMMON_SNOBOLD, m_creature);
+                    m_uiThrowSnoboldTimer = 30*IN_MILLISECONDS;
+                }
+            }
         }
         else
-            m_uiSummonSnoboldTimer -= uiDiff;
+            m_uiThrowSnoboldTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
@@ -275,51 +252,57 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
 {
     mob_snobold_vassalAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
-    Unit *pFocus;
+    instance_trial_of_the_crusader* m_pInstance;
 
     uint32 m_uiBatterTimer;
     uint32 m_uiFireBombTimer;
     uint32 m_uiHeadCrackTimer;
 
+    ObjectGuid m_VehicleBasePlayer;
+
     void Reset()
     {
-        pFocus = NULL;
-
         m_uiBatterTimer         = 10000;
         m_uiFireBombTimer       = urand(10000, 20000);
         m_uiHeadCrackTimer      = urand(10000, 30000);
-
-        m_creature->SetInCombatWithZone();
-        m_creature->SetRespawnDelay(DAY);
     }
 
-    void Aggro(Unit *pWho)
+    void EnteredVehicle(Unit* pWho, int8 /*seatId*/, bool apply)
     {
-        if (!m_pInstance) 
-            return;
-
-        pFocus = pWho;
+        if (pWho->GetTypeId() == TYPEID_PLAYER)
+        {
+            if (apply)
+            {
+                DoCastSpellIfCan(m_creature, SPELL_SNOBOLLED);
+                DoCastSpellIfCan(m_creature, SPELL_RISING_ANGER);
+                m_VehicleBasePlayer = pWho->GetObjectGuid();
+            }
+            else
+            {
+                if (Unit* pBase = m_creature->GetMap()->GetUnit(m_VehicleBasePlayer))
+                {
+                    pBase->RemoveAurasDueToSpell(SPELL_SNOBOLLED);
+                    if (Creature* pGormok = m_pInstance->GetSingleCreatureFromStorage(NPC_GORMOK))
+                        pGormok->RemoveAuraHolderFromStack(SPELL_RISING_ANGER, 1);
+                }
+            }
+        }
     }
 
     void JustReachedHome()
     {
-        if (!m_pInstance) 
-            return;
-
         m_creature->ForcedDespawn();
     }
 
     void JustDied(Unit* pKiller)
     {
-        if (pFocus && pFocus->isAlive())
-            pFocus->RemoveAurasDueToSpell(SPELL_SNOBOLLED);
+        //if (pFocus && pFocus->isAlive())
+//            pFocus->RemoveAurasDueToSpell(SPELL_SNOBOLLED);
 
-        m_creature->ForcedDespawn(5000);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -327,36 +310,44 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == FAIL)
+        if (m_pInstance->GetData(TYPE_NORTHREND_BEAST_STATE) == GORMOK_FAIL)
             m_creature->ForcedDespawn();
 
         if (m_uiBatterTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BATTER) == CAST_OK)
-                m_uiBatterTimer = 15000;
+            if (Unit* pBase = m_creature->GetMap()->GetUnit(m_VehicleBasePlayer))
+            {
+                if (DoCastSpellIfCan(pBase, SPELL_BATTER) == CAST_OK)
+                    m_uiBatterTimer = 15000;
+            }
         }
         else
             m_uiBatterTimer -= uiDiff;
 
         if (m_uiFireBombTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FIRE_BOMB) == CAST_OK)
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_FIRE_BOMB, SELECT_FLAG_PLAYER))
             {
-                float x, y, z;
-                m_creature->GetPosition(x, y, z);
-
-                if (Creature *pBomb = m_creature->SummonCreature(NPC_FIRE_BOMB, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
-                    pBomb->CastSpell(pBomb, SPELL_FIRE_BOMB_DOT, true);
+                if (DoCastSpellIfCan(pTarget, SPELL_FIRE_BOMB) == CAST_OK)
+                {
+                    float x, y, z;
+                    pTarget->GetPosition(x, y, z);
+                    if (Creature *pBomb = m_creature->SummonCreature(NPC_FIRE_BOMB, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
+                        pBomb->CastSpell(pBomb, SPELL_FIRE_BOMB_DOT, true);
+                    m_uiFireBombTimer = urand(10000, 20000);
+                }
             }
-            m_uiFireBombTimer = urand(10000, 20000);
         }
         else
             m_uiFireBombTimer -= uiDiff;
 
         if (m_uiHeadCrackTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEAD_CRACK) == CAST_OK)
-                m_uiHeadCrackTimer = urand(10000, 30000);
+            if (Unit* pBase = m_creature->GetMap()->GetUnit(m_VehicleBasePlayer))
+            {
+                if (DoCastSpellIfCan(pBase, SPELL_HEAD_CRACK) == CAST_OK)
+                    m_uiHeadCrackTimer = urand(10000, 30000);
+            }
         }
         else
             m_uiHeadCrackTimer -= uiDiff;
@@ -370,37 +361,6 @@ CreatureAI* GetAI_mob_snobold_vassal(Creature* pCreature)
     return new mob_snobold_vassalAI(pCreature);
 }
 
-struct MANGOS_DLL_DECL mob_fire_bombAI : public ScriptedAI
-{
-    mob_fire_bombAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-
-    void Reset()
-    {
-        m_creature->SetInCombatWithZone();
-        SetCombatMovement(false);
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == FAIL)
-            m_creature->ForcedDespawn();
-    }
-};
-
-CreatureAI* GetAI_mob_fire_bomb(Creature* pCreature)
-{
-    return new mob_fire_bombAI(pCreature);
-}
-
 struct MANGOS_DLL_DECL boss_acidmawAI : public ScriptedAI
 {
     boss_acidmawAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -411,7 +371,7 @@ struct MANGOS_DLL_DECL boss_acidmawAI : public ScriptedAI
 
     instance_trial_of_the_crusader* m_pInstance;
 
-    uint32 m_uiPhase;
+    SnakePhase m_Phase;
     uint32 m_uiPhaseTimer;
     uint32 m_uiAcidSpewTimer;
     uint32 m_uiParalyticBiteTimer;
@@ -419,10 +379,8 @@ struct MANGOS_DLL_DECL boss_acidmawAI : public ScriptedAI
     uint32 m_uiParalyticSprayTimer;
     uint32 m_uiSweepTimer;
     uint32 m_uiSlimePoolTimer;
-    uint32 m_uiAchievTimer;
 
     bool m_bIsEnraged;
-    bool m_bAchievFailed;
 
     void Reset()
     {
@@ -434,160 +392,132 @@ struct MANGOS_DLL_DECL boss_acidmawAI : public ScriptedAI
         m_uiSweepTimer                  = 20000;
         m_uiSlimePoolTimer              = 10000;
 
-        m_uiPhase                       = PHASE_SUBMERGED;
-
-        m_uiAchievTimer                 = 10000;
+        m_Phase                         = PHASE_SUBMERGED;
 
         m_bIsEnraged                    = false;
-        m_bAchievFailed                 = false;
 
-        m_creature->SetInCombatWithZone();
-        m_creature->SetRespawnDelay(7*DAY);
         m_creature->SetDisplayId(MODEL_ACIDMAW_STATIONARY);
         m_creature->SetSpeedRate(MOVE_WALK, 0);
         m_creature->SetSpeedRate(MOVE_RUN, 0);
     }
 
-    void JustDied(Unit* pKiller)
-    {
-        if (!m_pInstance) 
-            return;
-
-        if (Creature* pDreadscale = m_pInstance->GetSingleCreatureFromStorage(NPC_DREADSCALE))
-        {
-            if (!pDreadscale->isAlive())
-                m_pInstance->SetData(TYPE_NORTHREND_BEASTS, SNAKES_DONE);
-            else
-                m_pInstance->SetData(TYPE_NORTHREND_BEASTS, SNAKES_SPECIAL);
-        }
-
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL && !m_bAchievFailed)
-            CheckAchiev();
-    }
-
-    void CheckAchiev()
-    {
-        Map* pMap = m_creature->GetMap();
-        Map::PlayerList const& pPlayers = pMap->GetPlayers();
-        if (!pPlayers.isEmpty())
-        {
-            for (Map::PlayerList::const_iterator itr = pPlayers.begin(); itr != pPlayers.end(); ++itr)
-            {
-                Unit *pTarget = itr->getSource();
-                if (pTarget)
-                    m_creature->CastSpell(pTarget, SPELL_CHECK_ACHIEV, true);
-            }
-        }
-    }
-
     void JustReachedHome()
     {
-        if (!m_pInstance) 
-            return;
-
-        if (m_pInstance->GetData(TYPE_BEASTS) == IN_PROGRESS && m_pInstance->GetData(TYPE_NORTHREND_BEASTS) != FAIL)
-            m_pInstance->SetData(TYPE_NORTHREND_BEASTS, FAIL);
-
         m_creature->ForcedDespawn();
     }
 
+    void JustSummoned(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_SLIME_POOL)
+        {
+            //pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            //pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            pSummoned->CastSpell(pSummoned, SPELL_SLIME_POOL_AURA, false);
+            pSummoned->CastSpell(pSummoned, SPELL_AUTO_GROW, false);
+            pSummoned->CastSpell(pSummoned, SPELL_SLIME_POOL_VISUAL, false);
+        }
+
+    }
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        switch (m_uiPhase)
+        switch (m_Phase)
         {
-        case PHASE_EMERGED:
-             if (m_uiAcidSpewTimer <= uiDiff)
-             {
-                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ACID_SPEW) == CAST_OK)
-                     m_uiAcidSpewTimer = urand(15000, 30000);
-             }
-             else
-                 m_uiAcidSpewTimer -= uiDiff;
+            case PHASE_EMERGED:
+                if (m_uiAcidSpewTimer <= uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ACID_SPEW) == CAST_OK)
+                        m_uiAcidSpewTimer = urand(15000, 30000);
+                }
+                else
+                    m_uiAcidSpewTimer -= uiDiff;
 
-             if (m_uiParalyticBiteTimer <= uiDiff)
-             {
-                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PARALYTIC_BITE) == CAST_OK)
-                     m_uiParalyticBiteTimer = urand(15000, 30000);
-             }
-             else
-                 m_uiParalyticBiteTimer -= uiDiff;
+                if (m_uiParalyticBiteTimer <= uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PARALYTIC_BITE) == CAST_OK)
+                        m_uiParalyticBiteTimer = urand(15000, 30000);
+                }
+                else
+                     m_uiParalyticBiteTimer -= uiDiff;
 
-             if (m_uiSlimePoolTimer <= uiDiff)
-             {
-                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIME_POOL) == CAST_OK)
-                     m_uiSlimePoolTimer = 12000;
-             }
-             else
-                 m_uiSlimePoolTimer -= uiDiff;
+                if (m_uiSlimePoolTimer <= uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIME_POOL) == CAST_OK)
+                        m_uiSlimePoolTimer = 12000;
+                }
+                else
+                    m_uiSlimePoolTimer -= uiDiff;
 
-             if (m_uiPhaseTimer <= uiDiff)
-             {
-                 m_creature->SetDisplayId(MODEL_ACIDMAW_STATIONARY);
-                 m_creature->SetSpeedRate(MOVE_WALK, 0);
-                 m_creature->SetSpeedRate(MOVE_RUN, 0);
-                 DoCastSpellIfCan(m_creature, SPELL_EMERGE);
-                 m_uiPhase = PHASE_SUBMERGED;
-                 m_uiPhaseTimer = 65000;
-             }
-             else
-                 m_uiPhaseTimer -= uiDiff;
+                if (m_uiPhaseTimer <= uiDiff)
+                {
+                    m_creature->SetDisplayId(MODEL_ACIDMAW_STATIONARY);
+                    m_creature->SetSpeedRate(MOVE_WALK, 0);
+                    m_creature->SetSpeedRate(MOVE_RUN, 0);
+                    DoCastSpellIfCan(m_creature, SPELL_EMERGE);
+                    m_Phase = PHASE_SUBMERGED;
+                    m_uiPhaseTimer = 65000;
+                }
+                else
+                    m_uiPhaseTimer -= uiDiff;
 
-            break;
-        case PHASE_SUBMERGED:
-             if (m_uiAcidSpitTimer <= uiDiff)
-             {
-                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                 {
-                     if (DoCastSpellIfCan(pTarget, SPELL_ACID_SPIT) == CAST_OK)
-                         m_uiAcidSpitTimer = 1200;
-                 }
-             }
-             else
-                 m_uiAcidSpitTimer -= uiDiff;
+                break;
+            case PHASE_SUBMERGED:
+                if (m_uiAcidSpitTimer <= uiDiff)
+                {
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    {
+                        if (DoCastSpellIfCan(pTarget, SPELL_ACID_SPIT) == CAST_OK)
+                            m_uiAcidSpitTimer = 1200;
+                    }
+                }
+                else
+                    m_uiAcidSpitTimer -= uiDiff;
 
-             if (m_uiParalyticSprayTimer <= uiDiff)
-             {
-                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                 {
-                     if(DoCastSpellIfCan(pTarget, SPELL_PARALYTIC_SPRAY, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
-                        m_uiParalyticSprayTimer = 20000;
-                 }
-             }
-             else
-                 m_uiParalyticSprayTimer -= uiDiff;
+                if (m_uiParalyticSprayTimer <= uiDiff)
+                {
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    {
+                        if(DoCastSpellIfCan(pTarget, SPELL_PARALYTIC_SPRAY, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                            m_uiParalyticSprayTimer = 20000;
+                    }
+                }
+                else
+                    m_uiParalyticSprayTimer -= uiDiff;
 
-             if (m_uiSweepTimer <= uiDiff)
-             {
-                 if (DoCastSpellIfCan(m_creature, SPELL_SWEEP, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
-                 {
-                     m_uiSweepTimer = 20000;
-                     m_uiAcidSpitTimer = 3000;
-                 }
-             }
-             else
-                 m_uiSweepTimer -= uiDiff;
+                if (m_uiSweepTimer <= uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_SWEEP, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                    {
+                        m_uiSweepTimer = 20000;
+                        m_uiAcidSpitTimer = 3000;
+                    }
+                }
+                else
+                    m_uiSweepTimer -= uiDiff;
 
-             if (m_uiPhaseTimer <= uiDiff)
-             {
-                 m_uiPhase = PHASE_EMERGED;
-                 m_creature->RemoveAurasDueToSpell(SPELL_EMERGE);
-                 m_creature->SetDisplayId(MODEL_ACIDMAW_MOBILE);
-                 m_creature->SetSpeedRate(MOVE_WALK, 1);
-                 m_creature->SetSpeedRate(MOVE_RUN, 1);
-                 SetCombatMovement(true);
-                 DoResetThreat();
-                 m_uiPhaseTimer = 65000;
-             }
-             else
-                 m_uiPhaseTimer -= uiDiff;
+                if (m_uiPhaseTimer <= uiDiff)
+                {
+                    m_Phase = PHASE_EMERGED;
+                    m_creature->RemoveAurasDueToSpell(SPELL_EMERGE);
+                    m_creature->SetDisplayId(MODEL_ACIDMAW_MOBILE);
+                    m_creature->SetSpeedRate(MOVE_WALK, 1);
+                    m_creature->SetSpeedRate(MOVE_RUN, 1);
+                    SetCombatMovement(true);
+                    DoResetThreat();
+                    m_uiPhaseTimer = 65000;
+                }
+                else
+                    m_uiPhaseTimer -= uiDiff;
 
-             break;
+                break;
+            default:
+                m_creature->MonsterSay("Unknown Phase", LANG_UNIVERSAL);
+                break;
         }
 
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL && !m_bIsEnraged)
+        if (m_pInstance->GetData(TYPE_NORTHREND_BEAST_STATE) == SNAKES_SPECIAL && !m_bIsEnraged)
         {
             m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE);
             m_creature->SetDisplayId(MODEL_ACIDMAW_MOBILE);
@@ -599,14 +529,7 @@ struct MANGOS_DLL_DECL boss_acidmawAI : public ScriptedAI
             DoScriptText(EMOTE_ENRAGE, m_creature);
 
             m_bIsEnraged = true;
-            m_uiPhase = PHASE_EMERGED;
-        }
-
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL)
-        {
-            ++m_uiAchievTimer;
-            if (m_uiAchievTimer < uiDiff)
-                m_bAchievFailed = true;
+            m_Phase = PHASE_EMERGED;
         }
 
         DoMeleeAttackIfReady();
@@ -628,7 +551,7 @@ struct MANGOS_DLL_DECL boss_dreadscaleAI : public ScriptedAI
 
     instance_trial_of_the_crusader* m_pInstance;
 
-    uint32 m_uiPhase;
+    SnakePhase m_Phase;
     uint32 m_uiPhaseTimer;
     uint32 m_uiBurningBiteTimer;
     uint32 m_uiMoltenSpewTimer;
@@ -636,10 +559,8 @@ struct MANGOS_DLL_DECL boss_dreadscaleAI : public ScriptedAI
     uint32 m_uiBurningSprayTimer;
     uint32 m_uiSweepTimer;
     uint32 m_uiSlimePoolTimer;
-    uint32 m_uiAchievTimer;
 
     bool m_bIsEnraged;
-    bool m_bAchievFailed;
 
     void Reset()
     {
@@ -650,61 +571,27 @@ struct MANGOS_DLL_DECL boss_dreadscaleAI : public ScriptedAI
         m_uiBurningSprayTimer           = 15000;
         m_uiSweepTimer                  = 20000;
         m_uiSlimePoolTimer              = 10000;
-        m_uiAchievTimer                 = 10000;
 
-        m_uiPhase                       = PHASE_EMERGED;
+        m_Phase                       = PHASE_EMERGED;
 
         m_bIsEnraged                    = false;
-        m_bAchievFailed                 = false;
 
-        m_creature->SetInCombatWithZone();
-        m_creature->SetRespawnDelay(7*DAY);
         m_creature->SetDisplayId(MODEL_DREADSCALE_MOBILE);
         m_creature->SetSpeedRate(MOVE_WALK, 1);
         m_creature->SetSpeedRate(MOVE_RUN, 1);
     }
-
-    void JustDied(Unit* pKiller)
-    {
-        if (!m_pInstance) 
-            return;
-            
-        if (Creature *pSister = m_pInstance->GetSingleCreatureFromStorage(NPC_ACIDMAW))
-        {
-            if (!pSister->isAlive())
-                m_pInstance->SetData(TYPE_NORTHREND_BEASTS, SNAKES_DONE);
-            else 
-                m_pInstance->SetData(TYPE_NORTHREND_BEASTS, SNAKES_SPECIAL);
-        }
-
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL && !m_bAchievFailed)
-            CheckAchiev();
-    }
-
-    void CheckAchiev()
-    {
-        Map* pMap = m_creature->GetMap();
-        Map::PlayerList const& pPlayers = pMap->GetPlayers();
-        if (!pPlayers.isEmpty())
-        {
-            for (Map::PlayerList::const_iterator itr = pPlayers.begin(); itr != pPlayers.end(); ++itr)
-            {
-                Unit *pTarget = itr->getSource();
-                if (pTarget)
-                    m_creature->CastSpell(pTarget, SPELL_CHECK_ACHIEV, true);
-            }
-        }
-    }
-
     void JustReachedHome()
     {
-        if (!m_pInstance) 
-            return;
-
-        if (m_pInstance->GetData(TYPE_BEASTS) == IN_PROGRESS && m_pInstance->GetData(TYPE_NORTHREND_BEASTS) != FAIL)
-            m_pInstance->SetData(TYPE_NORTHREND_BEASTS, FAIL);
-
         m_creature->ForcedDespawn();
+    }
+
+    void MovementInform(uint32 uiMovementType, uint32 uiData)
+    {
+        if (uiData == POINT_COMBAT_POSITION)
+        {
+            m_creature->SummonCreature(NPC_ACIDMAW, aSpawnPositions[3][0], aSpawnPositions[3][1], aSpawnPositions[3][2], 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+            m_creature->SetInCombatWithZone();
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -712,98 +599,105 @@ struct MANGOS_DLL_DECL boss_dreadscaleAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        switch (m_uiPhase)
+        switch (m_Phase)
         {
-        case PHASE_EMERGED:
-             if (m_uiBurningBiteTimer <= uiDiff)
-             {
-                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BURNING_BITE) == CAST_OK)
-                     m_uiBurningBiteTimer = urand(15000, 30000);
-             }
-             else
-                 m_uiBurningBiteTimer -= uiDiff;
-
-             if (m_uiMoltenSpewTimer <= uiDiff)
-             {
-                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MOLTEN_SPEW) == CAST_OK)
-                     m_uiMoltenSpewTimer = urand(15000, 30000);
-             }
-             else
-                 m_uiMoltenSpewTimer -= uiDiff;
-
-             if (m_uiSlimePoolTimer <= uiDiff)
-             {
-                 if(DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIME_POOL) == CAST_OK)
-                     m_uiSlimePoolTimer = 12000;
-             }
-             else
-                 m_uiSlimePoolTimer -= uiDiff;
-
-             if (m_uiPhaseTimer <= uiDiff)
-             {
-                 m_uiPhase = PHASE_SUBMERGED;
-                 DoCastSpellIfCan(m_creature, SPELL_EMERGE);
-                 m_creature->SetDisplayId(MODEL_DREADSCALE_STATIONARY);
-                 m_creature->SetSpeedRate(MOVE_WALK, 0);
-                 m_creature->SetSpeedRate(MOVE_RUN, 0);
-                 m_uiPhaseTimer = 65000;
-             }
-             else
-                 m_uiPhaseTimer -= uiDiff;
-
-            break;
-        case PHASE_SUBMERGED:
-             if (m_uiFireSpitTimer <= uiDiff)
-             {
-                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            case PHASE_EMERGED:
+            {
+                 if (m_uiBurningBiteTimer <= uiDiff)
                  {
-                     if (DoCastSpellIfCan(pTarget, SPELL_FIRE_SPIT) == CAST_OK)
-                         m_uiFireSpitTimer = 1200;
+                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BURNING_BITE) == CAST_OK)
+                         m_uiBurningBiteTimer = urand(15000, 30000);
                  }
-             }
-             else
-                 m_uiFireSpitTimer -= uiDiff;
+                 else
+                     m_uiBurningBiteTimer -= uiDiff;
 
-             if (m_uiBurningSprayTimer <= uiDiff)
-             {
-                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                 if (m_uiMoltenSpewTimer <= uiDiff)
                  {
-                     if (DoCastSpellIfCan(pTarget, SPELL_BURNING_SPRAY, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
-                         m_uiBurningSprayTimer = 20000;
+                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MOLTEN_SPEW) == CAST_OK)
+                         m_uiMoltenSpewTimer = urand(15000, 30000);
                  }
-             }
-             else
-                 m_uiBurningSprayTimer -= uiDiff;
+                 else
+                     m_uiMoltenSpewTimer -= uiDiff;
 
-             if (m_uiSweepTimer <= uiDiff)
-             {
-                 if (DoCastSpellIfCan(m_creature, SPELL_SWEEP, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                 if (m_uiSlimePoolTimer <= uiDiff)
                  {
-                     m_uiSweepTimer = 20000;
-                     m_uiFireSpitTimer = 3000;
+                     if(DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIME_POOL) == CAST_OK)
+                         m_uiSlimePoolTimer = 12000;
                  }
-             }
-             else
-                 m_uiSweepTimer -= uiDiff;
+                 else
+                     m_uiSlimePoolTimer -= uiDiff;
 
-             if (m_uiPhaseTimer <= uiDiff)
-             {
-                 m_uiPhase = PHASE_EMERGED;
-                 m_creature->SetDisplayId(MODEL_DREADSCALE_MOBILE);
-                 m_creature->SetSpeedRate(MOVE_WALK, 1);
-                 m_creature->SetSpeedRate(MOVE_RUN, 1);
-                 SetCombatMovement(true);
-                 m_creature->RemoveAurasDueToSpell(SPELL_EMERGE);
-                 DoResetThreat();
-                 m_uiPhaseTimer = 65000;
-             }
-             else
-                 m_uiPhaseTimer -= uiDiff;
+                 if (m_uiPhaseTimer <= uiDiff)
+                 {
+                     m_Phase = PHASE_SUBMERGED;
+                     DoCastSpellIfCan(m_creature, SPELL_EMERGE);
+                     m_creature->SetDisplayId(MODEL_DREADSCALE_STATIONARY);
+                     m_creature->SetSpeedRate(MOVE_WALK, 0);
+                     m_creature->SetSpeedRate(MOVE_RUN, 0);
+                     m_uiPhaseTimer = 65000;
+                 }
+                 else
+                     m_uiPhaseTimer -= uiDiff;
 
-            break;
+                break;
+            }
+            case PHASE_SUBMERGED:
+            {
+                 if (m_uiFireSpitTimer <= uiDiff)
+                 {
+                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                     {
+                         if (DoCastSpellIfCan(pTarget, SPELL_FIRE_SPIT) == CAST_OK)
+                             m_uiFireSpitTimer = 1200;
+                     }
+                 }
+                 else
+                     m_uiFireSpitTimer -= uiDiff;
+
+                 if (m_uiBurningSprayTimer <= uiDiff)
+                 {
+                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                     {
+                         if (DoCastSpellIfCan(pTarget, SPELL_BURNING_SPRAY, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                             m_uiBurningSprayTimer = 20000;
+                     }
+                 }
+                 else
+                     m_uiBurningSprayTimer -= uiDiff;
+
+                 if (m_uiSweepTimer <= uiDiff)
+                 {
+                     if (DoCastSpellIfCan(m_creature, SPELL_SWEEP, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                     {
+                         m_uiSweepTimer = 20000;
+                         m_uiFireSpitTimer = 3000;
+                     }
+                 }
+                 else
+                     m_uiSweepTimer -= uiDiff;
+
+                 if (m_uiPhaseTimer <= uiDiff)
+                 {
+                     m_Phase = PHASE_EMERGED;
+                     m_creature->SetDisplayId(MODEL_DREADSCALE_MOBILE);
+                     m_creature->SetSpeedRate(MOVE_WALK, 1);
+                     m_creature->SetSpeedRate(MOVE_RUN, 1);
+                     SetCombatMovement(true);
+                     m_creature->RemoveAurasDueToSpell(SPELL_EMERGE);
+                     DoResetThreat();
+                     m_uiPhaseTimer = 65000;
+                 }
+                 else
+                     m_uiPhaseTimer -= uiDiff;
+
+                break;
+            }
+            default:
+                m_creature->MonsterSay("Unknown Phase", LANG_UNIVERSAL);
+                break;
         }
 
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL && !m_bIsEnraged)
+        if (m_pInstance->GetData(TYPE_NORTHREND_BEAST_STATE) == SNAKES_SPECIAL && !m_bIsEnraged)
         {
             m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE);
             m_creature->SetDisplayId(MODEL_DREADSCALE_MOBILE);
@@ -817,13 +711,6 @@ struct MANGOS_DLL_DECL boss_dreadscaleAI : public ScriptedAI
             m_bIsEnraged = true;
         }
 
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL)
-        {
-            ++m_uiAchievTimer;
-            if (m_uiAchievTimer < uiDiff)
-                m_bAchievFailed = true;
-        }
-
         DoMeleeAttackIfReady();
     }
 };
@@ -831,67 +718,6 @@ struct MANGOS_DLL_DECL boss_dreadscaleAI : public ScriptedAI
 CreatureAI* GetAI_boss_dreadscale(Creature* pCreature)
 {
     return new boss_dreadscaleAI(pCreature);
-}
-
-struct MANGOS_DLL_DECL mob_slime_poolAI : public ScriptedAI
-{
-    mob_slime_poolAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
-        Reset();
-    }
-
-    ScriptedInstance *m_pInstance;
-
-    uint32 m_uiIncreaseSizeTimer;
-
-    float m_fSize;
-    bool m_bIsCloudCasted;
-
-    void Reset()
-    {
-        if (!m_pInstance) 
-            return;
-
-        m_uiIncreaseSizeTimer = 0;
-
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        //m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        m_creature->SetInCombatWithZone();
-        DoCastSpellIfCan(m_creature, SPELL_SLIME_POOL_AURA, CAST_TRIGGERED);
-        DoCastSpellIfCan(m_creature, SPELL_AUTO_GROW, CAST_TRIGGERED);
-
-        SetCombatMovement(false);
-
-        m_fSize = m_creature->GetFloatValue(OBJECT_FIELD_SCALE_X);
-        m_bIsCloudCasted = false;
-    }
-
-    void AttackStart(Unit *who)
-    {
-        return;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_pInstance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_DONE)
-            m_creature->ForcedDespawn();
-
-        if (!m_bIsCloudCasted) 
-        {
-            m_creature->CastSpell(m_creature, SPELL_SLIME_POOL_VISUAL, false);
-            m_bIsCloudCasted = true;
-        }
-
-        if (m_fSize >= 6.0f) 
-            m_creature->ForcedDespawn();
-    }
-
-};
-
-CreatureAI* GetAI_mob_slime_pool(Creature* pCreature)
-{
-    return new mob_slime_poolAI(pCreature);
 }
 
 struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
@@ -911,40 +737,33 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
     uint32 m_uiWaitTimer;
     uint32 m_uiPhaseTimer;
     uint32 m_uiPhase;
-    uint32 m_uiCheckTimer;
 
     float fPosX, fPosY, fPosZ;
     Unit *pFocus;
-    bool m_bAchievFailed;
 
-    std::list<Creature*> vassalsEntryList;
-
-    void Reset() 
+    void Reset()
     {
-        if (!m_pInstance) 
-            return;
-
         m_uiFerociousButtTimer         = 15000;
         m_uiArcticBreathTimer          = 25000;
         m_uiWhirlTimer                 = 20000;
         m_uiMassiveCrashTimer          = 30000;
         m_uiPhase                      = PHASE_NORMAL;
-        m_uiCheckTimer                 = 0; // if not vassals at encounter start only check once.
 
-        m_creature->SetRespawnDelay(7*DAY);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetSpeedRate(MOVE_WALK, 3.0f);
         m_creature->SetSpeedRate(MOVE_RUN, 3.0f);
 
-        m_bAchievFailed                = false;
-
         pFocus = NULL;
 
-        vassalsEntryList.clear();
     }
 
     void MovementInform(uint32 uiMovementType, uint32 uiData)
     {
+        if (uiData == POINT_COMBAT_POSITION)
+        {
+            m_creature->SetInCombatWithZone();
+        }
+
         if (uiMovementType != POINT_MOTION_TYPE)
             return;
 
@@ -991,66 +810,15 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         }
     }
 
-    void CheckAchiev()
-    {
-        vassalsEntryList.clear();
-        GetCreatureListWithEntryInGrid(vassalsEntryList, m_creature, NPC_SNOBOLD_VASSAL, 250.0f);
-
-        if (vassalsEntryList.empty())
-        {
-            m_pInstance->SetSpecialAchievementCriteria(TYPE_UPPER_BACK_PAIN, false);
-            m_bAchievFailed = true;
-            return;
-        }
-
-        if (vassalsEntryList.size()-1 >= 2)
-            m_pInstance->SetSpecialAchievementCriteria(TYPE_UPPER_BACK_PAIN, true);
-        else
-        {
-            m_pInstance->SetSpecialAchievementCriteria(TYPE_UPPER_BACK_PAIN, false);
-            m_bAchievFailed = true;
-        }
-    }
-
-    void JustDied(Unit* pKiller)
-    {
-        if (!m_pInstance) 
-            return;
-
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, ICEHOWL_DONE);
-    }
-
     void JustReachedHome()
     {
-        if (!m_pInstance) 
-            return;
-
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, FAIL);
-        
         m_creature->ForcedDespawn();
-    }
-
-    void Aggro(Unit* pWho)
-    {
-        m_creature->SetInCombatWithZone();
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, ICEHOWL_IN_PROGRESS);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        if (!m_bAchievFailed)
-        {
-            if (m_uiCheckTimer < uiDiff)
-            {
-                CheckAchiev();
-                m_uiCheckTimer = 500;
-            }
-            else
-                m_uiCheckTimer -= uiDiff;
-        }
 
         switch (m_uiPhase)
         {
@@ -1066,8 +834,10 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                  if (m_uiArcticBreathTimer <= uiDiff)
                  {
                      if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+                     {
                          if (DoCastSpellIfCan(pTarget, SPELL_ARCTIC_BREATH) == CAST_OK)
                              m_uiArcticBreathTimer = urand(25000, 40000);
+                     }
                  }
                  else
                      m_uiArcticBreathTimer -= uiDiff;
@@ -1165,13 +935,4 @@ void AddSC_northrend_beasts()
     pNewScript->GetAI = &GetAI_mob_snobold_vassal;
     pNewScript->RegisterSelf();
 
-    pNewScript = new Script;
-    pNewScript->Name = "mob_fire_bomb";
-    pNewScript->GetAI = &GetAI_mob_fire_bomb;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "mob_slime_pool";
-    pNewScript->GetAI = &GetAI_mob_slime_pool;
-    pNewScript->RegisterSelf();
 }

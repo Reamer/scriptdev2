@@ -28,9 +28,6 @@ EndScriptData */
 #define AI_RANGED   1
 #define AI_HEALER   2
 
-#define SPELL_ANTI_AOE     68595
-#define SPELL_PVP_TRINKET  65547
-
 enum Spells
 {
     /********************************************************************
@@ -205,32 +202,35 @@ enum Spells
     SPELL_CLAW                  = 67793,
 
     //Other
-    //SPELL_TRINKET             = 65547, //5min cd
     SPELL_HEROISM               = 65983,
     SPELL_BLOODLUST             = 65980,
     AURA_EXHAUSTION             = 57723,
     AURA_SATED                  = 57724,
     SPELL_DIVINE_SHIELD         = 63148,
     SPELL_BLOCK                 = 45438,
+    SPELL_ANTI_AOE              = 68595,
+    SPELL_PVP_TRINKET           = 65547,
 
     //NPC
     NPC_FELHUNTER               = 35465,
     NPC_CAT                     = 35610,
 };
 
-struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
+struct MANGOS_DLL_DECL boss_faction_championsAI : public ScriptedAI
 {
-    boss_faction_championsAI(Creature* pCreature, uint32 aitype) : BSWScriptedAI(pCreature) 
+    boss_faction_championsAI(Creature* pCreature, uint32 aitype) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
         m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
-        m_bIsHeroicMode = (m_uiMapDifficulty == RAID_DIFFICULTY_10MAN_HEROIC || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
+        m_bIsHeroic = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_10MAN_HEROIC);
+        m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         mAIType = aitype;
-        Init();
+        Reset();
     }
 
     ScriptedInstance* m_pInstance;
-    bool m_bIsHeroicMode;
+    bool m_bIsHeroic;
+    bool m_bIs25Man;
 
     Difficulty m_uiMapDifficulty;
     uint32 mAIType;
@@ -238,25 +238,17 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
     uint32 m_uiChangeTargetTimer;
     uint32 m_uiInsygniaTimer;
 
-    void Init()
+    void Reset()
     {
         UpdateTimer = 5000;
         m_uiChangeTargetTimer = 6000;
-        resetTimers();
         m_uiInsygniaTimer = urand(30*IN_MILLISECONDS, 60*IN_MILLISECONDS);
-        m_creature->SetRespawnDelay(DAY);
-    }
-
-    void Reset()
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_CRUSADERS, NOT_STARTED);
     }
 
     void JustDied(Unit *killer)
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_CRUSADERS_COUNT, 0);
+            m_pInstance->SetData(TYPE_CRUSADERS_COUNT, SPECIAL);
     }
 
     void Aggro(Unit *who)
@@ -264,11 +256,8 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
         if (!m_pInstance)
             return;
 
-        m_pInstance->SetData(TYPE_CRUSADERS, IN_PROGRESS);
+        m_pInstance->SetData(TYPE_FACTION_CHAMPIONS, IN_PROGRESS);
         m_creature->CastSpell(m_creature, SPELL_ANTI_AOE, true);
-        if (who->GetTypeId() != TYPEID_PLAYER)
-            if (Unit* player = doSelectRandomPlayerAtRange(80.0f))
-                    m_creature->AddThreat(player, 100.0f);
     }
 
     void AttackStart(Unit* pWho)
@@ -285,13 +274,6 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
                 m_creature->GetMotionMaster()->MoveChase(pWho);
             else
                 DoStartMovement(pWho, 20.0f);
-
-            if (mAIType == AI_HEALER)
-                m_creature->GetMotionMaster()->MoveChase(pWho);
-
-            if (mAIType == AI_RANGED)
-                m_creature->GetMotionMaster()->MoveChase(pWho);
-
             SetCombatMovement(true);
         }
     }
@@ -299,7 +281,7 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_CRUSADERS, FAIL);
+            m_pInstance->SetData(TYPE_FACTION_CHAMPIONS, FAIL);
 
         m_creature->ForcedDespawn();
     }
@@ -407,7 +389,7 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_pInstance && m_pInstance->GetData(TYPE_CRUSADERS) != IN_PROGRESS) 
+        if (m_pInstance && m_pInstance->GetData(TYPE_FACTION_CHAMPIONS) != IN_PROGRESS)
             m_creature->ForcedDespawn();
 
         if (m_uiChangeTargetTimer < uiDiff)
@@ -426,7 +408,7 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public BSWScriptedAI
         else
             UpdateTimer -= uiDiff;
 
-        if (m_bIsHeroicMode)
+        if (m_bIsHeroic)
         {
             if (m_uiInsygniaTimer < uiDiff)
             {
@@ -476,6 +458,8 @@ struct MANGOS_DLL_DECL mob_toc_druidAI : public boss_faction_championsAI
         m_uiCastHealTimer     = urand(3*IN_MILLISECONDS, 5*IN_MILLISECONDS);
 
         SetEquipmentSlots(false, 51799, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
+
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -487,8 +471,8 @@ struct MANGOS_DLL_DECL mob_toc_druidAI : public boss_faction_championsAI
         {
             if (m_creature->GetHealthPercent() < 60.0f)
             {
-                m_creature->CastSpell(m_creature, SPELL_BARKSKIN, true);
-                m_uiBarskinTimer = 1*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature, SPELL_BARKSKIN, CAST_TRIGGERED) == CAST_OK)
+                    m_uiBarskinTimer = 1*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -496,16 +480,16 @@ struct MANGOS_DLL_DECL mob_toc_druidAI : public boss_faction_championsAI
 
         if (m_uiNatureGraspTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_NATURE_GRASP);
-            m_uiNatureGraspTimer = 1*MINUTE*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature, SPELL_NATURE_GRASP) == CAST_OK)
+                m_uiNatureGraspTimer = 1*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiNatureGraspTimer -= uiDiff;
 
         if (m_uiThornsTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_THORNS);
-            m_uiThornsTimer = urand(25*IN_MILLISECONDS, 90*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature, SPELL_THORNS) == CAST_OK)
+                m_uiThornsTimer = urand(25*IN_MILLISECONDS, 90*IN_MILLISECONDS);
         }
         else
             m_uiThornsTimer -= uiDiff;
@@ -524,8 +508,8 @@ struct MANGOS_DLL_DECL mob_toc_druidAI : public boss_faction_championsAI
         {
             if (Unit *target = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_LIFEBLOOM);
-                m_uiLifebloomTimer = urand(5*IN_MILLISECONDS, 8*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(target, SPELL_LIFEBLOOM) == CAST_OK)
+                    m_uiLifebloomTimer = urand(5*IN_MILLISECONDS, 8*IN_MILLISECONDS);
             }
         }
         else
@@ -535,8 +519,8 @@ struct MANGOS_DLL_DECL mob_toc_druidAI : public boss_faction_championsAI
         {
             if (Unit *target = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_REJUVENATION);
-                m_uiRejuvenationTimer = urand(8*IN_MILLISECONDS, 18*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(target, SPELL_REJUVENATION) == CAST_OK)
+                    m_uiRejuvenationTimer = urand(8*IN_MILLISECONDS, 18*IN_MILLISECONDS);
             }
         }
         else
@@ -549,16 +533,15 @@ struct MANGOS_DLL_DECL mob_toc_druidAI : public boss_faction_championsAI
                 switch(urand(0, 1))
                 {
                     case 0:
-                        DoCastSpellIfCan(target, SPELL_NOURISH);
-                        m_uiCastHealTimer = 1500;
+                        if (DoCastSpellIfCan(target, SPELL_NOURISH) == CAST_OK)
+                            m_uiCastHealTimer = 1500;
                         break;
                     case 1:
-                        DoCastSpellIfCan(target, SPELL_REGROWTH);
-                        m_uiCastHealTimer = urand(2500, 15000);
+                        if (DoCastSpellIfCan(target, SPELL_REGROWTH) == CAST_OK)
+                            m_uiCastHealTimer = urand(2500, 15000);
                         break; 
                 }
             }
-            m_uiCastHealTimer = urand(8*IN_MILLISECONDS, 18*IN_MILLISECONDS);
         }
         else
             m_uiCastHealTimer -= uiDiff;
@@ -597,6 +580,7 @@ struct MANGOS_DLL_DECL mob_toc_shamanAI : public boss_faction_championsAI
         m_uiHeroismOrBloodlustTimer = 30*IN_MILLISECONDS;
 
         SetEquipmentSlots(false, 49992, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -610,95 +594,18 @@ struct MANGOS_DLL_DECL mob_toc_shamanAI : public boss_faction_championsAI
             {
                 if (!m_creature->HasAura(AURA_EXHAUSTION))
                 {
-                    DoCastSpellIfCan(m_creature, SPELL_HEROISM);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_1))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_3))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_4))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_5))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_6))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_7))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_8))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_9))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_10))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-              
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_11))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_12))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_13))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_1_14))
-                        pChampion->_AddAura(SPELL_HEROISM, 40000);
+                    if (DoCastSpellIfCan(m_creature, SPELL_HEROISM) == CAST_OK)
+                        m_uiHeroismOrBloodlustTimer = 10*MINUTE*IN_MILLISECONDS;
                 }
             }
             else
             {
                 if (!m_creature->HasAura(AURA_SATED))
                 {
-                    DoCastSpellIfCan(m_creature, SPELL_BLOODLUST);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_1))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_3))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_4))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_5))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_6))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_7))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_8))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_9))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_10))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-              
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_11))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_12))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_13))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
-
-                    if (Creature* pChampion = m_pInstance->GetSingleCreatureFromStorage(NPC_CRUSADER_2_14))
-                        pChampion->_AddAura(SPELL_BLOODLUST, 40000);
+                    if (DoCastSpellIfCan(m_creature, SPELL_BLOODLUST) == CAST_OK)
+                        m_uiHeroismOrBloodlustTimer = 10*MINUTE*IN_MILLISECONDS;
                 }
             }
-            m_uiHeroismOrBloodlustTimer = 10*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiHeroismOrBloodlustTimer -= uiDiff;
@@ -707,8 +614,8 @@ struct MANGOS_DLL_DECL mob_toc_shamanAI : public boss_faction_championsAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                DoCastSpellIfCan(pTarget, SPELL_HEX);
-                m_uiHexTimer = 45*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_HEX) == CAST_OK)
+                    m_uiHexTimer = 45*IN_MILLISECONDS;
             }
         }
         else
@@ -718,8 +625,8 @@ struct MANGOS_DLL_DECL mob_toc_shamanAI : public boss_faction_championsAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                DoCastSpellIfCan(pTarget, SPELL_EARTH_SHOCK);
-                m_uiEartShockTimer = urand(5*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(pTarget, SPELL_EARTH_SHOCK) == CAST_OK)
+                    m_uiEartShockTimer = urand(5*IN_MILLISECONDS, 15*IN_MILLISECONDS);
             }
         }
         else
@@ -727,10 +634,10 @@ struct MANGOS_DLL_DECL mob_toc_shamanAI : public boss_faction_championsAI
 
         if (m_uiHealingWaveTimer < uiDiff)
         {
-            if (Unit *target = DoSelectLowestHpFriendly(40.0f))
+            if (Unit *pTarget = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_HEALING_WAVE);
-                m_uiHealingWaveTimer = urand(7*IN_MILLISECONDS, 12*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(pTarget, SPELL_HEALING_WAVE) == CAST_OK)
+                    m_uiHealingWaveTimer = urand(7*IN_MILLISECONDS, 12*IN_MILLISECONDS);
             }
         }
         else
@@ -738,29 +645,31 @@ struct MANGOS_DLL_DECL mob_toc_shamanAI : public boss_faction_championsAI
 
         if (m_uiRiptideTimer < uiDiff)
         {
-            if (Unit *target = DoSelectLowestHpFriendly(40.0f))
+            CanCastResult result = CAST_FAIL_OTHER;
+            if (Unit *pTarget = DoSelectLowestHpFriendly(40.0f))
             {
                 switch(urand(0, 1))
                 {
                     case 0:
-                        m_creature->CastSpell(target, SPELL_RIPTIDE, false);
+                        result = DoCastSpellIfCan(pTarget, SPELL_RIPTIDE);
                         break;
                     case 1:
-                        m_creature->CastSpell(target, SPELL_SPIRIT_CLEANSE , false);
+                        result = DoCastSpellIfCan(pTarget, SPELL_SPIRIT_CLEANSE);
                         break;
                 }
             }
-            m_uiRiptideTimer = urand(6*IN_MILLISECONDS, 18*IN_MILLISECONDS);
+            if (result == CAST_OK)
+                m_uiRiptideTimer = urand(6*IN_MILLISECONDS, 18*IN_MILLISECONDS);
         }
         else
             m_uiRiptideTimer -= uiDiff;
 
         if (m_uiEarthShieldTimer < uiDiff)
         {
-            if (Unit *target = DoSelectLowestHpFriendly(40.0f))
+            if (Unit *pTarget = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_EARTH_SHIELD);
-                m_uiEarthShieldTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(pTarget, SPELL_EARTH_SHIELD) == CAST_OK)
+                    m_uiEarthShieldTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);
             }
         }
         else
@@ -803,6 +712,7 @@ struct MANGOS_DLL_DECL mob_toc_paladinAI : public boss_faction_championsAI
         m_uiFlashHealTimer          = urand(2*IN_MILLISECONDS, 10*IN_MILLISECONDS);
 
         SetEquipmentSlots(false, 50771, 47079, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -814,8 +724,8 @@ struct MANGOS_DLL_DECL mob_toc_paladinAI : public boss_faction_championsAI
         {
             if (m_creature->GetHealthPercent() <= 25.0f)
             {
-                DoCastSpellIfCan(m_creature, SPELL_BUBBLE);
-                m_uiBubbleTimer = 5*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature, SPELL_BUBBLE, CAST_TRIGGERED) == CAST_OK)
+                    m_uiBubbleTimer = 5*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -823,20 +733,20 @@ struct MANGOS_DLL_DECL mob_toc_paladinAI : public boss_faction_championsAI
 
         if (m_uiHammerOfJusticeTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMMER_OF_JUSTICE);
-            m_uiHammerOfJusticeTimer = 40*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMMER_OF_JUSTICE) == CAST_OK)
+                m_uiHammerOfJusticeTimer = 40*IN_MILLISECONDS;
         }
         else
             m_uiHammerOfJusticeTimer -= uiDiff;
 
         if (m_uiHandOfProtectionTimer <= uiDiff)
         {
-            if (Unit* target = DoSelectLowestHpFriendly(40.0f))
+            if (Unit* pTarget = DoSelectLowestHpFriendly(40.0f))
             {
-                if (target->GetHealthPercent() <= 20.0f)
+                if (pTarget->GetHealthPercent() <= 20.0f)
                 {
-                    DoCastSpellIfCan(target, SPELL_HAND_OF_PROTECTION);
-                    m_uiHandOfProtectionTimer = 5*MINUTE*IN_MILLISECONDS;
+                    if (DoCastSpellIfCan(pTarget, SPELL_HAND_OF_PROTECTION) == CAST_OK)
+                        m_uiHandOfProtectionTimer = 5*MINUTE*IN_MILLISECONDS;
                 }
             }
         }
@@ -845,10 +755,10 @@ struct MANGOS_DLL_DECL mob_toc_paladinAI : public boss_faction_championsAI
 
         if (m_uiHandOfFreedomTimer <= uiDiff)
         {
-            if (Unit* target = DoSelectLowestHpFriendly(40.0f))
+            if (Unit* pTarget = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_HAND_OF_FREEDOM);
-                m_uiHandOfFreedomTimer = 25*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_HAND_OF_FREEDOM) == CAST_OK)
+                    m_uiHandOfFreedomTimer = 25*IN_MILLISECONDS;
             }
         }
         else
@@ -856,10 +766,10 @@ struct MANGOS_DLL_DECL mob_toc_paladinAI : public boss_faction_championsAI
 
         if (m_uiHolyLightTimer < uiDiff)
         {
-            if (Unit* target = DoSelectLowestHpFriendly(40.0f))
+            if (Unit* pTarget = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_HOLY_LIGHT);
-                m_uiHolyLightTimer = urand(9*IN_MILLISECONDS, 25*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(pTarget, SPELL_HOLY_LIGHT) == CAST_OK)
+                    m_uiHolyLightTimer = urand(9*IN_MILLISECONDS, 25*IN_MILLISECONDS);
             }
         }
         else
@@ -869,8 +779,8 @@ struct MANGOS_DLL_DECL mob_toc_paladinAI : public boss_faction_championsAI
         {
             if (Unit* target = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_FLASH_HEAL);
-                m_uiFlashHealTimer = urand(5*IN_MILLISECONDS, 10*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(target, SPELL_FLASH_HEAL) == CAST_OK)
+                    m_uiFlashHealTimer = urand(5*IN_MILLISECONDS, 10*IN_MILLISECONDS);
             }
         }
         else
@@ -880,8 +790,8 @@ struct MANGOS_DLL_DECL mob_toc_paladinAI : public boss_faction_championsAI
         {
             if (Unit* target = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_HOLY_SHOCK);
-                m_uiHolyShockTimer = urand(6*IN_MILLISECONDS, 16*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(target, SPELL_HOLY_SHOCK) == CAST_OK)
+                    m_uiHolyShockTimer = urand(6*IN_MILLISECONDS, 16*IN_MILLISECONDS);
             }
         }
         else
@@ -909,7 +819,7 @@ struct MANGOS_DLL_DECL mob_toc_priestAI : public boss_faction_championsAI
     uint32 m_uiShieldTimer;
     uint32 m_uiFlashHealTimer;
     uint32 m_uiPsychicScreamTimer;
-    //uint32 m_uiManaBurnTimer;
+    uint32 m_uiManaBurnTimer;
 
     void Reset()
     {
@@ -918,9 +828,10 @@ struct MANGOS_DLL_DECL mob_toc_priestAI : public boss_faction_championsAI
         m_uiRenewTimer          = urand(2*IN_MILLISECONDS, 16*IN_MILLISECONDS);
         m_uiShieldTimer         = 0;
         m_uiFlashHealTimer      = urand(6*IN_MILLISECONDS, 10*IN_MILLISECONDS);
-        //m_uiManaBurnTimer       = urand(6*IN_MILLISECONDS, 16*IN_MILLISECONDS);
+        m_uiManaBurnTimer       = urand(6*IN_MILLISECONDS, 16*IN_MILLISECONDS);
 
         SetEquipmentSlots(false, 49992, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -945,8 +856,8 @@ struct MANGOS_DLL_DECL mob_toc_priestAI : public boss_faction_championsAI
         {
             if (Unit* target = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_RENEW);
-                m_uiRenewTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);  
+                if (DoCastSpellIfCan(target, SPELL_RENEW) == CAST_OK)
+                    m_uiRenewTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);
             }
         }
         else
@@ -956,8 +867,8 @@ struct MANGOS_DLL_DECL mob_toc_priestAI : public boss_faction_championsAI
         {
             if (Unit* target = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_SHIELD);
-                m_uiShieldTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);  
+                if (DoCastSpellIfCan(target, SPELL_SHIELD) == CAST_OK)
+                    m_uiShieldTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
             }
         }
         else
@@ -967,8 +878,8 @@ struct MANGOS_DLL_DECL mob_toc_priestAI : public boss_faction_championsAI
         {
             if (Unit* target = DoSelectLowestHpFriendly(40.0f))
             {
-                DoCastSpellIfCan(target, SPELL_FLASH_HEAL_P);
-                m_uiFlashHealTimer = urand(5*IN_MILLISECONDS, 10*IN_MILLISECONDS);  
+                if (DoCastSpellIfCan(target, SPELL_FLASH_HEAL_P) == CAST_OK)
+                    m_uiFlashHealTimer = urand(5*IN_MILLISECONDS, 10*IN_MILLISECONDS);
             }
         }
         else
@@ -976,21 +887,26 @@ struct MANGOS_DLL_DECL mob_toc_priestAI : public boss_faction_championsAI
 
         if (m_uiPsychicScreamTimer < uiDiff)
         {
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_DISPEL, true);
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_PSYCHIC_SCREAM);
-            m_uiPsychicScreamTimer = 30*IN_MILLISECONDS;  
+
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PSYCHIC_SCREAM) == CAST_OK)
+            {
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISPEL, CAST_TRIGGERED);
+                m_uiPsychicScreamTimer = 30*IN_MILLISECONDS;
+            }
         }
         else
             m_uiPsychicScreamTimer -= uiDiff;
 
-        /*if(m_uiManaBurnTimer < uiDiff)
+        if(m_uiManaBurnTimer < uiDiff)
         {
             if (Unit* pTarget = SelectEnemyTargetWithinMana())
             {
-                DoCastSpellIfCan(pTarget, SPELL_MANA_BURN);
-                m_uiManaBurnTimer = urand(6000, 15000);
+                if (DoCastSpellIfCan(pTarget, SPELL_MANA_BURN) == CAST_OK)
+                    m_uiManaBurnTimer = urand(6000, 15000);
             }
-        }else m_uiManaBurnTimer -= uiDiff;*/
+        }
+        else
+            m_uiManaBurnTimer -= uiDiff;
 
         boss_faction_championsAI::UpdateAI(uiDiff);
     }
@@ -1036,6 +952,7 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
         m_uiKillPlayerTimer = 0;
 
         SetEquipmentSlots(false, 50040, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1047,9 +964,8 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
         {
             if (Unit *target = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_MIND_BLAST, false);
-                m_creature->CastSpell(target, SPELL_MIND_FLAY, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(target, SPELL_MIND_BLAST) == CAST_OK || DoCastSpellIfCan(target, SPELL_MIND_FLAY) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -1059,8 +975,8 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
         {
             if (m_creature->GetHealthPercent() <= 20.0f)
             {
-                m_creature->CastSpell(m_creature, SPELL_DISPERSION, true);
-                m_uiDispersionTimer = 90*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature, SPELL_DISPERSION, CAST_TRIGGERED) == CAST_OK)
+                    m_uiDispersionTimer = 90*IN_MILLISECONDS;
             }
         }
         else
@@ -1068,10 +984,10 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
 
         if (m_uiHorrorTimer < uiDiff)
         {
-            if (Unit *target = SelectTargetWithinDist())
+            if (Unit *pTarget = SelectTargetWithinDist())
             {
-                DoCastSpellIfCan(target, SPELL_HORROR);
-                m_uiHorrorTimer = 2*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_HORROR) == CAST_OK)
+                    m_uiHorrorTimer = 2*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -1079,10 +995,10 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
 
         if (m_uiFearTimer < uiDiff)
         {
-            if (Unit *target = SelectTargetWithinDist())
+            if (Unit *pTarget = SelectTargetWithinDist())
             {
-                DoCastSpellIfCan(m_creature, SPELL_PSYCHIC_SCREAM);
-                m_uiFearTimer = urand(20*IN_MILLISECONDS, 35*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(m_creature, SPELL_PSYCHIC_SCREAM) == CAST_OK)
+                    m_uiFearTimer = urand(20*IN_MILLISECONDS, 35*IN_MILLISECONDS);
             }
         }
         else
@@ -1090,33 +1006,35 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
 
         if (m_uiDispelTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISPEL);
-            m_uiDispelTimer = urand(2*IN_MILLISECONDS, 15*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISPEL) == CAST_OK)
+                m_uiDispelTimer = urand(2*IN_MILLISECONDS, 15*IN_MILLISECONDS);
         }
         else
             m_uiDispelTimer -= uiDiff;
 
         if (m_uiTouchTimer < uiDiff)
         {
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_SW_PAIN, true);
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_VAMPIRIC_TOUCH, false);
-            m_uiTouchTimer = urand(5*IN_MILLISECONDS, 25*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_VAMPIRIC_TOUCH) == CAST_OK)
+            {
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_SW_PAIN, CAST_TRIGGERED);
+                m_uiTouchTimer = urand(5*IN_MILLISECONDS, 25*IN_MILLISECONDS);
+            }
         }
         else
             m_uiTouchTimer -= uiDiff;
 
         if (m_uiBlastTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_BLAST);
-            m_uiBlastTimer = urand(8*IN_MILLISECONDS, 16*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_BLAST) == CAST_OK)
+                m_uiBlastTimer = urand(8*IN_MILLISECONDS, 16*IN_MILLISECONDS);
         }
         else
             m_uiBlastTimer -= uiDiff;
 
         if (m_uiMindFlayTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_FLAY);
-            m_uiMindFlayTimer = urand(9*IN_MILLISECONDS, 18*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_FLAY) == CAST_OK)
+                m_uiMindFlayTimer = urand(9*IN_MILLISECONDS, 18*IN_MILLISECONDS);
         }
         else
             m_uiMindFlayTimer -= uiDiff;
@@ -1125,8 +1043,8 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
         {
             if (Unit *target = SelectEnemyTargetWithinMana())
             {
-                DoCastSpellIfCan(target, SPELL_SILENCE);
-                m_uiSilenceTimer = 45*IN_MILLISECONDS; 
+                if (DoCastSpellIfCan(target, SPELL_SILENCE) == CAST_OK)
+                    m_uiSilenceTimer = 45*IN_MILLISECONDS;
             }
         }
         else
@@ -1175,6 +1093,7 @@ struct MANGOS_DLL_DECL mob_toc_warlockAI : public boss_faction_championsAI
         m_uiKillPlayerTimer     = 0;
 
         SetEquipmentSlots(false, 49992, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
 
@@ -1185,11 +1104,10 @@ struct MANGOS_DLL_DECL mob_toc_warlockAI : public boss_faction_championsAI
 
         if (m_uiKillPlayerTimer < uiDiff)
         {
-            if (Unit *target = KillPlayer())
+            if (Unit* pTarget = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_FEAR, false);
-                m_creature->CastSpell(target, SPELL_SHADOW_BOLT, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_FEAR) == CAST_OK || DoCastSpellIfCan(pTarget, SPELL_SHADOW_BOLT) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -1197,10 +1115,10 @@ struct MANGOS_DLL_DECL mob_toc_warlockAI : public boss_faction_championsAI
 
         if (m_uiHelfireTimer < uiDiff)
         {
-            if (Unit *target =  SelectTargetWithinDist())
+            if (Unit* pTarget =  SelectTargetWithinDist())
             {
-                DoCastSpellIfCan(m_creature, SPELL_HELLFIRE);
-                m_uiHelfireTimer = 45*IN_MILLISECONDS; 
+                if (DoCastSpellIfCan(m_creature, SPELL_HELLFIRE) == CAST_OK)
+                    m_uiHelfireTimer = 45*IN_MILLISECONDS;
             }
         }
         else
@@ -1208,35 +1126,37 @@ struct MANGOS_DLL_DECL mob_toc_warlockAI : public boss_faction_championsAI
 
         if (m_uiCoruptionTimer < uiDiff)
         {
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_UNSTABLE, false);
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_CURSE_OF_AGONY, true);
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_CURSE_OF_EXHAUSTION, true);
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_CORRUPTION, true);
-            m_uiCoruptionTimer = urand(8*IN_MILLISECONDS, 18*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_UNSTABLE, false) == CAST_OK)
+            {
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CURSE_OF_AGONY, CAST_TRIGGERED);
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CURSE_OF_EXHAUSTION, CAST_TRIGGERED);
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CORRUPTION, CAST_TRIGGERED);
+                m_uiCoruptionTimer = urand(8*IN_MILLISECONDS, 18*IN_MILLISECONDS);
+            }
         }
         else
             m_uiCoruptionTimer -= uiDiff;
 
         if (m_uiSearingPainTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_SEARING_PAIN);
-            m_uiSearingPainTimer = urand(6*IN_MILLISECONDS, 15*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SEARING_PAIN) == CAST_OK)
+                m_uiSearingPainTimer = urand(6*IN_MILLISECONDS, 15*IN_MILLISECONDS);
         }
         else
             m_uiSearingPainTimer -= uiDiff;
 
         if (m_uiFearTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_FEAR);
-            m_uiFearTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FEAR) == CAST_OK)
+                m_uiFearTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
         }
         else
             m_uiFearTimer -= uiDiff;
 
         if (m_uiShadowBoltTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT);
-            m_uiShadowBoltTimer = urand(4*IN_MILLISECONDS, 10*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT) == CAST_OK)
+                m_uiShadowBoltTimer = urand(4*IN_MILLISECONDS, 10*IN_MILLISECONDS);
         }
         else
             m_uiShadowBoltTimer -= uiDiff;
@@ -1290,6 +1210,7 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
         m_uiKillPlayerTimer     = 0;
 
         SetEquipmentSlots(false, 47524, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1299,11 +1220,10 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
 
         if (m_uiKillPlayerTimer < uiDiff)
         {
-            if (Unit *target = KillPlayer())
+            if (Unit *pTarget = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_CS, false);
-                m_creature->CastSpell(target, SPELL_BARRAGE, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_CS) == CAST_OK || DoCastSpellIfCan(pTarget, SPELL_BARRAGE) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -1311,8 +1231,8 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
 
         if (m_uiBarrageTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_BARRAGE);
-            m_uiBarrageTimer = urand(4*IN_MILLISECONDS, 10*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BARRAGE) == CAST_OK)
+                m_uiBarrageTimer = urand(4*IN_MILLISECONDS, 10*IN_MILLISECONDS);
         }
         else
             m_uiBarrageTimer -= uiDiff;
@@ -1323,8 +1243,8 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
-                    DoCastSpellIfCan(pTarget, SPELL_BLAST);
-                    m_uiBlastTimer = urand(4*IN_MILLISECONDS, 15*IN_MILLISECONDS); 
+                    if (DoCastSpellIfCan(pTarget, SPELL_BLAST) == CAST_OK)
+                        m_uiBlastTimer = urand(4*IN_MILLISECONDS, 15*IN_MILLISECONDS);
                 }  
             }
         }
@@ -1335,8 +1255,8 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
         {
             if (m_creature->IsWithinDist(m_creature->getVictim(), 10.0f))
             {
-                DoCastSpellIfCan(m_creature, SPELL_EXPLOSION);
-                m_uiExplosionTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(m_creature, SPELL_EXPLOSION) == CAST_OK)
+                    m_uiExplosionTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS);
             }
         }
         else
@@ -1346,9 +1266,11 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
         {
             if (m_creature->IsWithinDist(m_creature->getVictim(), 5.0f))
             {
-                m_creature->CastSpell(m_creature, SPELL_FROST_NOVA, true);
-                m_creature->CastSpell(m_creature, SPELL_BLINK, true);
-                m_uiBlinkTimer = urand(25*IN_MILLISECONDS, 35*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(m_creature, SPELL_FROST_NOVA) == CAST_OK)
+                {
+                    DoCastSpellIfCan(m_creature, SPELL_BLINK, CAST_TRIGGERED);
+                    m_uiBlinkTimer = urand(25*IN_MILLISECONDS, 35*IN_MILLISECONDS);
+                }
             }
         }
         else
@@ -1358,8 +1280,8 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
         {
             if (Unit* pTarget = SelectEnemyTargetWithinMana())
             {
-                DoCastSpellIfCan(pTarget, SPELL_CS);
-                m_uiCounterSpellTimer = 24*IN_MILLISECONDS; 
+                if (DoCastSpellIfCan(pTarget, SPELL_CS) == CAST_OK)
+                    m_uiCounterSpellTimer = 24*IN_MILLISECONDS;
             }
         }
         else
@@ -1367,8 +1289,8 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
 
         if (m_uiFrostboltTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROSTBOLT);
-            m_uiFrostboltTimer = urand(3*IN_MILLISECONDS, 8*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROSTBOLT) == CAST_OK)
+                m_uiFrostboltTimer = urand(3*IN_MILLISECONDS, 8*IN_MILLISECONDS);
         }
         else
             m_uiFrostboltTimer -= uiDiff;
@@ -1377,8 +1299,8 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
         {
              if (m_creature->GetHealthPercent() <= 20.0f)
              {
-                 m_creature->CastSpell(m_creature, SPELL_ICE_BLOCK, true);
-                 m_uiIceBlockTimer = 3*MINUTE*IN_MILLISECONDS;
+                 if (DoCastSpellIfCan(m_creature, SPELL_ICE_BLOCK, CAST_TRIGGERED) == CAST_OK)
+                     m_uiIceBlockTimer = 3*MINUTE*IN_MILLISECONDS;
              }
         }
         else
@@ -1388,8 +1310,8 @@ struct MANGOS_DLL_DECL mob_toc_mageAI : public boss_faction_championsAI
         {
             if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                DoCastSpellIfCan(pTarget, SPELL_POLY);
-                m_uiPolymorphTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(pTarget, SPELL_POLY) == CAST_OK)
+                    m_uiPolymorphTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
             }
         }
         else
@@ -1437,6 +1359,7 @@ struct MANGOS_DLL_DECL mob_toc_hunterAI : public boss_faction_championsAI
         m_uiKillPlayerTimer   = 0;
 
         SetEquipmentSlots(false, 47156, EQUIP_NO_CHANGE, 48711);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1446,11 +1369,10 @@ struct MANGOS_DLL_DECL mob_toc_hunterAI : public boss_faction_championsAI
 
         if (m_uiKillPlayerTimer < uiDiff)
         {
-            if (Unit *target = KillPlayer())
+            if (Unit* pTarget = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_EXPLOSIVE_SHOT, false);
-                m_creature->CastSpell(target, SPELL_AIMED_SHOT, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;;
+                if (DoCastSpellIfCan(pTarget, SPELL_EXPLOSIVE_SHOT) == CAST_OK || DoCastSpellIfCan(pTarget, SPELL_AIMED_SHOT) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;;
             }
         }
         else
@@ -1460,8 +1382,8 @@ struct MANGOS_DLL_DECL mob_toc_hunterAI : public boss_faction_championsAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                DoCastSpellIfCan(pTarget, SPELL_AIMED_SHOT);
-                m_uiAimedShotTimer = urand(7*IN_MILLISECONDS, 10*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(pTarget, SPELL_AIMED_SHOT) == CAST_OK)
+                    m_uiAimedShotTimer = urand(7*IN_MILLISECONDS, 10*IN_MILLISECONDS);
             }
         }
         else
@@ -1471,8 +1393,8 @@ struct MANGOS_DLL_DECL mob_toc_hunterAI : public boss_faction_championsAI
         {
             if (m_creature->GetHealthPercent() <= 20.0f)
             {
-                m_creature->CastSpell(m_creature, SPELL_DETERENCE, true);
-                m_uiDeterenceTimer = 90*IN_MILLISECONDS; 
+                if (DoCastSpellIfCan(m_creature, SPELL_DETERENCE, CAST_TRIGGERED) == CAST_OK)
+                    m_uiDeterenceTimer = 90*IN_MILLISECONDS;
             }
         }
         else
@@ -1482,8 +1404,8 @@ struct MANGOS_DLL_DECL mob_toc_hunterAI : public boss_faction_championsAI
         {
             if (m_creature->IsWithinDist(m_creature->getVictim(), 5.0f))
             {
-                m_creature->CastSpell(m_creature->getVictim(), SPELL_WING_CLIP, true);
-                m_creature->CastSpell(m_creature, SPELL_DISENGAGE, true);
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_WING_CLIP, CAST_TRIGGERED);
+                DoCastSpellIfCan(m_creature, SPELL_DISENGAGE, CAST_TRIGGERED);
                 m_uiLeapTimer = urand(35*IN_MILLISECONDS, 45*IN_MILLISECONDS); 
             }
         }
@@ -1492,32 +1414,32 @@ struct MANGOS_DLL_DECL mob_toc_hunterAI : public boss_faction_championsAI
 
         if (m_uiExplosivShotTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_EXPLOSIVE_SHOT);
-            m_uiExplosivShotTimer = urand(4*IN_MILLISECONDS, 8*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EXPLOSIVE_SHOT) == CAST_OK)
+                m_uiExplosivShotTimer = urand(4*IN_MILLISECONDS, 8*IN_MILLISECONDS);
         }
         else
             m_uiExplosivShotTimer -= uiDiff;
 
         if (m_uiSteadyShotTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_STEADY_SHOT);
-            m_uiSteadyShotTimer = urand(3*IN_MILLISECONDS, 12*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STEADY_SHOT) == CAST_OK)
+                m_uiSteadyShotTimer = urand(3*IN_MILLISECONDS, 12*IN_MILLISECONDS);
         }
         else
             m_uiSteadyShotTimer -= uiDiff;
 
         if (m_uiFrostTrapTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_FROST_TRAP);
-            m_uiFrostTrapTimer = 1*MINUTE*IN_MILLISECONDS; 
+            if (DoCastSpellIfCan(m_creature, SPELL_FROST_TRAP) == CAST_OK)
+                m_uiFrostTrapTimer = 1*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiFrostTrapTimer -= uiDiff;
 
         if (m_uiWyvernStingTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_WYVERN_STING);
-            m_uiWyvernStingTimer  = 2*MINUTE*IN_MILLISECONDS; 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_WYVERN_STING) == CAST_OK)
+                m_uiWyvernStingTimer  = 2*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiWyvernStingTimer -= uiDiff;
@@ -1573,6 +1495,7 @@ struct MANGOS_DLL_DECL mob_toc_boomkinAI : public boss_faction_championsAI
         m_uiKillPlayerTimer     = 0;
 
         SetEquipmentSlots(false, 50966, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1582,11 +1505,10 @@ struct MANGOS_DLL_DECL mob_toc_boomkinAI : public boss_faction_championsAI
 
         if (m_uiKillPlayerTimer < uiDiff)
         {
-            if (Unit *target = KillPlayer())
+            if (Unit *pTarget = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_WRATH, false);
-                m_creature->CastSpell(target, SPELL_MOONFIRE, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_WRATH) == CAST_OK || DoCastSpellIfCan(pTarget, SPELL_MOONFIRE) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -1596,8 +1518,8 @@ struct MANGOS_DLL_DECL mob_toc_boomkinAI : public boss_faction_championsAI
         {
             if (m_creature->GetHealthPercent() <= 50.0f)
             {
-                m_creature->CastSpell(m_creature, SPELL_BARKSKIN, true);
-                m_uiBarkskinTimer = 1*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature, SPELL_BARKSKIN, CAST_TRIGGERED) ==CAST_OK)
+                    m_uiBarkskinTimer = 1*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -1607,8 +1529,8 @@ struct MANGOS_DLL_DECL mob_toc_boomkinAI : public boss_faction_championsAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
-                DoCastSpellIfCan(pTarget, SPELL_CYCLONE);
-                m_uiCycloneTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(pTarget, SPELL_CYCLONE) == CAST_OK)
+                    m_uiCycloneTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
             }
         }
         else
@@ -1616,49 +1538,51 @@ struct MANGOS_DLL_DECL mob_toc_boomkinAI : public boss_faction_championsAI
 
         if (m_uiFearieFeralTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_FEARIE);
-            m_uiFearieFeralTimer = urand(25*IN_MILLISECONDS, 60*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FEARIE) == CAST_OK)
+                m_uiFearieFeralTimer = urand(25*IN_MILLISECONDS, 60*IN_MILLISECONDS);
         }
         else
             m_uiFearieFeralTimer -= uiDiff;
 
         if (m_uiForcedTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_FORCED_OF_NATURE);
-            m_uiForcedTimer = 90*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FORCED_OF_NATURE) == CAST_OK)
+                m_uiForcedTimer = 90*IN_MILLISECONDS;
         }
         else
             m_uiForcedTimer -= uiDiff;
 
         if (m_uiSpellTimer < uiDiff)
         {
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_MOONFIRE, true);
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_SWARM, true);
-            m_uiSpellTimer = urand(10*IN_MILLISECONDS, 20*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MOONFIRE, true) == CAST_OK)
+            {
+                DoCast(m_creature->getVictim(), SPELL_SWARM, true);
+                m_uiSpellTimer = urand(10*IN_MILLISECONDS, 20*IN_MILLISECONDS);
+            }
         }
         else
             m_uiSpellTimer -= uiDiff;
 
         if (m_uiStarfireTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_STARFIRE);
-            m_uiStarfireTimer = urand(8*IN_MILLISECONDS, 25*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STARFIRE) == CAST_OK)
+                m_uiStarfireTimer = urand(8*IN_MILLISECONDS, 25*IN_MILLISECONDS);
         }
         else
             m_uiStarfireTimer -= uiDiff;
 
         if (m_uiWrathTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_WRATH);
-            m_uiWrathTimer = urand(4*IN_MILLISECONDS, 8*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_WRATH) == CAST_OK)
+                m_uiWrathTimer = urand(4*IN_MILLISECONDS, 8*IN_MILLISECONDS);
         }
         else
             m_uiWrathTimer -= uiDiff;
 
         if (m_uiRootsTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_ROOTS_B);
-            m_uiRootsTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ROOTS_B) == CAST_OK)
+                m_uiRootsTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
         }
         else
             m_uiRootsTimer -= uiDiff;
@@ -1711,6 +1635,7 @@ struct MANGOS_DLL_DECL mob_toc_warriorAI : public boss_faction_championsAI
         m_uiKillPlayerTimer         = 0;
 
         SetEquipmentSlots(false, 47427, 46964, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     // Its not good idea
@@ -1750,9 +1675,8 @@ struct MANGOS_DLL_DECL mob_toc_warriorAI : public boss_faction_championsAI
         {
             if (Unit *target = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_INTIMIDATING_SHOUT, false);
-                m_creature->CastSpell(target, SPELL_BLADESTORM, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(target, SPELL_INTIMIDATING_SHOUT) == CAST_OK || DoCastSpellIfCan(target, SPELL_BLADESTORM) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -1761,22 +1685,22 @@ struct MANGOS_DLL_DECL mob_toc_warriorAI : public boss_faction_championsAI
         // Its bad solution but work
         if (m_uiRemoveBubleTimer < uiDiff)
         { 
-            if (Unit *target = SelectPlayerWithDivineShield())
+            if (Unit *pTarget = SelectPlayerWithDivineShield())
             {
-                DoCastSpellIfCan(target, SPELL_SHATTERING_THROW);
+                DoCastSpellIfCan(pTarget, SPELL_SHATTERING_THROW);
 
-                if (target->HasAura(SPELL_SHATTERING_THROW))
+                if (pTarget->HasAura(SPELL_SHATTERING_THROW))
                 {
-                    target->RemoveAurasDueToSpell(SPELL_DIVINE_SHIELD);
+                    pTarget->RemoveAurasDueToSpell(SPELL_DIVINE_SHIELD);
                 }
             }
-            if (Unit *target = SelectPlayerWithIceBlock())
+            if (Unit *pTarget = SelectPlayerWithIceBlock())
             {
-                DoCastSpellIfCan(target, SPELL_SHATTERING_THROW);
+                DoCastSpellIfCan(pTarget, SPELL_SHATTERING_THROW);
 
-                if (target->HasAura(SPELL_SHATTERING_THROW))
+                if (pTarget->HasAura(SPELL_SHATTERING_THROW))
                 {
-                    target->RemoveAurasDueToSpell(SPELL_ICE_BLOCK);
+                    pTarget->RemoveAurasDueToSpell(SPELL_ICE_BLOCK);
                 }
             }
             m_uiRemoveBubleTimer = 10*IN_MILLISECONDS;
@@ -1786,18 +1710,18 @@ struct MANGOS_DLL_DECL mob_toc_warriorAI : public boss_faction_championsAI
 
         if (m_uiBladestormTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_BLADESTORM);
-            m_uiBladestormTimer = 90*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BLADESTORM) == CAST_OK)
+                m_uiBladestormTimer = 90*IN_MILLISECONDS;
         }
         else
             m_uiBladestormTimer -= uiDiff;
 
         if (m_uiChargeTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CHARGE))
             {
-                DoCastSpellIfCan(pTarget, SPELL_CHARGE);
-                m_uiChargeTimer = urand(15*IN_MILLISECONDS, 20*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(pTarget, SPELL_CHARGE) == CAST_OK)
+                    m_uiChargeTimer = urand(15*IN_MILLISECONDS, 20*IN_MILLISECONDS);
             }
         }
         else
@@ -1805,58 +1729,58 @@ struct MANGOS_DLL_DECL mob_toc_warriorAI : public boss_faction_championsAI
 
         if (m_uiIntimidatingShoutTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_INTIMIDATING_SHOUT);
-            m_uiIntimidatingShoutTimer = 2*MINUTE*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_INTIMIDATING_SHOUT) == CAST_OK)
+                m_uiIntimidatingShoutTimer = 2*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiIntimidatingShoutTimer -= uiDiff;
 
         if (m_uiMortalStrikeTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE);
-            m_uiMortalStrikeTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
+                m_uiMortalStrikeTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);
         }
         else
             m_uiMortalStrikeTimer -= uiDiff;
 
         if (m_uiSunderArmorTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDER_ARMOR);
-            m_uiSunderArmorTimer = urand(10*IN_MILLISECONDS, 14*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDER_ARMOR) == CAST_OK)
+                m_uiSunderArmorTimer = urand(10*IN_MILLISECONDS, 14*IN_MILLISECONDS);
         }
         else
             m_uiSunderArmorTimer -= uiDiff;
 
         if (m_uiRetaliationTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_RETALIATION);
-            m_uiRetaliationTimer = 5*MINUTE*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature, SPELL_RETALIATION) == CAST_OK)
+                m_uiRetaliationTimer = 5*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiRetaliationTimer -= uiDiff;
 
         if (m_uiOverpowerTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_OVERPOWER);
-            m_uiOverpowerTimer = urand(8*IN_MILLISECONDS, 12*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_OVERPOWER) == CAST_OK)
+                m_uiOverpowerTimer = urand(8*IN_MILLISECONDS, 12*IN_MILLISECONDS);
         }
         else
             m_uiOverpowerTimer -= uiDiff;
 
         if (m_uiDisarmTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISARM);
-            m_uiDisarmTimer = 40*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISARM) == CAST_OK)
+                m_uiDisarmTimer = 40*IN_MILLISECONDS;
         }
         else
             m_uiDisarmTimer -= uiDiff;
 
         if (m_uiShatteringThrowTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_SHATTERING_THROW))
             {
-                DoCastSpellIfCan(pTarget, SPELL_SHATTERING_THROW);
-                m_uiShatteringThrowTimer = 5*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_SHATTERING_THROW) == CAST_OK)
+                    m_uiShatteringThrowTimer = 5*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -1902,6 +1826,7 @@ struct MANGOS_DLL_DECL  mob_toc_dkAI : public boss_faction_championsAI
         m_uiKillPlayerTimer         = 0;
 
         SetEquipmentSlots(false, 47518, 51021, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1911,11 +1836,10 @@ struct MANGOS_DLL_DECL  mob_toc_dkAI : public boss_faction_championsAI
 
         if (m_uiKillPlayerTimer < uiDiff)
         {
-            if (Unit *target = KillPlayer())
+            if (Unit* pTarget = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_CHAINS, false);
-                m_creature->CastSpell(target, SPELL_DEATH_COLI, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_CHAINS) == CAST_OK || DoCastSpellIfCan(pTarget, SPELL_DEATH_COLI) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -1925,8 +1849,8 @@ struct MANGOS_DLL_DECL  mob_toc_dkAI : public boss_faction_championsAI
         {
             if (m_creature->GetHealthPercent() < 50.0f)
             {
-                m_creature->CastSpell(m_creature, SPELL_ICEBOUND, true);
-                m_uiIceboundFortitudeTimer = 2*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature, SPELL_ICEBOUND, CAST_TRIGGERED) == CAST_OK)
+                    m_uiIceboundFortitudeTimer = 2*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -1936,8 +1860,8 @@ struct MANGOS_DLL_DECL  mob_toc_dkAI : public boss_faction_championsAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                DoCastSpellIfCan(pTarget, SPELL_CHAINS);
-                m_uiChainsOfIceTimer = urand(15*IN_MILLISECONDS, 20*IN_MILLISECONDS); 
+                if (DoCastSpellIfCan(pTarget, SPELL_CHAINS) == CAST_OK)
+                    m_uiChainsOfIceTimer = urand(15*IN_MILLISECONDS, 20*IN_MILLISECONDS);
             }
         }
         else
@@ -1945,8 +1869,8 @@ struct MANGOS_DLL_DECL  mob_toc_dkAI : public boss_faction_championsAI
 
         if (m_uiDeathCoilTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_DEATH_COLI);
-            m_uiDeathCoilTimer = urand(8*IN_MILLISECONDS, 14*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DEATH_COLI) == CAST_OK)
+                m_uiDeathCoilTimer = urand(8*IN_MILLISECONDS, 14*IN_MILLISECONDS);
         }
         else
             m_uiDeathCoilTimer -= uiDiff;
@@ -1955,8 +1879,8 @@ struct MANGOS_DLL_DECL  mob_toc_dkAI : public boss_faction_championsAI
         {
             if (Unit *target = SelectEnemyTargetWithinMana())
             {
-                DoCastSpellIfCan(target, SPELL_STRANGULATE);
-                m_uiSilenceTimer = 2*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(target, SPELL_STRANGULATE) == CAST_OK)
+                    m_uiSilenceTimer = 2*IN_MILLISECONDS;
             }
         }
         else
@@ -1964,16 +1888,16 @@ struct MANGOS_DLL_DECL  mob_toc_dkAI : public boss_faction_championsAI
 
         if (m_uiFrostStrikeTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROST_STRIKE);
-            m_uiFrostStrikeTimer = urand(8*IN_MILLISECONDS, 18*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROST_STRIKE) == CAST_OK)
+                m_uiFrostStrikeTimer = urand(8*IN_MILLISECONDS, 18*IN_MILLISECONDS);
         }
         else
             m_uiFrostStrikeTimer -= uiDiff;
 
         if (m_uiIcyTouchTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_ICE_TOUCH);
-            m_uiIcyTouchTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS); 
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ICE_TOUCH) == CAST_OK)
+                m_uiIcyTouchTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
         }
         else
             m_uiIcyTouchTimer -= uiDiff;
@@ -2032,6 +1956,7 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
         m_uiKillPlayerTimer  = 0;
         
         SetEquipmentSlots(false, 47422, 49982, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -2041,11 +1966,13 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
 
         if (m_uiKillPlayerTimer < uiDiff)
         {
-            if (Unit *target = KillPlayer())
+            if (Unit* pTarget = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_SHADOWSTEP, false);
-                m_creature->CastSpell(target, SPELL_EVISCERATE, true);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_SHADOWSTEP) == CAST_OK)
+                {
+                    DoCastSpellIfCan(pTarget, SPELL_EVISCERATE, CAST_TRIGGERED);
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                }
             }
         }
         else
@@ -2067,8 +1994,8 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
         {
             if (Unit *target = SelectTargetWithinDist())
             {
-                DoCastSpellIfCan(target, SPELL_FAN_OF_KNIVES);
-                m_uiFanOfKnivesTimer = urand(16*IN_MILLISECONDS, 20*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(target, SPELL_FAN_OF_KNIVES) == CAST_OK)
+                    m_uiFanOfKnivesTimer = urand(16*IN_MILLISECONDS, 20*IN_MILLISECONDS);
             }
         }
         else
@@ -2076,16 +2003,16 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
 
         if (m_uiHemorrhageTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEMORRHAGE);
-            m_uiHemorrhageTimer = urand(8*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEMORRHAGE) == CAST_OK)
+                m_uiHemorrhageTimer = urand(8*IN_MILLISECONDS, 15*IN_MILLISECONDS);
         }
         else
             m_uiHemorrhageTimer -= uiDiff;
 
         if (m_uiEviscerateTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_EVISCERATE);
-            m_uiEviscerateTimer = urand(20*IN_MILLISECONDS, 35*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EVISCERATE) == CAST_OK)
+                m_uiEviscerateTimer = urand(20*IN_MILLISECONDS, 35*IN_MILLISECONDS);
         }
         else
             m_uiEviscerateTimer -= uiDiff;
@@ -2094,8 +2021,8 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
         {
             if (m_creature->IsInRange(m_creature->getVictim(), 10.0f, 40.0f))
             {
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOWSTEP);
-                m_uiShadowstepTimer = 40*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOWSTEP) == CAST_OK)
+                    m_uiShadowstepTimer = 40*IN_MILLISECONDS;
             }
         }
         else
@@ -2107,8 +2034,8 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
             {
                 if(Unit *target = SelectTargetWithinDist())
                 {
-                    DoCastSpellIfCan(target, SPELL_BLIND);
-                    m_uiBlindTimer = 2*MINUTE*IN_MILLISECONDS;
+                    if (DoCastSpellIfCan(target, SPELL_BLIND) == CAST_OK)
+                        m_uiBlindTimer = 2*MINUTE*IN_MILLISECONDS;
                 }
             }
         }
@@ -2119,8 +2046,8 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
         {
             if (m_creature->GetHealthPercent() < 50.0f)
             {
-                DoCastSpellIfCan(m_creature, SPELL_CLOAK);
-                m_uiCloakTimer = 90*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature, SPELL_CLOAK, CAST_TRIGGERED) == CAST_OK)
+                    m_uiCloakTimer = 90*IN_MILLISECONDS;
             }
         }
         else
@@ -2128,8 +2055,8 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
 
         if (m_uiBladeFlurryTimer <= uiDiff)
         {
-             DoCastSpellIfCan(m_creature, SPELL_BLADE_FLURRY);
-             m_uiBladeFlurryTimer = 2*MINUTE*IN_MILLISECONDS;
+             if (DoCastSpellIfCan(m_creature, SPELL_BLADE_FLURRY) == CAST_OK)
+                 m_uiBladeFlurryTimer = 2*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiBladeFlurryTimer -= uiDiff;
@@ -2172,6 +2099,7 @@ struct MANGOS_DLL_DECL  mob_toc_enh_shamanAI : public boss_faction_championsAI
         m_uiSummonTotemTimer        = 0;
 
         SetEquipmentSlots(false, 51803, 48013, EQUIP_NO_CHANGE);
+        boss_faction_championsAI::Reset();
     }
 
     void Totems()
@@ -2196,9 +2124,8 @@ struct MANGOS_DLL_DECL  mob_toc_enh_shamanAI : public boss_faction_championsAI
         {
             if (Unit *target = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_STORMSTRIKE, false);
-                m_creature->CastSpell(target, SPELL_LAVA_LASH, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(target, SPELL_STORMSTRIKE) == CAST_OK ||  DoCastSpellIfCan(target, SPELL_LAVA_LASH) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -2209,38 +2136,43 @@ struct MANGOS_DLL_DECL  mob_toc_enh_shamanAI : public boss_faction_championsAI
             if (m_creature->getFaction()) //Am i alliance?
             {
                 if (!m_creature->HasAura(AURA_EXHAUSTION))
-                    DoCastSpellIfCan(m_creature, SPELL_HEROISM);
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_HEROISM) == CAST_OK)
+                        m_uiHeroismOrBloodlustTimer = 10*MINUTE*IN_MILLISECONDS;
+                }
             }
             else
             {
                 if (!m_creature->HasAura(AURA_SATED))
-                    DoCastSpellIfCan(m_creature, SPELL_BLOODLUST);
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_BLOODLUST) == CAST_OK)
+                        m_uiHeroismOrBloodlustTimer = 10*MINUTE*IN_MILLISECONDS;
+                }
             }
-            m_uiHeroismOrBloodlustTimer = 10*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiHeroismOrBloodlustTimer -= uiDiff;
 
         if (m_uiEarthShockTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_EARTH_SHOCK);
-            m_uiEarthShockTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EARTH_SHOCK)== CAST_OK)
+                m_uiEarthShockTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
         }
         else
             m_uiEarthShockTimer -= uiDiff;
 
         if (m_uiStormstrikeTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_STORMSTRIKE);
-            m_uiStormstrikeTimer = urand(14*IN_MILLISECONDS, 30*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STORMSTRIKE) == CAST_OK)
+                m_uiStormstrikeTimer = urand(14*IN_MILLISECONDS, 30*IN_MILLISECONDS);
         }
         else
             m_uiStormstrikeTimer -= uiDiff;
 
         if (m_uiLavaLashTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_LAVA_LASH);
-            m_uiLavaLashTimer = urand(12*IN_MILLISECONDS, 16*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_LAVA_LASH) == CAST_OK)
+                m_uiLavaLashTimer = urand(12*IN_MILLISECONDS, 16*IN_MILLISECONDS);
         }
         else
             m_uiLavaLashTimer -= uiDiff;
@@ -2250,8 +2182,8 @@ struct MANGOS_DLL_DECL  mob_toc_enh_shamanAI : public boss_faction_championsAI
         {
             if (m_creature->IsWithinDist(m_creature->getVictim(), 3.0f))
             {
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_WINDFURY);
-                m_uiWindFuryTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_WINDFURY) == CAST_OK)
+                    m_uiWindFuryTimer = urand(15*IN_MILLISECONDS, 25*IN_MILLISECONDS);
             }
         }
         else
@@ -2267,10 +2199,10 @@ struct MANGOS_DLL_DECL  mob_toc_enh_shamanAI : public boss_faction_championsAI
 
         if (m_uiSummonTotemTimer < uiDiff)
         {
-            m_creature->CastSpell(m_creature, SPELL_TOTEM_SEARING, true);
-            m_creature->CastSpell(m_creature, SPELL_TOTEM_HEAL, true);
-            m_creature->CastSpell(m_creature, SPELL_TOTEM_STR, true);
-            m_creature->CastSpell(m_creature, SPELL_TOTEM_WIND, true);
+            DoCast(m_creature, SPELL_TOTEM_SEARING, true);
+            DoCast(m_creature, SPELL_TOTEM_HEAL, true);
+            DoCast(m_creature, SPELL_TOTEM_STR, true);
+            DoCast(m_creature, SPELL_TOTEM_WIND, true);
 
             m_uiSummonTotemTimer = urand(18*IN_MILLISECONDS, 30*IN_MILLISECONDS);
         }
@@ -2320,6 +2252,7 @@ struct MANGOS_DLL_DECL  mob_toc_retro_paladinAI : public boss_faction_championsA
 
         SetEquipmentSlots(false, 47519, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE);
         DoCastSpellIfCan(m_creature, SPELL_SEAL_COMAND);
+        boss_faction_championsAI::Reset();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -2329,11 +2262,10 @@ struct MANGOS_DLL_DECL  mob_toc_retro_paladinAI : public boss_faction_championsA
 
         if (m_uiKillPlayerTimer < uiDiff)
         {
-            if (Unit *target = KillPlayer())
+            if (Unit* pTarget = KillPlayer())
             {
-                m_creature->CastSpell(target, SPELL_STRIKE, false);
-                m_creature->CastSpell(target, SPELL_STORM, false);
-                m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_STRIKE) == CAST_OK || DoCastSpellIfCan(pTarget, SPELL_STORM, false) == CAST_OK)
+                    m_uiKillPlayerTimer = 10*IN_MILLISECONDS;
             }
         }
         else
@@ -2343,8 +2275,8 @@ struct MANGOS_DLL_DECL  mob_toc_retro_paladinAI : public boss_faction_championsA
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                DoCastSpellIfCan(pTarget, SPELL_REPENTANCE);
-                m_uiRepeteanceTimer = 1*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(pTarget, SPELL_REPENTANCE) == CAST_OK)
+                    m_uiRepeteanceTimer = 1*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -2352,20 +2284,20 @@ struct MANGOS_DLL_DECL  mob_toc_retro_paladinAI : public boss_faction_championsA
 
         if (m_uiHammerOfJusticeTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMMER_OF_JUSTICE);
-            m_uiHammerOfJusticeTimer = 35*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMMER_OF_JUSTICE) == CAST_OK)
+                m_uiHammerOfJusticeTimer = 35*IN_MILLISECONDS;
         }
         else
             m_uiHammerOfJusticeTimer -= uiDiff;
 
         if (m_uiHandOfProtectionTimer <= uiDiff)
         {
-            if (Unit* target = DoSelectLowestHpFriendly(40.0f))
+            if (Unit* pTarget = DoSelectLowestHpFriendly(40.0f))
             {
-                if (target->GetHealthPercent() <= 20.0f)
+                if (pTarget->GetHealthPercent() <= 20.0f)
                 {
-                    DoCastSpellIfCan(target, SPELL_HAND_OF_PROTECTION);
-                    m_uiHandOfProtectionTimer = 5*MINUTE*IN_MILLISECONDS;
+                    if (DoCastSpellIfCan(pTarget, SPELL_HAND_OF_PROTECTION) == CAST_OK)
+                        m_uiHandOfProtectionTimer = 5*MINUTE*IN_MILLISECONDS;
                 }
             }
         }
@@ -2374,16 +2306,16 @@ struct MANGOS_DLL_DECL  mob_toc_retro_paladinAI : public boss_faction_championsA
 
         if (m_uiCrusaderStrikeTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_STRIKE);
-            m_uiCrusaderStrikeTimer = urand(6*IN_MILLISECONDS, 18*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STRIKE) == CAST_OK)
+                m_uiCrusaderStrikeTimer = urand(6*IN_MILLISECONDS, 18*IN_MILLISECONDS);
         }
         else
             m_uiCrusaderStrikeTimer -= uiDiff;
 
         if (m_uiAvengingWrathTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_AVENGING_WRATH);
-            m_uiAvengingWrathTimer = 2*MINUTE*IN_MILLISECONDS;
+            if (DoCastSpellIfCan(m_creature, SPELL_AVENGING_WRATH) == CAST_OK)
+                m_uiAvengingWrathTimer = 2*MINUTE*IN_MILLISECONDS;
         }
         else
             m_uiAvengingWrathTimer -= uiDiff;
@@ -2392,8 +2324,8 @@ struct MANGOS_DLL_DECL  mob_toc_retro_paladinAI : public boss_faction_championsA
         {
             if (m_creature->GetHealthPercent() < 50.0f)
             {
-                DoCastSpellIfCan(m_creature, SPELL_DIVINE_SHIELD);
-                m_uiDivineShieldTimer = 5*MINUTE*IN_MILLISECONDS;
+                if (DoCastSpellIfCan(m_creature, SPELL_DIVINE_SHIELD) == CAST_OK)
+                    m_uiDivineShieldTimer = 5*MINUTE*IN_MILLISECONDS;
             }
         }
         else
@@ -2401,16 +2333,16 @@ struct MANGOS_DLL_DECL  mob_toc_retro_paladinAI : public boss_faction_championsA
 
         if (m_uiDivineStormTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_STORM);
-            m_uiDivineStormTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STORM) == CAST_OK)
+                m_uiDivineStormTimer = urand(10*IN_MILLISECONDS, 18*IN_MILLISECONDS);
         }
         else
             m_uiDivineStormTimer -= uiDiff;
 
         if (m_uiJudgementOfCommandTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_JUDGEMENT_COMAND);
-            m_uiJudgementOfCommandTimer = urand(8*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_JUDGEMENT_COMAND) == CAST_OK)
+                m_uiJudgementOfCommandTimer = urand(8*IN_MILLISECONDS, 15*IN_MILLISECONDS);
         }
         else
             m_uiJudgementOfCommandTimer -= uiDiff;
@@ -2443,7 +2375,7 @@ struct MANGOS_DLL_DECL  mob_toc_pet_warlockAI : public boss_faction_championsAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_pInstance && m_pInstance->GetData(TYPE_CRUSADERS) != IN_PROGRESS) 
+        if (m_pInstance && m_pInstance->GetData(TYPE_FACTION_CHAMPIONS) != IN_PROGRESS)
             m_creature->ForcedDespawn();
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -2451,16 +2383,16 @@ struct MANGOS_DLL_DECL  mob_toc_pet_warlockAI : public boss_faction_championsAI
 
         if (m_uiDevourMagicTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_DEVOUR_MAGIC);
-            m_uiDevourMagicTimer = urand(15*IN_MILLISECONDS, 30*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DEVOUR_MAGIC) == CAST_OK)
+                m_uiDevourMagicTimer = urand(15*IN_MILLISECONDS, 30*IN_MILLISECONDS);
         }
         else
             m_uiDevourMagicTimer -= uiDiff;
 
         if (m_uiSpellLockTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_SPELL_LOCK);
-            m_uiSpellLockTimer = urand(15*IN_MILLISECONDS, 30*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SPELL_LOCK) == CAST_OK)
+                m_uiSpellLockTimer = urand(15*IN_MILLISECONDS, 30*IN_MILLISECONDS);
         }
         else
             m_uiSpellLockTimer -= uiDiff;
@@ -2491,7 +2423,7 @@ struct MANGOS_DLL_DECL  mob_toc_pet_hunterAI : public boss_faction_championsAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_pInstance && m_pInstance->GetData(TYPE_CRUSADERS) != IN_PROGRESS) 
+        if (m_pInstance && m_pInstance->GetData(TYPE_FACTION_CHAMPIONS) != IN_PROGRESS)
             m_creature->ForcedDespawn();
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -2499,8 +2431,8 @@ struct MANGOS_DLL_DECL  mob_toc_pet_hunterAI : public boss_faction_championsAI
 
         if (m_uiClawTimer <= uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLAW);
-            m_uiClawTimer = urand(5*IN_MILLISECONDS, 10*IN_MILLISECONDS);
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLAW) == CAST_OK)
+                m_uiClawTimer = urand(5*IN_MILLISECONDS, 10*IN_MILLISECONDS);
         }
         else
             m_uiClawTimer -= uiDiff;
