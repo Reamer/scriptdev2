@@ -1,23 +1,9 @@
 /* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+ * This program is free software licensed under GPL version 2
+ * Please see the included DOCS/LICENSE.TXT for more information */
 
-#ifndef DEF_CRUSADER_H
-#define DEF_CRUSADER_H
-#include "BSW_ai.h"
-#include "BSW_instance.h"
+#ifndef DEF_TRIAL_OF_THE_CRUSADER_H
+#define DEF_TRIAL_OF_THE_CRUSADER_H
 
 enum Achievments
 {
@@ -50,7 +36,14 @@ enum Achievments
 
 };
 
-static Locations SpawnLoc[]=
+struct Locations
+{
+    float x;
+    float y;
+    float z;
+};
+
+static const Locations SpawnLoc[]=
 {
     {559.257996f, 90.266197f,  395.122986f}, // 0 Barrent
     {563.672974f, 139.571f,    393.837006f}, // 1 Center
@@ -154,6 +147,7 @@ enum
     FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10= 2,
     FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25= 2,
 
+    NPC_BEAST_COMBAT_STALKER    = 36549,
     NPC_GORMOK                  = 34796,
     NPC_SNOBOLD_VASSAL          = 34800,
     NPC_ACIDMAW                 = 35144,
@@ -206,12 +200,12 @@ enum
     NPC_WILFRED_PORTAL          = 35651,
 
     NPC_TIRION_A                = 34996,
-    NPC_TIRION_B                = 36095, // Summoned after his text (Champions, you're alive! Not only have you defeated every challenge of the Trial of the Crusader, but also thwarted Arthas' plans! Your skill and cunning will prove to be a powerful weapon against the Scourge. Well done! Allow one of the Crusade's mages to transport you to the surface!) is said..
+    NPC_TIRION_B                = 36095,                    // Summoned after his text (Champions, you're alive! Not only have you defeated every challenge of the Trial of the Crusader, but also thwarted Arthas' plans! Your skill and cunning will prove to be a powerful weapon against the Scourge. Well done! Allow one of the Crusade's mages to transport you to the surface!) is said..
     NPC_VARIAN                  = 34990,
     NPC_GARROSH                 = 34995,
     NPC_FIZZLEBANG              = 35458,
     NPC_OPEN_PORTAL_TARGET      = 17965,
-    NPC_WORLD_TRIGGER_LARGE     = 22517, // Used for Lich King summon event
+    NPC_WORLD_TRIGGER_LARGE     = 22517,                    // Used for Lich King summon event
     NPC_THE_LICHKING            = 16980,
     NPC_THE_LICHKING_VISUAL     = 35877,
     NPC_RAMSEY_1                = 34816,
@@ -219,7 +213,7 @@ enum
     NPC_RAMSEY_3                = 35766,
     NPC_RAMSEY_4                = 35770,
     NPC_RAMSEY_5                = 35771,
-    NPC_RAMSEY_6                = 35895, // Unknown what these three NPCs are used for, maybe horde events?
+    NPC_RAMSEY_6                = 35895,                    // Unknown what these three NPCs are used for, maybe horde events?
     NPC_RAMSEY_7                = 35909,
     NPC_RAMSEY_8                = 35910,
 
@@ -263,29 +257,28 @@ enum
 
     DISPLAYID_DESTROYED_FLOOR   = 9060,
     POINT_COMBAT_POSITION       = 10,
-
 };
 
 static const float aRamsayPositions[2][4] =
 {
-    {559.1528f, 90.55729f, 395.2734f, 5.078908f},   // Summon Position
-    {563.556f, 78.72571f, 395.2125f, 0.0f}          // Movement Position
+    {559.1528f, 90.55729f, 395.2734f, 5.078908f},           // Summon Position
+    {563.556f,  78.72571f, 395.2125f, 0.0f}                 // Movement Position
 };
 
 static const float aSpawnPositions[][4] =
 {
-    {563.8941f, 137.3333f, 405.8467f, 0.0f},        // Beast combat stalker (Summoned when SAY_VARIAN_BEAST_1)
-    {563.9358f, 229.8299f, 394.8061f, 4.694936f},   // Gormok (vehicle) (Summoned when SAY_VARIAN_BEAST_1)
-    {564.3301f, 232.1549f, 394.8188f, 1.621917f},   // Dreadscale (Summoned when Tirion says SAY_TIRION_BEAST_2)
-    {549.5139f, 170.1389f, 394.7965f, 5.009095f},   // Acidmaw (Summoned(?) 14s after Dreadscale)
-    {563.6081f, 228.1491f, 394.7057f, 4.664022f},   // Icehowl (Summoned when SAY_TIRION_BEAST_3)
-    {563.6007f, 208.5278f, 395.2696f, 4.729842f},   // Fizzlebang
-    {563.8264f, 140.6563f, 393.9861f, 4.694936f},   // Jaraxxus
-    {571.684f, 204.9028f, 399.263f, 4.590216f},     // Fjola
-    {555.4514f, 205.8889f, 399.2634f, 4.886922f},   // Eydis
-    {563.6996f, 175.9826f, 394.5042f, 4.694936f},   // World Trigger Large
-    {563.5712f, 174.8351f, 394.4954f, 4.712389f},   // Lich King
-    {563.6858f, 139.4323f, 393.9862f, 4.694936f},   // Purple Rune / Center Position
+    {563.8941f, 137.3333f, 405.8467f, 0.0f},                // Beast combat stalker (Summoned when SAY_VARIAN_BEAST_1)
+    {563.9358f, 229.8299f, 394.8061f, 4.694936f},           // Gormok (vehicle) (Summoned when SAY_VARIAN_BEAST_1)
+    {564.3301f, 232.1549f, 394.8188f, 1.621917f},           // Dreadscale (Summoned when Tirion says SAY_TIRION_BEAST_2)
+    {549.5139f, 170.1389f, 394.7965f, 5.009095f},           // Acidmaw (Summoned(?) 14s after Dreadscale)
+    {563.6081f, 228.1491f, 394.7057f, 4.664022f},           // Icehowl (Summoned when SAY_TIRION_BEAST_3)
+    {563.6007f, 208.5278f, 395.2696f, 4.729842f},           // Fizzlebang
+    {563.8264f, 140.6563f, 393.9861f, 4.694936f},           // Jaraxxus
+    {571.684f,  204.9028f, 399.263f,  4.590216f},           // Fjola
+    {555.4514f, 205.8889f, 399.2634f, 4.886922f},           // Eydis
+    {563.6996f, 175.9826f, 394.5042f, 4.694936f},           // World Trigger Large
+    {563.5712f, 174.8351f, 394.4954f, 4.712389f},           // Lich King
+    {563.6858f, 139.4323f, 393.9862f, 4.694936f},           // Purple Rune / Center Position
 };
 
 static const float aMovePositions[][3] =
@@ -318,7 +311,6 @@ enum DummyNPC
     NPC_VALKYR_TWINS_BULLET_STALKER_DARK    = 34704,
     NPC_VALKYR_TWINS_BULLET_STALKER_LIGHT   = 34720,
     NPC_NERUBIAN_BURROW                     = 34862,
-    NPC_BEAST_COMBAT_STALKER                = 36549,
 };
 
 enum AnnounserMessages
@@ -338,7 +330,6 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
         ~instance_trial_of_the_crusader() {}
 
         void Initialize();
-
         bool IsEncounterInProgress() const;
         void OnPlayerEnter(Player *m_player);
         void OnPlayerDeath(Player *m_player);
@@ -359,8 +350,9 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
         uint32 GetData(uint32 uiType);
 
         const char* Save() { return m_strInstData.c_str(); }
-
         void Load(const char* chrIn);
+
+        void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
 
         void SummonFactionChampion();
 

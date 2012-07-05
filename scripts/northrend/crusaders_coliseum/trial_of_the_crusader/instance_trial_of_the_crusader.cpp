@@ -16,136 +16,143 @@
 
 /* ScriptData
 SDName: instance_trial_of_the_crusader
-SD%Complete: 80%
-SDComment: by /dev/rsa
-SDCategory: Trial of the Crusader
+SD%Complete: 100
+SDComment:
+SDCategory: Crusader Coliseum
 EndScriptData */
 
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
+/* Trial Of The Crusader encounters:
+0 - Wipe Count
+1 - Northrend Beasts
+2 - Jaraxxus
+3 - Faction Champions
+4 - Twin Valkyr
+5 - Anubarak
+*/
+
 enum
 {
-    SAY_TIRION_RAID_INTRO_LONG      = -1649000,
-    SAY_RAID_TRIALS_INTRO           = -1649001,
+    SAY_TIRION_RAID_INTRO_LONG          = -1649000,
+    SAY_RAID_TRIALS_INTRO               = -1649001,
 
     // Northrend Beasts
-    SAY_TIRION_BEAST_1              = -1649002,
-    SAY_VARIAN_BEAST_1              = -1649003,
-    SAY_GARROSH_BEAST_1             = -1649004,
-    SAY_TIRION_BEAST_SLAY           = -1649007,
-    SAY_TIRION_BEAST_WIPE           = -1649008,
+    SAY_TIRION_BEAST_1                  = -1649002,
+    SAY_VARIAN_BEAST_1                  = -1649003,
+    SAY_GARROSH_BEAST_1                 = -1649004,
+    SAY_TIRION_BEAST_SLAY               = -1649007,
+    SAY_TIRION_BEAST_WIPE               = -1649008,
 
     // Jaraxxus Encounter
-    SAY_TIRION_JARAXXUS_INTRO_1     = -1649009,
-    SAY_WILFRED_JARAXXUS_INTRO_1    = -1649010,
-    SAY_WILFRED_JARAXXUS_INTRO_2    = -1649011,
-    SAY_WILFRED_JARAXXUS_INTRO_3    = -1649012,
-    SAY_JARAXXUS_JARAXXAS_INTRO_1   = -1649013,
-    SAY_WILFRED_DEATH               = -1649014,
-    SAY_TIRION_JARAXXUS_INTRO_2     = -1649015,
-    SAY_JARAXXUS_DEATH              = -1649043,
-    SAY_TIRION_JARAXXUS_EXIT_1      = -1649016,
-    SAY_GARROSH_JARAXXUS_EXIT_1     = -1649017,
-    SAY_VARIAN_JARAXXUS_SLAY        = -1649018,
-    SAY_TIRION_JARAXXUS_EXIT_2      = -1649019,
+    SAY_TIRION_JARAXXUS_INTRO_1         = -1649009,
+    SAY_WILFRED_JARAXXUS_INTRO_1        = -1649010,
+    SAY_WILFRED_JARAXXUS_INTRO_2        = -1649011,
+    SAY_WILFRED_JARAXXUS_INTRO_3        = -1649012,
+    SAY_JARAXXUS_JARAXXAS_INTRO_1       = -1649013,
+    SAY_WILFRED_DEATH                   = -1649014,
+    SAY_TIRION_JARAXXUS_INTRO_2         = -1649015,
+    SAY_JARAXXUS_DEATH                  = -1649043,
+    SAY_TIRION_JARAXXUS_EXIT_1          = -1649016,
+    SAY_GARROSH_JARAXXUS_EXIT_1         = -1649017,
+    SAY_VARIAN_JARAXXUS_SLAY            = -1649018,
+    SAY_TIRION_JARAXXUS_EXIT_2          = -1649019,
 
     // Faction-Champions
-    SAY_TIRION_PVP_INTRO_1          = -1649020,
-    SAY_GARROSH_PVP_A_INTRO_1       = -1649021,
-    SAY_VARIAN_PVP_H_INTRO_1        = -1649022,
-    SAY_TIRION_PVP_INTRO_2          = -1649023,
-    SAY_VARIAN_PVP_H_INTRO_2        = -1649024,
-    SAY_GARROSH_PVP_A_INTRO_2       = -1649025,
-    SAY_VARIAN_PVP_A_WIN            = -1649026,
-    SAY_GARROSH_PVP_H_WIN           = -1649027,
-    SAY_TIRION_PVP_WIN              = -1649028,
+    SAY_TIRION_PVP_INTRO_1              = -1649020,
+    SAY_GARROSH_PVP_A_INTRO_1           = -1649021,
+    SAY_VARIAN_PVP_H_INTRO_1            = -1649022,
+    SAY_TIRION_PVP_INTRO_2              = -1649023,
+    SAY_VARIAN_PVP_H_INTRO_2            = -1649024,
+    SAY_GARROSH_PVP_A_INTRO_2           = -1649025,
+    SAY_VARIAN_PVP_A_WIN                = -1649026,
+    SAY_GARROSH_PVP_H_WIN               = -1649027,
+    SAY_TIRION_PVP_WIN                  = -1649028,
 
     // Twin Valkyrs
-    SAY_TIRION_TWINS_INTRO          = -1649029,
-    SAY_RAID_INTRO_SHORT            = -1649030,
-    SAY_VARIAN_TWINS_A_WIN          = -1649031,
-    SAY_GARROSH_TWINS_H_WIN         = -1649032,
-    SAY_TIRION_TWINS_WIN            = -1649033,
+    SAY_TIRION_TWINS_INTRO              = -1649029,
+    SAY_RAID_INTRO_SHORT                = -1649030,
+    SAY_VARIAN_TWINS_A_WIN              = -1649031,
+    SAY_GARROSH_TWINS_H_WIN             = -1649032,
+    SAY_TIRION_TWINS_WIN                = -1649033,
 
     // Anub'Arak Encounter
-    SAY_LKING_ANUB_INTRO_1          = -1649034,
-    SAY_TIRION_ABUN_INTRO_1         = -1649035,
-    SAY_LKING_ANUB_INTRO_2          = -1649036,
-    SAY_LKING_ANUB_INTRO_3          = -1649037,
+    SAY_LKING_ANUB_INTRO_1              = -1649034,
+    SAY_TIRION_ABUN_INTRO_1             = -1649035,
+    SAY_LKING_ANUB_INTRO_2              = -1649036,
+    SAY_LKING_ANUB_INTRO_3              = -1649037,
+    SAY_ANUB_ANUB_INTRO_1               = -1649038,         // NYI
 };
 
 static const DialogueEntryTwoSide aTocDialogues[] =
 {
     // Beasts related, summons in between not handled here
-    {TYPE_NORTHREND_BEASTS, 0, 0, 0, 24000},
-    {SAY_TIRION_BEAST_1, NPC_TIRION_A, 0, 0, 12000},
-    {SAY_VARIAN_BEAST_1, NPC_VARIAN, SAY_GARROSH_BEAST_1, NPC_GARROSH, 0},
-    {SAY_TIRION_BEAST_SLAY, NPC_TIRION_A, 0, 0, 8000},
-    {NPC_RAMSEY_2, 0, 0, 0, 0},
-    {SAY_TIRION_BEAST_WIPE, NPC_TIRION_A, 0, 0, 8000},
-    {NPC_RAMSEY_1, 0, 0, 0, 0},
+    {TYPE_NORTHREND_BEASTS, 0, 0, 0,                        24000},
+    {SAY_TIRION_BEAST_1,            NPC_TIRION_A, 0, 0,     12000},
+    {SAY_VARIAN_BEAST_1,            NPC_VARIAN,         SAY_GARROSH_BEAST_1,        NPC_GARROSH,  0},
+    {SAY_TIRION_BEAST_SLAY,         NPC_TIRION_A, 0, 0,     8000},
+    {NPC_RAMSEY_2, 0, 0, 0,                                 0},
+    {SAY_TIRION_BEAST_WIPE,         NPC_TIRION_A, 0, 0,     8000},
+    {NPC_RAMSEY_1, 0, 0, 0,                                 0},
     // Jaruxxus (Intro)
-    {TYPE_JARAXXUS, 0, 0, 0, 1000},
-    {SAY_TIRION_JARAXXUS_INTRO_1, NPC_TIRION_A, 0, 0, 6000},
-    {NPC_FIZZLEBANG, 0, 0, 0, 26000},
-    {SAY_WILFRED_JARAXXUS_INTRO_1, NPC_FIZZLEBANG, 0, 0, 10000},
-    {SAY_WILFRED_JARAXXUS_INTRO_2, NPC_FIZZLEBANG, 0, 0, 7000},
-    {EVENT_OPEN_PORTAL, 0, 0, 0, 5000},
-    {SAY_WILFRED_JARAXXUS_INTRO_3, NPC_FIZZLEBANG, 0, 0, 12000}, // Summon also Jaraxxus
-    {SAY_JARAXXUS_JARAXXAS_INTRO_1, NPC_JARAXXUS, 0, 0, 6000},
-    {SAY_WILFRED_DEATH, NPC_FIZZLEBANG, 0, 0, 1000},
-    {EVENT_KILL_FIZZLEBANG, 0, 0, 0, 5000}, // Kill Fizzlebang
-    {SAY_TIRION_JARAXXUS_INTRO_2, NPC_TIRION_A, 0, 0, 6000},
-    {EVENT_JARAXXUS_START_ATTACK, 0, 0, 0, 0},
+    {TYPE_JARAXXUS, 0, 0, 0,                                1000},
+    {SAY_TIRION_JARAXXUS_INTRO_1,   NPC_TIRION_A, 0, 0,     6000},
+    {NPC_FIZZLEBANG, 0, 0, 0,                               26000},
+    {SAY_WILFRED_JARAXXUS_INTRO_1,  NPC_FIZZLEBANG, 0, 0,   10000},
+    {SAY_WILFRED_JARAXXUS_INTRO_2,  NPC_FIZZLEBANG, 0, 0,   7000},
+    {EVENT_OPEN_PORTAL, 0, 0, 0,                            5000},
+    {SAY_WILFRED_JARAXXUS_INTRO_3,  NPC_FIZZLEBANG, 0, 0,   12000}, // Summon also Jaraxxus
+    {SAY_JARAXXUS_JARAXXAS_INTRO_1, NPC_JARAXXUS, 0, 0,     6000},
+    {SAY_WILFRED_DEATH,             NPC_FIZZLEBANG, 0, 0,   1000},
+    {EVENT_KILL_FIZZLEBANG, 0, 0, 0,                        5000},  // Kill Fizzlebang
+    {SAY_TIRION_JARAXXUS_INTRO_2,   NPC_TIRION_A, 0, 0,     6000},
+    {EVENT_JARAXXUS_START_ATTACK, 0, 0, 0,                  0},
     // Jaruxxus (Outro)
-    {SAY_JARAXXUS_DEATH, NPC_JARAXXUS, 0, 0, 6000}, // Jaraxxus Death
-    {SAY_TIRION_JARAXXUS_EXIT_1, NPC_TIRION_A, 0, 0, 5000},
-    {SAY_GARROSH_JARAXXUS_EXIT_1, NPC_GARROSH, 0, 0, 11000},
-    {SAY_VARIAN_JARAXXUS_SLAY, NPC_VARIAN, 0, 0, 8000},
-    {SAY_TIRION_JARAXXUS_EXIT_2, NPC_TIRION_A, 0, 0, 19000},
-    {NPC_RAMSEY_3, 0, 0, 0, 0},
+    {SAY_JARAXXUS_DEATH,            NPC_JARAXXUS, 0, 0,     6000},  // Jaraxxus Death
+    {SAY_TIRION_JARAXXUS_EXIT_1,    NPC_TIRION_A, 0, 0,     5000},
+    {SAY_GARROSH_JARAXXUS_EXIT_1,   NPC_GARROSH, 0, 0,      11000},
+    {SAY_VARIAN_JARAXXUS_SLAY,      NPC_VARIAN, 0, 0,       8000},
+    {SAY_TIRION_JARAXXUS_EXIT_2,    NPC_TIRION_A, 0, 0,     19000},
+    {NPC_RAMSEY_3, 0, 0, 0,                                 0},
     // Grand Champions
-    {SAY_TIRION_PVP_INTRO_1, NPC_TIRION_A, 0, 0, 9000},
-    {SAY_GARROSH_PVP_A_INTRO_1, NPC_GARROSH, SAY_VARIAN_PVP_H_INTRO_1, NPC_VARIAN, 14000},
-    {SAY_TIRION_PVP_INTRO_2, NPC_TIRION_A, 0, 0, 1000},
-    {TYPE_FACTION_CHAMPIONS, 0, 0, 0, 5000},
-    {EVENT_SUMMON_FACTION_CHAMPIONS, 0, 0, 0, 1000},
-    {SAY_GARROSH_PVP_A_INTRO_2, NPC_GARROSH, SAY_VARIAN_PVP_H_INTRO_2, NPC_VARIAN, 0},
-    {SAY_VARIAN_PVP_A_WIN, NPC_VARIAN, SAY_GARROSH_PVP_H_WIN, NPC_GARROSH, 4000},
-    {SAY_TIRION_PVP_WIN, NPC_TIRION_A, 0, 0, 27000},
-    {NPC_RAMSEY_4, 0, 0, 0, 0},
+    {SAY_TIRION_PVP_INTRO_1,        NPC_TIRION_A, 0, 0,     9000},
+    {SAY_GARROSH_PVP_A_INTRO_1,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_1,   NPC_VARIAN, 14000},
+    {SAY_TIRION_PVP_INTRO_2,        NPC_TIRION_A, 0, 0,     1000},
+    {TYPE_FACTION_CHAMPIONS, 0, 0, 0,                       5000},
+    {SAY_GARROSH_PVP_A_INTRO_2,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_2,   NPC_VARIAN, 0},
+    {SAY_VARIAN_PVP_A_WIN,          NPC_VARIAN,         SAY_GARROSH_PVP_H_WIN,      NPC_GARROSH, 4000},
+    {SAY_TIRION_PVP_WIN,            NPC_TIRION_A, 0, 0,     27000},
+    {NPC_RAMSEY_4, 0, 0, 0,                                 0},
     // Twin Valkyrs
-    {TYPE_TWIN_VALKYR, 0, 0, 0, 17000},
-    {EVENT_SUMMON_TWINS, 0, 0, 0, 0},
-    {EVENT_TWINS_KILLED, 0, 0, 0, 2000},
-    {NPC_RAMSEY_5, 0, 0, 0, 4000},
-    {SAY_VARIAN_TWINS_A_WIN, NPC_VARIAN, SAY_GARROSH_TWINS_H_WIN, NPC_GARROSH, 1000},
-    {SAY_TIRION_TWINS_WIN, NPC_TIRION_A, 0, 0, 0},
+    {TYPE_TWIN_VALKYR, 0, 0, 0,                             17000},
+    {EVENT_SUMMON_TWINS, 0, 0, 0,                           0},
+    {EVENT_TWINS_KILLED, 0, 0, 0,                           2000},
+    {NPC_RAMSEY_5, 0, 0, 0,                                 4000},
+    {SAY_VARIAN_TWINS_A_WIN,        NPC_VARIAN,         SAY_GARROSH_TWINS_H_WIN,    NPC_GARROSH, 1000},
+    {SAY_TIRION_TWINS_WIN,          NPC_TIRION_A, 0, 0,     0},
     // Anub'arak
-    {TYPE_ANUBARAK, 0, 0, 0, 19000},
-    {SAY_LKING_ANUB_INTRO_1, NPC_THE_LICHKING, 0, 0, 4000},
-    {EVENT_ARTHAS_PORTAL, 0, 0, 0, 2000},
-    {EVENT_SUMMON_THE_LICHKING, 0, 0, 0, 3000},
-    {SAY_TIRION_ABUN_INTRO_1, NPC_TIRION_A, 0, 0, 8000},
-    {SAY_LKING_ANUB_INTRO_2, NPC_THE_LICHKING_VISUAL, 0, 0, 18500},
-    {EVENT_DESTROY_FLOOR, 0, 0, 0, 2500},
-    {SAY_LKING_ANUB_INTRO_3, NPC_THE_LICHKING, 0, 0, 0},
+    {TYPE_ANUBARAK, 0, 0, 0,                                19000},
+    {SAY_LKING_ANUB_INTRO_1,        NPC_THE_LICHKING, 0, 0, 4000},
+    {EVENT_ARTHAS_PORTAL, 0, 0, 0,                          2000},
+    {EVENT_SUMMON_THE_LICHKING, 0, 0, 0,                    3000},
+    {SAY_TIRION_ABUN_INTRO_1,       NPC_TIRION_A, 0, 0,     8000},
+    {SAY_LKING_ANUB_INTRO_2,        NPC_THE_LICHKING_VISUAL, 0, 0, 18500},
+    {EVENT_DESTROY_FLOOR, 0, 0, 0,                          2500},
+    {SAY_LKING_ANUB_INTRO_3,        NPC_THE_LICHKING, 0, 0, 0},
     {0, 0, 0, 0 ,0}
 };
 
 instance_trial_of_the_crusader::instance_trial_of_the_crusader(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aTocDialogues),
-        m_uiTeam(TEAM_NONE)
+    m_uiTeam(TEAM_NONE)
 {
     Initialize();
 }
 
 void instance_trial_of_the_crusader::Initialize()
 {
+    memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     InitializeDialogueHelper(this);
-
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-        m_auiEncounter[i] = NOT_STARTED;
 
     for (uint8 i = 0; i < MAX_SPECIAL_ACHIEV_CRITS - 1; ++i)
         m_bAchievCriteria[i] = false;
@@ -155,26 +162,13 @@ void instance_trial_of_the_crusader::Initialize()
 
 bool instance_trial_of_the_crusader::IsEncounterInProgress() const
 {
-    for(uint8 i = TYPE_NORTHREND_BEASTS; i < MAX_ENCOUNTER ; ++i)
+    for (uint8 i = TYPE_NORTHREND_BEASTS; i < MAX_ENCOUNTER; ++i)
+    {
         if (m_auiEncounter[i] == IN_PROGRESS)
             return true;
+    }
 
     return false;
-}
-
-void instance_trial_of_the_crusader::OnPlayerEnter(Player *m_player)
-{
-    if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-    {
-        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
-        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
-    }
-}
-
-void instance_trial_of_the_crusader::OnPlayerDeath(Player* pPlayer)
-{
-    if (IsEncounterInProgress())
-        SetSpecialAchievementCriteria(TYPE_IMMORTALITY, false);
 }
 
 bool instance_trial_of_the_crusader::IsRaidWiped()
@@ -378,135 +372,7 @@ void instance_trial_of_the_crusader::OnCreatureDeath(Creature* pCreature)
     }
 }
 
-void instance_trial_of_the_crusader::DoSummonRamsey(uint32 uiEntry)
-{
-    Player* pPlayer = GetPlayerInMap();
-    if (!pPlayer)
-        return;
 
-    if (uiEntry)
-    {
-        pPlayer->SummonCreature(uiEntry, aRamsayPositions[0][0], aRamsayPositions[0][1], aRamsayPositions[0][2], aRamsayPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-        return;
-    }
-    // For initial case, figure which Ramsay to summon
-    if (m_auiEncounter[TYPE_TWIN_VALKYR] == DONE)
-        uiEntry = NPC_RAMSEY_5;
-    else if (m_auiEncounter[TYPE_FACTION_CHAMPIONS] == DONE)
-        uiEntry = NPC_RAMSEY_4;
-    else if (m_auiEncounter[TYPE_JARAXXUS] == DONE)
-        uiEntry = NPC_RAMSEY_3;
-    else if (m_auiEncounter[TYPE_NORTHREND_BEASTS] == DONE)
-        uiEntry = NPC_RAMSEY_2;
-    else
-        uiEntry = NPC_RAMSEY_1;
-
-    pPlayer->SummonCreature(uiEntry, aRamsayPositions[0][0], aRamsayPositions[0][1], aRamsayPositions[0][2], aRamsayPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-}
-
-void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
-{
-    switch (iEntry)
-    {
-        case NPC_RAMSEY_1:
-        case NPC_RAMSEY_2:
-        case NPC_RAMSEY_3:
-        case NPC_RAMSEY_4:
-        case NPC_RAMSEY_5:
-            DoSummonRamsey(iEntry);
-            break;
-        case SAY_VARIAN_BEAST_1:
-            if (Player* pPlayer = GetPlayerInMap())
-            {
-                if (Creature* pBeasts = pPlayer->SummonCreature(NPC_BEAST_COMBAT_STALKER, aSpawnPositions[0][0], aSpawnPositions[0][1], aSpawnPositions[0][2], aSpawnPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0))
-                    pBeasts->SummonCreature(NPC_GORMOK, aSpawnPositions[1][0], aSpawnPositions[1][1], aSpawnPositions[1][2], aSpawnPositions[1][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-            }
-            break;
-        case NPC_FIZZLEBANG:
-            if (Player* pPlayer = GetPlayerInMap())
-                pPlayer->SummonCreature(NPC_FIZZLEBANG, aSpawnPositions[5][0], aSpawnPositions[5][1], aSpawnPositions[5][2], aSpawnPositions[5][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-            break;
-        case SAY_WILFRED_JARAXXUS_INTRO_1:
-            DoUseDoorOrButton(GO_MAIN_GATE); // Close main gate
-            break;
-        case SAY_WILFRED_JARAXXUS_INTRO_2:
-            if (Creature* pFizzlebang = GetSingleCreatureFromStorage(NPC_FIZZLEBANG))
-            {
-                pFizzlebang->SummonCreature(NPC_PURPLE_RUNE, aSpawnPositions[11][0], aSpawnPositions[11][1], aSpawnPositions[11][2], aSpawnPositions[11][3], TEMPSUMMON_TIMED_DESPAWN, 15000);
-                pFizzlebang->CastSpell(pFizzlebang, SPELL_OPEN_PORTAL, false);
-            }
-            break;
-        case EVENT_OPEN_PORTAL:
-            if (Creature* pOpenPortalTarget = GetSingleCreatureFromStorage(NPC_OPEN_PORTAL_TARGET))
-            {
-                pOpenPortalTarget->CastSpell(pOpenPortalTarget, SPELL_WILFRED_PORTAL, true);
-                pOpenPortalTarget->ForcedDespawn(9000);
-            }
-            break;
-        case SAY_WILFRED_JARAXXUS_INTRO_3:
-            if (Player* pPlayer = GetPlayerInMap())
-                if (Creature* pJaraxxus = pPlayer->SummonCreature(NPC_JARAXXUS, aSpawnPositions[6][0], aSpawnPositions[6][1], aSpawnPositions[6][2], aSpawnPositions[6][3], TEMPSUMMON_DEAD_DESPAWN, 0))
-                    pJaraxxus->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[3][0], aMovePositions[3][1], aMovePositions[3][2]);
-            break;
-        case EVENT_KILL_FIZZLEBANG:
-            if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
-                pJaraxxus->CastSpell(pJaraxxus, SPELL_FEL_LIGHTNING_KILL, true);
-            break;
-        case EVENT_JARAXXUS_START_ATTACK:
-            if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
-                pJaraxxus->SetInCombatWithZone();
-            break;
-        case EVENT_SUMMON_FACTION_CHAMPIONS:
-            SummonFactionChampion();
-            break;
-        case EVENT_SUMMON_TWINS:
-            if (Player* pPlayer = GetPlayerInMap())
-            {
-                if (Creature* pFjola = pPlayer->SummonCreature(NPC_LIGHT_FJOLA, aSpawnPositions[7][0], aSpawnPositions[7][1], aSpawnPositions[7][2], aSpawnPositions[7][3], TEMPSUMMON_DEAD_DESPAWN, 0))
-                {
-                    pFjola->SummonCreature(NPC_DARK_EYDIS, aSpawnPositions[8][0], aSpawnPositions[8][1], aSpawnPositions[8][2], aSpawnPositions[8][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                    pFjola->SummonCreature(NPC_LIGHT_ESSENCE, aEssencePositions[0][0], aEssencePositions[0][1], aEssencePositions[0][2], aEssencePositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                    pFjola->SummonCreature(NPC_LIGHT_ESSENCE, aEssencePositions[1][0], aEssencePositions[1][1], aEssencePositions[1][2], aEssencePositions[1][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                    pFjola->SummonCreature(NPC_DARK_ESSENCE, aEssencePositions[2][0], aEssencePositions[2][1], aEssencePositions[2][2], aEssencePositions[2][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                    pFjola->SummonCreature(NPC_DARK_ESSENCE, aEssencePositions[3][0], aEssencePositions[3][1], aEssencePositions[3][2], aEssencePositions[3][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                }
-            }
-            break;
-        case SAY_LKING_ANUB_INTRO_1:
-            if (Player* pPlayer = GetPlayerInMap())
-                pPlayer->SummonCreature(NPC_WORLD_TRIGGER_LARGE, aSpawnPositions[9][0], aSpawnPositions[9][1], aSpawnPositions[9][2], aSpawnPositions[9][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-            break;
-        case EVENT_ARTHAS_PORTAL:
-            if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
-                pWorldTriggerLarge->CastSpell(pWorldTriggerLarge, SPELL_ARTHAS_PORTAL, true);
-            break;
-        case EVENT_SUMMON_THE_LICHKING:
-            if (Player* pPlayer = GetPlayerInMap())
-                pPlayer->SummonCreature(NPC_THE_LICHKING_VISUAL, aSpawnPositions[10][0], aSpawnPositions[10][1], aSpawnPositions[10][2], aSpawnPositions[10][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-            break;
-        case EVENT_DESTROY_FLOOR:
-            if (GameObject* pColiseumFloor = GetSingleGameObjectFromStorage(GO_COLISEUM_FLOOR))
-            {
-                pColiseumFloor->SetDisplayId(DISPLAYID_DESTROYED_FLOOR);
-                pColiseumFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT | GO_FLAG_NODESPAWN);
-                pColiseumFloor->SetGoState(GO_STATE_ACTIVE);
-            }
-
-            if (Creature* pLichKingVisual = GetSingleCreatureFromStorage(NPC_THE_LICHKING_VISUAL))
-            {
-                pLichKingVisual->CastSpell(pLichKingVisual, SPELL_FROSTNOVA, true);
-                //pLichKingVisual->CastSpell(pLichKingVisual, SPELL_CORPSE_TELEPORT, true); // NYI
-                pLichKingVisual->ForcedDespawn();
-            }
-
-            if (Creature* pLichKing = GetSingleCreatureFromStorage(NPC_THE_LICHKING))
-                pLichKing->CastSpell(pLichKing, SPELL_DESTROY_FLOOR_KNOCKUP, true);
-
-            if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
-                pWorldTriggerLarge->ForcedDespawn();
-            break;
-    }
-}
 
 void instance_trial_of_the_crusader::OnObjectCreate(GameObject *pGo)
 {
@@ -563,6 +429,28 @@ void instance_trial_of_the_crusader::SetSpecialAchievementCriteria(uint32 uiType
 {
     if (uiType < MAX_SPECIAL_ACHIEV_CRITS)
         m_bAchievCriteria[uiType] = bIsMet;
+}
+void instance_trial_of_the_crusader::OnPlayerEnter(Player* pPlayer)
+{
+    pPlayer->MonsterSay("Ich habe die Ini betreten", LANG_UNIVERSAL);
+    if (m_uiTeam)
+        return;
+
+    m_uiTeam = pPlayer->GetTeam();
+    SetDialogueSide(m_uiTeam == ALLIANCE);
+    pPlayer->MonsterSay("Kurz vor Ramseybeschwörung", LANG_UNIVERSAL);
+    DoSummonRamsey(0);
+    if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
+    {
+        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
+        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
+    }
+}
+
+void instance_trial_of_the_crusader::OnPlayerDeath(Player* pPlayer)
+{
+    if (IsEncounterInProgress())
+        SetSpecialAchievementCriteria(TYPE_IMMORTALITY, false);
 }
 
 void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
@@ -718,6 +606,14 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
     }
 }
 
+uint32 instance_trial_of_the_crusader::GetData(uint32 uiType)
+{
+    if (uiType < MAX_ENCOUNTER)
+        return m_auiEncounter[uiType];
+
+    return 0;
+}
+
 void instance_trial_of_the_crusader::Load(const char* chrIn)
 {
     if (!chrIn)
@@ -733,7 +629,7 @@ void instance_trial_of_the_crusader::Load(const char* chrIn)
         >> m_auiEncounter[4] >> m_auiEncounter[5];
 
     for(uint8 i = TYPE_NORTHREND_BEASTS; i < MAX_ENCOUNTER; ++i)
-        if (m_auiEncounter[i] == IN_PROGRESS) // Do not load an encounter as "In Progress" - reset it instead.
+        if (m_auiEncounter[i] == IN_PROGRESS)            // Do not load an encounter as "In Progress" - reset it instead.
             m_auiEncounter[i] = NOT_STARTED;
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -814,6 +710,135 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         }
     }
 }
+void instance_trial_of_the_crusader::DoSummonRamsey(uint32 uiEntry)
+{
+    Player* pPlayer = GetPlayerInMap();
+    if (!pPlayer)
+        return;
+    pPlayer->MonsterSay("Ich bin der Beschörer", LANG_UNIVERSAL);
+    if (uiEntry)
+    {
+        pPlayer->SummonCreature(uiEntry, aRamsayPositions[0][0], aRamsayPositions[0][1], aRamsayPositions[0][2], aRamsayPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+        return;
+    }
+    // For initial case, figure which Ramsay to summon
+    if (m_auiEncounter[TYPE_TWIN_VALKYR] == DONE)
+        uiEntry = NPC_RAMSEY_5;
+    else if (m_auiEncounter[TYPE_FACTION_CHAMPIONS] == DONE)
+        uiEntry = NPC_RAMSEY_4;
+    else if (m_auiEncounter[TYPE_JARAXXUS] == DONE)
+        uiEntry = NPC_RAMSEY_3;
+    else if (m_auiEncounter[TYPE_NORTHREND_BEASTS] == DONE)
+        uiEntry = NPC_RAMSEY_2;
+    else
+        uiEntry = NPC_RAMSEY_1;
+
+    pPlayer->SummonCreature(uiEntry, aRamsayPositions[0][0], aRamsayPositions[0][1], aRamsayPositions[0][2], aRamsayPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+}
+
+void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
+{
+    switch (iEntry)
+    {
+        case NPC_RAMSEY_1:
+        case NPC_RAMSEY_2:
+        case NPC_RAMSEY_3:
+        case NPC_RAMSEY_4:
+        case NPC_RAMSEY_5:
+            DoSummonRamsey(iEntry);
+            break;
+        case SAY_VARIAN_BEAST_1:
+            if (Player* pPlayer = GetPlayerInMap())
+            {
+                if (Creature* pBeasts = pPlayer->SummonCreature(NPC_BEAST_COMBAT_STALKER, aSpawnPositions[0][0], aSpawnPositions[0][1], aSpawnPositions[0][2], aSpawnPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0))
+                    pBeasts->SummonCreature(NPC_GORMOK, aSpawnPositions[1][0], aSpawnPositions[1][1], aSpawnPositions[1][2], aSpawnPositions[1][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            }
+            break;
+        case NPC_FIZZLEBANG:
+            if (Player* pPlayer = GetPlayerInMap())
+                pPlayer->SummonCreature(NPC_FIZZLEBANG, aSpawnPositions[5][0], aSpawnPositions[5][1], aSpawnPositions[5][2], aSpawnPositions[5][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            break;
+        case SAY_WILFRED_JARAXXUS_INTRO_1:
+            DoUseDoorOrButton(GO_MAIN_GATE); // Close main gate
+            break;
+        case SAY_WILFRED_JARAXXUS_INTRO_2:
+            if (Creature* pFizzlebang = GetSingleCreatureFromStorage(NPC_FIZZLEBANG))
+            {
+                pFizzlebang->SummonCreature(NPC_PURPLE_RUNE, aSpawnPositions[11][0], aSpawnPositions[11][1], aSpawnPositions[11][2], aSpawnPositions[11][3], TEMPSUMMON_TIMED_DESPAWN, 15000);
+                pFizzlebang->CastSpell(pFizzlebang, SPELL_OPEN_PORTAL, false);
+            }
+            break;
+        case EVENT_OPEN_PORTAL:
+            if (Creature* pOpenPortalTarget = GetSingleCreatureFromStorage(NPC_OPEN_PORTAL_TARGET))
+            {
+                pOpenPortalTarget->CastSpell(pOpenPortalTarget, SPELL_WILFRED_PORTAL, true);
+                pOpenPortalTarget->ForcedDespawn(9000);
+            }
+            break;
+        case SAY_WILFRED_JARAXXUS_INTRO_3:
+            if (Player* pPlayer = GetPlayerInMap())
+                if (Creature* pJaraxxus = pPlayer->SummonCreature(NPC_JARAXXUS, aSpawnPositions[6][0], aSpawnPositions[6][1], aSpawnPositions[6][2], aSpawnPositions[6][3], TEMPSUMMON_DEAD_DESPAWN, 0))
+                    pJaraxxus->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[3][0], aMovePositions[3][1], aMovePositions[3][2]);
+            break;
+        case EVENT_KILL_FIZZLEBANG:
+            if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
+                pJaraxxus->CastSpell(pJaraxxus, SPELL_FEL_LIGHTNING_KILL, true);
+            break;
+        case EVENT_JARAXXUS_START_ATTACK:
+            if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
+                pJaraxxus->SetInCombatWithZone();
+            break;
+        case EVENT_SUMMON_FACTION_CHAMPIONS:
+            SummonFactionChampion();
+            break;
+        case EVENT_SUMMON_TWINS:
+            if (Player* pPlayer = GetPlayerInMap())
+            {
+                if (Creature* pFjola = pPlayer->SummonCreature(NPC_LIGHT_FJOLA, aSpawnPositions[7][0], aSpawnPositions[7][1], aSpawnPositions[7][2], aSpawnPositions[7][3], TEMPSUMMON_DEAD_DESPAWN, 0))
+                {
+                    pFjola->SummonCreature(NPC_DARK_EYDIS, aSpawnPositions[8][0], aSpawnPositions[8][1], aSpawnPositions[8][2], aSpawnPositions[8][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_LIGHT_ESSENCE, aEssencePositions[0][0], aEssencePositions[0][1], aEssencePositions[0][2], aEssencePositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_LIGHT_ESSENCE, aEssencePositions[1][0], aEssencePositions[1][1], aEssencePositions[1][2], aEssencePositions[1][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_DARK_ESSENCE, aEssencePositions[2][0], aEssencePositions[2][1], aEssencePositions[2][2], aEssencePositions[2][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pFjola->SummonCreature(NPC_DARK_ESSENCE, aEssencePositions[3][0], aEssencePositions[3][1], aEssencePositions[3][2], aEssencePositions[3][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                }
+            }
+            break;
+        case SAY_LKING_ANUB_INTRO_1:
+            if (Player* pPlayer = GetPlayerInMap())
+                pPlayer->SummonCreature(NPC_WORLD_TRIGGER_LARGE, aSpawnPositions[9][0], aSpawnPositions[9][1], aSpawnPositions[9][2], aSpawnPositions[9][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            break;
+        case EVENT_ARTHAS_PORTAL:
+            if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
+                pWorldTriggerLarge->CastSpell(pWorldTriggerLarge, SPELL_ARTHAS_PORTAL, true);
+            break;
+        case EVENT_SUMMON_THE_LICHKING:
+            if (Player* pPlayer = GetPlayerInMap())
+                pPlayer->SummonCreature(NPC_THE_LICHKING_VISUAL, aSpawnPositions[10][0], aSpawnPositions[10][1], aSpawnPositions[10][2], aSpawnPositions[10][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            break;
+        case EVENT_DESTROY_FLOOR:
+            if (GameObject* pColiseumFloor = GetSingleGameObjectFromStorage(GO_COLISEUM_FLOOR))
+            {
+                pColiseumFloor->SetDisplayId(DISPLAYID_DESTROYED_FLOOR);
+                pColiseumFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT | GO_FLAG_NODESPAWN);
+                pColiseumFloor->SetGoState(GO_STATE_ACTIVE);
+            }
+
+            if (Creature* pLichKingVisual = GetSingleCreatureFromStorage(NPC_THE_LICHKING_VISUAL))
+            {
+                pLichKingVisual->CastSpell(pLichKingVisual, SPELL_FROSTNOVA, true);
+                //pLichKingVisual->CastSpell(pLichKingVisual, SPELL_CORPSE_TELEPORT, true); // NYI
+                pLichKingVisual->ForcedDespawn();
+            }
+
+            if (Creature* pLichKing = GetSingleCreatureFromStorage(NPC_THE_LICHKING))
+                pLichKing->CastSpell(pLichKing, SPELL_DESTROY_FLOOR_KNOCKUP, true);
+
+            if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
+                pWorldTriggerLarge->ForcedDespawn();
+            break;
+    }
+}
 
 InstanceData* GetInstanceData_instance_trial_of_the_crusader(Map* pMap)
 {
@@ -822,7 +847,8 @@ InstanceData* GetInstanceData_instance_trial_of_the_crusader(Map* pMap)
 
 void AddSC_instance_trial_of_the_crusader()
 {
-    Script *pNewScript;
+    Script* pNewScript;
+
     pNewScript = new Script;
     pNewScript->Name = "instance_trial_of_the_crusader";
     pNewScript->GetInstanceData = &GetInstanceData_instance_trial_of_the_crusader;

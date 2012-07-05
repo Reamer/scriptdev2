@@ -25,7 +25,7 @@ INSERT INTO spell_script_target (entry, type, targetEntry) VALUES
 DELETE FROM spell_script_target WHERE entry IN (66132, 66133);
 INSERT INTO spell_script_target (entry, type, targetEntry) VALUES
 (66132, 1, 34496),
-(66133, 1, 34497),
+(66133, 1, 34497);
 -- Summon Light Bullet by Reamer
 -- Spell from Fjola Lightbane to Val'kyr Twins Bullet Stalker Light
 DELETE FROM spell_script_target WHERE entry IN (66140, 67158, 67159, 67160);
@@ -87,13 +87,13 @@ UPDATE `creature_template` SET `flags_extra` = '2' WHERE `entry` = 34865;
 -- ************** Jaraxxus ***********************
 UPDATE creature_template SET scriptname = 'boss_jaraxxus', AIName = '' WHERE entry= 34780;
 UPDATE creature_template SET scriptname = 'mob_legion_flame', minlevel = 82, maxlevel = 82, modelid_1 = 11686, modelid_2 = 11686, modelid_3 = 11686, modelid_4 = 11686, AIName = 'NullAI', faction_A = 14, faction_H = 14 WHERE entry = 34784;
-UPDATE creature_template SET scriptname = '', AIName ='NullAI' WHERE entry` IN (34813, 34825); -- vulcano and nether portal
+UPDATE creature_template SET scriptname = '', AIName ='NullAI' WHERE entry IN (34813, 34825); -- vulcano and nether portal
 UPDATE creature_template SET scriptname = 'mob_fel_infernal', AIName ='' WHERE entry = 34815;
 UPDATE creature_template SET scriptname = 'mob_mistress_of_pain', AIName ='' WHERE entry = 34826;
 
 DELETE FROM spell_script_target WHERE entry = 66287;
 INSERT INTO spell_script_target VALUES
-(66287, 1, 34826) -- source Sniff
+(66287, 1, 34826); -- source Sniff
 
 -- Felflame infernal
 UPDATE `creature_template` SET `AIName`='EventAI' WHERE `entry`=34815;

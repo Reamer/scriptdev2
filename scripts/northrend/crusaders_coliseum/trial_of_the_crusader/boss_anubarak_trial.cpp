@@ -94,9 +94,9 @@ enum AnubarakPhases
     PHASE_BELOW_30  = 4
 };
 
-struct MANGOS_DLL_DECL boss_anubarak_trialAI : public BSWScriptedAI
+struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
 {   
-    boss_anubarak_trialAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    boss_anubarak_trialAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
         m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
@@ -426,9 +426,9 @@ CreatureAI* GetAI_boss_anubarak_trial(Creature* pCreature)
     return new boss_anubarak_trialAI(pCreature);
 }
 
-struct MANGOS_DLL_DECL mob_swarm_scarabAI : public BSWScriptedAI
+struct MANGOS_DLL_DECL mob_swarm_scarabAI : public ScriptedAI
 {
-    mob_swarm_scarabAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    mob_swarm_scarabAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
@@ -505,9 +505,9 @@ CreatureAI* GetAI_mob_swarm_scarab(Creature* pCreature)
     return new mob_swarm_scarabAI(pCreature);
 };
 
-struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public BSWScriptedAI
+struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public ScriptedAI
 {
-    mob_nerubian_borrowerAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    mob_nerubian_borrowerAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
@@ -601,7 +601,7 @@ struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public BSWScriptedAI
                 m_uiShadowStrikeTimer -= uiDiff;
         }
 
-        if (m_creature->GetHealthPercent() < 20.0f && !m_bIsSubmerged && !hasAura(SPELL_PERMAFROST, m_creature))
+        if (m_creature->GetHealthPercent() < 20.0f && !m_bIsSubmerged && !m_creature->HasAura(SPELL_PERMAFROST))
         {
             m_creature->CastSpell(m_creature, SPELL_SUBMERGE_BURROWER, false);
             m_creature->RemoveAllAuras();
@@ -641,9 +641,9 @@ CreatureAI* GetAI_mob_nerubian_borrower(Creature* pCreature)
     return new mob_nerubian_borrowerAI(pCreature);
 };
 
-struct MANGOS_DLL_DECL mob_frost_sphereAI : public BSWScriptedAI
+struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
 {
-    mob_frost_sphereAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    mob_frost_sphereAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
@@ -692,9 +692,9 @@ CreatureAI* GetAI_mob_frost_sphere(Creature* pCreature)
     return new mob_frost_sphereAI(pCreature);
 };
 
-struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public BSWScriptedAI
+struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 {
-    mob_anubarak_spikeAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    mob_anubarak_spikeAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
