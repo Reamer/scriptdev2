@@ -111,25 +111,9 @@ enum
     TYPE_TWIN_VALKYR            = 4,
     TYPE_ANUBARAK               = 5,
 
-    TYPE_NORTHREND_BEAST_STATE  = 101,
     TYPE_EVENT_TIMER            = 102,
     TYPE_EVENT_NPC              = 103,
     TYPE_CRUSADERS_COUNT        = 104,
-
-    GORMOK_NOT_STARTED          = 1000 + NOT_STARTED,
-    GORMOK_IN_PROGRESS          = 1000 + IN_PROGRESS,
-    GORMOK_FAIL                 = 1000 + FAIL,
-    GORMOK_DONE                 = 1000 + DONE,
-    SNAKES_NOT_STARTED          = 2000 + NOT_STARTED,
-    SNAKES_IN_PROGRESS          = 2000 + IN_PROGRESS,
-    SNAKES_FAIL                 = 2000 + FAIL,
-    SNAKES_DONE                 = 2000 + DONE,
-    SNAKES_SPECIAL              = 2000 + SPECIAL,
-    ICEHOWL_NOT_STARTED         = 3000 + NOT_STARTED,
-    ICEHOWL_IN_PROGRESS         = 3000 + IN_PROGRESS,
-    ICEHOWL_FAIL                = 3000 + FAIL,
-    ICEHOWL_DONE                = 3000 + DONE,
-
     EVENT_OPEN_PORTAL           = 6,
     EVENT_KILL_FIZZLEBANG       = 7,
     EVENT_JARAXXUS_START_ATTACK = 8,
@@ -331,17 +315,17 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
 
         void Initialize();
         bool IsEncounterInProgress() const;
-        void OnPlayerEnter(Player *m_player);
-        void OnPlayerDeath(Player *m_player);
+
 
         bool IsRaidWiped();
         void UpdateWorldState();
 
         void OnCreatureCreate(Creature* pCreature);
         void OnCreatureDeath(Creature * pCreature);
-        void OnCreatureEnterCombat(Creature * pCreature);
-        void OnCreatureEvade(Creature * pCreature);
         void OnObjectCreate(GameObject *pGo);
+
+        void OnPlayerEnter(Player *pPlayer);
+        void OnPlayerDeath(Player *pPlayer);
 
         bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
         void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);

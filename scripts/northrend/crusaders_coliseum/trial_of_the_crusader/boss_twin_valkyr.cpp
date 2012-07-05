@@ -69,6 +69,9 @@ enum BossSpells
     SPELL_BERSERK                 = 64238,
     SPELL_REMOVE_TOUCH            = 68084,
     SPELL_ACTIVATE_BULLET_STALKER = 68497,              // not used in sniff, but possible
+    SPELL_INSTAKILL_DARK_VALKYR   = 68400,
+    SPELL_INSTAKILL_LIGHT_VALKYR  = 68401,
+    SPELL_VALKYR_QUICKNESS        = 65949,
 };
 
 enum Equipment

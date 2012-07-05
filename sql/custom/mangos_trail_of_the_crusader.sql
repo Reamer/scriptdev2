@@ -26,6 +26,11 @@ DELETE FROM spell_script_target WHERE entry IN (66132, 66133);
 INSERT INTO spell_script_target (entry, type, targetEntry) VALUES
 (66132, 1, 34496),
 (66133, 1, 34497);
+-- Instant kill by Reamer
+DELETE FROM spell_script_target WHERE entry IN (68400, 68401);
+INSERT INTO spell_script_target (entry, type, targetEntry) VALUES
+(68400, 1, 34496),
+(68401, 1, 34497);
 -- Summon Light Bullet by Reamer
 -- Spell from Fjola Lightbane to Val'kyr Twins Bullet Stalker Light
 DELETE FROM spell_script_target WHERE entry IN (66140, 67158, 67159, 67160);
@@ -125,8 +130,7 @@ INSERT INTO `creature_ai_scripts` (`id`,`creature_id`,`event_type`,`event_invers
 -- Nortrend beasts
 UPDATE creature_template SET scriptname = 'boss_gormok', AIName ='' WHERE entry = 34796;
 UPDATE creature_template SET scriptname = 'mob_snobold_vassal', AIName ='' WHERE entry = 34800;
-UPDATE creature_template SET scriptname = 'boss_dreadscale', AIName ='' WHERE entry =34799;
-UPDATE creature_template SET scriptname = 'boss_acidmaw', AIName ='' WHERE entry =35144;
+UPDATE creature_template SET scriptname = 'boss_acidmaw_and_dreadscale', AIName ='' WHERE entry IN (34799, 35144);
 UPDATE creature_template SET scriptname = 'boss_icehowl', AIName = '' WHERE entry =34797;
 UPDATE creature_template SET ScriptName = '' , AIName ='NullAI' WHERE entry IN (34854, 35176); -- Firebomb and Slime Pool
 

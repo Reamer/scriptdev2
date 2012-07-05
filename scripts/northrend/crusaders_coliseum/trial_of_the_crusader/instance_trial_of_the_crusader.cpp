@@ -120,6 +120,7 @@ static const DialogueEntryTwoSide aTocDialogues[] =
     {SAY_GARROSH_PVP_A_INTRO_1,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_1,   NPC_VARIAN, 14000},
     {SAY_TIRION_PVP_INTRO_2,        NPC_TIRION_A, 0, 0,     1000},
     {TYPE_FACTION_CHAMPIONS, 0, 0, 0,                       5000},
+    {EVENT_SUMMON_FACTION_CHAMPIONS, 0, 0, 0,               1000},
     {SAY_GARROSH_PVP_A_INTRO_2,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_2,   NPC_VARIAN, 0},
     {SAY_VARIAN_PVP_A_WIN,          NPC_VARIAN,         SAY_GARROSH_PVP_H_WIN,      NPC_GARROSH, 4000},
     {SAY_TIRION_PVP_WIN,            NPC_TIRION_A, 0, 0,     27000},
@@ -226,24 +227,6 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
             pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[6][0], aMovePositions[6][1], aMovePositions[6][2], false);
             break;
         }
-        case NPC_GORMOK:
-        {
-            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[0][0], aMovePositions[0][1], aMovePositions[0][2], false);
-            break;
-        }
-        case NPC_DREADSCALE:
-        {
-            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[1][0], aMovePositions[1][1], aMovePositions[1][2], false);
-            break;
-        }
-        case NPC_ICEHOWL:
-        {
-            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[2][0], aMovePositions[2][1], aMovePositions[2][2], false);
-            break;
-        }
         case NPC_TIRION_A:
         case NPC_TIRION_B:
         case NPC_VARIAN:
@@ -273,92 +256,10 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
     m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
 }
 
-void instance_trial_of_the_crusader::OnCreatureEnterCombat(Creature* pCreature)
-{
-    switch (pCreature->GetEntry())
-    {
-        case NPC_GORMOK:
-        {
-            SetData(TYPE_NORTHREND_BEAST_STATE, GORMOK_IN_PROGRESS);
-            break;
-        }
-        case NPC_DREADSCALE:
-        case NPC_ACIDMAW:
-        {
-            if (m_uiNorthrendBeastState != SNAKES_IN_PROGRESS)
-                SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_IN_PROGRESS);
-            break;
-        }
-        case NPC_ICEHOWL:
-        {
-            SetData(TYPE_NORTHREND_BEAST_STATE, ICEHOWL_IN_PROGRESS);
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-void instance_trial_of_the_crusader::OnCreatureEvade(Creature * pCreature)
-{
-    switch (pCreature->GetEntry())
-    {
-        case NPC_GORMOK:
-        {
-            SetData(TYPE_NORTHREND_BEAST_STATE, GORMOK_FAIL);
-            break;
-        }
-        case NPC_DREADSCALE:
-        case NPC_ACIDMAW:
-        {
-            if (m_uiNorthrendBeastState != SNAKES_FAIL)
-                SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_FAIL);
-            break;
-        }
-        case NPC_ICEHOWL:
-        {
-            SetData(TYPE_NORTHREND_BEAST_STATE, ICEHOWL_FAIL);
-            break;
-        }
-        default:
-            break;
-    }
-}
-
 void instance_trial_of_the_crusader::OnCreatureDeath(Creature* pCreature)
 {
     switch (pCreature->GetEntry())
     {
-        case NPC_GORMOK:
-        {
-            SetData(TYPE_NORTHREND_BEAST_STATE, GORMOK_DONE);
-            break;
-        }
-        case NPC_DREADSCALE:
-            if (Creature* pAcidmaw = GetSingleCreatureFromStorage(NPC_ACIDMAW))
-            {
-                if (pAcidmaw->isAlive())
-                    SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_SPECIAL);
-                else
-                    SetData(TYPE_NORTHREND_BEAST_STATE, DONE);
-            }
-            break;
-        case NPC_ACIDMAW:
-        {
-            if (Creature* pDreadscale = GetSingleCreatureFromStorage(NPC_DREADSCALE))
-            {
-                if (pDreadscale->isAlive())
-                    SetData(TYPE_NORTHREND_BEAST_STATE, SNAKES_SPECIAL);
-                else
-                    SetData(TYPE_NORTHREND_BEAST_STATE, DONE);
-            }
-            break;
-        }
-        case NPC_ICEHOWL:
-        {
-            SetData(TYPE_NORTHREND_BEAST_STATE, ICEHOWL_DONE);
-            break;
-        }
         case NPC_MISTRESS:
             m_uiMistressLifeCounter--;
             break;
@@ -372,11 +273,8 @@ void instance_trial_of_the_crusader::OnCreatureDeath(Creature* pCreature)
 
 
 
-void instance_trial_of_the_crusader::OnObjectCreate(GameObject *pGo)
+void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
 {
-    if (!pGo)
-        return;
-
     switch (pGo->GetEntry())
     {
         case GO_COLISEUM_FLOOR:
@@ -474,46 +372,6 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
                 StartNextDialogueText(SAY_TIRION_BEAST_SLAY);
             m_auiEncounter[uiType] = uiData;
             break;
-        case TYPE_NORTHREND_BEAST_STATE:
-            switch (uiData)
-            {
-                case GORMOK_IN_PROGRESS:
-                    SetData(TYPE_NORTHREND_BEASTS, IN_PROGRESS);
-                    /* no break */
-                case SNAKES_IN_PROGRESS:
-                case ICEHOWL_IN_PROGRESS:
-                    DoUseDoorOrButton(GO_MAIN_GATE); // close door
-                    break;
-                case GORMOK_FAIL:
-                case SNAKES_FAIL:
-                case ICEHOWL_FAIL:
-                    SetData(TYPE_NORTHREND_BEASTS, FAIL);
-                    break;
-                case GORMOK_DONE:
-                {
-                    if (Creature* pBeasts = GetSingleCreatureFromStorage(NPC_BEAST_COMBAT_STALKER))
-                        pBeasts->SummonCreature(NPC_DREADSCALE, aSpawnPositions[2][0], aSpawnPositions[2][1], aSpawnPositions[2][2], aSpawnPositions[2][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                    break;
-                }
-                case SNAKES_DONE:
-                {
-                    if (Creature* pBeasts = GetSingleCreatureFromStorage(NPC_BEAST_COMBAT_STALKER))
-                        pBeasts->SummonCreature(NPC_ICEHOWL, aSpawnPositions[4][0], aSpawnPositions[4][1], aSpawnPositions[4][2], aSpawnPositions[4][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                    break;
-                }
-                case GORMOK_NOT_STARTED:
-                case SNAKES_NOT_STARTED:
-                case SNAKES_SPECIAL:
-                case ICEHOWL_NOT_STARTED:
-                    break;
-                case ICEHOWL_DONE:
-                    SetData(TYPE_NORTHREND_BEASTS, DONE);
-                    break;
-                default:
-                    break;
-            }
-            m_uiNorthrendBeastState = uiData;
-            break;
         case TYPE_JARAXXUS:
             if (uiData == SPECIAL)
                 // TODO - What happen in wipe case?
@@ -530,18 +388,16 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
         case TYPE_FACTION_CHAMPIONS:
             if (m_auiEncounter[uiType] != uiData)
             {
-                if (uiData == SPECIAL)
-                {
-                    StartNextDialogueText(m_auiEncounter[uiType] != FAIL ? SAY_TIRION_PVP_INTRO_1 : TYPE_FACTION_CHAMPIONS);
-                }
-                else if (uiData == FAIL)
-                {
-                    SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
-                    StartNextDialogueText(NPC_RAMSEY_3);
-                }
-                else if (uiData == DONE)
-                    StartNextDialogueText(SAY_VARIAN_PVP_A_WIN);
-                m_auiEncounter[uiType] = uiData;
+            if (uiData == SPECIAL)
+                StartNextDialogueText(m_auiEncounter[uiType] != FAIL ? SAY_TIRION_PVP_INTRO_1 : TYPE_FACTION_CHAMPIONS);
+            else if (uiData == FAIL)
+            {
+                SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+                StartNextDialogueText(NPC_RAMSEY_3);
+            }
+            else if (uiData == DONE)
+                StartNextDialogueText(SAY_VARIAN_PVP_A_WIN);
+            m_auiEncounter[uiType] = uiData;
             }
             break;
         case TYPE_TWIN_VALKYR:
@@ -646,7 +502,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         std::list<uint32>::iterator itr = lSummonHealerList.begin();
         advance(itr , urand(0, lSummonHealerList.size()-1));
         lSummonHealerList.erase(itr);
-    }while (lSummonHealerList.size() >= (bIs25Man ? FACTION_CHAMPIONS_HEALER_AMOUNT_25: FACTION_CHAMPIONS_HEALER_AMOUNT_10));
+    }while (lSummonHealerList.size() > (bIs25Man ? FACTION_CHAMPIONS_HEALER_AMOUNT_25: FACTION_CHAMPIONS_HEALER_AMOUNT_10));
 
     std::list<uint32> lSummonMeleeDDList;
     lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_3 : NPC_CRUSADER_2_3);
@@ -658,7 +514,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         std::list<uint32>::iterator itr = lSummonMeleeDDList.begin();
         advance(itr , urand(0, lSummonMeleeDDList.size()-1));
         lSummonMeleeDDList.erase(itr);
-    }while (lSummonMeleeDDList.size() >= (bIs25Man ? FACTION_CHAMPIONS_MELEE_DD_AMOUNT_25: FACTION_CHAMPIONS_MELEE_DD_AMOUNT_10));
+    }while (lSummonMeleeDDList.size() > (bIs25Man ? FACTION_CHAMPIONS_MELEE_DD_AMOUNT_25: FACTION_CHAMPIONS_MELEE_DD_AMOUNT_10));
 
     std::list<uint32> lSummonMagicDDList;
     lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_7 : NPC_CRUSADER_2_7);
@@ -670,7 +526,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         std::list<uint32>::iterator itr = lSummonMagicDDList.begin();
         advance(itr , urand(0, lSummonMagicDDList.size()-1));
         lSummonMagicDDList.erase(itr);
-    }while (lSummonMagicDDList.size() >= (bIs25Man ? FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25: FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10));
+    }while (lSummonMagicDDList.size() > (bIs25Man ? FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25: FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10));
 
     if (bIs25Man)
     {
@@ -784,7 +640,10 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
             break;
         case EVENT_JARAXXUS_START_ATTACK:
             if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
+            {
+                pJaraxxus->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
                 pJaraxxus->SetInCombatWithZone();
+            }
             break;
         case EVENT_SUMMON_FACTION_CHAMPIONS:
             SummonFactionChampion();

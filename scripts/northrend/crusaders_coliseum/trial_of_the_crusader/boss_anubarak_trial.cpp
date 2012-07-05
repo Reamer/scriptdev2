@@ -83,6 +83,10 @@ enum BossSpells
     SPELL_BERSERK                   = 26662,
 
     SPELL_SUMMON_NERUBIAN_BURROWER  = 66332,        // with spell_script_target to 34862, TODO: need a limitation in Core!
+
+    // misc
+    Submerge_Burrower               = 68394,
+    Submerge_Anubarak               = 65981 
 };
 
 enum AnubarakPhases
