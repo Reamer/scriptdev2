@@ -211,37 +211,37 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
         case NPC_FIZZLEBANG:
         {
             DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[4][0], aMovePositions[4][1], aMovePositions[4][2]);
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[4][0], aMovePositions[4][1], aMovePositions[4][2], false);
             break;
         }
         case NPC_LIGHT_FJOLA:
         {
             DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[5][0], aMovePositions[5][1], aMovePositions[5][2]);
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[5][0], aMovePositions[5][1], aMovePositions[5][2], false);
             break;
         }
         case NPC_DARK_EYDIS:
         {
             // don't open here the main gate! Done in part of Fjola (Sister)
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[6][0], aMovePositions[6][1], aMovePositions[6][2]);
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[6][0], aMovePositions[6][1], aMovePositions[6][2], false);
             break;
         }
         case NPC_GORMOK:
         {
             DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[0][0], aMovePositions[0][1], aMovePositions[0][2]);
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[0][0], aMovePositions[0][1], aMovePositions[0][2], false);
             break;
         }
         case NPC_DREADSCALE:
         {
             DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[1][0], aMovePositions[1][1], aMovePositions[1][2]);
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[1][0], aMovePositions[1][1], aMovePositions[1][2], false);
             break;
         }
         case NPC_ICEHOWL:
         {
             DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[2][0], aMovePositions[2][1], aMovePositions[2][2]);
+            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[2][0], aMovePositions[2][1], aMovePositions[2][2], false);
             break;
         }
         case NPC_TIRION_A:
@@ -327,8 +327,6 @@ void instance_trial_of_the_crusader::OnCreatureEvade(Creature * pCreature)
 
 void instance_trial_of_the_crusader::OnCreatureDeath(Creature* pCreature)
 {
-    if (!pCreature)
-        return;
     switch (pCreature->GetEntry())
     {
         case NPC_GORMOK:
