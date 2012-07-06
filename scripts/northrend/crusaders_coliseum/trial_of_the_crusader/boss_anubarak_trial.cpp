@@ -26,19 +26,10 @@ EndScriptData */
 
 enum BossSpells
 {
-    SPELL_SUBMERGE_BURROWER         = 68394,
-    //SPELL_SUMMON_BEATLES            = 66339,        // not used in sniff
-    SPELL_DETERMINATION             = 66092,
-    SPELL_ACID_MANDIBLE             = 65775,
-    SPELL_SPIDER_FRENZY             = 66128,
-    SPELL_EXPOSE_WEAKNESS           = 67720,
 
-    SPELL_SHADOW_STRIKE             = 66134,
-    SPELL_ACHIEV_TRAITOR_KING_10    = 68186,
-    SPELL_ACHIEV_TRAITOR_KING_25    = 68515,
 };
 
-enum
+enum AnubarakYells
 {
     SAY_ANUB_ANUB_INTRO_1           = -1649038,
     SAY_AGGRO                       = -1649064,
@@ -51,8 +42,11 @@ enum
     EMOTE_BURROW                    = -1649071,
     EMOTE_PURSUE                    = -1649072,
     EMOTE_EMERGE                    = -1649073,
-    EMOTE_LEECHING_SWARM            = -1649074,
+    EMOTE_LEECHING_SWARM            = -1649074
+};
 
+enum AnubarakSpells
+{
     // Anub'arak
     SPELL_DAZE_IMMUNITY             = 53757,
     SPELL_FREEZING_SLASH            = 66012,
@@ -66,33 +60,15 @@ enum
     SPELL_SUMMON_SPIKES             = 66169,
     SPELL_LEECHING_SWARM            = 66118,
     SPELL_BERSERK                   = 26662,
-
-    // Pursuing Spikes
-    SPELL_PURSUING_SPIKES_FAIL      = 66181,
-    SPELL_PURSUING_SPIKES_GROUND    = 65921, // Set as aura in database
-    SPELL_PURSUING_SPIKES_SPEED1    = 65920,
-    SPELL_PURSUING_SPIKES_SPEED2    = 65922,
-    SPELL_PURSUING_SPIKES_SPEED3    = 65923,
-    SPELL_PURSUING_SPIKES_SEARCH    = 67470,
-    SPELL_MARK                      = 67574,
-
-    // Frostsphere
-    SPELL_PERMAFROST_VISUAL         = 65882,
-    SPELL_FROSTSPHERE_INVISIBLE     = 66185,
-    SPELL_PERMAFROST                = 66193,
-    SPELL_FROSTSPHERE_VISUAL        = 67539,
-
-    POINT_GROUND            = 0,
-
-    MAX_FROSTSPHERES        = 6,
-    MAX_BURROWS             = 4,
 };
+
+#define MAX_FROSTSPHERES    6
+#define MAX_BURROWS         4
 
 enum Summons
 {
     NPC_BURROW                      = 34862,
     NPC_FROSTSPHERE                 = 34606,
-    NPC_PERMAFROST                  = 33184,
     NPC_NERUBIAN_BURROWER           = 34607,
     NPC_SCARAB                      = 34605,
     NPC_ANUBARAK_SPIKED             = 34660,
@@ -103,15 +79,6 @@ enum AnubarakPhases
     PHASE_GROUND            = 0,
     PHASE_UNDERGROUND       = 1,
     PHASE_LEECHING_SWARM    = 2
-};
-
-enum PursuingSpikesPhases
-{
-    PHASE_SEARCH            = 0,
-    PHASE_NO_MOVEMENT          = 1,
-    PHASE_IMPALE_NORMAL     = 2,
-    PHASE_IMPALE_MIDDLE     = 3,
-    PHASE_IMPALE_FAST       = 4
 };
 
 // I'm not sure and happy about the frostsphere spawn positions
@@ -414,21 +381,23 @@ CreatureAI* GetAI_boss_anubarak_trial(Creature* pCreature)
     return new boss_anubarak_trialAI(pCreature);
 }
 
+enum SwarmScarabSpells
+{
+    SPELL_DETERMINATION             = 66092,
+    SPELL_ACID_MANDIBLE             = 65775,
+    SPELL_ACHIEV_TRAITOR_KING_10    = 68186,
+    SPELL_ACHIEV_TRAITOR_KING_25    = 68515,
+};
+
 struct MANGOS_DLL_DECL mob_swarm_scarabAI : public ScriptedAI
 {
     mob_swarm_scarabAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
-        m_bIsHeroic = m_uiMapDifficulty > RAID_DIFFICULTY_25MAN_NORMAL;
-        m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
-
+        Difficulty MapDifficulty = pCreature->GetMap()->GetDifficulty();
+        m_bIs25Man = (MapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || MapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
-    Difficulty m_uiMapDifficulty;
-    bool m_bIsHeroic;
     bool m_bIs25Man;
 
     uint32 m_uiAcidMandibleTimer;
@@ -436,8 +405,6 @@ struct MANGOS_DLL_DECL mob_swarm_scarabAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->SetRespawnDelay(DAY);
-
         m_uiAcidMandibleTimer    = 2000;
         m_uiDeterminationTimer   = urand(10000, 20000);
     }
@@ -451,20 +418,10 @@ struct MANGOS_DLL_DECL mob_swarm_scarabAI : public ScriptedAI
     void JustDied(Unit* Killer)
     {
         m_creature->CastSpell(m_creature, m_bIs25Man ? SPELL_ACHIEV_TRAITOR_KING_25 : SPELL_ACHIEV_TRAITOR_KING_10, false);
-        m_creature->ForcedDespawn(5000);
-    }
-
-    void Aggro(Unit *who)
-    {
-        if (!m_pInstance) 
-            return;
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_pInstance && m_pInstance->GetData(TYPE_ANUBARAK) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
-
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
@@ -491,6 +448,16 @@ struct MANGOS_DLL_DECL mob_swarm_scarabAI : public ScriptedAI
 CreatureAI* GetAI_mob_swarm_scarab(Creature* pCreature)
 {
     return new mob_swarm_scarabAI(pCreature);
+};
+
+enum FrostsphereSpells
+{
+    SPELL_PERMAFROST_VISUAL         = 65882,
+    SPELL_FROSTSPHERE_INVISIBLE     = 66185,
+    SPELL_PERMAFROST                = 66193,
+    SPELL_FROSTSPHERE_VISUAL        = 67539,
+
+    POINT_GROUND            = 0,
 };
 
 struct MANGOS_DLL_DECL npc_anubarak_trial_frostsphereAI : public ScriptedAI
@@ -547,6 +514,25 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_frostsphereAI : public ScriptedAI
 CreatureAI* GetAI_mob_frost_sphere(Creature* pCreature)
 {
     return new npc_anubarak_trial_frostsphereAI(pCreature);
+};
+enum PursuingSpikeSpells
+{
+    SPELL_PURSUING_SPIKES_FAIL      = 66181,
+    SPELL_PURSUING_SPIKES_GROUND    = 65921, // Set as aura in database
+    SPELL_PURSUING_SPIKES_SPEED1    = 65920,
+    SPELL_PURSUING_SPIKES_SPEED2    = 65922,
+    SPELL_PURSUING_SPIKES_SPEED3    = 65923,
+    SPELL_PURSUING_SPIKES_SEARCH    = 67470,
+    SPELL_MARK                      = 67574,
+};
+
+enum PursuingSpikesPhases
+{
+    PHASE_SEARCH            = 0,
+    PHASE_NO_MOVEMENT       = 1,
+    PHASE_IMPALE_NORMAL     = 2,
+    PHASE_IMPALE_MIDDLE     = 3,
+    PHASE_IMPALE_FAST       = 4
 };
 
 struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
@@ -689,6 +675,13 @@ CreatureAI* GetAI_npc_anubarak_trial_spikes(Creature* pCreature)
     return new npc_anubarak_trial_spikesAI(pCreature);
 }
 
+enum NerubianBorrowerSpells
+{
+    SPELL_SPIDER_FRENZY             = 66128,
+    SPELL_SUBMERGE_BURROWER         = 68394,
+    SPELL_EXPOSE_WEAKNESS           = 67720,
+    SPELL_SHADOW_STRIKE             = 66134,
+};
 struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public ScriptedAI
 {
     mob_nerubian_borrowerAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -737,8 +730,6 @@ struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public ScriptedAI
             {
                 m_creature->CastSpell(m_creature, SPELL_EMERGE, false);
                 m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE_BURROWER);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 m_bIsSubmerged = false;
             }
         }
