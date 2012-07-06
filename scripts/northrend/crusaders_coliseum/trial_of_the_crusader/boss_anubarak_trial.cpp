@@ -58,13 +58,7 @@ enum BossSpells
     SPELL_COLD                      = 66013,
     SPELL_MARK                      = 67574,
     SPELL_LEECHING_SWARM            = 66118,
-    SPELL_IMPALE_10                 = 65919,
-    SPELL_IMPALE_25                 = 67859,
-    SPELL_IMPALE_GROUND             = 65921,
-    SPELL_PURSUING_SPIKE_LOW        = 65920,
-    SPELL_PURSUING_SPIKE_MED        = 65922,
-    SPELL_PURSUING_SPIKE_HIGH       = 65923,
-    SPELL_PURSUING_SPIKE_COLD       = 66181,
+
     SPELL_POUND                     = 66012,
     SPELL_SHOUT                     = 67730,
     SPELL_SUBMERGE_ANUB             = 53421,
@@ -86,7 +80,15 @@ enum BossSpells
 
     // misc
     Submerge_Burrower               = 68394,
-    Submerge_Anubarak               = 65981 
+    Submerge_Anubarak               = 65981,
+
+    // Pursuing Spikes
+    SPELL_PURSUING_SPIKES_FAIL = 66181,
+    SPELL_PURSUING_SPIKES_SPEED1 = 65920,
+    SPELL_PURSUING_SPIKES_GROUND = 65921, // Set as aura in database
+    SPELL_PURSUING_SPIKES_SPEED2 = 65922,
+    SPELL_PURSUING_SPIKES_SPEED3 = 65923,
+    SPELL_MARK = 67574,
 };
 
 enum AnubarakPhases

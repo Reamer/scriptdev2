@@ -58,28 +58,6 @@ enum BossSpells
     SPELL_FIRE_BOMB_DOT         = 66318,
     SPELL_HEAD_CRACK            = 66407,
 
-    // Icehowl
-    SPELL_FEROCIOUS_BUTT        = 66770,
-    SPELL_MASSIVE_CRASH         = 66683,
-    SPELL_WHIRL                 = 67345,
-    SPELL_ARCTIC_BREATH         = 66689,
-    SPELL_TRAMPLE               = 66734,
-    SPELL_ADRENALINE            = 68667,
-    SPELL_FROTHING_RAGE         = 66759,
-    SPELL_STAGGERED_DAZE        = 66758,
-};
-
-enum IcehowlPhase
-{
-    PHASE_NORMAL                = 0,
-    PHASE_MOVING                = 1,
-    PHASE_TRAMPLE               = 2,
-};
-
-enum Points
-{
-    POINT_CENTER                = 0,
-    POINT_TARGET                = 1,
 };
 /*######
 ## npc_beast_combat_stalker
@@ -803,6 +781,31 @@ CreatureAI* GetAI_boss_acidmaw_and_dreadscale(Creature* pCreature)
 {
     return new boss_acidmaw_and_dreadscaleAI(pCreature);
 }
+
+enum BossSpells{
+    // Icehowl
+    SPELL_FEROCIOUS_BUTT        = 66770,
+    SPELL_MASSIVE_CRASH         = 66683,
+    SPELL_WHIRL                 = 67345,
+    SPELL_ARCTIC_BREATH         = 66689,
+    SPELL_TRAMPLE               = 66734,
+    SPELL_ADRENALINE            = 68667,
+    SPELL_FROTHING_RAGE         = 66759,
+    SPELL_STAGGERED_DAZE        = 66758,
+};
+
+enum IcehowlPhase
+{
+    PHASE_NORMAL                = 0,
+    PHASE_MOVING                = 1,
+    PHASE_TRAMPLE               = 2,
+};
+
+enum Points
+{
+    POINT_CENTER                = 0,
+    POINT_TARGET                = 1,
+};
 
 struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 {

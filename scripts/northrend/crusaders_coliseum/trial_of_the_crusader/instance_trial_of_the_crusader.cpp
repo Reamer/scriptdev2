@@ -210,21 +210,9 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
     switch (pCreature->GetEntry())
     {
         case NPC_FIZZLEBANG:
-        {
-            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[4][0], aMovePositions[4][1], aMovePositions[4][2], false);
-            break;
-        }
         case NPC_LIGHT_FJOLA:
         {
             DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[5][0], aMovePositions[5][1], aMovePositions[5][2], false);
-            break;
-        }
-        case NPC_DARK_EYDIS:
-        {
-            // don't open here the main gate! Done in part of Fjola (Sister)
-            pCreature->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[6][0], aMovePositions[6][1], aMovePositions[6][2], false);
             break;
         }
         case NPC_TIRION_A:
@@ -233,6 +221,7 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
         case NPC_GARROSH:
         case NPC_JARAXXUS:
         case NPC_OPEN_PORTAL_TARGET:
+        case NPC_DARK_EYDIS:
         case NPC_WORLD_TRIGGER_LARGE:
         case NPC_THE_LICHKING:
         case NPC_THE_LICHKING_VISUAL:
@@ -328,13 +317,12 @@ void instance_trial_of_the_crusader::SetSpecialAchievementCriteria(uint32 uiType
 }
 void instance_trial_of_the_crusader::OnPlayerEnter(Player* pPlayer)
 {
-    pPlayer->MonsterSay("Ich habe die Ini betreten", LANG_UNIVERSAL);
     if (m_uiTeam)
         return;
 
     m_uiTeam = pPlayer->GetTeam();
     SetDialogueSide(m_uiTeam == ALLIANCE);
-    pPlayer->MonsterSay("Kurz vor Ramseybeschwörung", LANG_UNIVERSAL);
+
     DoSummonRamsey(0);
     if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
     {
@@ -569,7 +557,7 @@ void instance_trial_of_the_crusader::DoSummonRamsey(uint32 uiEntry)
     Player* pPlayer = GetPlayerInMap();
     if (!pPlayer)
         return;
-    pPlayer->MonsterSay("Ich bin der Beschörer", LANG_UNIVERSAL);
+
     if (uiEntry)
     {
         pPlayer->SummonCreature(uiEntry, aRamsayPositions[0][0], aRamsayPositions[0][1], aRamsayPositions[0][2], aRamsayPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
