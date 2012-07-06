@@ -436,8 +436,6 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
                 if (Unit* pBase = m_creature->GetMap()->GetUnit(m_VehicleBasePlayer))
                 {
                     pBase->RemoveAurasDueToSpell(SPELL_SNOBOLLED);
-                    if (Creature* pGormok = m_pInstance->GetSingleCreatureFromStorage(NPC_GORMOK))
-                        pGormok->RemoveAuraHolderFromStack(SPELL_RISING_ANGER, 1);
                 }
             }
         }
@@ -450,6 +448,8 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        if (Creature* pGormok = m_pInstance->GetSingleCreatureFromStorage(NPC_GORMOK))
+            pGormok->RemoveAuraHolderFromStack(SPELL_RISING_ANGER, 1);
         //if (pFocus && pFocus->isAlive())
 //            pFocus->RemoveAurasDueToSpell(SPELL_SNOBOLLED);
 
@@ -782,8 +782,7 @@ CreatureAI* GetAI_boss_acidmaw_and_dreadscale(Creature* pCreature)
     return new boss_acidmaw_and_dreadscaleAI(pCreature);
 }
 
-enum BossSpells{
-    // Icehowl
+enum IcehowlSpells{
     SPELL_FEROCIOUS_BUTT        = 66770,
     SPELL_MASSIVE_CRASH         = 66683,
     SPELL_WHIRL                 = 67345,
@@ -801,7 +800,7 @@ enum IcehowlPhase
     PHASE_TRAMPLE               = 2,
 };
 
-enum Points
+enum IcehowlPoints
 {
     POINT_CENTER                = 0,
     POINT_TARGET                = 1,
@@ -823,7 +822,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
     uint32 m_uiMassiveCrashTimer;
     uint32 m_uiWaitTimer;
     uint32 m_uiPhaseTimer;
-    uint32 m_uiPhase;
+    IcehowlPhase m_Phase;
 
     float fPosX, fPosY, fPosZ;
     Unit *pFocus;
@@ -834,7 +833,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         m_uiArcticBreathTimer          = 25000;
         m_uiWhirlTimer                 = 20000;
         m_uiMassiveCrashTimer          = 30000;
-        m_uiPhase                      = PHASE_NORMAL;
+        m_Phase                      = PHASE_NORMAL;
 
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetSpeedRate(MOVE_WALK, 3.0f);
@@ -846,17 +845,12 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 
     void MovementInform(uint32 uiMovementType, uint32 uiData)
     {
-        if (uiData == POINT_COMBAT_POSITION)
-        {
-            m_creature->SetInCombatWithZone();
-        }
-
         if (uiMovementType != POINT_MOTION_TYPE)
             return;
 
         if (uiData == POINT_CENTER)
         {
-            if (m_uiPhase == PHASE_MOVING)
+            if (m_Phase == PHASE_MOVING)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_MASSIVE_CRASH) == CAST_OK)
                 {
@@ -866,13 +860,13 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                     m_creature->SetSpeedRate(MOVE_RUN, 6.0f);
                     m_uiWaitTimer = 5000;
                     m_uiPhaseTimer = 8000;
-                    m_uiPhase = PHASE_TRAMPLE;
+                    m_Phase = PHASE_TRAMPLE;
                 }
             }
         }
         else if (uiData == POINT_TARGET)
         {
-            if (m_uiPhase == PHASE_MOVING)
+            if (m_Phase == PHASE_MOVING)
             {
                 if (pFocus && pFocus->isAlive() && m_creature->IsWithinDistInMap(pFocus, 10.0f))  // I think that it should be any player not only focused.
                 {
@@ -887,11 +881,10 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 
                 if (m_creature->getVictim())
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 m_creature->SetSpeedRate(MOVE_WALK, 3.0f);
                 m_creature->SetSpeedRate(MOVE_RUN, 3.0f);
                 SetCombatMovement(true);
-                m_uiPhase = PHASE_NORMAL;
+                m_Phase = PHASE_NORMAL;
                 pFocus = NULL;
             }
         }
@@ -907,7 +900,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        switch (m_uiPhase)
+        switch (m_Phase)
         {
             case PHASE_NORMAL:
                  if (m_uiFerociousButtTimer <= uiDiff)
@@ -940,11 +933,10 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                  if (m_uiMassiveCrashTimer <= uiDiff)
                  {
                      m_creature->AttackStop();
-                     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                      SetCombatMovement(false);
                      m_creature->GetMotionMaster()->Clear();
                      m_creature->GetMotionMaster()->MovePoint(POINT_CENTER, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                     m_uiPhase = PHASE_MOVING;
+                     m_Phase = PHASE_MOVING;
                      m_uiMassiveCrashTimer = 40000;
                  }
                  else
@@ -976,7 +968,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         m_creature->GetMotionMaster()->Clear();
                         m_creature->GetMotionMaster()->MovePoint(POINT_TARGET, fPosX, fPosY, fPosZ);
                         DoScriptText(EMOTE_CRASH, m_creature);
-                        m_uiPhase = PHASE_MOVING;
+                        m_Phase = PHASE_MOVING;
                     }
                 }
                 else

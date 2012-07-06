@@ -178,15 +178,8 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         if (m_pInstance)
-        {
             m_pInstance->SetData(TYPE_TWIN_VALKYR, DONE);
-            // this should never appear, but safety first
-            if (Creature* pSister = m_pInstance->GetSingleCreatureFromStorage(NPC_DARK_EYDIS))
-            {
-                if (pSister->isAlive())
-                    pKiller->DealDamage(pSister, pSister->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-            }
-        }
+        DoCastSpellIfCan(m_creature, SPELL_INSTAKILL_DARK_VALKYR, CAST_TRIGGERED);
         DoScriptText(SAY_DEATH, m_creature);
     }
 
@@ -356,23 +349,11 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-
-        // this should never appear, but safety first
-        if (m_pInstance)
-        {
-            if (Creature* pSister = m_pInstance->GetSingleCreatureFromStorage(NPC_LIGHT_FJOLA))
-            {
-                if (pSister->isAlive())
-                    pKiller->DealDamage(pSister, pSister->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-            }
-        }
+        DoCastSpellIfCan(m_creature, SPELL_INSTAKILL_LIGHT_VALKYR, CAST_TRIGGERED);
     }
 
     void KilledUnit(Unit* pVictim)
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
-            return;
-
         DoScriptText( urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2,m_creature,pVictim);
     }
 
@@ -565,11 +546,18 @@ struct MANGOS_DLL_DECL npc_light_or_dark_bulletAI : public ScriptedAI
     {
         m_bIsLightBullet = m_creature->GetEntry() == NPC_UNLEASHED_LIGHT ? true : false;
         m_bHasCastUnleashedSpell = false;
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        m_creature->GetMotionMaster()->MoveRandom();
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+        MoveRandom();
         DoCastSpellIfCan(m_creature, m_bIsLightBullet ? SPELL_LIGHT_BALL_PASSIVE : SPELL_DARK_BALL_PASSIVE);
         SetCombatMovement(false); 
+    }
+
+    // Move to a Point with a 50.0f distance from middle
+    void MoveRandom()
+    {
+        float x, y,z;
+        m_creature->GetRandomPoint(563.8941f, 137.3333f, m_creature->GetPositionZ(), 50.0f, x, y, z);
+        m_creature->GetMotionMaster()->MovePoint(1, x, y, z);
     }
 
     void AttackStart(Unit *pWho)
