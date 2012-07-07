@@ -269,7 +269,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
         {
             if (m_uiBerserkTimer <= uiDiff)
             {
-                if (m_Phase != PHASE_UNDERGROUND)
+                if (m_AnubarakPhase != PHASE_UNDERGROUND)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
                     {
@@ -329,7 +329,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
                 else
                     m_uiPenetratingColdTimer -= uiDiff;
 
-                if (m_Phase == PHASE_GROUND || m_bIsHeroic)
+                if (m_AnubarakPhase == PHASE_GROUND || m_bIsHeroic)
                 {
                     if (m_uiNerubianBurrowerSummonTimer < uiDiff)
                     {
@@ -363,7 +363,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
                     }
 
                     m_PhaseSwitchTimer = 80000;
-                    m_Phase = PHASE_GROUND;
+                    m_AnubarakPhase = PHASE_GROUND;
                 }
                 else
                     m_PhaseSwitchTimer -= uiDiff;
