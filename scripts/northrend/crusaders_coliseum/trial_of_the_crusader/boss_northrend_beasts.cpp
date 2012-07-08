@@ -48,7 +48,7 @@ enum Summons
 enum BossSpells
 {
     // Gormok
-    HACK_SPELL_AURA_FOR_RIDE    = 999999,
+    HACK_SPELL_AURA_FOR_RIDE    = 100020,
     SPELL_IMPALE                = 66331,
     SPELL_STAGGERING_STOMP      = 67648,
     SPELL_RISING_ANGER          = 66636,

@@ -1,5 +1,70 @@
 -- instance
 UPDATE instance_template SET ScriptName = 'instance_trial_of_the_crusader' WHERE map = 649;
+DELETE FROM creature WHERE id IN (34704, 34720);
+INSERT INTO creature (guid, id, map, spawnMask, phaseMask, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, MovementType) VALUES
+(3000100,34704, 649, 1, 1, 620.4653, 134.6597, 395.2328, 4.607669, 7200, 0, 0),
+(3000101,34704, 649, 1, 1, 511.4167, 127.158, 395.2664, 4.607669, 7200, 0, 0),
+(3000102,34704, 649, 1, 1, 611.6563, 114.2813, 395.2884, 4.607669, 7200, 0, 0),
+(3000103,34704, 649, 1, 1, 573.5781, 187.6649, 395.4919, 4.607669, 7200, 0, 0),
+(3000104,34704, 649, 1, 1, 568.0486, 187.6701, 395.5632, 4.607669, 7200, 0, 0),
+(3000105,34704, 649, 1, 1, 518.5035, 170.6493, 395.2891, 4.607669, 7200, 0, 0),
+(3000106,34704, 649, 1, 1, 563.467, 81.93229, 395.2878, 4.607669, 7200, 0, 0),
+(3000107,34704, 649, 1, 1, 506.0382, 139.5174, 395.2882, 4.607669, 7200, 0, 0),
+(3000108,34704, 649, 1, 1, 619.7708, 143.7101, 395.2442, 4.607669, 7200, 0, 0),
+(3000109,34704, 649, 1, 1, 615.1371, 156.9965, 395.2795, 4.607669, 7200, 0, 0),
+(3000110,34704, 649, 1, 1, 522.9549, 102.1267, 395.2899, 4.607669, 7200, 0, 0),
+(3000111,34704, 649, 1, 1, 539.1788, 184.1319, 395.2818, 4.607669, 7200, 0, 0),
+(3000112,34704, 649, 1, 1, 592.7361, 93.66666, 395.2889, 4.607669, 7200, 0, 0),
+(3000113,34704, 649, 1, 1, 514.566, 159.9184, 395.287, 4.607669, 7200, 0, 0),
+(3000114,34704, 649, 1, 1, 515.3524, 115.349, 395.2883, 4.607669, 7200, 0, 0),
+(3000115,34704, 649, 1, 1, 549.7639, 86.44444, 395.2658, 4.607669, 7200, 0, 0),
+(3000116,34704, 649, 1, 1, 605.5139, 103.8628, 395.2897, 4.607669, 7200, 0, 0),
+(3000117,34704, 649, 1, 1, 577.2986, 186.8542, 395.289, 4.607669, 7200, 0, 0),
+(3000118,34704, 649, 1, 1, 554.8177, 187.5677, 395.2875, 2.932153, 7200, 0, 0),
+(3000119,34704, 649, 1, 1, 534.7483, 92.64236, 395.2892, 4.607669, 7200, 0, 0),
+(3000120,34704, 649, 1, 1, 578.7222, 87.44444, 395.2724, 4.607669, 7200, 0, 0),
+(3000121,34704, 649, 1, 1, 608.1163, 171.7309, 395.2892, 4.607669, 7200, 0, 0),
+(3000122,34704, 649, 1, 1, 616.4323, 126.4184, 395.2641, 4.607669, 7200, 0, 0),
+(3000123,34704, 649, 1, 1, 526.8333, 181.783, 395.2847, 4.607669, 7200, 0, 0),
+(3000124,34704, 649, 1, 1, 560.4844, 187.7431, 395.9587, 2.932153, 7200, 0, 0),
+(3000125,34704, 649, 1, 1, 597.3802, 183.6719, 395.2797, 4.607669, 7200, 0, 0),
+(3000126,34704, 649, 1, 1, 547.7604, 184.6337, 395.2885, 2.932153, 7200, 0, 0),
+(3000127,34704, 649, 1, 1, 586.3438, 184.0781, 395.2831, 4.607669, 7200, 0, 0),
+(3000128,34704, 649, 1, 1, 509.7431, 149.0052, 395.2527, 4.607669, 7200, 0, 0),
+(3000129,34720, 649, 1, 1, 610.9827, 164.6962, 395.2883, 0, 7200, 0, 0),
+(3000130,34720, 649, 1, 1, 507.1806, 142.2847, 395.2546, 0, 7200, 0, 0),
+(3000131,34720, 649, 1, 1, 526.3368, 99.55556, 395.29, 0, 7200, 0, 0),
+(3000132,34720, 649, 1, 1, 538.0243, 92.44097, 395.2885, 0, 7200, 0, 0),
+(3000133,34720, 649, 1, 1, 563.9965, 187.6441, 395.489, 0, 7200, 0, 0),
+(3000134,34720, 649, 1, 1, 544.0938, 184.6476, 395.2856, 0, 7200, 0, 0),
+(3000135,34720, 649, 1, 1, 546.0573, 88.7691, 395.2838, 0, 7200, 0, 0),
+(3000136,34720, 649, 1, 1, 517.7222, 169.0694, 395.2889, 0, 7200, 0, 0),
+(3000137,34720, 649, 1, 1, 588.6754, 93.09375, 395.2885, 0, 7200, 0, 0),
+(3000138,34720, 649, 1, 1, 514.7847, 118.7309, 395.2871, 0, 7200, 0, 0),
+(3000139,34720, 649, 1, 1, 599.3073, 98.80035, 395.2898, 0, 7200, 0, 0),
+(3000140,34720, 649, 1, 1, 592.1511, 183.8004, 395.2789, 0, 7200, 0, 0),
+(3000141,34720, 649, 1, 1, 581.243, 184.0625, 395.2871, 0, 7200, 0, 0),
+(3000142,34720, 649, 1, 1, 615.4011, 130.816, 395.2631, 0, 7200, 0, 0),
+(3000143,34720, 649, 1, 1, 511.132, 151.1563, 395.264, 0, 7200, 0, 0),
+(3000144,34720, 649, 1, 1, 510.7587, 127.3333, 395.2625, 0, 7200, 0, 0),
+(3000145,34720, 649, 1, 1, 577.757, 184.4358, 395.2889, 0, 7200, 0, 0),
+(3000146,34720, 649, 1, 1, 603.5278, 175.4757, 395.2891, 0, 7200, 0, 0),
+(3000147,34720, 649, 1, 1, 524.257, 178.1337, 395.2896, 0, 7200, 0, 0),
+(3000148,34720, 649, 1, 1, 515.3993, 159.75, 395.2871, 0, 7200, 0, 0),
+(3000149,34720, 649, 1, 1, 606.6858, 106.7309, 395.2894, 0, 7200, 0, 0),
+(3000150,34720, 649, 1, 1, 520.2118, 108.4288, 395.2892, 0, 7200, 0, 0),
+(3000151,34720, 649, 1, 1, 509.6389, 133.2604, 395.2467, 0, 7200, 0, 0),
+(3000152,34720, 649, 1, 1, 535.9236, 184.2066, 395.2793, 0, 7200, 0, 0),
+(3000153,34720, 649, 1, 1, 551.3281, 187.6458, 395.5959, 0, 7200, 0, 0),
+(3000154,34720, 649, 1, 1, 557.743, 187.7292, 395.9153, 0, 7200, 0, 0),
+(3000155,34720, 649, 1, 1, 612.118, 118.8438, 395.2871, 0, 7200, 0, 0),
+(3000156,34720, 649, 1, 1, 570.7795, 86.29861, 395.2533, 0, 7200, 0, 0),
+(3000157,34720, 649, 1, 1, 580.4861, 89.69097, 395.2867, 0, 7200, 0, 0),
+(3000158,34720, 649, 1, 1, 571.158, 187.691, 395.6292, 0, 7200, 0, 0),
+(3000159,34720, 649, 1, 1, 615.1371, 150.8177, 395.269, 0, 7200, 0, 0),
+(3000160,34720, 649, 1, 1, 618.9653, 139.1736, 395.2881, 0, 7200, 0, 0),
+(3000161,34720, 649, 1, 1, 555.6945, 86.02084, 395.2529, 0, 7200, 0, 0);
+
 -- ************** Twin Valkyr *************
 UPDATE creature_template SET scriptname = 'boss_fjola', AIName = '' WHERE entry = 34497;
 UPDATE creature_template SET scriptname = 'boss_eydis', AIName = '' WHERE entry = 34496;
@@ -116,10 +181,18 @@ UPDATE creature_template SET scriptname = 'boss_acidmaw_and_dreadscale', AIName 
 UPDATE creature_template SET scriptname = 'boss_icehowl', AIName = '' WHERE entry =34797;
 UPDATE creature_template SET ScriptName = '' , AIName ='NullAI' WHERE entry IN (34854, 35176); -- Firebomb and Slime Pool
 
--- by Reamer
+-- Rising Anger by Reamer
 DELETE FROM spell_script_target WHERE entry = 66636;
 INSERT INTO spell_script_target VALUES
 (66636, 1, 34796);
+
+DELETE FROM vehicle_accessory WHERE entry = 34796;
+INSERT INTO vehicle_accessory (entry, accessory_entry, seat_id, minion, description) VALUES
+(34796, 34800, 0, 0, 'Gormok Snobold Vassal'),
+(34796, 34800, 1, 0, 'Gormok Snobold Vassal'),
+(34796, 34800, 2, 0, 'Gormok Snobold Vassal'),
+(34796, 34800, 3, 0, 'Gormok Snobold Vassal'),
+(34796, 34800, 4, 0, 'Gormok Snobold Vassal');
 
 -- ********************** Grand crusaders ******************
 UPDATE creature_template SET scriptname = 'mob_toc_warrior', AIName = '' WHERE entry IN (34475,34453);
@@ -138,3 +211,9 @@ UPDATE creature_template SET scriptname = 'mob_toc_boomkin', AIName = '' WHERE e
 UPDATE creature_template SET scriptname = 'mob_toc_warlock' WHERE entry IN (34474,34450);
 UPDATE creature_template SET scriptname = 'mob_toc_pet_warlock', AIName = '' WHERE entry IN (35465);
 UPDATE creature_template SET scriptname = 'mob_toc_pet_hunter', AIName = '' WHERE entry IN (35610);
+
+-- ****************************** SPELL_HACKS ****************************
+DELETE FROM `spell_dbc` WHERE ID=100020;
+INSERT INTO `spell_dbc` (`Id`, `Category`, `Dispel`, `Mechanic`, `Attributes`, `AttributesEx`, `AttributesEx2`, `AttributesEx3`, `AttributesEx4`, `AttributesEx5`, `AttributesEx6`, `AttributesEx7`, `Stances`, `StancesNot`, `Targets`, `RequiresSpellFocus`, `CasterAuraState`, `TargetAuraState`, `CasterAuraStateNot`, `TargetAuraStateNot`, `CasterAuraSpell`, `TargetAuraSpell`, `ExcludeCasterAuraSpell`, `ExcludeTargetAuraSpell`, `CastingTimeIndex`, `RecoveryTime`, `CategoryRecoveryTime`, `InterruptFlags`, `AuraInterruptFlags`, `ProcFlags`, `ProcChance`, `ProcCharges`, `MaxLevel`, `BaseLevel`, `SpellLevel`, `DurationIndex`, `PowerType`, `ManaCost`, `ManaCostPerLevel`, `ManaPerSecond`, `ManaPerSecondPerLevel`, `RangeIndex`, `Speed`, `StackAmount`, `EquippedItemClass`, `EquippedItemSubClassMask`, `EquippedItemInventoryTypeMask`, `Effect1`, `Effect2`, `Effect3`, `EffectDieSides1`, `EffectDieSides2`, `EffectDieSides3`, `EffectRealPointsPerLevel1`, `EffectRealPointsPerLevel2`, `EffectRealPointsPerLevel3`, `EffectBasePoints1`, `EffectBasePoints2`, `EffectBasePoints3`, `EffectMechanic1`, `EffectMechanic2`, `EffectMechanic3`, `EffectImplicitTargetA1`, `EffectImplicitTargetA2`, `EffectImplicitTargetA3`, `EffectImplicitTargetB1`, `EffectImplicitTargetB2`, `EffectImplicitTargetB3`, `EffectRadiusIndex1`, `EffectRadiusIndex2`, `EffectRadiusIndex3`, `EffectApplyAuraName1`, `EffectApplyAuraName2`, `EffectApplyAuraName3`, `EffectAmplitude1`, `EffectAmplitude2`, `EffectAmplitude3`, `EffectMultipleValue1`, `EffectMultipleValue2`, `EffectMultipleValue3`, `EffectItemType1`, `EffectItemType2`, `EffectMiscValue1`, `EffectMiscValue2`, `EffectMiscValue3`, `EffectMiscValueB1`, `EffectMiscValueB2`, `EffectMiscValueB3`, `EffectTriggerSpell1`, `EffectTriggerSpell2`, `EffectTriggerSpell3`, `EffectSpellClassMaskA1`, `EffectSpellClassMaskA2`, `EffectSpellClassMaskA3`, `EffectSpellClassMaskB1`, `EffectSpellClassMaskB2`, `EffectSpellClassMaskB3`, `EffectSpellClassMaskC1`, `EffectSpellClassMaskC2`, `EffectSpellClassMaskC3`, `SpellIconID`, `ManaCostPercentage`, `StartRecoveryCategory`, `StartRecoveryTime`, `MaxTargetLevel`, `SpellFamilyName`, `SpellFamilyFlags1`, `SpellFamilyFlags2`, `SpellFamilyFlags3`, `MaxAffectedTargets`, `DmgClass`, `PreventionType`, `DmgMultiplier1`, `DmgMultiplier2`, `DmgMultiplier3`, `AreaGroupId`, `SchoolMask`, `RuneCostID`, `Comment`)
+VALUES (                 100020 , 0 ,          0 ,         0 ,   0x20000100 ,   0x10000088,          0x4 ,            0x100 ,        0 ,                 0,            0,                0,             0 ,             0 ,         0 ,             0 ,                     0 ,               0 ,             0 ,                 0 ,                    0 ,                 0 ,                 0 ,                     0 ,                         1 ,                 0 ,                     0 ,           0 ,                 0 ,              0 ,          101 ,         0 ,             0 ,       0 ,             0 ,          21 ,            0 ,             0 ,             0 ,                 0 ,               0 ,             13 ,        0 ,         0 ,                 -1 ,                     0 ,                     0 ,                        129 ,         0 ,      0 ,             1 ,                 0 ,                 0 ,                 0 ,                     0 ,                             0 ,                         -1 ,                 0 ,                 0 ,                     0 ,                 0 ,                 0 ,                 1 ,                    0 ,                     0 ,                     0                 ,         0 ,                 0 ,                         28 ,                     0 ,                 0 ,                         296  ,                     0 ,                 0 ,                   0 ,                 0 ,                 0 ,                 0 ,                         0 ,                 0 ,                     0 ,                 0 ,                 443 ,                 0 ,                 0 ,                  0 ,              0 ,                 0 ,                 0 ,                     0 ,                 0 ,                     0 ,                         0 ,                     0 ,                         0 ,                     0 ,                     0 ,                         0 ,                     0 ,                     0 ,                     276 ,            0,                       0 ,                     0 ,                     0 ,                 0 ,                 0 ,                 0 ,                 0 ,                 0 ,               0 ,             1 ,              1 ,             1 ,                 1 ,             0 ,             1 ,          0 ,    'Snobold Vassal Vehicle Aura - should cast from Gormok the Impaler at aggro');
+
