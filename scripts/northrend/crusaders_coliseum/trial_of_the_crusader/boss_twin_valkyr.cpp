@@ -93,17 +93,14 @@ enum Summons
 
 enum Yells
 {
-    SAY_AGGRO                     = -1713541,
-    SAY_LIGHT_VORTEX              = -1713542,
-    SAY_SLAY_1                    = -1713543,
-    SAY_SLAY_2                    = -1713544,
-    SAY_PACT                      = -1713545,
-    SAY_DARK_VORTEX               = -1713546,
-    SAY_DEATH                     = -1713547,
-
-    EMOTE_LIGHT_VORTEX            = -1713538,
-    EMOTE_PACT                    = -1713539,
-    EMOTE_DARK_VORTEX             = -1713540,
+    SAY_AGGRO                       = -1649056,
+    SAY_BERSERK                     = -1649057,
+    SAY_COLORSWITCH                 = -1649058, // say on twin pakt
+    SAY_DEATH                       = -1649059,
+    SAY_SLAY_1                      = -1649060,
+    SAY_SLAY_2                      = -1649061,
+    SAY_TO_BLACK                    = -1649062, // say on dark vortex
+    SAY_TO_WHITE                    = -1649063, // say on light vortex
 };
 
 enum ValkyrPhases
@@ -185,8 +182,6 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
-            return;
 
         DoScriptText(urand(0,1) ? SAY_SLAY_1 : SAY_SLAY_2 ,m_creature,pVictim);
     }
@@ -248,8 +243,7 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
-                                DoScriptText(EMOTE_LIGHT_VORTEX, m_creature);
-                                DoScriptText(SAY_LIGHT_VORTEX, m_creature);
+                                DoScriptText(SAY_TO_WHITE, m_creature);
                                 m_Phase = PHASE_SPECIAL;
                                 m_NextSpecialSpell = LIGHT_PACT;
                             }
@@ -263,8 +257,7 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
-                                DoScriptText(EMOTE_PACT, m_creature);
-                                DoScriptText(SAY_PACT, m_creature);
+                                DoScriptText(SAY_COLORSWITCH, m_creature);
                                 m_Phase = PHASE_SPECIAL;
                                 m_NextSpecialSpell = LIGHT_VORTEX;
                             }
@@ -403,8 +396,7 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
-                                DoScriptText(EMOTE_DARK_VORTEX, m_creature);
-                                DoScriptText(SAY_DARK_VORTEX, m_creature);
+                                DoScriptText(SAY_TO_BLACK, m_creature);
                                 m_Phase = PHASE_SPECIAL;
                                 m_NextSpecialSpell = DARK_PACT;
                             }
@@ -418,8 +410,7 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
-                                DoScriptText(EMOTE_PACT, m_creature);
-                                DoScriptText(SAY_PACT, m_creature);
+                                DoScriptText(SAY_COLORSWITCH, m_creature);
                                 m_Phase = PHASE_SPECIAL;
                                 m_NextSpecialSpell = DARK_VORTEX;
                             }
@@ -469,7 +460,6 @@ struct MANGOS_DLL_DECL npc_light_or_dark_essenceAI : public ScriptedAI
     void Reset() 
     {
         m_bIsLightEssence = m_creature->GetEntry() == NPC_LIGHT_ESSENCE ? true : false;
-        m_creature->SetRespawnDelay(DAY);
         m_creature->SetWalk(true);
         SetCombatMovement(false);
     }

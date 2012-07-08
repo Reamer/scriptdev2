@@ -28,18 +28,13 @@ EndScriptData */
 
 enum Yells
 {
-    SAY_AGGRO                          = -1713517,
-    SAY_DEATH                          = -1713525,
-    SAY_SLAY_1                         = -1713567,
-    SAY_SLAY_2                         = -1713568,
-    SAY_INFERNAL_VOLCANO               = -1713520,
-    SAY_NETHER_PORTAL                  = -1713519,
-    SAY_SUMMON_MISTRESS                = -1713521,
-    SAY_SUMMON_INFERNAL                = -1713524,
-    SAY_INCINERATE_FLESH               = -1713523,
-    SAY_ENRAGE                         = -1713750,
-
-    EMOTE_INCINERATE_FLESH             = -1713522,
+    SAY_AGGRO                           = -1649040,
+    SAY_SLAY_1                          = -1649041,
+    SAY_SLAY_2                          = -1649042,
+    SAY_BERSERK                         = -1649044,
+    SAY_INCINERATE                      = -1649045,
+    SAY_MISTRESS                        = -1649046,
+    SAY_INFERNO                         = -1649047,
 };
 
 enum Equipment
@@ -181,7 +176,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
                 {
-                    DoScriptText(SAY_ENRAGE, m_creature);
+                    DoScriptText(SAY_BERSERK, m_creature);
                     m_uiEnrageTimer = 0;
                 }
             }
@@ -225,8 +220,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_INCINERATE_FLESH) == CAST_OK)
                 {
-                    DoScriptText(SAY_INCINERATE_FLESH, m_creature);
-                    DoScriptText(EMOTE_INCINERATE_FLESH, m_creature, pTarget);
+                    DoScriptText(SAY_INCINERATE, m_creature);
                     m_uiIncinerateFleshTimer = 22000;
                 }
             }
@@ -251,8 +245,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_VOLCAN) == CAST_OK)
                 {
-                    DoScriptText(SAY_INFERNAL_VOLCANO, m_creature);
-                    DoScriptText(SAY_SUMMON_INFERNAL, m_creature);
+                    DoScriptText(SAY_INFERNO, m_creature);
                     m_uiSummonTimer = MINUTE * IN_MILLISECONDS;
                     m_bVolcanoSummon = false;
                 }
@@ -261,7 +254,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_NETHER_PORTAL) == CAST_OK)
                 {
-                    DoScriptText(SAY_NETHER_PORTAL, m_creature);
+                    DoScriptText(SAY_MISTRESS, m_creature);
                     m_uiSummonTimer = MINUTE * IN_MILLISECONDS;
                     m_bVolcanoSummon = true;
                 }
