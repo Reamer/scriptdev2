@@ -132,7 +132,7 @@ INSERT INTO spell_script_target VALUES
 
 DELETE FROM spell_script_target WHERE entry = 66181;
 INSERT INTO spell_script_target VALUES
-{66181, 1, 34606);
+(66181, 1, 34606);
 
 UPDATE creature_template SET flags_extra = '2' WHERE entry = 34862; -- Nerubian Borrow
 

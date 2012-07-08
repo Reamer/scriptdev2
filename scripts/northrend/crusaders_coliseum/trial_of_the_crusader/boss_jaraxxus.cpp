@@ -133,7 +133,6 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JARAXXUS, DONE);
-        DoScriptText(SAY_DEATH, m_creature);
     }
 
     void Aggro(Unit* pWho)
