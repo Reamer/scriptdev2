@@ -529,7 +529,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         for(std::list<uint32>::const_iterator itr = lSummonHealerList.begin(); itr != lSummonHealerList.end(); ++itr)
         {
             uint8 position = 5 + urand(0,1);
-            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2] + irand(-3,3), 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
+            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
             {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
             }
@@ -537,7 +537,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         for(std::list<uint32>::const_iterator itr = lSummonMagicDDList.begin(); itr != lSummonMagicDDList.end(); ++itr)
         {
             uint8 position = 5 + urand(0,1);
-            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2] + irand(-3,3), 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
+            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
             {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
             }
@@ -545,7 +545,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         for(std::list<uint32>::const_iterator itr = lSummonMeleeDDList.begin(); itr != lSummonMeleeDDList.end(); ++itr)
         {
             uint8 position = 5 + urand(0,1);
-            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2] + irand(-3,3), 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
+            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
             {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
             }
@@ -587,56 +587,86 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
         case NPC_RAMSEY_3:
         case NPC_RAMSEY_4:
         case NPC_RAMSEY_5:
+        {
             DoSummonRamsey(iEntry);
             break;
+        }
         case SAY_VARIAN_BEAST_1:
+        {
             if (Player* pPlayer = GetPlayerInMap())
             {
                 if (Creature* pBeasts = pPlayer->SummonCreature(NPC_BEAST_COMBAT_STALKER, aSpawnPositions[0][0], aSpawnPositions[0][1], aSpawnPositions[0][2], aSpawnPositions[0][3], TEMPSUMMON_DEAD_DESPAWN, 0))
                     pBeasts->SummonCreature(NPC_GORMOK, aSpawnPositions[1][0], aSpawnPositions[1][1], aSpawnPositions[1][2], aSpawnPositions[1][3], TEMPSUMMON_DEAD_DESPAWN, 0);
             }
             break;
+        }
         case NPC_FIZZLEBANG:
+        {
             if (Player* pPlayer = GetPlayerInMap())
                 pPlayer->SummonCreature(NPC_FIZZLEBANG, aSpawnPositions[5][0], aSpawnPositions[5][1], aSpawnPositions[5][2], aSpawnPositions[5][3], TEMPSUMMON_DEAD_DESPAWN, 0);
             break;
+        }
         case SAY_WILFRED_JARAXXUS_INTRO_1:
+        {
             DoUseDoorOrButton(GO_MAIN_GATE); // Close main gate
             break;
+        }
         case SAY_WILFRED_JARAXXUS_INTRO_2:
+        {
             if (Creature* pFizzlebang = GetSingleCreatureFromStorage(NPC_FIZZLEBANG))
             {
                 pFizzlebang->SummonCreature(NPC_PURPLE_RUNE, aSpawnPositions[11][0], aSpawnPositions[11][1], aSpawnPositions[11][2], aSpawnPositions[11][3], TEMPSUMMON_TIMED_DESPAWN, 15000);
                 pFizzlebang->CastSpell(pFizzlebang, SPELL_OPEN_PORTAL, false);
             }
             break;
+        }
         case EVENT_OPEN_PORTAL:
+        {
             if (Creature* pOpenPortalTarget = GetSingleCreatureFromStorage(NPC_OPEN_PORTAL_TARGET))
             {
                 pOpenPortalTarget->CastSpell(pOpenPortalTarget, SPELL_WILFRED_PORTAL, true);
                 pOpenPortalTarget->ForcedDespawn(9000);
             }
             break;
+        }
         case SAY_WILFRED_JARAXXUS_INTRO_3:
+        {
             if (Player* pPlayer = GetPlayerInMap())
                 if (Creature* pJaraxxus = pPlayer->SummonCreature(NPC_JARAXXUS, aSpawnPositions[6][0], aSpawnPositions[6][1], aSpawnPositions[6][2], aSpawnPositions[6][3], TEMPSUMMON_DEAD_DESPAWN, 0))
                     pJaraxxus->GetMotionMaster()->MovePoint(POINT_COMBAT_POSITION, aMovePositions[3][0], aMovePositions[3][1], aMovePositions[3][2]);
             break;
+        }
+        case SAY_JARAXXUS_JARAXXAS_INTRO_1:
+        {
+            if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
+            {
+                if (Creature* pFizzlebang = GetSingleCreatureFromStorage(NPC_FIZZLEBANG))
+                    pJaraxxus->SetFacingToObject(pFizzlebang);
+            }
+            break;
+        }
         case EVENT_KILL_FIZZLEBANG:
+        {
             if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
                 pJaraxxus->CastSpell(pJaraxxus, SPELL_FEL_LIGHTNING_KILL, true);
             break;
+        }
         case EVENT_JARAXXUS_START_ATTACK:
+        {
             if (Creature* pJaraxxus = GetSingleCreatureFromStorage(NPC_JARAXXUS))
             {
                 pJaraxxus->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
                 pJaraxxus->SetInCombatWithZone();
             }
             break;
+        }
         case EVENT_SUMMON_FACTION_CHAMPIONS:
+        {
             SummonFactionChampion();
             break;
+        }
         case EVENT_SUMMON_TWINS:
+        {
             if (Player* pPlayer = GetPlayerInMap())
             {
                 if (Creature* pFjola = pPlayer->SummonCreature(NPC_LIGHT_FJOLA, aSpawnPositions[7][0], aSpawnPositions[7][1], aSpawnPositions[7][2], aSpawnPositions[7][3], TEMPSUMMON_DEAD_DESPAWN, 0))
@@ -649,19 +679,27 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
                 }
             }
             break;
+        }
         case SAY_LKING_ANUB_INTRO_1:
+        {
             if (Player* pPlayer = GetPlayerInMap())
                 pPlayer->SummonCreature(NPC_WORLD_TRIGGER_LARGE, aSpawnPositions[9][0], aSpawnPositions[9][1], aSpawnPositions[9][2], aSpawnPositions[9][3], TEMPSUMMON_DEAD_DESPAWN, 0);
             break;
+        }
         case EVENT_ARTHAS_PORTAL:
+        {
             if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
                 pWorldTriggerLarge->CastSpell(pWorldTriggerLarge, SPELL_ARTHAS_PORTAL, true);
             break;
+        }
         case EVENT_SUMMON_THE_LICHKING:
+        {
             if (Player* pPlayer = GetPlayerInMap())
                 pPlayer->SummonCreature(NPC_THE_LICHKING_VISUAL, aSpawnPositions[10][0], aSpawnPositions[10][1], aSpawnPositions[10][2], aSpawnPositions[10][3], TEMPSUMMON_DEAD_DESPAWN, 0);
             break;
+        }
         case EVENT_DESTROY_FLOOR:
+        {
             if (GameObject* pColiseumFloor = GetSingleGameObjectFromStorage(GO_COLISEUM_FLOOR))
             {
                 pColiseumFloor->SetDisplayId(DISPLAYID_DESTROYED_FLOOR);
@@ -681,6 +719,9 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
 
             if (Creature* pWorldTriggerLarge = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER_LARGE))
                 pWorldTriggerLarge->ForcedDespawn();
+            break;
+        }
+        default:
             break;
     }
 }
