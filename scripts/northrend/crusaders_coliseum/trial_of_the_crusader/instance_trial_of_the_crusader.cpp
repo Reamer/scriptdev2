@@ -219,6 +219,8 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
         case NPC_TIRION_B:
         case NPC_VARIAN:
         case NPC_GARROSH:
+        case NPC_DREADSCALE:
+        case NPC_ACIDMAW:
         case NPC_JARAXXUS:
         case NPC_OPEN_PORTAL_TARGET:
         case NPC_DARK_EYDIS:
@@ -275,6 +277,10 @@ void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
             }
             break;
         case GO_MAIN_GATE:
+        case GO_CRUSADERS_CACHE_10:
+        case GO_CRUSADERS_CACHE_25:
+        case GO_CRUSADERS_CACHE_10_H:
+        case GO_CRUSADERS_CACHE_25_H:
             break;
         default:
             return;
@@ -326,8 +332,8 @@ void instance_trial_of_the_crusader::OnPlayerEnter(Player* pPlayer)
     DoSummonRamsey(0);
     if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
     {
-        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
-        //m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
+        pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
+        pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, 4);
     }
 }
 
@@ -384,7 +390,26 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
                 StartNextDialogueText(NPC_RAMSEY_3);
             }
             else if (uiData == DONE)
+            {
                 StartNextDialogueText(SAY_VARIAN_PVP_A_WIN);
+                switch (instance->GetDifficulty())
+                {
+                    case RAID_DIFFICULTY_10MAN_NORMAL:
+                        DoRespawnGameObject(GO_CRUSADERS_CACHE_10, 30*MINUTE);
+                        break;
+                    case RAID_DIFFICULTY_25MAN_NORMAL:
+                        DoRespawnGameObject(GO_CRUSADERS_CACHE_25, 30*MINUTE);
+                        break;
+                    case RAID_DIFFICULTY_10MAN_HEROIC:
+                        DoRespawnGameObject(GO_CRUSADERS_CACHE_10_H, 30*MINUTE);
+                        break;
+                    case RAID_DIFFICULTY_25MAN_HEROIC:
+                        DoRespawnGameObject(GO_CRUSADERS_CACHE_25_H, 30*MINUTE);
+                        break;
+                    default:
+                        break;
+                }
+            }
             m_auiEncounter[uiType] = uiData;
             }
             break;
@@ -396,13 +421,15 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
 
                 StartNextDialogueText(TYPE_TWIN_VALKYR);
             }
-            else if (uiData == FAIL)
+            else if (uiData == FAIL && m_auiEncounter[uiType] != FAIL)
             {
                 SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
                 StartNextDialogueText(NPC_RAMSEY_4);
             }
             else if (uiData == DONE)
                 StartNextDialogueText(EVENT_TWINS_KILLED);
+            else if (uiData == IN_PROGRESS && m_auiEncounter[uiType] != IN_PROGRESS)
+                DoStartTimedAchievement(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE,  ACHIEV_START_VALYKYR_ID);
             m_auiEncounter[uiType] = uiData;
             break;
         case TYPE_ANUBARAK:

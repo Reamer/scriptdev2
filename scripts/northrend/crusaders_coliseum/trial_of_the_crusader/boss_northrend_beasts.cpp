@@ -247,7 +247,7 @@ struct MANGOS_DLL_DECL npc_beast_combat_stalkerAI : public Scripted_NoMovementAI
 
         if (m_uiBerserkTimer)
         {
-            if (m_uiBerserkTimer < uiDiff)
+            if (m_uiBerserkTimer <= uiDiff)
             {
                 for (uint8 i = 0; i < 4; ++i)
                 {
@@ -255,6 +255,7 @@ struct MANGOS_DLL_DECL npc_beast_combat_stalkerAI : public Scripted_NoMovementAI
                     if (pBoss && pBoss->isAlive())
                         pBoss->CastSpell(pBoss, SPELL_BERSERK, true);
                 }
+                m_uiBerserkTimer = 0;
             }
             else
                 m_uiBerserkTimer -= uiDiff;
@@ -270,7 +271,7 @@ CreatureAI* GetAI_npc_beast_combat_stalker(Creature* pCreature)
 }
 
 /*######
-## boss_gormok, vehicle driven by 34800 (multiple times)
+## boss_gormok
 ######*/
 
 struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
@@ -342,11 +343,6 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         {
             m_creature->SetInCombatWithZone();
         }
-    }
-
-    void JustReachedHome()
-    {
-        m_creature->ForcedDespawn();
     }
 
     void Aggro(Unit* pWho)
@@ -441,11 +437,6 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
         }
     }
 
-    void JustReachedHome()
-    {
-        m_creature->ForcedDespawn();
-    }
-
     void JustDied(Unit* pKiller)
     {
         if (Creature* pGormok = m_pInstance->GetSingleCreatureFromStorage(NPC_GORMOK))
@@ -457,9 +448,12 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
+        if (!m_creature->GetVehicle() || !m_creature->GetVehicle()->GetBase())
+        {
+            m_creature->MonsterYell("I have no Vehicle Base", LANG_UNIVERSAL);
+            m_creature->ForcedDespawn();
+        }
+        m_creature->MonsterYell("Update", LANG_UNIVERSAL);
         if (m_uiBatterTimer <= uiDiff)
         {
             if (Unit* pBase = m_creature->GetMap()->GetUnit(m_VehicleBasePlayer))
@@ -473,15 +467,18 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
 
         if (m_uiFireBombTimer <= uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_FIRE_BOMB, SELECT_FLAG_PLAYER))
+            if (Creature* pGormok = m_pInstance->GetSingleCreatureFromStorage(NPC_GORMOK))
             {
-                if (DoCastSpellIfCan(pTarget, SPELL_FIRE_BOMB) == CAST_OK)
+                if (Unit* pTarget = pGormok->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_FIRE_BOMB, SELECT_FLAG_PLAYER))
                 {
-                    float x, y, z;
-                    pTarget->GetPosition(x, y, z);
-                    if (Creature *pBomb = m_creature->SummonCreature(NPC_FIRE_BOMB, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
-                        pBomb->CastSpell(pBomb, SPELL_FIRE_BOMB_DOT, true);
-                    m_uiFireBombTimer = urand(10000, 20000);
+                    if (DoCastSpellIfCan(pTarget, SPELL_FIRE_BOMB) == CAST_OK)
+                    {
+                        float x, y, z;
+                        pTarget->GetPosition(x, y, z);
+                        if (Creature *pBomb = m_creature->SummonCreature(NPC_FIRE_BOMB, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
+                            pBomb->CastSpell(pBomb, SPELL_FIRE_BOMB_DOT, true);
+                        m_uiFireBombTimer = urand(10000, 20000);
+                    }
                 }
             }
         }
@@ -671,6 +668,7 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                     {
                         if (DoCastSpellIfCan(m_creature, SPELL_SUBMERGE_FAST) == CAST_OK)
                         {
+                            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                             m_Phase = PHASE_SUBMERGED;
                             m_uiPhaseTimer = 5000;
                             MoveRandom();
@@ -691,6 +689,7 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                     {
                         if (DoCastSpellIfCan(m_creature, SPELL_EMERGE_FAST) == CAST_OK)
                         {
+                            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                             m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE_FAST);
                             m_creature->RemoveAurasDueToSpell(SPELL_CHURNING_GROUND_VISUAL);
                             m_creature->SetDisplayId(m_creature->GetEntry() == NPC_ACIDMAW ? MODEL_ACIDMAW_STATIONARY : MODEL_DREADSCALE_STATIONARY);
@@ -705,6 +704,7 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                     {
                         if (DoCastSpellIfCan(m_creature, SPELL_EMERGE_SLOW) == CAST_OK)
                         {
+                            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                             m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE_SLOW);
                             m_creature->RemoveAurasDueToSpell(SPELL_CHURNING_GROUND_VISUAL);
                             m_creature->SetDisplayId(m_creature->GetEntry() == NPC_ACIDMAW ? MODEL_ACIDMAW_MOBILE : MODEL_DREADSCALE_MOBILE);
@@ -758,6 +758,7 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_SUBMERGE_SLOW) == CAST_OK)
                     {
+                        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                         m_Phase = PHASE_SUBMERGED;
                         m_uiPhaseTimer = 5000;
                         MoveRandom();

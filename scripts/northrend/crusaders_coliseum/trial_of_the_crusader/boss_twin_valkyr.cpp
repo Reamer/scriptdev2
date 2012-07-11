@@ -161,28 +161,18 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TWIN_VALKYR, FAIL);
-        m_creature->ForcedDespawn();
-    }
-
-    void MovementInform(uint32 uiMovementType, uint32 uiData)
-    {
-        if (uiData == POINT_COMBAT_POSITION)
-        {
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
-        }
     }
 
     void JustDied(Unit* pKiller)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TWIN_VALKYR, DONE);
-        DoCastSpellIfCan(m_creature, SPELL_INSTAKILL_DARK_VALKYR, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, SPELL_INSTAKILL_DARK_VALKYR, CAST_TRIGGERED, pKiller->GetObjectGuid());
         DoScriptText(SAY_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* pVictim)
     {
-
         DoScriptText(urand(0,1) ? SAY_SLAY_1 : SAY_SLAY_2 ,m_creature,pVictim);
     }
 
@@ -326,23 +316,16 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
         SetEquipmentSlots(false, EQUIP_MAIN_2, EQUIP_OFFHAND_2, EQUIP_RANGED_2);
     }
 
-    void JustReachedHome()
-    {
-        m_creature->ForcedDespawn();
-    }
-
-    void MovementInform(uint32 uiMovementType, uint32 uiData)
-    {
-        if (uiData == POINT_COMBAT_POSITION)
-        {
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
-        }
-    }
-
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-        DoCastSpellIfCan(m_creature, SPELL_INSTAKILL_LIGHT_VALKYR, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, SPELL_INSTAKILL_LIGHT_VALKYR, CAST_TRIGGERED, pKiller->GetObjectGuid());
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_TWIN_VALKYR, FAIL);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -352,6 +335,8 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_TWIN_VALKYR, IN_PROGRESS);
         DoCastSpellIfCan(m_creature, SPELL_DARK_SURGE, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, SPELL_TWIN_EMPATHY_TO_LIGHT);
         DoScriptText(SAY_AGGRO, m_creature);
@@ -466,9 +451,6 @@ struct MANGOS_DLL_DECL npc_light_or_dark_essenceAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_pInstance) 
-            m_creature->ForcedDespawn();
-
         if (m_pInstance->GetData(TYPE_TWIN_VALKYR) != IN_PROGRESS)
         {
             Map* pMap = m_creature->GetMap();

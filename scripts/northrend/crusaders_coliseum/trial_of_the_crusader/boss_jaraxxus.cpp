@@ -127,6 +127,8 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JARAXXUS, FAIL);
+
+        m_creature->ForcedDespawn();
     }
 
     void JustDied(Unit* pKiller)
@@ -137,14 +139,29 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
+        if (pWho->GetEntry() == NPC_FIZZLEBANG)
+            return;
+
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
 
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
+    void EnterEvadeMode()
+    {
+        // Fizzlebang set Jaraxxus for update tick infight
+        if (m_pInstance && m_pInstance->GetData(TYPE_JARAXXUS) != IN_PROGRESS)
+            return;
+
+        ScriptedAI::EnterEvadeMode();
+    }
+
     void KilledUnit(Unit* pVictim)
     {
+        if (pVictim->GetEntry() == NPC_FIZZLEBANG)
+            return;
+
         DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2 ,m_creature/*,pVictim*/);
     }
 
