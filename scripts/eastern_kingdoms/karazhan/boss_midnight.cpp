@@ -200,6 +200,7 @@ struct MANGOS_DLL_DECL boss_attumenAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ATTUMEN, FAIL);
+        m_creature->ForcedDespawn();
     }
 
     void UpdateAI(const uint32 uiDiff)
