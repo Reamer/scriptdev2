@@ -5,13 +5,9 @@
 #ifndef SC_GRIDSEARCH_H
 #define SC_GRIDSEARCH_H
 
-#include "Unit.h"
-#include "GameObject.h"
-
-#include "Cell.h"
-#include "CellImpl.h"
-#include "GridNotifiers.h"
-#include "GridNotifiersImpl.h"
+#include "Object.h"
+class GameObject;
+class Creature;
 
 struct ObjectDistanceOrder : public std::binary_function<const WorldObject, const WorldObject, bool>
 {
