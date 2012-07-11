@@ -128,7 +128,6 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
 
     uint32 m_uiMovePoint;
     uint32 m_uiMovementTimer;
-    OnyxiaMove* m_pPointData;
 
     uint32 m_uiFireballTimer;
     uint32 m_uiSummonWhelpsTimer;
@@ -155,7 +154,6 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
 
         m_uiMovePoint = urand(0, m_uiMaxBreathPositions - 1);
         m_uiMovementTimer = 20000;
-        m_pPointData = GetMoveData();
 
         m_uiFireballTimer = 15000;
         m_uiSummonWhelpsTimer = 15000;
@@ -236,7 +234,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
             pSpell->Id == SPELL_BREATH_NORTH_TO_SOUTH)
         {
             // This was sent with SendMonsterMove - which resulted in better speed than now
-            if (m_pPointData = GetMoveData())
+            if (OnyxiaMove* m_pPointData = GetMoveData())
                 m_creature->GetMotionMaster()->MovePoint(m_pPointData->uiLocId, m_pPointData->fX, m_pPointData->fY, m_pPointData->fZ);
         }
     }
@@ -345,7 +343,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                     m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
                     m_creature->SetLevitate(true);
 
-                    if (m_pPointData)
+                    if (OnyxiaMove* m_pPointData = GetMoveData())
                         m_creature->GetMotionMaster()->MovePoint(m_pPointData->uiLocId, m_pPointData->fX, m_pPointData->fY, m_pPointData->fZ);
 
                     // TODO - this might not be the correct place to set this setting
@@ -382,7 +380,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                     {
                         case 0:                             // breath
                         case 1:
-                            m_pPointData = GetMoveData();
+                            OnyxiaMove* m_pPointData = GetMoveData();
                             if (m_pPointData)
                             {
                                 DoScriptText(EMOTE_BREATH, m_creature);
@@ -402,7 +400,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                             break;
                     }
 
-                    if (m_pPointData = GetMoveData())
+                    if (OnyxiaMove* m_pPointData = GetMoveData())
                         m_creature->GetMotionMaster()->MovePoint(m_pPointData->uiLocId, m_pPointData->fX, m_pPointData->fY, m_pPointData->fZ);
                 }
                 else

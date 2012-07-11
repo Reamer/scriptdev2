@@ -416,7 +416,7 @@ static bool sortFromSouthToNorth(Creature* pFirst, Creature* pSecond)
 
 void instance_culling_of_stratholme::ConvertCityToDeath()
 {
-    for (GUIDList::iterator itr = m_luiResidentGUIDs.begin(); itr != m_luiResidentGUIDs.end(); ++itr)
+    for (GuidList::iterator itr = m_luiResidentGUIDs.begin(); itr != m_luiResidentGUIDs.end(); ++itr)
     {
         if (Creature* pCityMan = instance->GetCreature(*itr))
         {
@@ -467,7 +467,7 @@ void instance_culling_of_stratholme::TeleportMalganisAndSpawnIfNeeded(bool entra
 void instance_culling_of_stratholme::GetCratesBunnyOrderedList(std::list<Creature*> &lList)
 {
     std::list<Creature*> lCratesBunnyList;
-    for (GUIDList::const_iterator itr = m_luiCratesBunnyGUIDs.begin(); itr != m_luiCratesBunnyGUIDs.end(); ++itr)
+    for (GuidList::const_iterator itr = m_luiCratesBunnyGUIDs.begin(); itr != m_luiCratesBunnyGUIDs.end(); ++itr)
     {
         if (Creature* pBunny = instance->GetCreature(*itr))
             lCratesBunnyList.push_back(pBunny);
@@ -482,7 +482,7 @@ void instance_culling_of_stratholme::GetCratesBunnyOrderedList(std::list<Creatur
 Creature* instance_culling_of_stratholme::GetStratIntroFootman()
 {
     std::list<Creature*> lFootmanList;
-    for (GUIDList::const_iterator itr = m_luiFootmanGUIDs.begin(); itr != m_luiFootmanGUIDs.end(); ++itr)
+    for (GuidList::const_iterator itr = m_luiFootmanGUIDs.begin(); itr != m_luiFootmanGUIDs.end(); ++itr)
     {
         if (Creature* pFootman = instance->GetCreature(*itr))
             lFootmanList.push_back(pFootman);
@@ -535,7 +535,7 @@ bool instance_culling_of_stratholme::IsWaveNPC(uint32 entry)
 void instance_culling_of_stratholme::GetResidentOrderedList(std::list<Creature*> &lList)
 {
     std::list<Creature*> lResidentList;
-    for (GUIDList::const_iterator itr = m_luiResidentGUIDs.begin(); itr != m_luiResidentGUIDs.end(); ++itr)
+    for (GuidList::const_iterator itr = m_luiResidentGUIDs.begin(); itr != m_luiResidentGUIDs.end(); ++itr)
     {
         if (Creature* pResident = instance->GetCreature(*itr))
             lResidentList.push_back(pResident);
