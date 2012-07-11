@@ -278,7 +278,7 @@ void hyjalAI::JustSummoned(Creature* pSummoned)
         pSummoned->GetRandomPoint(pMove->m_fX, pMove->m_fY, pMove->m_fZ, 10.0f, fX, fY, fZ);
 
         pSummoned->SetWalk(false);
-        pSummoned->GetMotionMaster()->MovePoint(0, fX, fY, fZ, true, true);
+        pSummoned->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
     }
 
     // Check if creature is a boss.
@@ -454,7 +454,7 @@ void hyjalAI::UpdateAI(const uint32 uiDiff)
                 m_uiNextWaveTimer = std::min(m_uiNextWaveTimer, (uint32)5000);
             }
 
-            for (GUIDList::const_iterator itr = lWaveMobGUIDList.begin(); itr != lWaveMobGUIDList.end(); ++itr)
+            for (GuidList::const_iterator itr = lWaveMobGUIDList.begin(); itr != lWaveMobGUIDList.end(); ++itr)
             {
                 if (Creature* pTemp = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -462,7 +462,7 @@ void hyjalAI::UpdateAI(const uint32 uiDiff)
                         continue;
 
                     pTemp->SetWalk(false);
-                    pTemp->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), true, true);
+                    pTemp->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
                 }
             }
             m_uiWaveMoveTimer = 10000;
