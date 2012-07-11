@@ -45,9 +45,8 @@ enum Summons
     NPC_FIRE_BOMB               = 34854,
 };
 
-enum BossSpells
+enum GormokSpells
 {
-    // Gormok
     HACK_SPELL_AURA_FOR_RIDE    = 100020,
     SPELL_IMPALE                = 66331,
     SPELL_STAGGERING_STOMP      = 67648,
@@ -132,6 +131,7 @@ struct MANGOS_DLL_DECL npc_beast_combat_stalkerAI : public Scripted_NoMovementAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_NORTHREND_BEASTS, IN_PROGRESS);
+        DoCastSpellIfCan(m_creature, HACK_SPELL_AURA_FOR_RIDE);
     }
 
     void JustSummoned(Creature* pSummoned)
@@ -345,11 +345,6 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         }
     }
 
-    void Aggro(Unit* pWho)
-    {
-        DoCastSpellIfCan(m_creature, HACK_SPELL_AURA_FOR_RIDE);
-    }
-
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -449,11 +444,8 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->GetVehicle() || !m_creature->GetVehicle()->GetBase())
-        {
-            m_creature->MonsterYell("I have no Vehicle Base", LANG_UNIVERSAL);
-            m_creature->ForcedDespawn();
-        }
-        m_creature->MonsterYell("Update", LANG_UNIVERSAL);
+            m_creature->DealDamage(m_creature, m_creature->GetMaxHealth(), 0, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+
         if (m_uiBatterTimer <= uiDiff)
         {
             if (Unit* pBase = m_creature->GetMap()->GetUnit(m_VehicleBasePlayer))
@@ -505,14 +497,8 @@ CreatureAI* GetAI_mob_snobold_vassal(Creature* pCreature)
     return new mob_snobold_vassalAI(pCreature);
 }
 
-enum{
-    // Acidmaw & Dreadscale
-    SPELL_EMERGE_SLOW           = 66947,    // cast time 3 seconds - it look so in div videos that the moving worm use this for emerge
-    SPELL_EMERGE_FAST           = 66949,    // cast time 2,5 seconds - it look so in div videos that the fixed worm use this for emerge
-    SPELL_SUBMERGE_FAST         = 66948,    // cast time 0,75 seconds - it looks so in div videos that the moving worm use this spell for submerge
-    SPELL_SUBMERGE_SLOW         = 66936,    // cast time 2 seconds - it looks so in div videos that the fixed worm use this spell for submerge
-    SPELL_CHURNING_GROUND_VISUAL= 66969,
-
+enum AcidmawAndDreadscaleSpells
+{
     SPELL_ACID_SPIT             = 66880,
     SPELL_FIRE_SPIT             = 66796,
 
@@ -528,7 +514,13 @@ enum{
     SPELL_PARALYTIC_BITE        = 66824,
     SPELL_BURNING_BITE          = 66879,
 
+    // both
     SPELL_SWEEP                 = 66794,
+    SPELL_EMERGE_SLOW           = 66947,    // cast time 3 seconds - it look so in div videos that the moving worm use this for emerge
+    SPELL_EMERGE_FAST           = 66949,    // cast time 2,5 seconds - it look so in div videos that the fixed worm use this for emerge
+    SPELL_SUBMERGE_FAST         = 66948,    // cast time 0,75 seconds - it looks so in div videos that the moving worm use this spell for submerge
+    SPELL_SUBMERGE_SLOW         = 66936,    // cast time 2 seconds - it looks so in div videos that the fixed worm use this spell for submerge
+    SPELL_CHURNING_GROUND_VISUAL= 66969,
 
     SPELL_SUMMON_SLIME_POOL     = 66883,
     SPELL_SLIME_POOL_AURA       = 66882,
@@ -546,10 +538,10 @@ enum Models
 
 enum WormPhase
 {
-    PHASE_NON_ATTACK = 3,
-    PHASE_STATIONARY = 0,
-    PHASE_SUBMERGED = 1,
-    PHASE_MOBILE = 2
+    PHASE_NON_ATTACK            = 3,
+    PHASE_STATIONARY            = 0,
+    PHASE_SUBMERGED             = 1,
+    PHASE_MOBILE                = 2
 };
 
 struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
@@ -670,7 +662,7 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                         {
                             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                             m_Phase = PHASE_SUBMERGED;
-                            m_uiPhaseTimer = 5000;
+                            m_uiPhaseTimer = 7000;
                             MoveRandom();
                         }
                     }
@@ -760,7 +752,7 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                     {
                         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                         m_Phase = PHASE_SUBMERGED;
-                        m_uiPhaseTimer = 5000;
+                        m_uiPhaseTimer = 7000;
                         MoveRandom();
                     }
                 }
@@ -783,7 +775,8 @@ CreatureAI* GetAI_boss_acidmaw_and_dreadscale(Creature* pCreature)
     return new boss_acidmaw_and_dreadscaleAI(pCreature);
 }
 
-enum IcehowlSpells{
+enum IcehowlSpells
+{
     SPELL_FEROCIOUS_BUTT        = 66770,
     SPELL_MASSIVE_CRASH         = 66683,
     SPELL_WHIRL                 = 67345,
@@ -1001,6 +994,11 @@ void AddSC_northrend_beasts()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
+    pNewScript->Name = "mob_snobold_vassal";
+    pNewScript->GetAI = &GetAI_mob_snobold_vassal;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
     pNewScript->Name = "boss_acidmaw_and_dreadscale";
     pNewScript->GetAI = &GetAI_boss_acidmaw_and_dreadscale;
     pNewScript->RegisterSelf();
@@ -1009,10 +1007,4 @@ void AddSC_northrend_beasts()
     pNewScript->Name = "boss_icehowl";
     pNewScript->GetAI = &GetAI_boss_icehowl;
     pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "mob_snobold_vassal";
-    pNewScript->GetAI = &GetAI_mob_snobold_vassal;
-    pNewScript->RegisterSelf();
-
 }

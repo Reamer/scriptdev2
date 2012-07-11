@@ -995,7 +995,7 @@ struct MANGOS_DLL_DECL mob_toc_shadow_priestAI : public boss_faction_championsAI
 
         if (m_uiFearTimer < uiDiff)
         {
-            if (Unit *pTarget = SelectTargetWithinDist())
+            if (SelectTargetWithinDist())
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_PSYCHIC_SCREAM) == CAST_OK)
                     m_uiFearTimer = urand(20*IN_MILLISECONDS, 35*IN_MILLISECONDS);
@@ -1115,7 +1115,7 @@ struct MANGOS_DLL_DECL mob_toc_warlockAI : public boss_faction_championsAI
 
         if (m_uiHelfireTimer < uiDiff)
         {
-            if (Unit* pTarget =  SelectTargetWithinDist())
+            if (SelectTargetWithinDist())
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_HELLFIRE) == CAST_OK)
                     m_uiHelfireTimer = 45*IN_MILLISECONDS;
@@ -2032,11 +2032,8 @@ struct MANGOS_DLL_DECL  mob_toc_rogueAI : public boss_faction_championsAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
-                if(Unit *target = SelectTargetWithinDist())
-                {
-                    if (DoCastSpellIfCan(target, SPELL_BLIND) == CAST_OK)
-                        m_uiBlindTimer = 2*MINUTE*IN_MILLISECONDS;
-                }
+                if (DoCastSpellIfCan(pTarget, SPELL_BLIND) == CAST_OK)
+                    m_uiBlindTimer = 2*MINUTE*IN_MILLISECONDS;
             }
         }
         else

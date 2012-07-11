@@ -19,7 +19,7 @@
 /* ScriptData
 SDName: trial_of_the_crusader
 SD%Complete: 80%
-SDComment: by /dev/rsa
+SDComment:
 SDCategory: Crusader Coliseum
 EndScriptData */
 
@@ -87,16 +87,13 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     boss_jaraxxusAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
-        m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
+        Difficulty m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
         m_bIsHeroic = (m_uiMapDifficulty == RAID_DIFFICULTY_10MAN_HEROIC || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
-        m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         Reset();
     }
 
     instance_trial_of_the_crusader* m_pInstance;
-    Difficulty m_uiMapDifficulty;
     bool m_bIsHeroic;
-    bool m_bIs25Man;
 
     uint32 m_uiNetherPowerTimer;
     uint32 m_uiFelFireballTimer;
@@ -105,22 +102,20 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     uint32 m_uiLegionFlameTimer;
     uint32 m_uiSummonTimer;
     uint32 m_uiEnrageTimer;
-    uint32 m_uiCheckTimer;
 
-    bool m_bVolcanoSummon;
+    bool m_bNextVolcanoSummon;
 
     void Reset() 
     {
         m_uiNetherPowerTimer        = 0;
-        m_uiFelFireballTimer        = 15000;
-        m_uiFelLightingTimer        = 12000;
-        m_uiIncinerateFleshTimer    = 20000;
-        m_uiLegionFlameTimer        = 30000;
-        m_uiSummonTimer             = 20000;
+        m_uiFelFireballTimer        = 15*IN_MILLISECONDS;
+        m_uiFelLightingTimer        = 12*IN_MILLISECONDS;
+        m_uiIncinerateFleshTimer    = 20*IN_MILLISECONDS;
+        m_uiLegionFlameTimer        = 30*IN_MILLISECONDS;
+        m_uiSummonTimer             = 20*IN_MILLISECONDS;
         m_uiEnrageTimer             = 10*MINUTE*IN_MILLISECONDS;
-        m_uiCheckTimer              = 1000;
 
-        m_bVolcanoSummon            = urand(0,1) ? false : true;
+        m_bNextVolcanoSummon            = urand(0,1) ? false : true;
     }
 
     void JustReachedHome()
@@ -200,7 +195,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
                 m_uiEnrageTimer -= uiDiff;
         }
 
-        if (m_uiNetherPowerTimer <= uiDiff)
+        if (m_uiNetherPowerTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_NETHER_POWER) == CAST_OK)
                 m_uiNetherPowerTimer = 30000;
@@ -208,7 +203,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         else
             m_uiNetherPowerTimer -= uiDiff;
 
-        if (m_uiFelFireballTimer <= uiDiff)
+        if (m_uiFelFireballTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
@@ -219,7 +214,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         else
             m_uiFelFireballTimer -= uiDiff;
 
-        if (m_uiFelLightingTimer <= uiDiff)
+        if (m_uiFelLightingTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
@@ -230,7 +225,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         else
             m_uiFelLightingTimer -= uiDiff;
 
-        if (m_uiIncinerateFleshTimer <= uiDiff)
+        if (m_uiIncinerateFleshTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
@@ -244,7 +239,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         else
             m_uiIncinerateFleshTimer -= uiDiff;
 
-        if (m_uiLegionFlameTimer <= uiDiff)
+        if (m_uiLegionFlameTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
@@ -255,15 +250,15 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         else
             m_uiLegionFlameTimer -= uiDiff;
 
-        if (m_uiSummonTimer <= uiDiff)
+        if (m_uiSummonTimer < uiDiff)
         {
-            if (m_bVolcanoSummon)
+            if (m_bNextVolcanoSummon)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_VOLCAN) == CAST_OK)
                 {
                     DoScriptText(SAY_INFERNO, m_creature);
                     m_uiSummonTimer = MINUTE * IN_MILLISECONDS;
-                    m_bVolcanoSummon = false;
+                    m_bNextVolcanoSummon = false;
                 }
             }
             else
@@ -272,7 +267,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
                 {
                     DoScriptText(SAY_MISTRESS, m_creature);
                     m_uiSummonTimer = MINUTE * IN_MILLISECONDS;
-                    m_bVolcanoSummon = true;
+                    m_bNextVolcanoSummon = true;
                 }
             }
         }

@@ -646,6 +646,8 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
             case PHASE_IMPALE_FAST:
                 m_creature->RemoveAurasDueToSpell(SPELL_PURSUING_SPIKES_SPEED3);
                 break;
+            default:
+                break;
         }
 
         // Despawn Permafrost
