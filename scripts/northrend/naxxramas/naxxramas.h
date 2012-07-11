@@ -25,6 +25,19 @@ enum
     SAY_SAPP_DIALOG3            = -1533086,
     SAY_SAPP_DIALOG4_LICH       = -1533087,
     SAY_SAPP_DIALOG5            = -1533088,
+    // Horsemen dialogue texts
+    SAY_BLAU_TAUNT1             = -1533045,
+    SAY_BLAU_TAUNT2             = -1533046,
+    SAY_BLAU_TAUNT3             = -1533047,             // NYI - requires additiona research
+    SAY_RIVE_TAUNT1             = -1533071,
+    SAY_RIVE_TAUNT2             = -1533072,
+    SAY_RIVE_TAUNT3             = -1533073,             // NYI - requires additiona research
+    SAY_KORT_TAUNT1             = -1533052,
+    SAY_KORT_TAUNT2             = -1533053,
+    SAY_KORT_TAUNT3             = -1533054,             // NYI - requires additiona research
+    SAY_ZELI_TAUNT1             = -1533059,
+    SAY_ZELI_TAUNT2             = -1533060,
+    SAY_ZELI_TAUNT3             = -1533061,             // NYI - requires additiona research
 
     TYPE_ANUB_REKHAN            = 0,
     TYPE_FAERLINA               = 1,
@@ -37,10 +50,6 @@ enum
     TYPE_RAZUVIOUS              = 6,
     TYPE_GOTHIK                 = 7,
     TYPE_FOUR_HORSEMEN          = 8,
-    TYPE_BLAUMEUX               = 81,
-    TYPE_RIVENDARE              = 82,
-    TYPE_KORTHAZZ               = 83,
-    TYPE_ZELIEK                 = 84,
 
     TYPE_PATCHWERK              = 9,
     TYPE_GROBBULUS              = 10,
@@ -62,6 +71,8 @@ enum
     TYPE_ACHIEV_SHOCKING        = 3,
     TYPE_ACHIEV_SPORE_LOSER     = 4,
     TYPE_ACHIEV_GET_ENOUGH      = 5,
+
+    MAX_HEIGAN_TRAP_AREAS       = 4,
 
     NPC_ANUB_REKHAN             = 15956,
     NPC_FAERLINA                = 15953,
@@ -161,6 +172,11 @@ enum
     GO_MILI_EYE_RAMP            = 181210,
     GO_CONS_EYE_RAMP            = 181213,
 
+    GO_ARAC_EYE_BOSS            = 181233,
+    GO_PLAG_EYE_BOSS            = 181231,
+    GO_MILI_EYE_BOSS            = 181230,
+    GO_CONS_EYE_BOSS            = 181232,
+
     // Portals
     GO_ARAC_PORTAL              = 181575,
     GO_PLAG_PORTAL              = 181577,
@@ -237,6 +253,9 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
 
         void Update(uint32 uiDiff);
 
+        // Heigan
+        void DoTriggerHeiganTraps(Creature* pHeigan, uint32 uiAreaIndex);
+
         // goth
         void SetGothTriggers();
         Creature* GetClosestAnchorForGoth(Creature* pSource, bool bRightSide);
@@ -244,42 +263,32 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         bool IsInRightSideGothArea(Unit* pUnit);
 
         // thaddius
-        void GetThadTeslaCreatures(GUIDList &lList){ lList = m_lThadTeslaCoilList; };
+        void GetThadTeslaCreatures(GuidList &lList){ lList = m_lThadTeslaCoilList; };
 
         // kel
         void SetChamberCenterCoords(float fX, float fY, float fZ);
         void GetChamberCenterCoords(float &fX, float &fY, float &fZ) { fX = m_fChamberCenterX; fY = m_fChamberCenterY; fZ = m_fChamberCenterZ; }
         void DoTaunt();
 
-        //Heigan
-        GUIDList m_lEruptionObjectOneGUIDs;
-        GUIDList m_lEruptionObjectTwoGUIDs;
-        GUIDList m_lEruptionObjectThreeGUIDs;
-        GUIDList m_lEruptionObjectFourGUIDs;
-
-        GUIDVector m_lDeathKnightUnderstudyGUIDs;
+        GuidVector m_lDeathKnightUnderstudyGUIDs;
        
     protected:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
         std::string m_strInstData;
 
-        GUIDList m_lThadTeslaCoilList;
+        GuidList m_lThadTeslaCoilList;
+        GuidList m_lGothTriggerList;
 
-        GUIDList m_lFaerlinaAddGUIDs;
-
-        GUIDList m_lGothTriggerList;
         UNORDERED_MAP<ObjectGuid, GothTrigger> m_mGothTriggerMap;
-        bool m_bBlaumeuxDead;
-        bool m_bRivendareDead;
-        bool m_bZeliekDead;
-        bool m_bKorthazzDead;
+        GuidList m_alHeiganTrapGuids[MAX_HEIGAN_TRAP_AREAS];
 
         float m_fChamberCenterX;
         float m_fChamberCenterY;
         float m_fChamberCenterZ;
 
         uint32 m_uiTauntTimer;
+        uint8 m_uiHorseMenKilled;
 
         DialogueHelper m_dialogueHelper;
 };

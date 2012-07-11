@@ -83,7 +83,7 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
 
     instance_halls_of_lightning* m_pInstance;
 
-    GUIDList m_lGolemGUIDList;
+    GuidList m_lGolemGUIDList;
 
     bool m_bIsRegularMode;
     bool m_bMussShatter;
@@ -146,7 +146,7 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
         if (m_lGolemGUIDList.empty())
             return;
 
-        for(GUIDList::const_iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
+        for(GuidList::const_iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
         {
             if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
             {
@@ -201,7 +201,7 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
             if (m_uiMussShatterTimer < uiDiff)
             {
                 m_bMussShatter = false;
-                for(GUIDList::iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
+                for(GuidList::iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
                 {
                     if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                     {

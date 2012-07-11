@@ -128,8 +128,8 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     uint32 m_uiIntroPackCount;
     uint32 m_uiKilledAbomination;
 
-    GUIDSet m_lIntroMobsSet;
-    GUIDSet m_lAddsSet;
+    GuidSet m_lIntroMobsSet;
+    GuidSet m_lAddsSet;
 
     void Reset()
     {
@@ -210,7 +210,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            for(GUIDSet::const_iterator itr = m_lIntroMobsSet.begin(); itr != m_lIntroMobsSet.end(); ++itr)
+            for(GuidSet::const_iterator itr = m_lIntroMobsSet.begin(); itr != m_lIntroMobsSet.end(); ++itr)
             {
                 if (Creature* pCreature = m_pInstance->instance->GetCreature(*itr))
                     pCreature->ForcedDespawn();
@@ -224,7 +224,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            for(GUIDSet::const_iterator itr = m_lAddsSet.begin(); itr != m_lAddsSet.end(); ++itr)
+            for(GuidSet::const_iterator itr = m_lAddsSet.begin(); itr != m_lAddsSet.end(); ++itr)
             {
                 if (Creature* pCreature = m_pInstance->instance->GetCreature(*itr))
                 {

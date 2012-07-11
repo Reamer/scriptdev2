@@ -281,8 +281,8 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     uint32 m_uiIntroStep;
 
     // mob list check
-    GUIDList lIronDwarfes;
-    GUIDList m_lArenaSummonGUID;
+    GuidList lIronDwarfes;
+    GuidList m_lArenaSummonGUID;
 
 
 
@@ -322,7 +322,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         // exploit check
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); 
 
-        for (GUIDList::iterator itr = m_lArenaSummonGUID.begin(); itr != m_lArenaSummonGUID.end(); itr++)
+        for (GuidList::iterator itr = m_lArenaSummonGUID.begin(); itr != m_lArenaSummonGUID.end(); itr++)
         {
             if (Creature *pTmp = m_creature->GetMap()->GetCreature(*itr))
             {
@@ -331,7 +331,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            for (GUIDList::iterator itr = m_pInstance->m_lThorimMobsGuids.begin(); itr != m_pInstance->m_lThorimMobsGuids.end(); itr++)
+            for (GuidList::iterator itr = m_pInstance->m_lThorimMobsGuids.begin(); itr != m_pInstance->m_lThorimMobsGuids.end(); itr++)
                 if (Creature *pTmp = m_pInstance->instance->GetCreature(*itr))
                     if (!pTmp->isAlive())
                         pTmp->Respawn();
@@ -435,7 +435,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         if (!m_pInstance || m_pInstance->m_lLowerOrbs.empty())
             return ObjectGuid((uint64)0);
 
-        GUIDList::iterator iter = m_pInstance->m_lLowerOrbs.begin();
+        GuidList::iterator iter = m_pInstance->m_lLowerOrbs.begin();
         advance(iter, urand(0, m_pInstance->m_lLowerOrbs.size()-1));
  
         return *iter;
@@ -449,7 +449,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         float distance = 50.0f;
         if (lower)
         {
-            for (GUIDList::const_iterator itr = m_pInstance->m_lLowerOrbs.begin(); itr != m_pInstance->m_lLowerOrbs.end(); ++itr)
+            for (GuidList::const_iterator itr = m_pInstance->m_lLowerOrbs.begin(); itr != m_pInstance->m_lLowerOrbs.end(); ++itr)
             {
                 if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                 {
@@ -464,7 +464,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         }
         else
         {
-            for (GUIDList::const_iterator itr = m_pInstance->m_lUpperOrbs.begin(); itr != m_pInstance->m_lUpperOrbs.end(); ++itr)
+            for (GuidList::const_iterator itr = m_pInstance->m_lUpperOrbs.begin(); itr != m_pInstance->m_lUpperOrbs.end(); ++itr)
             {
                 if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                 {
@@ -485,7 +485,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         if (!m_pInstance || m_pInstance->m_lUpperOrbs.empty())
             return ObjectGuid((uint64)0);
 
-        GUIDList::iterator iter = m_pInstance->m_lUpperOrbs.begin();
+        GuidList::iterator iter = m_pInstance->m_lUpperOrbs.begin();
         advance(iter, urand(0, m_pInstance->m_lUpperOrbs.size()-1));
  
         return *iter;

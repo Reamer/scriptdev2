@@ -82,15 +82,15 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         Difficulty difficulty;
 
-        GUIDList m_lPowerSparkList;
-        GUIDList m_lArcaneOverload;
-        GUIDList m_lNexusLord;
-        GUIDList m_lScionOfEternity;
-        GUIDList m_lHoverDisk;
-        GUIDList m_lStaticField;
+        GuidList m_lPowerSparkList;
+        GuidList m_lArcaneOverload;
+        GuidList m_lNexusLord;
+        GuidList m_lScionOfEternity;
+        GuidList m_lHoverDisk;
+        GuidList m_lStaticField;
 
-        GUIDList m_lSparkPortal;
-        GUIDList m_lVortex;
+        GuidList m_lSparkPortal;
+        GuidList m_lVortex;
 
 };
 #endif

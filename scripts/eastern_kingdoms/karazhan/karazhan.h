@@ -112,7 +112,7 @@ class MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
 
         uint32 m_uiOperaEvent;
         uint32 m_uiOzDeathCount;
-        GUIDList m_MoroesAndGuest;
-        GUIDList m_InfernalTarget;
+        GuidList m_MoroesAndGuest;
+        GuidList m_InfernalTarget;
 };
 #endif

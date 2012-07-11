@@ -489,7 +489,7 @@ struct MANGOS_DLL_DECL npc_doctorAI : public ScriptedAI
 
     bool Event;
 
-    GUIDList Patients;
+    GuidList Patients;
     std::vector<Location*> Coordinates;
 
     void Reset()
@@ -704,7 +704,7 @@ void npc_doctorAI::PatientSaved(Creature* soldier, Player* pPlayer, Location* Po
 
             if (PatientSavedCount == 15)
             {
-                for(GUIDList::const_iterator itr = Patients.begin(); itr != Patients.end(); ++itr)
+                for(GuidList::const_iterator itr = Patients.begin(); itr != Patients.end(); ++itr)
                 {
                     if (Creature* Patient = m_creature->GetMap()->GetCreature(*itr))
                         Patient->SetDeathState(JUST_DIED);
@@ -2300,7 +2300,7 @@ struct MANGOS_DLL_DECL npc_shade_of_horsemanAI : public ScriptedAI
     uint32 m_uiConflagrationProcTimer;
     bool bIsConflagrating;
 
-    GUIDList lFireBunnies;
+    GuidList lFireBunnies;
 
     void Reset()
     {
@@ -2334,7 +2334,7 @@ struct MANGOS_DLL_DECL npc_shade_of_horsemanAI : public ScriptedAI
         if (!bIsConflagrating)
         {
             bool IsVictory = true;
-            for (GUIDList::iterator itr = lFireBunnies.begin(); itr != lFireBunnies.end(); ++itr)
+            for (GuidList::iterator itr = lFireBunnies.begin(); itr != lFireBunnies.end(); ++itr)
                 if (Creature* pFireBunny = m_creature->GetMap()->GetCreature(*itr))
                     if (pFireBunny->HasAura(SPELL_FLAMES_LARGE))
                         IsVictory = false;
@@ -2365,7 +2365,7 @@ struct MANGOS_DLL_DECL npc_shade_of_horsemanAI : public ScriptedAI
                 case PHASE_FAIL:
                     DoScriptText(YELL_FAIL, m_creature);
                     m_creature->ForcedDespawn(10000);
-                    for (GUIDList::iterator itr = lFireBunnies.begin(); itr != lFireBunnies.end(); ++itr)
+                    for (GuidList::iterator itr = lFireBunnies.begin(); itr != lFireBunnies.end(); ++itr)
                         if (Creature* pFireBunny = m_creature->GetMap()->GetCreature(*itr))
                         {
                             if (pFireBunny->HasAura(SPELL_FLAMES_LARGE))
@@ -2417,7 +2417,7 @@ struct MANGOS_DLL_DECL npc_shade_of_horsemanAI : public ScriptedAI
                 if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
                     return;
                 
-                for (GUIDList::iterator itr = lFireBunnies.begin(); itr != lFireBunnies.end(); ++itr)
+                for (GuidList::iterator itr = lFireBunnies.begin(); itr != lFireBunnies.end(); ++itr)
                     if (Creature* pFireBunny = m_creature->GetMap()->GetCreature(*itr))
                         if (!pFireBunny->HasAura(SPELL_FLAMES_LARGE))
                         {

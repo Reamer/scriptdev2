@@ -68,7 +68,7 @@ struct MANGOS_DLL_DECL boss_gluthAI : public ScriptedAI
     uint32 m_uiBerserkTimer;
 
     uint32 m_uiRangeCheck_Timer;
-    GUIDList m_lZombieGUIDList;
+    GuidList m_lZombieGUIDList;
 
     void Reset()
     {
@@ -86,7 +86,7 @@ struct MANGOS_DLL_DECL boss_gluthAI : public ScriptedAI
     {
         if (!m_lZombieGUIDList.empty())
         {
-            for(GUIDList::iterator itr = m_lZombieGUIDList.begin(); itr != m_lZombieGUIDList.end(); ++itr)
+            for(GuidList::iterator itr = m_lZombieGUIDList.begin(); itr != m_lZombieGUIDList.end(); ++itr)
                 if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                         pTemp->ForcedDespawn();
         }

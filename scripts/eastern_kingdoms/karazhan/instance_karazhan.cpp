@@ -92,7 +92,7 @@ void instance_karazhan::OnCreatureEvade(Creature * pCreature)
 {
     if (IsMoroesOrGuest(pCreature->GetEntry()) && !pCreature->HasAura(SPELL_VANISH))
     {
-        for (GUIDList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)
+        for (GuidList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)
         {
             if (Creature* pTemp = instance->GetCreature(*iter))
             {
@@ -111,7 +111,7 @@ void instance_karazhan::OnCreatureEnterCombat(Creature * pCreature)
 
     if (IsMoroesOrGuest(pCreature->GetEntry()))
     {
-        for (GUIDList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)
+        for (GuidList::const_iterator iter = m_MoroesAndGuest.begin(); iter != m_MoroesAndGuest.end(); ++iter)
         {
             if (Creature* pTemp = instance->GetCreature(*iter))
             {
@@ -321,14 +321,14 @@ bool instance_karazhan::IsMoroesOrGuest(uint32 entry)
 
 ObjectGuid instance_karazhan::GetMoroesOrGuestRandom()
 {
-    GUIDList::const_iterator iter = m_MoroesAndGuest.begin();
+    GuidList::const_iterator iter = m_MoroesAndGuest.begin();
     advance(iter, urand(0, m_MoroesAndGuest.size()-1));
     return *iter;
 }
 
 ObjectGuid instance_karazhan::GetRandomInfernalTarget()
 {
-    GUIDList::const_iterator iter = m_InfernalTarget.begin();
+    GuidList::const_iterator iter = m_InfernalTarget.begin();
     advance(iter, urand(0, m_InfernalTarget.size()-1));
     return *iter;
 }

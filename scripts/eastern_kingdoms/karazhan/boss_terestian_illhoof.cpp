@@ -69,7 +69,7 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
 
     instance_karazhan* m_pInstance;
 
-    GUIDList m_PortalGuid;
+    GuidList m_PortalGuid;
     ObjectGuid m_ChainTarget;
 
     uint32 m_uiSummonKilrekTimer;
@@ -88,7 +88,7 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
         m_uiBerserk_Timer       = 600000;
         m_uiSummonImp           = 15000;
 
-        for(GUIDList::const_iterator itr = m_PortalGuid.begin(); itr != m_PortalGuid.end(); ++itr)
+        for(GuidList::const_iterator itr = m_PortalGuid.begin(); itr != m_PortalGuid.end(); ++itr)
         {
             if (Creature* pPortal = m_creature->GetMap()->GetCreature(*itr))
                 pPortal->ForcedDespawn();
@@ -168,7 +168,7 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
 
-        for(GUIDList::const_iterator itr = m_PortalGuid.begin(); itr != m_PortalGuid.end(); ++itr)
+        for(GuidList::const_iterator itr = m_PortalGuid.begin(); itr != m_PortalGuid.end(); ++itr)
         {
             if (Creature* pPortal = m_creature->GetMap()->GetCreature(*itr))
                 pPortal->ForcedDespawn();
@@ -239,7 +239,7 @@ struct MANGOS_DLL_DECL boss_terestianAI : public ScriptedAI
         {
             if (!m_PortalGuid.empty())
             {
-                GUIDList::const_iterator itr = m_PortalGuid.begin();
+                GuidList::const_iterator itr = m_PortalGuid.begin();
                 advance(itr, urand(0, m_PortalGuid.size() - 1 ));
                 if (Creature* pPortal = m_creature->GetMap()->GetCreature(*itr))
                 {

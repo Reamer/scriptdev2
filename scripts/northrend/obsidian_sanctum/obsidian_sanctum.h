@@ -50,10 +50,10 @@ class MANGOS_DLL_DECL instance_obsidian_sanctum : public ScriptedInstance
         bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
         bool CheckConditionCriteriaMeet(Player const* source, uint32 map_id, uint32 instance_condition_id);
 
-        GUIDList m_lFireCyclones;
+        GuidList m_lFireCyclones;
         ObjectGuid m_uiAcolyteShadronGUID;
         ObjectGuid m_uiAcolyteVesperonGUID;
-        GUIDList m_lEggsGUIDList;
+        GuidList m_lEggsGUIDList;
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
 

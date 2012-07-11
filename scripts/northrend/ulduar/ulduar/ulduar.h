@@ -398,14 +398,14 @@ class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         void SortHandTrigger(Creature* pCreature);
         void DoColossusExplosion(ExplosionSide explosionSide);
 
-        GUIDList m_lThorimMobsGuids;
-        GUIDList m_lHandTriggerGuids[2][10];
-        GUIDList m_lLowerOrbs;
-        GUIDList m_lUpperOrbs;
-        GUIDList m_lSanctumSentryGuids;
-        GUIDList m_lCLoudGuids;
+        GuidList m_lThorimMobsGuids;
+        GuidList m_lHandTriggerGuids[2][10];
+        GuidList m_lLowerOrbs;
+        GuidList m_lUpperOrbs;
+        GuidList m_lSanctumSentryGuids;
+        GuidList m_lCLoudGuids;
 
-        GUIDVector m_lBreakHarpoonGUID;
+        GuidVector m_lBreakHarpoonGUID;
 
 
     protected:
@@ -434,7 +434,7 @@ class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     uint32  m_uiExplosionTimer;
 
 
-    GUIDList m_lIronConstructsGuids;
+    GuidList m_lIronConstructsGuids;
 };
 
 #endif

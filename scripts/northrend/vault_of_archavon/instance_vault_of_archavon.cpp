@@ -60,7 +60,7 @@ void instance_vault_of_archavon::SetData(uint32 uiType, uint32 uiData)
         {
             if (uiData == DONE)
             {
-                for (GUIDList::iterator itr = m_lTempestMinion.begin(); itr !=m_lTempestMinion.end(); ++itr)
+                for (GuidList::iterator itr = m_lTempestMinion.begin(); itr !=m_lTempestMinion.end(); ++itr)
                 {
                     if (Creature* pMinion = instance->GetCreature(*itr))
                     {
@@ -70,7 +70,7 @@ void instance_vault_of_archavon::SetData(uint32 uiType, uint32 uiData)
             }
             else if (uiData == FAIL)
             {
-                for (GUIDList::iterator itr = m_lTempestMinion.begin(); itr !=m_lTempestMinion.end(); ++itr)
+                for (GuidList::iterator itr = m_lTempestMinion.begin(); itr !=m_lTempestMinion.end(); ++itr)
                 {
                     if (Creature* pMinion = instance->GetCreature(*itr))
                     {

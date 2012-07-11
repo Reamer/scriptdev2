@@ -181,7 +181,7 @@ struct MANGOS_DLL_DECL npc_highlord_saurfang_iccAI : public base_icc_bossAI
     uint32 m_uiEventStep;
     bool m_bIsEventStarted;
 
-    GUIDList m_lGuards;
+    GuidList m_lGuards;
 
     void Reset(){}
 
@@ -260,7 +260,7 @@ struct MANGOS_DLL_DECL npc_highlord_saurfang_iccAI : public base_icc_bossAI
 
                     // move guards
                     int8 n = 8;
-                    for (GUIDList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
+                    for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
                     {
                         if (Creature *pTmp = m_creature->GetMap()->GetCreature(*i))
                             pTmp->GetMotionMaster()->MovePoint(0, fPositions[n][0], fPositions[n][1], fPositions[n][2]);
@@ -320,7 +320,7 @@ struct MANGOS_DLL_DECL npc_highlord_saurfang_iccAI : public base_icc_bossAI
                     m_creature->GetMotionMaster()->MovePoint(0, x, y, z);
 
                     // move guards
-                    for (GUIDList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
+                    for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
                     {
                         if (Creature *pTmp = m_creature->GetMap()->GetCreature(*i))
                         {
@@ -348,7 +348,7 @@ struct MANGOS_DLL_DECL npc_highlord_saurfang_iccAI : public base_icc_bossAI
                     m_creature->GetMotionMaster()->MovePoint(0, x, y, z + frand(5.0f, 7.0f));
 
                     // move guards
-                    for (GUIDList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
+                    for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
                     {
                         if (Creature *pTmp = m_creature->GetMap()->GetCreature(*i))
                         {
@@ -394,7 +394,7 @@ struct MANGOS_DLL_DECL npc_highlord_saurfang_iccAI : public base_icc_bossAI
                     m_creature->GetMotionMaster()->MovePoint(0, x, y, z);
 
                     // move guards
-                    for (GUIDList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
+                    for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
                     {
                         if (Creature *pTmp = m_creature->GetMap()->GetCreature(*i))
                         {
@@ -413,7 +413,7 @@ struct MANGOS_DLL_DECL npc_highlord_saurfang_iccAI : public base_icc_bossAI
                     m_creature->SetSpeedRate(MOVE_WALK, 1.0f);
                     m_creature->RemoveAurasDueToSpell(SPELL_GRIP_OF_AGONY);
 
-                    for (GUIDList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
+                    for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
                     {
                         if (Creature *pGuard = m_creature->GetMap()->GetCreature(*i))
                         {
@@ -491,7 +491,7 @@ struct MANGOS_DLL_DECL npc_highlord_saurfang_iccAI : public base_icc_bossAI
                     if (!m_creature->IsWithinDist2d(fPositions[2][0], fPositions[2][1], 3.0f))
                         return;
 
-                    for (GUIDList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
+                    for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
                     {
                         if (Creature *pGuard = m_creature->GetMap()->GetCreature(*i))
                             pGuard->ForcedDespawn();
@@ -638,7 +638,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public base_icc_bossAI
     Player* SelectRandomPlayerForMark()
     {
         Player *pResult = NULL;
-        GUIDList lPlayers;
+        GuidList lPlayers;
         ThreatList const &threatlist = m_creature->getThreatManager().getThreatList();
 
         if (!threatlist.empty())
@@ -660,7 +660,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public base_icc_bossAI
 
         if (!lPlayers.empty())
         {
-            GUIDList::iterator i = lPlayers.begin();
+            GuidList::iterator i = lPlayers.begin();
             uint32 max = uint32(lPlayers.size() - 1);
 
             if (max > 0)

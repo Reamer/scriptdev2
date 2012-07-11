@@ -8,22 +8,26 @@
 enum
 {
     MAX_ENCOUNTER                   = 4,
+    MAX_SPECIAL_ACHIEV_CRITS        = 3,
 
     TYPE_SVALA                      = 0,
     TYPE_GORTOK                     = 1,
     TYPE_SKADI                      = 2,
     TYPE_YMIRON                     = 3,
 
+    TYPE_ACHIEV_INCREDIBLE_HULK     = 0,
+    TYPE_ACHIEV_LOVE_SKADI          = 1,
+    TYPE_ACHIEV_KINGS_BANE          = 2,
+
     GO_STASIS_GENERATOR             = 188593,
     GO_DOOR_SKADI                   = 192173,
-    GO_DOOR_AFTER_YMIRON            = 192174,
+    GO_DOOR_YMIRON                  = 192174,
 
+    NPC_WORLD_TRIGGER               = 22515,
     NPC_SCOURGE_HULK                = 26555,
 
-    NPC_STASIS_CONTROLLER           = 22515,
-
-    NPC_WORGEN                      = 26683,
     NPC_FURBOLG                     = 26684,
+    NPC_WORGEN                      = 26683,
     NPC_JORMUNGAR                   = 26685,
     NPC_RHINO                       = 26686,
     NPC_GORTOK                      = 26687,
@@ -34,6 +38,12 @@ enum
     NPC_YMIRJAR_WITCH_DOCTOR        = 26691,
     NPC_YMIRJAR_HARPOONER           = 26692,
 
+    // Ymiron spirits
+    NPC_BJORN                       = 27303,            // front right
+    NPC_HALDOR                      = 27307,            // front left
+    NPC_RANULF                      = 27308,            // back left
+    NPC_TORGYN                      = 27309,            // back right
+
     NPC_FLAME_BRAZIER               = 27273,            // throw flames at players on Svalna event
     NPC_FLAME_BREATH_TRIGGER        = 28351,
     NPC_YMIRON                      = 26861,
@@ -42,29 +52,25 @@ enum
     SPELL_FREEZING_CLOUD            = 47579,
     SPELL_AURA_RITUAL_STRIKE        = 59930,
 
-    TYPE_ACHIEV_KINGS_BANE          = 0,
-    TYPE_ACHIEV_THE_INCREDIBLE_HULK = 1,
-    TYPE_ACHIEV_MY_GIRL_LOVES_SKADI_ALL_THE_TIME = 2,
+    ACHIEV_CRIT_INCREDIBLE_HULK     = 7322,             // Svala, achiev - 2043
+    ACHIEV_CRIT_GIRL_LOVES_SKADI    = 7595,             // Skadi, achiev - 2156
+    ACHIEV_CRIT_KINGS_BANE          = 7598,             // Ymiron, achiev - 2157
 
-    MAX_SPECIAL_ACHIEV_CRITS        = 3,
+    ACHIEV_START_SKADI_ID           = 17726,            // Starts Skadi timed achiev - 1873
 
-    ACHIEV_CRIT_KINGS_BANE          = 7598,
-    ACHIEV_CRIT_THE_INCREDIBLE_HULK = 7322,
-    ACHIEV_CRIT_MY_GIRL_LOVES_SKADI_ALL_THE_TIME = 7595,
-
-    ACHIEV_START_SKADY_ID           = 17726,
-
-    // orb handling
-    SPELL_FREEZE            = 16245,
-
-    SPELL_WAKEUP_GORTOK     = 47670,
-    SPELL_WAKEUP_SUBBOSS    = 47669,
-
-    SPELL_ORB_VISUAL        = 48044,
-
-    SPELL_GORTOK_EVENT      = 48055,
-    SPELL_ORB_CHANNEL       = 48048,
+    // Gortok event spells
+    SPELL_ORB_VISUAL                = 48044,
+    SPELL_AWAKEN_SUBBOSS            = 47669,
+    SPELL_AWAKEN_GORTOK             = 47670,
 };
+
+static const float aOrbPositions[2][3] =
+{
+    {238.6077f, -460.7103f, 112.5671f},                 // Orb lift up
+    {279.26f,   -452.1f,    110.0f},                    // Orb center stop
+};
+
+static const uint32 aGortokMiniBosses[MAX_ENCOUNTER] = {NPC_WORGEN, NPC_FURBOLG, NPC_JORMUNGAR, NPC_RHINO};
 
 class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
 {
@@ -73,46 +79,43 @@ class MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
 
         void Initialize();
 
-        void OnObjectCreate(GameObject* pGo);
         void OnCreatureCreate(Creature* pCreature);
+        void OnObjectCreate(GameObject* pGo);
+
+        void OnCreatureEvade(Creature* pCreature);
+        void OnCreatureDeath(Creature* pCreature);
 
         void SetData(uint32 uiType, uint32 uiData);
         uint32 GetData(uint32 uiType);
 
         void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);
-        bool CheckAchievementCriteriaMeet(uint32 criteria_id, Player const* source, Unit const* target = NULL, uint32 miscvalue1 = 0);
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
 
-        void OnCreatureDeath(Creature * pCreature);
-        void OnCreatureEvade(Creature * pCreature);
-        void Update(uint32 uiDiff);
+        void SetGortokEventStarter(ObjectGuid playerGuid) { m_gortokEventStarterGuid = playerGuid; }
+        ObjectGuid GetGortokEventStarter() { return m_gortokEventStarterGuid; }
 
         const char* Save() { return m_strInstData.c_str(); }
         void Load(const char* chrIn);
 
         void DoProcessCallFlamesEvent();
         void DoMakeFreezingCloud();
-        void DoOrbAction();
-        bool IsCreatureGortokSubboss(uint32 entry);
-        void InitializeOrb(Creature * pCreature);
-
-    protected:
-        bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
+        void Update(uint32 uiDiff);
 
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
+        bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
         std::string m_strInstData;
 
-        GUIDList m_lFlameBraziersList;
+        GuidList m_lFlameBraziersList;
 
-        GUIDList m_lFlameBreathTriggerRight;
-        GUIDList m_lFlameBreathTriggerLeft;
+        GuidList m_lFlameBreathTriggerRight;
+        GuidList m_lFlameBreathTriggerLeft;
 
-        ObjectGuid m_gortokOrb;
+        uint32 m_uiGortokOrbTimer;
+        uint8 m_uiGortokOrbPhase;
 
-        uint32 m_uiMoveTimer;
-        bool m_bNeedMovement;
-        uint8 m_uiStep;
-        uint8 m_uiGordokSubBossCount;
+        ObjectGuid m_gortokEventTriggerGuid;
+        ObjectGuid m_gortokEventStarterGuid;
 };
 
 #endif

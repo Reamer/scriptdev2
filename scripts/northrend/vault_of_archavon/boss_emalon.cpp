@@ -235,7 +235,7 @@ struct MANGOS_DLL_DECL boss_emalonAI : public ScriptedAI
         {
             if (m_pInstance)
             {
-                for(GUIDList::iterator itr = m_pInstance->m_lTempestMinion.begin(); itr != m_pInstance->m_lTempestMinion.end(); ++itr)
+                for(GuidList::iterator itr = m_pInstance->m_lTempestMinion.begin(); itr != m_pInstance->m_lTempestMinion.end(); ++itr)
                 {
                     if (Creature* pMinion = m_creature->GetMap()->GetCreature(*itr))
                     {

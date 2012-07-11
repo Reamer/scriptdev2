@@ -43,7 +43,7 @@ class MANGOS_DLL_DECL instance_vault_of_archavon : public ScriptedInstance
 
         bool IsEncounterInProgress() const;
        
-        GUIDList m_lTempestMinion;
+        GuidList m_lTempestMinion;
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;

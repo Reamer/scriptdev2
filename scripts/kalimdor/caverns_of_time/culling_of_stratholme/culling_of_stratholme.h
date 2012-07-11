@@ -269,8 +269,8 @@ class MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
         // crates event
         bool StartCratesEvent(uint32 npcEntry);
 
-        GUIDList GetStratAgiatedCitizenList(){ return m_lAgiatedCitizenGUIDList; };
-        GUIDList GetStratAgiatedResidentList(){ return m_lAgiatedResidentGUIDList; };
+        GuidList GetStratAgiatedCitizenList(){ return m_lAgiatedCitizenGUIDList; };
+        GuidList GetStratAgiatedResidentList(){ return m_lAgiatedResidentGUIDList; };
 
         void TeleportMalganisAndSpawnIfNeeded(bool entrance);
         void ConvertCityToDeath();
@@ -328,11 +328,11 @@ class MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
         uint32 m_uiBartlebyBattsonEvent;
         uint32 m_uiBartlebyBattsonEventCounter;
 
-        GUIDList m_luiCratesBunnyGUIDs;
-        GUIDList m_luiFootmanGUIDs;
-        GUIDList m_luiResidentGUIDs;
+        GuidList m_luiCratesBunnyGUIDs;
+        GuidList m_luiFootmanGUIDs;
+        GuidList m_luiResidentGUIDs;
 
-        GUIDList m_lAgiatedCitizenGUIDList;
-        GUIDList m_lAgiatedResidentGUIDList;
+        GuidList m_lAgiatedCitizenGUIDList;
+        GuidList m_lAgiatedResidentGUIDList;
 };
 #endif

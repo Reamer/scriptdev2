@@ -44,7 +44,7 @@ class MANGOS_DLL_DECL instance_halls_of_lightning : public ScriptedInstance
         const char* Save() { return m_strInstData.c_str(); }
         void Load(const char* chrIn);
 
-        GUIDList m_lStormforgedLieutenantGuids;
+        GuidList m_lStormforgedLieutenantGuids;
 
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];

@@ -16,7 +16,7 @@
 
 /* ScriptData
 SDName: instance_pinnacle
-SD%Complete: 25%
+SD%Complete: 75%
 SDComment:
 SDCategory: Utgarde Pinnacle
 EndScriptData */
@@ -24,7 +24,9 @@ EndScriptData */
 #include "precompiled.h"
 #include "utgarde_pinnacle.h"
 
-instance_pinnacle::instance_pinnacle(Map* pMap) : ScriptedInstance(pMap)
+instance_pinnacle::instance_pinnacle(Map* pMap) : ScriptedInstance(pMap),
+    m_uiGortokOrbTimer(0),
+    m_uiGortokOrbPhase(0)
 {
     Initialize();
 }
@@ -32,29 +34,9 @@ instance_pinnacle::instance_pinnacle(Map* pMap) : ScriptedInstance(pMap)
 void instance_pinnacle::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+
     for (uint8 i = 0; i < MAX_SPECIAL_ACHIEV_CRITS; ++i)
         m_abAchievCriteria[i] = false;
-
-    m_uiMoveTimer = 0;
-    m_uiGordokSubBossCount = 0;
-    m_uiStep = 1;
-    m_bNeedMovement = false;
-}
-
-void instance_pinnacle::OnObjectCreate(GameObject* pGo)
-{
-    switch(pGo->GetEntry())
-    {
-        case GO_DOOR_SKADI:
-            if (m_auiEncounter[TYPE_SKADI] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
-            break;
-        case GO_DOOR_AFTER_YMIRON:
-            break;
-        default:
-            return;
-    }
-    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
 void instance_pinnacle::OnCreatureCreate(Creature* pCreature)
@@ -68,6 +50,10 @@ void instance_pinnacle::OnCreatureCreate(Creature* pCreature)
         case NPC_WORGEN:
         case NPC_JORMUNGAR:
         case NPC_RHINO:
+        case NPC_BJORN:
+        case NPC_HALDOR:
+        case NPC_RANULF:
+        case NPC_TORGYN:
             m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         case NPC_FLAME_BRAZIER:
@@ -81,45 +67,85 @@ void instance_pinnacle::OnCreatureCreate(Creature* pCreature)
                 m_lFlameBreathTriggerRight.push_back(pCreature->GetObjectGuid());
             break;
         }
+        case NPC_WORLD_TRIGGER:
+            if (pCreature->GetPositionX() < 250.0f)
+                m_gortokEventTriggerGuid = pCreature->GetObjectGuid();
+            break;
     }
 }
+
+void instance_pinnacle::OnObjectCreate(GameObject* pGo)
+{
+    switch(pGo->GetEntry())
+    {
+        case GO_DOOR_SKADI:
+            if (m_auiEncounter[TYPE_SKADI] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            break;
+        case GO_DOOR_YMIRON:
+            if (m_auiEncounter[TYPE_YMIRON] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            break;
+        default:
+            return;
+    }
+    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+}
+
 void instance_pinnacle::SetData(uint32 uiType, uint32 uiData)
 {
     switch (uiType)
     {
         case TYPE_SVALA:
+            if (uiData == IN_PROGRESS || uiData == FAIL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEV_INCREDIBLE_HULK, false);
             m_auiEncounter[uiType] = uiData;
             break;
         case TYPE_GORTOK:
-            m_auiEncounter[uiType] = uiData;
-            if (uiData == FAIL)
+            if (uiData == IN_PROGRESS)
             {
-                if (Creature* pFurbolg = GetSingleCreatureFromStorage(NPC_FURBOLG))
+                if (Creature* pOrb = instance->GetCreature(m_gortokEventTriggerGuid))
                 {
-                    pFurbolg->Respawn();
-                    pFurbolg->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                }
-                if (Creature* pWorg = GetSingleCreatureFromStorage(NPC_WORGEN))
-                {
-                    pWorg->Respawn();
-                    pWorg->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                }
-                if (Creature* pJormungar = GetSingleCreatureFromStorage(NPC_JORMUNGAR))
-                {
-                    pJormungar->Respawn();
-                    pJormungar->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                }
-                if (Creature* pRhino = GetSingleCreatureFromStorage(NPC_RHINO))
-                {
-                    pRhino->Respawn();
-                    pRhino->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    pOrb->SetLevitate(true);
+                    pOrb->CastSpell(pOrb, SPELL_ORB_VISUAL, true);
+                    pOrb->GetMotionMaster()->MovePoint(0, aOrbPositions[0][0], aOrbPositions[0][1], aOrbPositions[0][2]);
+
+                    m_uiGortokOrbTimer = 2000;
                 }
             }
+            if (uiData == FAIL)
+            {
+                if (Creature* pOrb = instance->GetCreature(m_gortokEventTriggerGuid))
+                {
+                    if (!pOrb->isAlive())
+                        pOrb->Respawn();
+                    else
+                        pOrb->RemoveAllAuras();
+
+                    // For some reasone the Orb doesn't evade automatically
+                    pOrb->GetMotionMaster()->MoveTargetedHome();
+                }
+
+                for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+                {
+                    // Reset each miniboss
+                    if (Creature* pTemp = GetSingleCreatureFromStorage(aGortokMiniBosses[i]))
+                    {
+                        if (!pTemp->isAlive())
+                            pTemp->Respawn();
+
+                        pTemp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    }
+                }
+
+                m_uiGortokOrbPhase = 0;
+            }
+            m_auiEncounter[uiType] = uiData;
             break;
         case TYPE_SKADI:
             if (uiData == IN_PROGRESS)
             {
-                DoStartTimedAchievement(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE, ACHIEV_START_SKADY_ID);
+                DoStartTimedAchievement(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE, ACHIEV_START_SKADI_ID);
             }
             if (uiData == DONE)
                 DoUseDoorOrButton(GO_DOOR_SKADI);
@@ -127,11 +153,13 @@ void instance_pinnacle::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             break;
         case TYPE_YMIRON:
-            m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)
-            {
-                DoUseDoorOrButton(GO_DOOR_AFTER_YMIRON);
-            }
+                DoUseDoorOrButton(GO_DOOR_YMIRON);
+            if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEV_KINGS_BANE, true);
+            if (uiData == SPECIAL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEV_KINGS_BANE, false);
+            m_auiEncounter[uiType] = uiData;
             break;
         default:
             error_log("SD2: Instance Pinnacle: SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
@@ -161,51 +189,6 @@ uint32 instance_pinnacle::GetData(uint32 uiType)
     return 0;
 }
 
-void instance_pinnacle::OnCreatureDeath(Creature * pCreature)
-{
-    if (pCreature->GetEntry() == NPC_SCOURGE_HULK)
-    {
-        if (pCreature->HasAura(SPELL_AURA_RITUAL_STRIKE))
-        {
-            m_abAchievCriteria[TYPE_ACHIEV_THE_INCREDIBLE_HULK] = true;
-        }
-    }
-    else if (IsCreatureGortokSubboss(pCreature->GetEntry()))
-    {
-        DoOrbAction();
-    }
-    else if (pCreature->GetEntry() == NPC_GORTOK)
-    {
-        SetData(TYPE_GORTOK, DONE); // orb despawn with next update
-    }
-}
-
-bool instance_pinnacle::CheckAchievementCriteriaMeet(uint32 criteria_id, Player const* source, Unit const* target, uint32 miscvalue1)
-{
-    switch(criteria_id)
-    {
-        case ACHIEV_CRIT_KINGS_BANE:
-        {
-            return m_abAchievCriteria[TYPE_ACHIEV_KINGS_BANE];
-        }
-        case ACHIEV_CRIT_THE_INCREDIBLE_HULK:
-        {
-            return m_abAchievCriteria[TYPE_ACHIEV_THE_INCREDIBLE_HULK];
-        }
-        case ACHIEV_CRIT_MY_GIRL_LOVES_SKADI_ALL_THE_TIME:
-        {
-            return m_abAchievCriteria[TYPE_ACHIEV_MY_GIRL_LOVES_SKADI_ALL_THE_TIME];
-        }
-    }
-    return false;
-}
-
-void instance_pinnacle::SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet)
-{
-    if (uiType < MAX_SPECIAL_ACHIEV_CRITS)
-        m_abAchievCriteria[uiType] = bIsMet;
-}
-
 void instance_pinnacle::Load(const char* chrIn)
 {
     if (!chrIn)
@@ -228,10 +211,31 @@ void instance_pinnacle::Load(const char* chrIn)
     OUT_LOAD_INST_DATA_COMPLETE;
 }
 
+void instance_pinnacle::SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet)
+{
+    if (uiType < MAX_SPECIAL_ACHIEV_CRITS)
+        m_abAchievCriteria[uiType] = bIsMet;
+}
+
+bool instance_pinnacle::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+{
+    switch (uiCriteriaId)
+    {
+        case ACHIEV_CRIT_INCREDIBLE_HULK:
+            return m_abAchievCriteria[TYPE_ACHIEV_INCREDIBLE_HULK];
+        case ACHIEV_CRIT_GIRL_LOVES_SKADI:
+            return m_abAchievCriteria[TYPE_ACHIEV_LOVE_SKADI];
+        case ACHIEV_CRIT_KINGS_BANE:
+            return m_abAchievCriteria[TYPE_ACHIEV_KINGS_BANE];
+
+        default:
+            return false;
+    }
+}
 
 void instance_pinnacle::DoProcessCallFlamesEvent()
 {
-    for (GUIDList::const_iterator itr = m_lFlameBraziersList.begin(); itr != m_lFlameBraziersList.end(); ++itr)
+    for (GuidList::const_iterator itr = m_lFlameBraziersList.begin(); itr != m_lFlameBraziersList.end(); ++itr)
     {
         if (Creature* pFlame = instance->GetCreature(*itr))
             pFlame->CastSpell(pFlame, SPELL_BALL_OF_FLAME, true);
@@ -242,7 +246,7 @@ void instance_pinnacle::DoMakeFreezingCloud()
 {
     if (urand(0, 1))
     {
-        for (GUIDList::const_iterator itr = m_lFlameBreathTriggerLeft.begin(); itr != m_lFlameBreathTriggerLeft.end(); ++itr)
+        for (GuidList::const_iterator itr = m_lFlameBreathTriggerLeft.begin(); itr != m_lFlameBreathTriggerLeft.end(); ++itr)
         {
             if (Creature* pFlame = instance->GetCreature(*itr))
                 pFlame->CastSpell(pFlame, SPELL_FREEZING_CLOUD, true);
@@ -250,7 +254,7 @@ void instance_pinnacle::DoMakeFreezingCloud()
     }
     else
     {
-        for (GUIDList::const_iterator itr = m_lFlameBreathTriggerRight.begin(); itr != m_lFlameBreathTriggerRight.end(); ++itr)
+        for (GuidList::const_iterator itr = m_lFlameBreathTriggerRight.begin(); itr != m_lFlameBreathTriggerRight.end(); ++itr)
         {
             if (Creature* pFlame = instance->GetCreature(*itr))
                 pFlame->CastSpell(pFlame, SPELL_FREEZING_CLOUD, true);
@@ -258,116 +262,79 @@ void instance_pinnacle::DoMakeFreezingCloud()
     }
 }
 
-void instance_pinnacle::OnCreatureEvade(Creature * pCreature)
+void instance_pinnacle::OnCreatureEvade(Creature* pCreature)
 {
-    if (IsCreatureGortokSubboss(pCreature->GetEntry()) || pCreature->GetEntry() == NPC_GORTOK)
+    switch(pCreature->GetEntry())
     {
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        SetData(TYPE_GORTOK, FAIL); // orb despawn with next update
+        case NPC_FURBOLG:
+        case NPC_WORGEN:
+        case NPC_JORMUNGAR:
+        case NPC_RHINO:
+            SetData(TYPE_GORTOK, FAIL);
+            break;
     }
 }
 
-bool instance_pinnacle::IsCreatureGortokSubboss(uint32 entry)
+void instance_pinnacle::OnCreatureDeath(Creature* pCreature)
 {
-    return entry >= NPC_WORGEN && entry <= NPC_RHINO;
+    switch(pCreature->GetEntry())
+    {
+        case NPC_FURBOLG:
+        case NPC_WORGEN:
+        case NPC_JORMUNGAR:
+        case NPC_RHINO:
+            m_uiGortokOrbTimer = 3000;
+            break;
+        case NPC_SCOURGE_HULK:
+            if (pCreature->HasAura(SPELL_AURA_RITUAL_STRIKE))
+            {
+                SetSpecialAchievementCriteria(TYPE_ACHIEV_INCREDIBLE_HULK, true);
+            }
+            break;
+        default:
+            break;
+    }
 }
 
 void instance_pinnacle::Update(uint32 const uiDiff)
 {
-    if (Creature* pGortokOrb = instance->GetCreature(m_gortokOrb))
+    if (m_uiGortokOrbTimer)
     {
-        if (GetData(TYPE_GORTOK) != IN_PROGRESS)
+        if (m_uiGortokOrbTimer <= uiDiff)
         {
-            pGortokOrb->ForcedDespawn();
-            return;
-        }
-
-        if (m_bNeedMovement)
-        {
-            if (m_uiMoveTimer <= uiDiff)
+            if (!m_uiGortokOrbPhase)
             {
-                switch (m_uiStep)
-                {
-                    case 1:
-                    {
-                        pGortokOrb->GetMotionMaster()->MovePoint(0, 238.61f, -460.71f, 109.57f + 4.0f, false);
-                        m_uiMoveTimer = 4000;
-                        ++m_uiStep;
-                        break;
-                    }
-                    case 2:
-                    {
-                        pGortokOrb->GetMotionMaster()->MovePoint(1, 279.11f, -452.01f, 109.57f + 2.0f, false);
-                        m_uiMoveTimer = 10000;
-                        ++m_uiStep;
-                        break;
-                    }
-                    case 3:
-                    {
-                        DoOrbAction();
-                        m_bNeedMovement = false;
-                        break;
-                    }
-                    default:  // should never appear
-                    {
-                        SetData(TYPE_GORTOK, FAIL);
-                        break;
-                    }
-                }
+                if (Creature* pOrb = instance->GetCreature(m_gortokEventTriggerGuid))
+                    pOrb->GetMotionMaster()->MovePoint(0, aOrbPositions[1][0], aOrbPositions[1][1], aOrbPositions[1][2]);
+
+                m_uiGortokOrbTimer = 18000;
             }
+            // Awaken Gortok if this is the last phase
             else
-                m_uiMoveTimer -= uiDiff;
+            {
+                uint8 uiMaxOrbPhase = instance->IsRegularDifficulty() ? 3 : 5;
+                uint32 uiSpellId = m_uiGortokOrbPhase == uiMaxOrbPhase ? SPELL_AWAKEN_GORTOK : SPELL_AWAKEN_SUBBOSS;
+
+                if (Creature* pOrb = instance->GetCreature(m_gortokEventTriggerGuid))
+                {
+                    pOrb->CastSpell(pOrb, uiSpellId, false);
+
+                    if (m_uiGortokOrbPhase == uiMaxOrbPhase)
+                        pOrb->ForcedDespawn(10000);
+                }
+
+                m_uiGortokOrbTimer = 0;
+            }
+            ++m_uiGortokOrbPhase;
         }
-    }
-}
-
-void instance_pinnacle::InitializeOrb(Creature* pGortokOrb)
-{
-    m_gortokOrb = pGortokOrb->GetObjectGuid();
-    m_uiMoveTimer = 4000;
-    m_bNeedMovement = true;
-    m_uiStep = 1;
-    m_uiGordokSubBossCount = 0;
-    pGortokOrb->SetLevitate(true);
-    pGortokOrb->SetDisplayId(16925);
-    pGortokOrb->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
-    pGortokOrb->CastSpell(pGortokOrb, SPELL_ORB_VISUAL, true);
-}
-
-void instance_pinnacle::DoOrbAction()
-{
-    if (Creature* pGortokOrb = instance->GetCreature(m_gortokOrb))
-    {
-        ++m_uiGordokSubBossCount;
-        bool nextBoss = m_uiGordokSubBossCount > (instance->IsRegularDifficulty() ? 2 : 4);
-        pGortokOrb->CastSpell(pGortokOrb, nextBoss ? SPELL_WAKEUP_GORTOK : SPELL_WAKEUP_SUBBOSS, false);
+        else
+            m_uiGortokOrbTimer -= uiDiff;
     }
 }
 
 InstanceData* GetInstanceData_instance_pinnacle(Map* pMap)
 {
     return new instance_pinnacle(pMap);
-}
-
-bool ProcessEventId_event_start_gortok(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIsStart)
-{
-    if (pSource->isType(TYPEMASK_WORLDOBJECT))
-    {
-        WorldObject* pObject = (WorldObject*)pSource;
-        if (instance_pinnacle* m_pInstance = (instance_pinnacle*)pObject->GetInstanceData())
-        {
-            if (m_pInstance->GetData(TYPE_GORTOK) == NOT_STARTED || m_pInstance->GetData(TYPE_GORTOK) == FAIL)
-            {
-                m_pInstance->SetData(TYPE_GORTOK, IN_PROGRESS);
-                if (Creature* pGortokOrb = pObject->SummonCreature(NPC_STASIS_CONTROLLER, 238.61f, -460.71f, 109.57f, 0, TEMPSUMMON_DEAD_DESPAWN, 0))
-                {
-                    m_pInstance->InitializeOrb(pGortokOrb);
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
 }
 
 void AddSC_instance_pinnacle()
@@ -377,10 +344,5 @@ void AddSC_instance_pinnacle()
     pNewScript = new Script;
     pNewScript->Name = "instance_pinnacle";
     pNewScript->GetInstanceData = &GetInstanceData_instance_pinnacle;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "event_start_gortok";
-    pNewScript->pProcessEventId= &ProcessEventId_event_start_gortok;
     pNewScript->RegisterSelf();
 }

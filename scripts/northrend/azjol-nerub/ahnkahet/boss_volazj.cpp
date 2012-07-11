@@ -116,12 +116,12 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     bool m_bClone128;
     bool m_bClone256;
 
-    GUIDList p_lCloneGuid;
-    GUIDList p_lm_bClone16Guid;
-    GUIDList p_lm_bClone32Guid;
-    GUIDList p_lm_bClone64Guid;
-    GUIDList p_lm_bClone128Guid;
-    GUIDList p_lm_bClone256Guid;
+    GuidList p_lCloneGuid;
+    GuidList p_lm_bClone16Guid;
+    GuidList p_lm_bClone32Guid;
+    GuidList p_lm_bClone64Guid;
+    GuidList p_lm_bClone128Guid;
+    GuidList p_lm_bClone256Guid;
 
     uint32 m_uiInsanityEndTimer;
     uint32 m_uiInsanityTimer;
@@ -424,7 +424,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     {
         if (!p_lCloneGuid.empty() && m_pInstance)
         {
-            for (GUIDList::iterator itr = p_lCloneGuid.begin(); itr != p_lCloneGuid.end(); ++itr)
+            for (GuidList::iterator itr = p_lCloneGuid.begin(); itr != p_lCloneGuid.end(); ++itr)
             {
                 if (Creature* pClone = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -441,7 +441,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     {
         if (!p_lm_bClone16Guid.empty() && m_pInstance)
         {
-            for (GUIDList::iterator itr = p_lm_bClone16Guid.begin(); itr != p_lm_bClone16Guid.end(); ++itr)
+            for (GuidList::iterator itr = p_lm_bClone16Guid.begin(); itr != p_lm_bClone16Guid.end(); ++itr)
             {
                 if (Creature* pClone = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -458,7 +458,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     {
         if (!p_lm_bClone32Guid.empty() && m_pInstance)
         {
-            for (GUIDList::iterator itr = p_lm_bClone32Guid.begin(); itr != p_lm_bClone32Guid.end(); ++itr)
+            for (GuidList::iterator itr = p_lm_bClone32Guid.begin(); itr != p_lm_bClone32Guid.end(); ++itr)
             {
                 if (Creature* pClone = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -475,7 +475,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     {
         if (!p_lm_bClone64Guid.empty() && m_pInstance)
         {
-            for (GUIDList::iterator itr = p_lm_bClone64Guid.begin(); itr != p_lm_bClone64Guid.end(); ++itr)
+            for (GuidList::iterator itr = p_lm_bClone64Guid.begin(); itr != p_lm_bClone64Guid.end(); ++itr)
             {
                 if (Creature* pClone = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -492,7 +492,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     {
         if (!p_lm_bClone128Guid.empty() && m_pInstance)
         {
-            for (GUIDList::iterator itr = p_lm_bClone128Guid.begin(); itr != p_lm_bClone128Guid.end(); ++itr)
+            for (GuidList::iterator itr = p_lm_bClone128Guid.begin(); itr != p_lm_bClone128Guid.end(); ++itr)
             {
                 if (Creature* pClone = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -509,7 +509,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     {
         if (!p_lm_bClone256Guid.empty() && m_pInstance)
         {
-            for (GUIDList::iterator itr = p_lm_bClone256Guid.begin(); itr != p_lm_bClone256Guid.end(); ++itr)
+            for (GuidList::iterator itr = p_lm_bClone256Guid.begin(); itr != p_lm_bClone256Guid.end(); ++itr)
             {
                 if (Creature* pClone = m_pInstance->instance->GetCreature(*itr))
                 {

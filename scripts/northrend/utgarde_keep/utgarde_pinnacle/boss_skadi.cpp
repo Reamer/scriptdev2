@@ -133,7 +133,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_SKADI, FAIL);
-            m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_MY_GIRL_LOVES_SKADI_ALL_THE_TIME, false);
+            m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_LOVE_SKADI, false);
             if (Creature* pGrauf = m_pInstance->GetSingleCreatureFromStorage(NPC_GRAUF))
             {
                 pGrauf->Respawn();
@@ -336,7 +336,7 @@ struct boss_skadi_graufAI : public ScriptedAI
             }
             if (m_uiHarpoonHitCounterAchiev == m_uiHarpoonHitCounter)
             {
-                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_MY_GIRL_LOVES_SKADI_ALL_THE_TIME, true);
+                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEV_LOVE_SKADI, true);
             }
         }
     }

@@ -207,7 +207,7 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
     {
         case NPC_POWER_SPARK:
         {
-            for (GUIDList::iterator iter = m_lPowerSparkList.begin(); iter != m_lPowerSparkList.end(); ++iter)
+            for (GuidList::iterator iter = m_lPowerSparkList.begin(); iter != m_lPowerSparkList.end(); ++iter)
             {
                 if (Creature* pSpark = instance->GetCreature(*iter))
                     pSpark->ForcedDespawn();
@@ -217,7 +217,7 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
         }
         case NPC_ARCANE_OVERLOAD:
         {
-            for (GUIDList::iterator iter = m_lArcaneOverload.begin(); iter != m_lArcaneOverload.end(); ++iter)
+            for (GuidList::iterator iter = m_lArcaneOverload.begin(); iter != m_lArcaneOverload.end(); ++iter)
             {
                 if (Creature* pArcaneOverload = instance->GetCreature(*iter))
                     pArcaneOverload->ForcedDespawn();
@@ -227,7 +227,7 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
         }
         case NPC_NEXUS_LORD:
         {
-            for (GUIDList::iterator iter = m_lNexusLord.begin(); iter != m_lNexusLord.end(); ++iter)
+            for (GuidList::iterator iter = m_lNexusLord.begin(); iter != m_lNexusLord.end(); ++iter)
             {
                 if (Creature* pNexusLord = instance->GetCreature(*iter))
                     pNexusLord->ForcedDespawn();
@@ -237,7 +237,7 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
         }
         case NPC_SCION_OF_ETERNITY:
         {
-            for (GUIDList::iterator iter = m_lScionOfEternity.begin(); iter != m_lScionOfEternity.end(); ++iter)
+            for (GuidList::iterator iter = m_lScionOfEternity.begin(); iter != m_lScionOfEternity.end(); ++iter)
             {
                 if (Creature* pScionOfEternity = instance->GetCreature(*iter))
                     pScionOfEternity->ForcedDespawn();
@@ -248,7 +248,7 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
         case NPC_HOVER_DISK_MELEE:
         case NPC_HOVER_DISK_CASTER:
         {
-            for (GUIDList::iterator iter = m_lHoverDisk.begin(); iter != m_lHoverDisk.end(); ++iter)
+            for (GuidList::iterator iter = m_lHoverDisk.begin(); iter != m_lHoverDisk.end(); ++iter)
             {
                 if (Creature* pHoverDisk = instance->GetCreature(*iter))
                     pHoverDisk->ForcedDespawn();
@@ -258,7 +258,7 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
         }
         case NPC_STATIC_FIELD:
         {
-            for (GUIDList::iterator iter = m_lStaticField.begin(); iter != m_lStaticField.end(); ++iter)
+            for (GuidList::iterator iter = m_lStaticField.begin(); iter != m_lStaticField.end(); ++iter)
             {
                 if (Creature* pStaticField = instance->GetCreature(*iter))
                     pStaticField->ForcedDespawn();
@@ -273,7 +273,7 @@ void instance_eye_of_eternity::DespawnCreatures(uint32 uiEntry)
 
 void instance_eye_of_eternity::ActivateVisualOfVortex()
 {
-    for (GUIDList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++ iter)
+    for (GuidList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++ iter)
     {
         if (Creature* pVortex = instance->GetCreature(*iter))
         {
@@ -284,7 +284,7 @@ void instance_eye_of_eternity::ActivateVisualOfVortex()
 
 void instance_eye_of_eternity::DestroyVisualOfVortex(bool boom)
 {
-    for (GUIDList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++ iter)
+    for (GuidList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++ iter)
     {
         if (Creature* pVortex = instance->GetCreature(*iter))
         {
@@ -295,7 +295,7 @@ void instance_eye_of_eternity::DestroyVisualOfVortex(bool boom)
 
 void instance_eye_of_eternity::HandleRiderOfVortex(Unit* pTarget)
 {
-    for (GUIDList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++iter)
+    for (GuidList::const_iterator iter = m_lVortex.begin(); iter != m_lVortex.end(); ++iter)
     {
         if (Creature* pVortex = instance->GetCreature(*iter))
         {
@@ -314,7 +314,7 @@ void instance_eye_of_eternity::HandleRiderOfVortex(Unit* pTarget)
 //TODO: better count down
 bool instance_eye_of_eternity::IsAnyAddAtLife()
 {
-    for (GUIDList::const_iterator iter = m_lNexusLord.begin(); iter != m_lNexusLord.end(); ++iter)
+    for (GuidList::const_iterator iter = m_lNexusLord.begin(); iter != m_lNexusLord.end(); ++iter)
     {
         if (Creature* pNexusLord = instance->GetCreature(*iter))
         {
@@ -322,7 +322,7 @@ bool instance_eye_of_eternity::IsAnyAddAtLife()
                 return true;
         }
     }
-    for (GUIDList::const_iterator iter = m_lScionOfEternity.begin(); iter != m_lScionOfEternity.end(); ++iter)
+    for (GuidList::const_iterator iter = m_lScionOfEternity.begin(); iter != m_lScionOfEternity.end(); ++iter)
     {
         if (Creature* pScionOfEternity = instance->GetCreature(*iter))
         {

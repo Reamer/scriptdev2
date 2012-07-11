@@ -136,7 +136,7 @@ struct MANGOS_DLL_DECL boss_bjarngrimAI : public ScriptedAI
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_BJARNGRIM, NOT_STARTED);
-            for (GUIDList::iterator itr = m_pInstance->m_lStormforgedLieutenantGuids.begin(); itr != m_pInstance->m_lStormforgedLieutenantGuids.end(); itr++)
+            for (GuidList::iterator itr = m_pInstance->m_lStormforgedLieutenantGuids.begin(); itr != m_pInstance->m_lStormforgedLieutenantGuids.end(); itr++)
             {
                 if (Creature *pTmp = m_pInstance->instance->GetCreature(*itr))
                 {

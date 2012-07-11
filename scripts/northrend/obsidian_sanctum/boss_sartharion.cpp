@@ -446,7 +446,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         {
             if (m_pInstance)
             {
-                for (GUIDList::iterator iter = m_pInstance->m_lFireCyclones.begin(); iter != m_pInstance->m_lFireCyclones.end(); ++iter)
+                for (GuidList::iterator iter = m_pInstance->m_lFireCyclones.begin(); iter != m_pInstance->m_lFireCyclones.end(); ++iter)
                 {
                     if (Creature* pFireCyclone = m_creature->GetMap()->GetCreature(*iter))
                     {
@@ -521,7 +521,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         {
             if (m_pInstance)
             {
-                GUIDList::iterator iter = m_pInstance->m_lFireCyclones.begin();
+                GuidList::iterator iter = m_pInstance->m_lFireCyclones.begin();
                 advance(iter, urand(0, m_pInstance->m_lFireCyclones.size()-1));
                 if (Creature* pFireCyclone = m_creature->GetMap()->GetCreature(*iter))
                 {
@@ -590,7 +590,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
                     }
                 }
                 
-                for (GUIDList::iterator itr = m_pInstance->m_lEggsGUIDList.begin(); itr != m_pInstance->m_lEggsGUIDList.end(); ++itr)
+                for (GuidList::iterator itr = m_pInstance->m_lEggsGUIDList.begin(); itr != m_pInstance->m_lEggsGUIDList.end(); ++itr)
                 {
                     if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                     {
@@ -696,7 +696,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
     uint32 m_uiPortalTimer;
     bool m_bCanMoveFree;
 
-    GUIDList m_lPortalGUIDList;
+    GuidList m_lPortalGUIDList;
 
     void Reset()
     {
@@ -811,7 +811,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
         {
             if (!m_lPortalGUIDList.empty())
             {
-                for(GUIDList::iterator itr = m_lPortalGUIDList.begin(); itr != m_lPortalGUIDList.end(); ++itr)
+                for(GuidList::iterator itr = m_lPortalGUIDList.begin(); itr != m_lPortalGUIDList.end(); ++itr)
                     if (GameObject* pTemp = pMap->GetGameObject(*itr))
                         pTemp->Delete();
             }
@@ -830,7 +830,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
                 {
                     if (Map* pMap = m_creature->GetMap())
                     {
-                        GUIDList::iterator itr = m_lPortalGUIDList.begin();
+                        GuidList::iterator itr = m_lPortalGUIDList.begin();
                         pPortal = pMap->GetGameObject(*itr);
                     }
                 }
@@ -956,7 +956,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
                     bNoAliveTwilightRealm = false;
             if (!m_pInstance->m_lEggsGUIDList.empty())
             {
-                for (GUIDList::iterator itr = m_pInstance->m_lEggsGUIDList.begin(); itr != m_pInstance->m_lEggsGUIDList.end(); ++itr)
+                for (GuidList::iterator itr = m_pInstance->m_lEggsGUIDList.begin(); itr != m_pInstance->m_lEggsGUIDList.end(); ++itr)
                 {
                     if (Creature* pTemp = m_creature->GetMap()->GetCreature( *itr))
                         if (pTemp->isAlive())
@@ -983,7 +983,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
                 iTextId = SAY_TENEBRON_DEATH;
 
                 if (!m_pInstance->m_lEggsGUIDList.empty())
-                    for (GUIDList::iterator itr = m_pInstance->m_lEggsGUIDList.begin(); itr != m_pInstance->m_lEggsGUIDList.end(); ++itr)
+                    for (GuidList::iterator itr = m_pInstance->m_lEggsGUIDList.begin(); itr != m_pInstance->m_lEggsGUIDList.end(); ++itr)
                         if (Creature* pEgg = m_creature->GetMap()->GetCreature( *itr))
                             pEgg->ForcedDespawn();
                 break;

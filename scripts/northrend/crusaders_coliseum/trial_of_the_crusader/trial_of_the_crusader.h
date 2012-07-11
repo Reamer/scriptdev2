@@ -342,10 +342,10 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
 
         bool m_bAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
 
-        GUIDList m_lBulletStalkerDark;
-        GUIDList m_lBulletStalkerLight;
-        GUIDList m_lNerubianBurrow;
-        GUIDList m_lFactionChampion;
+        GuidList m_lBulletStalkerDark;
+        GuidList m_lBulletStalkerLight;
+        GuidList m_lNerubianBurrow;
+        GuidList m_lFactionChampion;
 
         uint8 m_uiSnoboldVassalLifeCounter;
         uint8 m_uiMistressLifeCounter;

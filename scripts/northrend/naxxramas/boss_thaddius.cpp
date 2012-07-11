@@ -305,9 +305,9 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public Scripted_NoMovementAI
     {
         if(m_bOneIsDeath)
         {
-            GUIDList lTeslaGUIDList;
+            GuidList lTeslaGUIDList;
             m_pInstance->GetThadTeslaCreatures(lTeslaGUIDList);
-            for (GUIDList::const_iterator itr = lTeslaGUIDList.begin(); itr != lTeslaGUIDList.end(); ++itr)
+            for (GuidList::const_iterator itr = lTeslaGUIDList.begin(); itr != lTeslaGUIDList.end(); ++itr)
             {
                 if (Creature* pTesla = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -481,7 +481,7 @@ struct MANGOS_DLL_DECL boss_stalaggAI : public ScriptedAI
         SetCombatMovement(false);
         m_uiHoldTimer = 1500;
 
-        GUIDList lTeslaGUIDList;
+        GuidList lTeslaGUIDList;
         if (!m_pInstance)
             return;
 
@@ -489,7 +489,7 @@ struct MANGOS_DLL_DECL boss_stalaggAI : public ScriptedAI
         if (lTeslaGUIDList.empty())
             return;
 
-        for (GUIDList::const_iterator itr = lTeslaGUIDList.begin(); itr != lTeslaGUIDList.end(); ++itr)
+        for (GuidList::const_iterator itr = lTeslaGUIDList.begin(); itr != lTeslaGUIDList.end(); ++itr)
         {
             if (Creature* pTesla = m_pInstance->instance->GetCreature(*itr))
             {
@@ -618,7 +618,7 @@ struct MANGOS_DLL_DECL boss_feugenAI : public ScriptedAI
         SetCombatMovement(false);
         m_uiHoldTimer = 1500;
 
-        GUIDList lTeslaGUIDList;
+        GuidList lTeslaGUIDList;
         if (!m_pInstance)
             return;
 
@@ -626,7 +626,7 @@ struct MANGOS_DLL_DECL boss_feugenAI : public ScriptedAI
         if (lTeslaGUIDList.empty())
             return;
 
-        for (GUIDList::const_iterator itr = lTeslaGUIDList.begin(); itr != lTeslaGUIDList.end(); ++itr)
+        for (GuidList::const_iterator itr = lTeslaGUIDList.begin(); itr != lTeslaGUIDList.end(); ++itr)
         {
             if (Creature* pTesla = m_pInstance->instance->GetCreature(*itr))
             {

@@ -432,7 +432,7 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
         {
             if (uiData == SPECIAL)
             {
-                for (GUIDList::const_iterator itr = m_lFactionChampion.begin(); itr != m_lFactionChampion.end(); ++itr)
+                for (GuidList::const_iterator itr = m_lFactionChampion.begin(); itr != m_lFactionChampion.end(); ++itr)
                 {
                     if (Creature* pChampion = instance->GetCreature(*itr))
                     {

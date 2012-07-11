@@ -134,8 +134,8 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
     bool m_bDidIntroYell;
 
     ObjectGuid m_PursuingSpikesGuid;
-    GUIDList m_lFrostSphereGuids;
-    GUIDList m_lBurrowGuids;
+    GuidList m_lFrostSphereGuids;
+    GuidList m_lBurrowGuids;
 
 
     void Reset() 
@@ -154,7 +154,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
 
     void DoDespawnAdds()
     {
-        for (GUIDList::const_iterator itr = m_lBurrowGuids.begin(); itr != m_lBurrowGuids.end(); ++itr)
+        for (GuidList::const_iterator itr = m_lBurrowGuids.begin(); itr != m_lBurrowGuids.end(); ++itr)
             if (Creature* pBurrow = m_creature->GetMap()->GetCreature(*itr))
                 pBurrow->ForcedDespawn();
 
@@ -162,7 +162,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
 
         DoDespawnPursuingSpikes();
 
-        for (GUIDList::const_iterator itr = m_lFrostSphereGuids.begin(); itr != m_lFrostSphereGuids.end(); ++itr)
+        for (GuidList::const_iterator itr = m_lFrostSphereGuids.begin(); itr != m_lFrostSphereGuids.end(); ++itr)
             if (Creature* pFrostSphere = m_creature->GetMap()->GetCreature(*itr))
                 pFrostSphere->ForcedDespawn();
 
