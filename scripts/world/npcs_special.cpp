@@ -24,6 +24,7 @@ EndScriptData
 
 #include "precompiled.h"
 #include "escort_ai.h"
+#include "pet_ai.h"
 #include "ObjectMgr.h"
 #include "GameEventMgr.h"
 

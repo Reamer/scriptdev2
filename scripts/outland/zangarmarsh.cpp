@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Zangarmarsh
 SD%Complete: 100
-SDComment: Quest support: 9752, 9785, 10009. Mark Of ... buffs.
+SDComment: Quest support: 9752, 9785, 10009.
 SDCategory: Zangarmarsh
 EndScriptData */
 
