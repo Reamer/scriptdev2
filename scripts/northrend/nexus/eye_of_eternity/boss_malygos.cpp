@@ -292,6 +292,8 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             case PHASE_FLOOR: uiText = urand(0, 2); break;
             case PHASE_ADDS: uiText = urand(3, 5); break;
             case PHASE_DRAGONS: uiText = urand(6, 8); break;
+            default:
+                break;
         }
         switch (uiText)
         {
@@ -682,6 +684,8 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                         DoMeleeAttackIfReady();
                         break;
                     }
+                    default:
+                        m_creature->MonsterSay("Unknown SubPhase in Floor Phase", LANG_UNIVERSAL);
                 }
                 break;
             }
