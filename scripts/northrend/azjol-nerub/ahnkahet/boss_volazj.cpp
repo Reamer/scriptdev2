@@ -1,18 +1,18 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 /* ScriptData
 SDName: Boss_Volazj
@@ -1073,15 +1073,15 @@ CreatureAI* GetAI_mob_volazj_clone(Creature* pCreature)
  
 void AddSC_boss_volazj() 
 { 
-    Script *newscript; 
+    Script* pNewScript;
+
+    pNewScript = new Script;
+    pNewScript->Name = "boss_volazj";
+    pNewScript->GetAI = &GetAI_boss_volazj;
+    pNewScript->RegisterSelf();
  
-    newscript = new Script; 
-    newscript->Name = "boss_volazj"; 
-    newscript->GetAI = &GetAI_boss_volazj; 
-    newscript->RegisterSelf(); 
- 
-    newscript = new Script; 
-    newscript->Name = "mob_volazj_clone"; 
-    newscript->GetAI = &GetAI_mob_volazj_clone; 
-    newscript->RegisterSelf(); 
+    pNewScript = new Script; 
+    pNewScript->Name = "mob_volazj_clone"; 
+    pNewScript->GetAI = &GetAI_mob_volazj_clone; 
+    pNewScript->RegisterSelf(); 
 }

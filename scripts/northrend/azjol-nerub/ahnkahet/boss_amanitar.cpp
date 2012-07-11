@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Amanitar
-SD%Complete: 90%
-SDComment: maybe better formation for Mushrooms
+SD%Complete: 80
+SDComment: Mushrooms summoning may need improvements;
 SDCategory: Ahn'kahet
 EndScriptData */
 
@@ -26,21 +26,25 @@ EndScriptData */
 
 enum
 {
+    SPELL_BASH                      = 57094,
+    SPELL_VENOM_BOLT_VOLLEY         = 57088,
+    SPELL_ENTANGLING_ROOTS          = 57095,
+    SPELL_MINI                      = 57055,
+    SPELL_REMOVE_MUSHROOM_POWER     = 57283,                // purpose unk - this spell may remove the Mini aura from all players
+
+    // Mushroom entries
     NPC_HEALTHY_MUSHROOM            = 30391,
     NPC_POISONOUS_MUSHROOM          = 30435,
 
-    SPELL_BASH                      = 57094,
-    SPELL_ENTANGLING_ROOTS          = 57095,
-    SPELL_MINI                      = 57055,
-    SPELL_VENOM_BOLT_VOLLEY         = 57088,
-
-    SPELL_POTENT_FUNGUS             = 56648,
+    // Mushroom spells
     SPELL_POISON_CLOUD              = 57061,
-    SPELL_POISONOUS_MUSHROOM_VISUAL = 56741,
-    SPELL_POISONOUS_MUSHROOM_VISUAL2= 61566,
-
-    SPELL_MUSHROOM_MODEL            = 31690
+    SPELL_POTENT_FUNGUS             = 56648,
+    SPELL_POISON_MUSHROOM_VISUAL    = 56741,
+    SPELL_POWER_MUSHROOM_VISUAL     = 56740,
+    SPELL_MUSHROOM_FORM             = 31690,
 };
+
+static const float aMushroomPos[3] = {362.8f, -869.16f, -75.03f};
 
 /*######
 ## boss_amanitar
@@ -50,97 +54,82 @@ struct MANGOS_DLL_DECL boss_amanitarAI : public ScriptedAI
 {
     boss_amanitarAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (instance_ahnkahet*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
     }
 
-    instance_ahnkahet* m_pInstance;
-    bool m_bIsRegularMode;
+    ScriptedInstance* m_pInstance;
 
-    uint32 spawnMushroomTimer;
-    uint32 miniTimer;
-    uint32 bashTimer;
-    uint32 venomBoltVolleyTimer;
-    uint32 entanglingRootsTimer;
-    GUIDList m_lMushroomGUIDList;
+    uint32 m_uiBashTimer;
+    uint32 m_uiVenomBoltTimer;
+    uint32 m_uiRootsTimer;
+    uint32 m_uiMiniTimer;
+    uint32 m_uiMushroomTimer;
 
     void Reset()
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_AMANITAR, NOT_STARTED);
-        RemoveMiniAura();
-        despawnMushroom();
-        spawnMushroomTimer = 1000;
-        miniTimer = urand(20000, 22000);
-        bashTimer = urand(10000, 11000);
-        entanglingRootsTimer = urand(12000, 15000);
-        venomBoltVolleyTimer = urand(4000, 6000);
-    }
-
-    void despawnMushroom()
-    {
-        if (!m_lMushroomGUIDList.empty())
-            for(GUIDList::iterator itr = m_lMushroomGUIDList.begin(); itr != m_lMushroomGUIDList.end(); ++itr)
-                if (Creature* pTemp = (Creature*)m_creature->GetMap()->GetUnit( *itr))
-                    if (pTemp->isAlive())
-                        pTemp->ForcedDespawn();
-        m_lMushroomGUIDList.clear();
-    }
-
-    void spawnMushroom()
-    {
-        for (int i = 0; i < 8;++i)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-            {
-                float posX = rand()%30;
-                float posY = rand()%30;
-                posX = pTarget->GetPositionX() + (urand(0,1)? (posX) : (-posX));
-                posY = pTarget->GetPositionY() + (urand(0,1)? (posY) : (-posY));
-                float posZ = pTarget->GetTerrain()->GetWaterOrGroundLevel(posX,posY,pTarget->GetPositionZ()+3);
-
-                if (Creature* pMushroom = m_creature->SummonCreature(roll_chance_i(75) ? NPC_POISONOUS_MUSHROOM : NPC_HEALTHY_MUSHROOM, posX, posY, posZ, m_creature->GetOrientation(), TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 60000))
-                    m_lMushroomGUIDList.push_back(pMushroom->GetObjectGuid());
-            }
-        }
-    }
-
-    void RemoveMiniAura()
-    {
-        Map::PlayerList const& plList = m_pInstance->instance->GetPlayers();
-
-        if(plList.isEmpty())
-            return;
-
-        for(Map::PlayerList::const_iterator ittr = plList.begin(); ittr != plList.end(); ++ittr)
-        {
-            if(ittr->getSource())
-            {
-                ittr->getSource()->RemoveAurasDueToSpell(SPELL_MINI);
-            }
-        }
+        m_uiBashTimer       = urand(7000, 10000);
+        m_uiVenomBoltTimer  = urand(10000, 15000);
+        m_uiRootsTimer      = 20000;
+        m_uiMiniTimer       = urand(20000, 25000);
+        m_uiMushroomTimer   = urand(10000, 20000);
     }
 
     void Aggro(Unit* pWho)
     {
+        DoSummonMushrooms(true);
+
         if (m_pInstance)
             m_pInstance->SetData(TYPE_AMANITAR, IN_PROGRESS);
-        for (int i = 0; i < 3; ++i)
-            spawnMushroom();
-    }
-    void JustReachedHome()
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_AMANITAR, FAIL);
     }
 
     void JustDied(Unit* pKiller)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_AMANITAR, DONE);
-        RemoveMiniAura();
-        despawnMushroom();
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_AMANITAR, FAIL);
+    }
+
+    void JustSummoned(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_POISONOUS_MUSHROOM)
+            pSummoned->CastSpell(pSummoned, SPELL_POISON_MUSHROOM_VISUAL, true);
+        else if (pSummoned->GetEntry() == NPC_HEALTHY_MUSHROOM)
+            pSummoned->CastSpell(pSummoned, SPELL_POWER_MUSHROOM_VISUAL, true);
+
+        // ToDo: research if the mushrooms should have a grow effect!
+        pSummoned->CastSpell(pSummoned, SPELL_MUSHROOM_FORM, true);
+    }
+
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_POISONOUS_MUSHROOM)
+            pSummoned->CastSpell(pSummoned, SPELL_POISON_CLOUD, true);
+        else if (pSummoned->GetEntry() == NPC_HEALTHY_MUSHROOM)
+            pSummoned->CastSpell(pSummoned, SPELL_POTENT_FUNGUS, true);
+    }
+
+    void DoSummonMushrooms(bool bIsFirstSummon)
+    {
+        // This implementation may not be 100% accurate;
+        // On aggro boss summons about 20 mushrooms; On timer it summons about 5 mushrooms per turn
+        // There is a 33% chance that the mushroom will be healthy
+        // The summon position is based on the center of the area coords
+
+        float fX, fY, fZ;
+        uint32 uiMaxMushrooms = bIsFirstSummon ? 20 : 5;
+
+        for (uint8 i = 0; i < uiMaxMushrooms; ++i)
+        {
+            uint32 uiMushroomEntry = roll_chance_i(33) ? NPC_HEALTHY_MUSHROOM : NPC_POISONOUS_MUSHROOM;
+            m_creature->GetRandomPoint(aMushroomPos[0], aMushroomPos[1], aMushroomPos[2], 30.0f, fX, fY, fZ);
+            m_creature->SummonCreature(uiMushroomEntry, fX, fY, fZ, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -148,45 +137,50 @@ struct MANGOS_DLL_DECL boss_amanitarAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (spawnMushroomTimer < uiDiff)
-        {
-            spawnMushroom();
-            spawnMushroomTimer = 15000;
-        }
-        else
-            spawnMushroomTimer -= uiDiff;
-
-        if (miniTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_MINI) == CAST_OK)
-                miniTimer = urand(20000, 25000);
-        }
-        else
-            miniTimer -= uiDiff;
-
-        if (bashTimer < uiDiff)
+        if (m_uiBashTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BASH) == CAST_OK)
-                bashTimer = urand(9000, 13000);
+                m_uiBashTimer = urand(8000, 13000);
         }
         else
-            bashTimer -= uiDiff;
+            m_uiBashTimer -= uiDiff;
 
-        if (venomBoltVolleyTimer < uiDiff)
+        if (m_uiVenomBoltTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_VENOM_BOLT_VOLLEY) == CAST_OK)
-                venomBoltVolleyTimer = urand(8000, 11000);
+            if (DoCastSpellIfCan(m_creature, SPELL_VENOM_BOLT_VOLLEY) == CAST_OK)
+                m_uiVenomBoltTimer = urand(15000, 20000);
         }
         else
-            venomBoltVolleyTimer -= uiDiff;
+            m_uiVenomBoltTimer -= uiDiff;
 
-        if (entanglingRootsTimer < uiDiff)
+        if (m_uiRootsTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_ENTANGLING_ROOTS) == CAST_OK)
-                entanglingRootsTimer = urand(12000, 15000);
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_ENTANGLING_ROOTS) == CAST_OK)
+                    m_uiRootsTimer = urand(20000, 25000);
+            }
         }
         else
-            entanglingRootsTimer -= uiDiff;
+            m_uiRootsTimer -= uiDiff;
+
+        if (m_uiMiniTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_MINI) == CAST_OK)
+                m_uiMiniTimer = 30000;
+        }
+        else
+            m_uiMiniTimer -= uiDiff;
+
+        if (m_uiMushroomTimer < uiDiff)
+        {
+            DoSummonMushrooms(false);
+            m_uiMushroomTimer = urand(10000, 20000);
+        }
+        else
+            m_uiMushroomTimer -= uiDiff;
+
+        // ToDo: Research if he requires out of combat area evade check
 
         DoMeleeAttackIfReady();
     }
@@ -198,100 +192,36 @@ CreatureAI* GetAI_boss_amanitar(Creature* pCreature)
 }
 
 /*######
-## npc_amanitar_healthy_mushroom
+## npc_amanitar_mushroom
 ######*/
 
-struct MANGOS_DLL_DECL npc_amanitar_healthy_mushroomAI : public ScriptedAI
+struct MANGOS_DLL_DECL npc_amanitar_mushroomAI : public Scripted_NoMovementAI
 {
-    npc_amanitar_healthy_mushroomAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        SetCombatMovement(false);
-        Reset();
-    }
-    
-    void SpellHit(Unit* pTarget, const SpellEntry* pSpell) 
-    {
-        if (pSpell->Id == SPELL_POTENT_FUNGUS)
-        {
-            pTarget->RemoveAurasDueToSpell(SPELL_MINI);            
-        }
-    }
+    npc_amanitar_mushroomAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature) { Reset(); }
 
-    void Reset() {}
+    void Reset() { }
 
-    void JustDied(Unit* pWho)
-    {
-        m_creature->CastSpell(m_creature, SPELL_POTENT_FUNGUS, true);
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        DoCastSpellIfCan(m_creature,SPELL_MUSHROOM_MODEL, CAST_AURA_NOT_PRESENT);
-    }
+    void AttackStart(Unit* pWho) { }
+    void MoveInLineOfSight(Unit* pWho) { }
+    void UpdateAI(const uint32 uiDiff) { }
 };
 
-CreatureAI* GetAI_npc_amanitar_healthy_mushroom(Creature* pCreature)
+CreatureAI* GetAI_npc_amanitar_mushroom(Creature* pCreature)
 {
-    return new npc_amanitar_healthy_mushroomAI(pCreature);
-}
-
-/*######
-## npc_amanitar_poisonous_mushroom
-######*/
-
-struct MANGOS_DLL_DECL npc_amanitar_poisonous_mushroomAI : public ScriptedAI
-{
-    npc_amanitar_poisonous_mushroomAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        SetCombatMovement(false);
-        Reset();
-    }
-
-    uint32 poisenCloudTimer;
-
-    void Reset()
-    {        
-        poisenCloudTimer = urand(400,800);
-    }
- 
-    void UpdateAI(const uint32 uiDiff)
-    {
-        DoCastSpellIfCan(m_creature,SPELL_POISONOUS_MUSHROOM_VISUAL, CAST_AURA_NOT_PRESENT);
-        DoCastSpellIfCan(m_creature,SPELL_MUSHROOM_MODEL, CAST_AURA_NOT_PRESENT);
-        if (poisenCloudTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_POISON_CLOUD) == CAST_OK)
-            {
-                DoCast(m_creature,SPELL_POISONOUS_MUSHROOM_VISUAL2,true);
-                poisenCloudTimer = urand(2000,5000);
-            }
-        }
-        else
-            poisenCloudTimer -= uiDiff;
-    }
-};
-
-CreatureAI* GetAI_npc_amanitar_poisonous_mushroom(Creature* pCreature)
-{
-    return new npc_amanitar_poisonous_mushroomAI(pCreature);
+    return new npc_amanitar_mushroomAI(pCreature);
 }
 
 void AddSC_boss_amanitar()
 {
-    Script *pNewscript;
+    Script* pNewScript;
 
-    pNewscript = new Script;
-    pNewscript->Name = "boss_amanitar";
-    pNewscript->GetAI = &GetAI_boss_amanitar;
-    pNewscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_amanitar";
+    pNewScript->GetAI = &GetAI_boss_amanitar;
+    pNewScript->RegisterSelf();
 
-    pNewscript = new Script;
-    pNewscript->Name = "npc_amanitar_healthy_mushroom";
-    pNewscript->GetAI = &GetAI_npc_amanitar_healthy_mushroom;
-    pNewscript->RegisterSelf();
-
-    pNewscript = new Script;
-    pNewscript->Name = "npc_amanitar_poisonous_mushroom";
-    pNewscript->GetAI = &GetAI_npc_amanitar_poisonous_mushroom;
-    pNewscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_amanitar_mushroom";
+    pNewScript->GetAI = &GetAI_npc_amanitar_mushroom;
+    pNewScript->RegisterSelf();
 }

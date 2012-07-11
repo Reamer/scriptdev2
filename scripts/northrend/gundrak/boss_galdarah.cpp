@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Galdarah
-SD%Complete: 20%
-SDComment:
+SD%Complete: 80%
+SDComment: achievements need to be implemented, channeling before engage is missing
 SDCategory: Gundrak
 EndScriptData */
 
@@ -26,39 +26,39 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO                       = -1604019,
-    SAY_TRANSFORM_1                 = -1604020,
-    SAY_TRANSFORM_2                 = -1604021,
-    SAY_SUMMON_1                    = -1604022,
-    SAY_SUMMON_2                    = -1604023,
-    SAY_SUMMON_3                    = -1604024,
-    SAY_SLAY_1                      = -1604025,
-    SAY_SLAY_2                      = -1604026,
-    SAY_SLAY_3                      = -1604027,
-    SAY_DEATH                       = -1604028,
+    SAY_AGGRO                  = -1604019,
+    SAY_TRANSFORM_1            = -1604020,
+    SAY_TRANSFORM_2            = -1604021,
+    SAY_SUMMON_1               = -1604022,
+    SAY_SUMMON_2               = -1604023,
+    SAY_SUMMON_3               = -1604024,
+    SAY_SLAY_1                 = -1604025,
+    SAY_SLAY_2                 = -1604026,
+    SAY_SLAY_3                 = -1604027,
+    SAY_DEATH                  = -1604028,
 
-    SPELL_STAMPEDE                  = 55220,
-    SPELL_STAMPEDE_H                = 59823,
-    SPELL_CHARGE                    = 74399,
-    SPELL_WHIRLING_SLASH            = 55250,
-    SPELL_WHIRLING_SLASH_H          = 59824,
-    SPELL_IMPALING_CHARGE           = 54956,
-    SPELL_IMPALING_CHARGE_H         = 59827,
-    SPELL_KNOCK_BACK                = 56104,
-    SPELL_PUNCTURE                  = 55276,
-    SPELL_PUNCTURE_H                = 59826,
-    SPELL_STOMP                     = 55292,
-    SPELL_STOMP_H                   = 59829,
-    SPELL_ENRAGE                    = 55285,
-    SPELL_ENRAGE_H                  = 59828,
+    EMOTE_IMPALED              = -1604030,
 
-    NPC_RHINO_SPIRIT                = 29791,
+    NPC_RHINO_SPIRIT           = 29791,
+    SPELL_STAMPEDE_RHINO       = 55220,
+    SPELL_STAMPEDE_RHINO_H     = 59823,
 
-    MODELID_HUMAN                   = 27061,
-    MODELID_RHINO                   = 26265,
+    // troll form spells
+    SPELL_STAMPEDE             = 55218,
+    SPELL_WHIRLING_SLASH       = 55250,
+    SPELL_WHIRLING_SLASH_H     = 59824,
+    SPELL_RHINO_TRANSFORM      = 55297,
+    SPELL_PUNCTURE             = 55276,
+    SPELL_PUNCTURE_H           = 59826,
 
-    AURA_ECK_RESIDUE                = 55817,
-    ACHIEV_WHAT_THE_ECK_H           = 1864
+    // rhino form spells
+    SPELL_TROLL_TRANSFORM      = 55299,
+    SPELL_ENRAGE               = 55285,
+    SPELL_ENRAGE_H             = 59828,
+    SPELL_IMPALING_CHARGE      = 54956,
+    SPELL_IMPALING_CHARGE_H    = 59827,
+    SPELL_STOMP                = 55292,
+    SPELL_STOMP_H              = 59829,
 };
 
 /*######
@@ -76,71 +76,33 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
 
     instance_gundrak* m_pInstance;
     bool m_bIsRegularMode;
+    bool m_bIsTrollPhase;
 
-    bool m_bRhinoPhase;
-    bool m_bUseStampede;
-
-    uint32 m_uiChangePhaseTimer;
     uint32 m_uiStampedeTimer;
-    uint32 m_uiWhirlingSlashTimer;
+    uint32 m_uiPhaseChangeTimer;
+    uint32 m_uiSpecialAbilityTimer;                         // Impaling Charge and Whirling Slash
+    uint32 m_uiPunctureTimer;
     uint32 m_uiStompTimer;
     uint32 m_uiEnrageTimer;
-    uint32 m_uiImpalingChargeTimer;
-    uint32 m_uiPunctureTimer;
-
-    ObjectGuid m_uiRhinoGUID;
-
-    GUIDList impalePlayerGuidList;
+    uint8 m_uiAbilityCount;
 
     void Reset()
     {
-        m_bRhinoPhase = false;
-        m_bUseStampede = false;
+        m_bIsTrollPhase         = true;
 
-        m_uiChangePhaseTimer    = 40000;
-        m_uiStampedeTimer       = 6000;
-        m_uiWhirlingSlashTimer  = 8000;
-        m_uiStompTimer          = 5000;
-        m_uiEnrageTimer         = 4000;
-        m_uiImpalingChargeTimer = 7000;
-        m_uiPunctureTimer       = 10000;
-
-        m_uiRhinoGUID.Clear();
-
-        m_creature->SetDisplayId(MODELID_HUMAN);
-
-        impalePlayerGuidList.clear();
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_GALDARAH, NOT_STARTED);
+        m_uiStampedeTimer       = 10000;
+        m_uiSpecialAbilityTimer = 12000;
+        m_uiPunctureTimer       = 25000;
+        m_uiPhaseChangeTimer    = 7000;
+        m_uiAbilityCount        = 0;
     }
 
     void Aggro(Unit* pWho)
     {
-        if (m_pInstance)
-        {
-            m_pInstance->SetData(TYPE_GALDARAH, IN_PROGRESS);
-            m_pInstance->SetAchiev(TYPE_ECK, true);
-            m_pInstance->SetAchiev(TYPE_GALDARAH, false);
-        }
-        Map* pMap = m_creature->GetMap();
-        Map::PlayerList const &players = pMap->GetPlayers();
-        for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-        {
-            impalePlayerGuidList.push_back( itr->getSource()->GetObjectGuid());
-        }
-        for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-        {
-            if (!itr->getSource()->HasAura(AURA_ECK_RESIDUE))
-            {
-                if (m_pInstance)
-                    m_pInstance->SetAchiev(TYPE_ECK, false);
-                break;
-            }
-        }
-
-
         DoScriptText(SAY_AGGRO, m_creature);
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_GALDARAH , IN_PROGRESS);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -153,38 +115,56 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_GALDARAH, DONE);
+            m_pInstance->SetData(TYPE_GALDARAH, FAIL);
+    }
 
+    void JustDied(Unit* pKiller)
+    {
         DoScriptText(SAY_DEATH, m_creature);
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_GALDARAH, DONE);
     }
 
-    void ChangePhase()
+    void JustSummoned(Creature* pSummoned)
     {
-        m_bRhinoPhase ? m_bRhinoPhase = false : m_bRhinoPhase = true;
-        m_creature->SetDisplayId(m_creature->GetDisplayId() == MODELID_HUMAN ? MODELID_RHINO : MODELID_HUMAN);
-    }
-
-    void SummonRhinoSpirit()
-    {
-        Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-        if(pTarget)
+        if (pSummoned->GetEntry() == NPC_RHINO_SPIRIT)
         {
-            float x = pTarget->GetPositionX() + 20.0f;
-            float y = pTarget->GetPositionY() + 20.0f;
-            float z = pTarget->GetPositionZ();
-            Creature* cRhino = m_creature->SummonCreature(NPC_RHINO_SPIRIT, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 1800);
-            if (cRhino)
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, m_bIsRegularMode ? SPELL_STAMPEDE_RHINO : SPELL_STAMPEDE_RHINO_H, SELECT_FLAG_PLAYER))
             {
-                m_uiRhinoGUID = cRhino->GetObjectGuid();
-                cRhino->CastSpell(pTarget, SPELL_CHARGE, true);
-                cRhino->SetInCombatWith(pTarget);
-                cRhino->AddThreat(pTarget, 1000.0f);
+                pSummoned->CastSpell(pTarget, m_bIsRegularMode ? SPELL_STAMPEDE_RHINO : SPELL_STAMPEDE_RHINO_H, false, NULL, NULL, m_creature->GetObjectGuid());
+
+                // Store the player guid in order to count it for the achievement
+                if (m_pInstance)
+                    m_pInstance->SetData(TYPE_ACHIEV_SHARE_LOVE, pTarget->GetGUIDLow());
             }
         }
-        m_bUseStampede = true;
+    }
+
+    void DoPhaseSwitch()
+    {
+        if (!m_bIsTrollPhase)
+            m_creature->RemoveAurasDueToSpell(SPELL_RHINO_TRANSFORM);
+
+        m_bIsTrollPhase = !m_bIsTrollPhase;
+
+        if (m_bIsTrollPhase)
+            DoCastSpellIfCan(m_creature, SPELL_TROLL_TRANSFORM);
+        else
+        {
+            DoScriptText(urand(0, 1) ? SAY_TRANSFORM_1 : SAY_TRANSFORM_2, m_creature);
+            DoCastSpellIfCan(m_creature, SPELL_RHINO_TRANSFORM);
+
+            m_uiEnrageTimer = 4000;
+            m_uiStompTimer  = 1000;
+        }
+
+        m_uiAbilityCount        = 0;
+        m_uiPhaseChangeTimer    = 7000;
+        m_uiSpecialAbilityTimer = 12000;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -192,76 +172,84 @@ struct MANGOS_DLL_DECL boss_galdarahAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_bUseStampede)
+        if (m_uiAbilityCount == 2)
         {
-            if (Creature* cRhino = m_creature->GetMap()->GetCreature(m_uiRhinoGUID))
-            {
-                if (cRhino->getVictim())
-                {
-                    if (cRhino->getVictim()->GetDistance(cRhino) < ATTACK_DISTANCE)
-                    {
-                        cRhino->CastSpell(cRhino->getVictim(), m_bIsRegularMode ? SPELL_STAMPEDE : SPELL_STAMPEDE_H, true);
-                        m_bUseStampede = false;
-                    }
-                }
-            }
+            if (m_uiPhaseChangeTimer < uiDiff)
+                DoPhaseSwitch();
+            else
+                m_uiPhaseChangeTimer -= uiDiff;
         }
 
-        if (m_uiChangePhaseTimer < uiDiff)
+        if (m_bIsTrollPhase)
         {
-            ChangePhase();
-            m_uiChangePhaseTimer = 40000;
-        }else m_uiChangePhaseTimer -= uiDiff;
+            if (m_uiPunctureTimer < uiDiff)
+            {
+                DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_PUNCTURE : SPELL_PUNCTURE_H);
+                m_uiPunctureTimer = 25000;
+            }
+            else
+                m_uiPunctureTimer -= uiDiff;
 
-        if (!m_bRhinoPhase)
-        {
             if (m_uiStampedeTimer < uiDiff)
             {
-                SummonRhinoSpirit();
-                m_uiStampedeTimer = urand(8000, 11000);
-            }else m_uiStampedeTimer -= uiDiff;
+                switch(urand(0, 2))
+                {
+                    case 0: DoScriptText(SAY_SUMMON_1, m_creature); break;
+                    case 1: DoScriptText(SAY_SUMMON_2, m_creature); break;
+                    case 2: DoScriptText(SAY_SUMMON_3, m_creature); break;
+                }
 
-            if (m_uiWhirlingSlashTimer < uiDiff)
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_STAMPEDE);
+                m_uiStampedeTimer = 15000;
+            }
+            else
+                m_uiStampedeTimer -= uiDiff;
+
+            if (m_uiSpecialAbilityTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_WHIRLING_SLASH : SPELL_WHIRLING_SLASH_H);
-                m_uiWhirlingSlashTimer = urand(15000, 23000);
-                if (m_uiChangePhaseTimer < 5000)
-                    m_uiChangePhaseTimer = 5000;
-            }else m_uiWhirlingSlashTimer -= uiDiff;
+                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_WHIRLING_SLASH : SPELL_WHIRLING_SLASH_H) == CAST_OK)
+                    m_uiSpecialAbilityTimer = 12000;
+
+                ++m_uiAbilityCount;
+            }
+            else
+                m_uiSpecialAbilityTimer -= uiDiff;
+
         }
         else
         {
-            if (m_uiStompTimer < uiDiff)
-            {
-                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STOMP : SPELL_STOMP_H);
-                m_uiStompTimer = urand(12000, 15000);
-            }else m_uiStompTimer -= uiDiff;
-
             if (m_uiEnrageTimer < uiDiff)
             {
                 DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ENRAGE : SPELL_ENRAGE_H);
-                m_uiEnrageTimer = urand(12000, 15000);
-            }else m_uiEnrageTimer -= uiDiff;
+                m_uiEnrageTimer = 15000;
+            }
+            else
+                m_uiEnrageTimer -= uiDiff;
 
-            if (m_uiImpalingChargeTimer < uiDiff)
+            if (m_uiStompTimer < uiDiff)
             {
-                if (Unit* pVictim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STOMP : SPELL_STOMP_H);
+                m_uiStompTimer = 10000;
+            }
+            else
+                m_uiStompTimer -= uiDiff;
+
+            if (m_uiSpecialAbilityTimer < uiDiff)
+            {
+                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
+                if (!pTarget)
+                    pTarget = m_creature->getVictim();
+
+                if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_IMPALING_CHARGE : SPELL_IMPALING_CHARGE_H) == CAST_OK)
                 {
-                    DoCastSpellIfCan(pVictim, m_bIsRegularMode ? SPELL_IMPALING_CHARGE : SPELL_IMPALING_CHARGE_H);
-                    DoCastSpellIfCan(pVictim, SPELL_KNOCK_BACK);
-                    impalePlayerGuidList.remove(pVictim->GetObjectGuid());
-                    if (impalePlayerGuidList.empty())
-                        if (m_pInstance)
-                            m_pInstance->SetAchiev(TYPE_GALDARAH, true);
-                }
-                m_uiImpalingChargeTimer = urand(7000, 9000);
-            }else m_uiImpalingChargeTimer -= uiDiff;
+                    DoScriptText(EMOTE_IMPALED, m_creature, pTarget);
+                    m_uiSpecialAbilityTimer = 12000;
 
-            if (m_uiPunctureTimer < uiDiff)
-            {
-                DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), m_bIsRegularMode ? SPELL_PUNCTURE : SPELL_PUNCTURE_H);
-                m_uiPunctureTimer = urand(20000, 25000);
-            }else m_uiPunctureTimer -= uiDiff;
+                    ++m_uiAbilityCount;
+                }
+            }
+            else
+                m_uiSpecialAbilityTimer -= uiDiff;
         }
 
         DoMeleeAttackIfReady();

@@ -25,6 +25,7 @@ EndScriptData */
 #include "azjol-nerub.h"
 
 instance_azjol_nerub::instance_azjol_nerub(Map* pMap) : ScriptedInstance(pMap),
+    m_bWatchHimDie(true),
     m_uiWatcherTimer(0)
 {
     Initialize();
@@ -44,17 +45,10 @@ void instance_azjol_nerub::OnObjectCreate(GameObject* pGo)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_DOOR_ANUBARAK_1:
-            if (m_auiEncounter[TYPE_ANUBARAK] == DONE || m_auiEncounter[TYPE_ANUBARAK] == NOT_STARTED)
-                pGo->SetGoState(GO_STATE_ACTIVE);
-            break;
         case GO_DOOR_ANUBARAK_2:
-            if (m_auiEncounter[TYPE_ANUBARAK] == DONE || m_auiEncounter[TYPE_ANUBARAK] == NOT_STARTED)
-                pGo->SetGoState(GO_STATE_ACTIVE);
-            break;
         case GO_DOOR_ANUBARAK_3:
-            if (m_auiEncounter[TYPE_ANUBARAK] == DONE || m_auiEncounter[TYPE_ANUBARAK] == NOT_STARTED)
-                pGo->SetGoState(GO_STATE_ACTIVE);
             break;
+
         default:
             return;
     }
@@ -69,7 +63,11 @@ void instance_azjol_nerub::OnCreatureCreate(Creature* pCreature)
         case NPC_GASHRA:
         case NPC_NARJIL:
         case NPC_SILTHIK:
+        case NPC_ANUBARAK:
             m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            break;
+        case NPC_WORLD_TRIGGER:
+            m_lTriggerGuids.push_back(pCreature->GetObjectGuid());
             break;
     }
 }
@@ -81,6 +79,9 @@ void instance_azjol_nerub::OnCreatureDeath(Creature* pCreature)
     {
         if (m_auiEncounter[TYPE_KRIKTHIR] == NOT_STARTED)
             m_uiWatcherTimer = 5000;
+
+        // Set achiev criteriat to false if one of the watchers dies
+        m_bWatchHimDie = false;
     }
 }
 
@@ -120,7 +121,7 @@ void instance_azjol_nerub::Update(uint32 uiDiff)
 void instance_azjol_nerub::DoSendWatcherOrKrikthir()
 {
     Creature* pAttacker = NULL;
-    Creature* pKrikthir = GetSingleCreatureFromStorage(TYPE_KRIKTHIR);
+    Creature* pKrikthir = GetSingleCreatureFromStorage(NPC_KRIKTHIR);
 
     if (!pKrikthir)
         return;
@@ -138,7 +139,7 @@ void instance_azjol_nerub::DoSendWatcherOrKrikthir()
             }
         }
     }
-    
+
     if (pAttacker)
     {
         switch(urand(0, 2))
@@ -158,6 +159,49 @@ void instance_azjol_nerub::DoSendWatcherOrKrikthir()
     }
 }
 
+void instance_azjol_nerub::DoSortWorldTriggers()
+{
+    if (Creature* pAnub = GetSingleCreatureFromStorage(NPC_ANUBARAK))
+    {
+        float fZ = pAnub->GetPositionZ();
+        float fTriggZ = 0;
+
+        for (GuidList::const_iterator itr = m_lTriggerGuids.begin(); itr != m_lTriggerGuids.end(); ++itr)
+        {
+            if (Creature* pTrigg = instance->GetCreature(*itr))
+            {
+                // Sort only triggers in a range of 100
+                if (pTrigg->GetPositionY() < pAnub->GetPositionY() + 110)
+                {
+                    fTriggZ = pTrigg->GetPositionZ();
+
+                    // One npc below the platform
+                    if (fTriggZ < fZ + aSortDistance[0])
+                        m_darterSummonTarget = pTrigg->GetObjectGuid();
+                    // One npc on the boss platform - used to handle the summoned movement
+                    else if (fTriggZ < fZ + aSortDistance[1])
+                        m_anubSummonTarget = pTrigg->GetObjectGuid();
+                    // One npc on the upper pathway
+                    else if (fTriggZ < fZ + aSortDistance[2])
+                        m_guardianSummonTarget = pTrigg->GetObjectGuid();
+                    // Eight npcs on the upper ledges
+                    else if (fTriggZ < fZ +  aSortDistance[3])
+                        m_vAssassinSummonTargetsVect.push_back(pTrigg->GetObjectGuid());
+                }
+            }
+        }
+    }
+}
+
+ObjectGuid instance_azjol_nerub::GetRandomAssassinTrigger()
+{
+    // Get a random summon target
+    if (m_vAssassinSummonTargetsVect.size() > 0)
+        return m_vAssassinSummonTargetsVect[urand(0, m_vAssassinSummonTargetsVect.size() -1)];
+    else
+        return ObjectGuid();
+}
+
 void instance_azjol_nerub::SetData(uint32 uiType, uint32 uiData)
 {
     switch(uiType)
@@ -172,13 +216,14 @@ void instance_azjol_nerub::SetData(uint32 uiType, uint32 uiData)
             break;
         case TYPE_ANUBARAK:
             m_auiEncounter[uiType] = uiData;
-            if (uiType == IN_PROGRESS && !instance->IsRegularDifficulty())
-            {
-                DoStartTimedAchievement(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE, ACHIEV_START_ANUB_ID);
-            }
             DoUseDoorOrButton(GO_DOOR_ANUBARAK_1);
             DoUseDoorOrButton(GO_DOOR_ANUBARAK_2);
             DoUseDoorOrButton(GO_DOOR_ANUBARAK_3);
+            if (uiData == IN_PROGRESS)
+            {
+                DoSortWorldTriggers();
+                DoStartTimedAchievement(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE, ACHIEV_START_ANUB_ID);
+            }
             break;
     }
 
@@ -194,6 +239,14 @@ void instance_azjol_nerub::SetData(uint32 uiType, uint32 uiData)
         SaveToDB();
         OUT_SAVE_INST_DATA_COMPLETE;
     }
+}
+
+bool instance_azjol_nerub::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+{
+    if (uiCriteriaId == ACHIEV_CRITERIA_WATCH_DIE)
+        return m_bWatchHimDie;
+
+    return false;
 }
 
 void instance_azjol_nerub::Load(const char* chrIn)

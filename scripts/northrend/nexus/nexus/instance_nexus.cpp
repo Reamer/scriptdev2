@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -45,6 +45,9 @@ bool GOUse_go_containment_sphere(Player* pPlayer, GameObject* pGo)
 instance_nexus::instance_nexus(Map* pMap) : ScriptedInstance(pMap)
 {
     Initialize();
+
+    for (uint8 i = 0; i < MAX_SPECIAL_ACHIEV_CRITS; ++i)
+        m_abAchievCriteria[i] = false;
 }
 
 void instance_nexus::Initialize()
@@ -95,30 +98,32 @@ void instance_nexus::SetData(uint32 uiType, uint32 uiData)
     {
         case TYPE_TELESTRA:
             m_auiEncounter[uiType] = uiData;
+            if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEV_SPLIT_PERSONALITY, true);
             if (uiData == DONE)
-            {
-                if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_CONTAINMENT_SPHERE_TELESTRA))
-                    pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-            }
+                DoToggleGameObjectFlags(GO_CONTAINMENT_SPHERE_TELESTRA, GO_FLAG_NO_INTERACT, false);
             break;
         case TYPE_ANOMALUS:
             m_auiEncounter[uiType] = uiData;
+            if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEV_CHAOS_THEORY, true);
             if (uiData == DONE)
-            {
-                if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_CONTAINMENT_SPHERE_ANOMALUS))
-                    pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-            }
+                DoToggleGameObjectFlags(GO_CONTAINMENT_SPHERE_ANOMALUS, GO_FLAG_NO_INTERACT, false);
             break;
         case TYPE_ORMOROK:
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)
-            {
-                if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_CONTAINMENT_SPHERE_ORMOROK))
-                    pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-            }
+                DoToggleGameObjectFlags(GO_CONTAINMENT_SPHERE_ORMOROK, GO_FLAG_NO_INTERACT, false);
             break;
         case TYPE_KERISTRASZA:
             m_auiEncounter[uiType] = uiData;
+            if (uiData == IN_PROGRESS)
+                m_sIntenseColdFailPlayers.clear();
+            break;
+        case TYPE_INTENSE_COLD_FAILED:
+            // Insert the players who fail the achiev and haven't been already inserted in the set
+            if (m_sIntenseColdFailPlayers.find(uiData) == m_sIntenseColdFailPlayers.end())
+                m_sIntenseColdFailPlayers.insert(uiData);
             break;
         default:
             error_log("SD2: Instance Nexus: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
@@ -130,13 +135,11 @@ void instance_nexus::SetData(uint32 uiType, uint32 uiData)
         // release Keristrasza from her prison here
         m_auiEncounter[TYPE_KERISTRASZA] = SPECIAL;
 
-        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_KERISTRASZA))
+        Creature* pCreature = GetSingleCreatureFromStorage(NPC_KERISTRASZA);
+        if (pCreature && pCreature->isAlive())
         {
-            if (pCreature->isAlive())
-            {
-                pCreature->RemoveAurasDueToSpell(SPELL_FROZEN_PRISON);
-                pCreature->RemoveFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_OOC_NOT_ATTACKABLE);
-            }
+            pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
+            pCreature->RemoveAurasDueToSpell(SPELL_FROZEN_PRISON);
         }
     }
 
@@ -151,6 +154,29 @@ void instance_nexus::SetData(uint32 uiType, uint32 uiData)
 
         SaveToDB();
         OUT_SAVE_INST_DATA_COMPLETE;
+    }
+}
+
+void instance_nexus::SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet)
+{
+    if (uiType < MAX_SPECIAL_ACHIEV_CRITS)
+        m_abAchievCriteria[uiType] = bIsMet;
+}
+
+bool instance_nexus::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+{
+    switch (uiCriteriaId)
+    {
+        case ACHIEV_CRIT_CHAOS_THEORY:
+            return m_abAchievCriteria[TYPE_ACHIEV_CHAOS_THEORY];
+        case ACHIEV_CRIT_SPLIT_PERSONALITY:
+            return m_abAchievCriteria[TYPE_ACHIEV_SPLIT_PERSONALITY];
+        case ACHIEV_CRIT_INTENSE_COLD:
+            // Return true if not found in the set
+            return m_sIntenseColdFailPlayers.find(pSource->GetGUIDLow()) == m_sIntenseColdFailPlayers.end();
+
+        default:
+            return false;
     }
 }
 

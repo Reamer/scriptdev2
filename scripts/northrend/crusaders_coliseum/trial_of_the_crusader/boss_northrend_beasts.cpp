@@ -436,9 +436,6 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
     {
         if (Creature* pGormok = m_pInstance->GetSingleCreatureFromStorage(NPC_GORMOK))
             pGormok->RemoveAuraHolderFromStack(SPELL_RISING_ANGER, 1);
-        //if (pFocus && pFocus->isAlive())
-//            pFocus->RemoveAurasDueToSpell(SPELL_SNOBOLLED);
-
     }
 
     void UpdateAI(const uint32 uiDiff)

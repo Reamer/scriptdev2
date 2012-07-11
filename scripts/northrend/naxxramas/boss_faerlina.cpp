@@ -45,11 +45,8 @@ enum
     SPELL_ENRAGE_H              = 54100,
     SPELL_RAIN_OF_FIRE          = 28794,
     SPELL_RAIN_OF_FIRE_H        = 54099,
-    //MOB SPELLS
     SPELL_WIDOWS_EMBRACE        = 28732,
     SPELL_WIDOWS_EMBRACE_H      = 54097,
-    SPELL_FIRE_BALL             = 54095,
-    SPELL_FIRE_BALL_H           = 54096
 };
 
 struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
@@ -87,15 +84,13 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
             case 3: DoScriptText(SAY_AGGRO_4, m_creature); break;
         }
 
-        m_creature->CallForHelp(15.0f);
-
         if (m_pInstance)
             m_pInstance->SetData(TYPE_FAERLINA, IN_PROGRESS);
     }
 
     void MoveInLineOfSight(Unit* pWho)
     {
-        if (!m_bHasTaunted && m_creature->IsWithinDistInMap(pWho, 60.0f))
+        if (!m_bHasTaunted && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 80.0f) &&  m_creature->IsWithinLOSInMap(pWho))
         {
             DoScriptText(SAY_GREET, m_creature);
             m_bHasTaunted = true;
@@ -199,52 +194,12 @@ CreatureAI* GetAI_boss_faerlina(Creature* pCreature)
     return new boss_faerlinaAI(pCreature);
 }
 
-struct MANGOS_DLL_DECL mob_worshipperAI : public ScriptedAI
-{
-    mob_worshipperAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
-    }
-
-    instance_naxxramas* m_pInstance;
-    bool m_bIsRegularMode;
-
-    void Reset()
-    {
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-        DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FIRE_BALL : SPELL_FIRE_BALL_H);
-    }
-
-    void JustDied(Unit* pKiller)
-    {
-        //if (m_bIsRegularMode) //only 10 mode
-            DoCast(m_creature, SPELL_WIDOWS_EMBRACE, true);
-    }
-
-};
-
-CreatureAI* GetAI_mob_worshipper(Creature* pCreature)
-{
-    return new mob_worshipperAI(pCreature);
-}
 void AddSC_boss_faerlina()
 {
-    Script* NewScript;
+    Script* pNewScript;
 
-    NewScript = new Script;
-    NewScript->Name = "boss_faerlina";
-    NewScript->GetAI = &GetAI_boss_faerlina;
-    NewScript->RegisterSelf();
-
-    NewScript = new Script;
-    NewScript->Name = "mob_worshipper";
-    NewScript->GetAI = &GetAI_mob_worshipper;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_faerlina";
+    pNewScript->GetAI = &GetAI_boss_faerlina;
+    pNewScript->RegisterSelf();
 }

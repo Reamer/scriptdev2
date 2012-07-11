@@ -14,6 +14,7 @@
 enum
 {
     MAX_ENCOUNTER          = 5,
+    MIN_LOVE_SHARE_PLAYERS = 5,
 
     TYPE_SLADRAN           = 0,
     TYPE_MOORABI           = 1,
@@ -21,11 +22,15 @@ enum
     TYPE_GALDARAH          = 3,
     TYPE_ECK               = 4,
 
+    // Used to handle achievements
+    TYPE_ACHIEV_WHY_SNAKES = 5,
+    TYPE_ACHIEV_SHARE_LOVE = 6,
+
     NPC_SLADRAN            = 29304,
     NPC_MOORABI            = 29305,
     NPC_COLOSSUS           = 29307,
     NPC_ELEMENTAL          = 29573,
-    NPC_LIVING_MOJO        = 29830,
+    NPC_LIVIN_MOJO         = 29830,
     NPC_GALDARAH           = 29306,
     NPC_ECK                = 29932,
     NPC_INVISIBLE_STALKER  = 30298,                         // Caster and Target for visual spells on altar use
@@ -56,11 +61,9 @@ enum
     TIMER_VISUAL_BEAM      = 2500,
     TIMER_VISUAL_KEY       = 2000,
 
-    //Achievements
-    ACHIEV_CRITERIA_SNAKES = 7363,
-    ACHIEV_CRITERIA_LESS_RABI = 7319,
-    ACHIEV_CRITERIA_WHAT_THE_ECK = 7136,
-    ACHIEV_CRITERIA_SHARE_THE_LOVE = 7583
+    ACHIEV_CRIT_LESS_RABI  = 7319,              // Moorabi achiev 2040
+    ACHIEV_CRIT_WHY_SNAKES = 7363,              // Sladran achiev 2058
+    ACHIEV_CRIT_SHARE_LOVE = 7583,              // Galdarah achiev 2152
 };
 
 typedef std::map<uint8, uint32>  TypeTimerMap;
@@ -77,18 +80,18 @@ class MANGOS_DLL_DECL instance_gundrak : public ScriptedInstance
         void OnCreatureCreate(Creature* pCreature);
         void OnObjectCreate(GameObject* pGo);
 
-        void SetData(uint32 uiType, uint32 uiData);
-        void SetAchiev(uint32 uiType, bool get);
-        uint32 GetData(uint32 uiType);
+        void OnCreatureEnterCombat(Creature* pCreature);
 
-        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
+        void SetData(uint32 uiType, uint32 uiData);
+        uint32 GetData(uint32 uiType);
 
         const char* Save() { return m_strInstData.c_str(); }
         void Load(const char* chrIn);
 
-        void Update(uint32 uiDiff);
+        void SetLessRabiAchievementCriteria(bool bIsMet) { m_bLessRabi = bIsMet; }
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
 
-        GUIDList m_lLivingMojoGUIDList;
+        void Update(uint32 uiDiff);
 
     protected:
         void DoAltarVisualEffect(uint8 uiType);
@@ -99,18 +102,18 @@ class MANGOS_DLL_DECL instance_gundrak : public ScriptedInstance
         TypeTimerMap m_mBeamInProgress;
         TypeTimerMap m_mKeyInProgress;
 
-        GUIDList m_luiStalkerGUIDs;
-        GUIDVector m_vStalkerCasterGuids;
-        GUIDVector m_vStalkerTargetGuids;
+        GuidList m_luiStalkerGUIDs;
+        GuidVector m_vStalkerCasterGuids;
+        GuidVector m_vStalkerTargetGuids;
+        GuidSet m_sColossusMojosGuids;
 
         uint32 m_uiBridgeCounter;
         bool   m_bGuardSpawnt;
 
-        //Achievements
-        bool m_bCriteriaSnake;
         bool m_bLessRabi;
-        bool m_bWhatTheEck;
-        bool m_bShareTheLove;
+
+        std::set<uint32> m_uisShareLoveAchievPlayers;
+        std::set<uint32> m_uisWhySnakesAchievPlayers;
 };
 
 #endif

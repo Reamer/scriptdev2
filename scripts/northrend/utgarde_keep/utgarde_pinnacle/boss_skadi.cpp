@@ -411,7 +411,7 @@ CreatureAI* GetAI_boss_skadi_grauf(Creature* pCreature)
 
 bool AreaTrigger_at_skadi(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
-    if (instance_pinnacle* pInstance = (instance_pinnacle*)pPlayer->GetInstanceData())
+    if (ScriptedInstance* pInstance = (ScriptedInstance*)pPlayer->GetInstanceData())
     {
         if (pInstance->GetData(TYPE_SKADI) == NOT_STARTED)
             pInstance->SetData(TYPE_SKADI, SPECIAL);

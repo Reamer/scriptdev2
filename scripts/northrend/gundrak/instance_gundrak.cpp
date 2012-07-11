@@ -52,11 +52,7 @@ instance_gundrak::instance_gundrak(Map* pMap) : ScriptedInstance(pMap),
     m_uiBridgeCounter(0),
     m_bGuardSpawnt(false),
     
-    //Achievements
-    m_bCriteriaSnake(false),
-    m_bLessRabi(false),
-    m_bWhatTheEck(false),
-    m_bShareTheLove(false)
+    m_bLessRabi(false)
 {
     Initialize();
 }
@@ -82,30 +78,11 @@ void instance_gundrak::OnCreatureCreate(Creature* pCreature)
         case NPC_INVISIBLE_STALKER:
             m_luiStalkerGUIDs.push_back(pCreature->GetObjectGuid());
             break;
-        case NPC_LIVING_MOJO:
-            m_lLivingMojoGUIDList.push_back(pCreature->GetObjectGuid());
-            break;
 
-    }
-}
-
-void instance_gundrak::SetAchiev(uint32 uiType, bool get)
-{
-    switch(uiType)
-    {
-        case TYPE_SLADRAN:
-            m_bCriteriaSnake = get;
-            break;
-        case TYPE_MOORABI:
-            m_bLessRabi = get;
-            break;
-        case TYPE_ECK:
-            m_bWhatTheEck = get;
-            break;
-        case TYPE_GALDARAH:
-            m_bShareTheLove = get;
-            break;
-        default:
+        case NPC_LIVIN_MOJO:
+            // Store only the Mojos used to activate the Colossus
+            if (pCreature->GetPositionX() > 1650.0f)
+                m_sColossusMojosGuids.insert(pCreature->GetObjectGuid());
             break;
     }
 }
@@ -157,7 +134,7 @@ void instance_gundrak::OnObjectCreate(GameObject* pGo)
         case GO_ALTAR_OF_COLOSSUS:
             if (m_auiEncounter[TYPE_COLOSSUS] == DONE)
                 pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-            break;
+                break;
         case GO_SNAKE_KEY:
         case GO_TROLL_KEY:
         case GO_MAMMOTH_KEY:
@@ -198,23 +175,6 @@ void instance_gundrak::Load(const char* chrIn)
     OUT_LOAD_INST_DATA_COMPLETE;
 }
 
-bool instance_gundrak::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
-{
-    switch (uiCriteriaId)
-    {
-        case ACHIEV_CRITERIA_SNAKES:
-            return m_bCriteriaSnake;
-        case ACHIEV_CRITERIA_LESS_RABI:
-            return m_bLessRabi;
-        case ACHIEV_CRITERIA_WHAT_THE_ECK:
-            return m_bWhatTheEck;
-        case ACHIEV_CRITERIA_SHARE_THE_LOVE:
-            return m_bShareTheLove;
-        default:
-            return 0;
-    }
-}
-
 void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
 {
     debug_log("SD2: Instance Gundrak: SetData received for type %u with data %u", uiType, uiData);
@@ -226,6 +186,8 @@ void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
             if (uiData == DONE)
                 if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_ALTAR_OF_SLADRAN))
                     pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+            if (uiData == FAIL)
+                m_uisWhySnakesAchievPlayers.clear();
             if (uiData == SPECIAL)
             {
                 m_mAltarInProgress.insert(TypeTimerPair(TYPE_SLADRAN, TIMER_VISUAL_ALTAR));
@@ -241,6 +203,8 @@ void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
                 if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_ALTAR_OF_MOORABI))
                     pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
             }
+            if (uiData == IN_PROGRESS)
+                SetLessRabiAchievementCriteria(true);
             if (uiData == SPECIAL)
             {
                 m_mAltarInProgress.insert(TypeTimerPair(TYPE_MOORABI, TIMER_VISUAL_ALTAR));
@@ -249,22 +213,20 @@ void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
             break;
         case TYPE_COLOSSUS:
             m_auiEncounter[TYPE_COLOSSUS] = uiData;
-            if (uiData == FAIL)
-            {
-                for (GUIDList::iterator itr = m_lLivingMojoGUIDList.begin(); itr != m_lLivingMojoGUIDList.end(); ++itr)
-                {
-                    if (Creature* mojo = instance->GetCreature(*itr))
-                    {
-                        if (mojo->isAlive())
-                            mojo->AI()->EnterEvadeMode();
-                        else
-                            mojo->Respawn();
-                    }
-                }
-            }
             if (uiData == DONE)
                 if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_ALTAR_OF_COLOSSUS))
                     pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+            if (uiData == FAIL)
+            {
+                for (GuidSet::const_iterator itr = m_sColossusMojosGuids.begin(); itr != m_sColossusMojosGuids.end(); ++itr)
+                {
+                    if (Creature* pMojo = instance->GetCreature(*itr))
+                    {
+                        pMojo->Respawn();
+                        pMojo->GetMotionMaster()->MoveTargetedHome();
+                    }
+                }
+            }
             if (uiData == SPECIAL)
             {
                 m_mAltarInProgress.insert(TypeTimerPair(TYPE_COLOSSUS, TIMER_VISUAL_ALTAR));
@@ -279,11 +241,23 @@ void instance_gundrak::SetData(uint32 uiType, uint32 uiData)
                 DoUseDoorOrButton(GO_EXIT_DOOR_L);
                 DoUseDoorOrButton(GO_EXIT_DOOR_R);
             }
+            if (uiData == FAIL)
+                m_uisShareLoveAchievPlayers.clear();
             break;
         case TYPE_ECK:
             m_auiEncounter[TYPE_ECK] = uiData;
             if (uiData == DONE)
                 DoUseDoorOrButton(GO_ECK_UNDERWATER_DOOR);
+            break;
+        case TYPE_ACHIEV_WHY_SNAKES:
+            // insert the players who failed the achiev and haven't been already inserted in the set
+            if (m_uisWhySnakesAchievPlayers.find(uiData) == m_uisWhySnakesAchievPlayers.end())
+                m_uisWhySnakesAchievPlayers.insert(uiData);
+            break;
+        case TYPE_ACHIEV_SHARE_LOVE:
+            // insert players who got stampeled and haven't been already inserted in the set
+            if (m_uisShareLoveAchievPlayers.find(uiData) == m_uisShareLoveAchievPlayers.end())
+                m_uisShareLoveAchievPlayers.insert(uiData);
             break;
         default:
             error_log("SD2: Instance Gundrak: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
@@ -322,6 +296,42 @@ uint32 instance_gundrak::GetData(uint32 uiType)
     return 0;
 }
 
+bool instance_gundrak::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+{
+    switch (uiCriteriaId)
+    {
+        case ACHIEV_CRIT_LESS_RABI:
+            return m_bLessRabi;
+        case ACHIEV_CRIT_SHARE_LOVE:
+            // Return true if all the players in the group got stampeled
+            return m_uisShareLoveAchievPlayers.size() == MIN_LOVE_SHARE_PLAYERS;
+        // ToDo: enable this criteria when the script will be implemented
+        //case ACHIEV_CRIT_WHY_SNAKES:
+        //    // Return true if not found in the set
+        //    return m_uisWhySnakesAchievPlayers.find(pSource->GetGUIDLow()) == m_uisWhySnakesAchievPlayers.end();
+
+        default:
+            return false;
+    }
+}
+
+void instance_gundrak::OnCreatureEnterCombat(Creature* pCreature)
+{
+    if (pCreature->GetEntry() == NPC_LIVIN_MOJO)
+    {
+        // If not found in the set, or the event is already started, return
+        if (m_sColossusMojosGuids.find(pCreature->GetObjectGuid()) == m_sColossusMojosGuids.end())
+            return;
+
+        // Move all 4 Mojos to evade and move to the Colossus position
+        for (GuidSet::const_iterator itr = m_sColossusMojosGuids.begin(); itr != m_sColossusMojosGuids.end(); ++itr)
+        {
+            if (Creature* pMojo = instance->GetCreature(*itr))
+                pMojo->AI()->EnterEvadeMode();
+        }
+    }
+}
+
 static bool sortFromEastToWest(Creature* pFirst, Creature* pSecond)
 {
     return pFirst && pSecond && pFirst->GetPositionY() < pSecond->GetPositionY();
@@ -337,7 +347,7 @@ void instance_gundrak::DoAltarVisualEffect(uint8 uiType)
             fHeight += pCollusAltar->GetPositionZ();
 
         std::list<Creature*> lStalkerTargets, lStalkerCasters;
-        for (GUIDList::const_iterator itr = m_luiStalkerGUIDs.begin(); itr != m_luiStalkerGUIDs.end(); ++itr)
+        for (GuidList::const_iterator itr = m_luiStalkerGUIDs.begin(); itr != m_luiStalkerGUIDs.end(); ++itr)
         {
             if (Creature* pStalker = instance->GetCreature(*itr))
             {

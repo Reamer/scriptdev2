@@ -297,16 +297,6 @@ enum DummyNPC
     NPC_NERUBIAN_BURROW                     = 34862,
 };
 
-enum AnnounserMessages
-{
-    MSG_BEASTS                      = 724001,
-    MSG_JARAXXUS                    = 724002,
-    MSG_CRUSADERS                   = 724003,
-    MSG_VALKIRIES                   = 724004,
-    MSG_LICH_KING                   = 724005,
-    MSG_ANUBARAK                    = 724006,
-};
-
 class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, private DialogueHelper
 {
     public:

@@ -190,18 +190,13 @@ bool instance_trial_of_the_crusader::IsRaidWiped()
 
 void instance_trial_of_the_crusader::UpdateWorldState()
 {
-    Map::PlayerList const &players = instance->GetPlayers();
-
-    for (Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
+    if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC || true /*for TEST*/)
     {
-        if (Player* pPlayer = i->getSource())
-        {
-            if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-            {
-                //pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
-                //pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, GetData(TYPE_COUNTER));
-            }
-        }
+        int32 counter = 50 - GetData(TYPE_WIPE_COUNT);
+        if (counter < 0)
+            counter = 0;
+        DoUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
+        DoUpdateWorldState(UPDATE_STATE_UI_COUNT, counter);
     }
 }
 
@@ -261,8 +256,6 @@ void instance_trial_of_the_crusader::OnCreatureDeath(Creature* pCreature)
             break;
     }
 }
-
-
 
 void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
 {
@@ -330,11 +323,7 @@ void instance_trial_of_the_crusader::OnPlayerEnter(Player* pPlayer)
     SetDialogueSide(m_uiTeam == ALLIANCE);
 
     DoSummonRamsey(0);
-    if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-    {
-        pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
-        pPlayer->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, 4);
-    }
+    UpdateWorldState();
 }
 
 void instance_trial_of_the_crusader::OnPlayerDeath(Player* pPlayer)
@@ -459,6 +448,7 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
             error_log("SD2: Instance Trial of The Crusader: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
             return;
     }
+    UpdateWorldState();
 
     if (uiData == DONE || uiType == TYPE_WIPE_COUNT)
     {

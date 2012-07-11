@@ -296,7 +296,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        DoScriptText(SAY_SARTHARION_DEATH, m_creature);
+        DoScriptText(SAY_SARTHARION_DEATH,m_creature);
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_SARTHARION_EVENT, DONE);
@@ -304,7 +304,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-        switch (urand(0, 2))
+        switch(urand(0, 2))
         {
             case 0: DoScriptText(SAY_SARTHARION_SLAY_1, m_creature); break;
             case 1: DoScriptText(SAY_SARTHARION_SLAY_2, m_creature); break;
@@ -393,6 +393,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
                         m_bVesperonHelpedInFight = true;
                         break;
                 }
+
                 DoScriptText(iTextId, m_creature);
             }
         }
@@ -411,7 +412,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
                 for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
                 {
                     if (i->getSource()->isAlive())
-                        DoScriptText(WHISPER_LAVA_CHURN, m_creature, i->getSource());
+                        DoScriptText(WHISPER_LAVA_CHURN, m_creature,i->getSource());
                 }
             }
         }
@@ -433,10 +434,10 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
             return;
 
         //spell will target dragons, if they are still alive at 35%
-        if (!m_bIsBerserk && m_creature->GetHealthPercent() <= 35.0f)
+        if (!m_bIsBerserk && m_creature->GetHealthPercent() < 35.0f)
         {
             DoScriptText(SAY_SARTHARION_BERSERK, m_creature);
-            DoCast(m_creature, SPELL_BERSERK);
+            DoCastSpellIfCan(m_creature, SPELL_BERSERK);
             m_bIsBerserk = true;
         }
 

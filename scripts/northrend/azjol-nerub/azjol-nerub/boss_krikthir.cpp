@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Boss_Krikthir
 SD%Complete: 90%
-SDComment:
+SDComment: Implement Achievement
 SDCategory: Azjol'Nerub
 EndScriptData */
 
@@ -26,26 +26,29 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO                       = -1601000,
-    SAY_KILL_1                      = -1601001,
-    SAY_KILL_2                      = -1601002,
-    SAY_KILL_3                      = -1601003,
-    SAY_PREFIGHT_1                  = -1601007,
-    SAY_PREFIGHT_2                  = -1601008,
-    SAY_PREFIGHT_3                  = -1601009,
-    SAY_SWARM_1                     = -1601010,
-    SAY_SWARM_2                     = -1601011,
-    SAY_DEATH                       = -1601012,
-    EMOTE_BOSS_GENERIC_FRENZY       = -1000005,
+    SAY_AGGRO                 = -1601000,
+    SAY_KILL_1                = -1601001,
+    SAY_KILL_2                = -1601002,
+    SAY_KILL_3                = -1601003,
+    SAY_PREFIGHT_1            = -1601007,
+    SAY_PREFIGHT_2            = -1601008,
+    SAY_PREFIGHT_3            = -1601009,
+    SAY_SWARM_1               = -1601010,
+    SAY_SWARM_2               = -1601011,
+    SAY_DEATH                 = -1601012,
+    EMOTE_BOSS_GENERIC_FRENZY = -1000005,
 
-    SPELL_CURSE_OF_FATIGUE          = 52592,
-    SPELL_CURSE_OF_FATIGUE_H        = 59368,
-    SPELL_MIND_FLAY                 = 52586,
-    SPELL_MIND_FLAY_H               = 59367,
-    SPELL_ENRAGE                    = 28747,
+    SPELL_SWARM               = 52440,
+    SPELL_CURSE_OF_FATIGUE    = 52592,
+    SPELL_CURSE_OF_FATIGUE_H  = 59368,
+    SPELL_MINDFLAY            = 52586,
+    SPELL_MINDFLAY_H          = 59367,
+    SPELL_FRENZY              = 28747,
 
-    NPC_SWARM                       = 28735
+    NPC_SKITTERING_SWARMER    = 28735,
+    NPC_SKITTERING_INFECTOR   = 28736
 };
+
 /*######
 ## boss_krikthir
 ######*/
@@ -62,23 +65,26 @@ struct MANGOS_DLL_DECL boss_krikthirAI : public ScriptedAI
     instance_azjol_nerub* m_pInstance;
     bool m_bIsRegularMode;
 
+    bool m_bFrenzy;
+    bool m_bIntroSpeech;
+
+    uint32 m_uiSwarmTimer;
     uint32 m_uiCurseTimer;
     uint32 m_uiMindFlayTimer;
-    uint32 m_uiSwarmTimer;
 
     void Reset()
     {
-        m_uiCurseTimer = 20000;
-        m_uiMindFlayTimer = 10000;
-        m_uiSwarmTimer = urand(6000, 10000);
+        m_uiSwarmTimer    = 15000;
+        m_uiCurseTimer    = 20000;
+        m_uiMindFlayTimer = 8000;
 
-        m_pInstance->SetData(TYPE_KRIKTHIR, NOT_STARTED);
+        m_bIntroSpeech    = false;
+        m_bFrenzy         = false;
     }
 
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
-        m_pInstance->SetData(TYPE_KRIKTHIR, IN_PROGRESS);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -91,6 +97,20 @@ struct MANGOS_DLL_DECL boss_krikthirAI : public ScriptedAI
         }
     }
 
+    void MoveInLineOfSight (Unit* pWho)
+    {
+        if (!m_bIntroSpeech && m_creature->IsWithinDistInMap(pWho, DEFAULT_VISIBILITY_INSTANCE))
+        {
+            switch(urand(0, 2))
+            {
+                case 0: DoScriptText(SAY_PREFIGHT_1, m_creature); break;
+                case 1: DoScriptText(SAY_PREFIGHT_2, m_creature); break;
+                case 2: DoScriptText(SAY_PREFIGHT_3, m_creature); break;
+            }
+            m_bIntroSpeech = true;
+        }
+    }
+
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
@@ -99,62 +119,51 @@ struct MANGOS_DLL_DECL boss_krikthirAI : public ScriptedAI
             m_pInstance->SetData(TYPE_KRIKTHIR, DONE);
     }
 
+    void JustSummoned(Creature* pSummoned)
+    {
+        uint32 uiEntry = pSummoned->GetEntry();
+        if (uiEntry == NPC_SKITTERING_SWARMER || uiEntry == NPC_SKITTERING_INFECTOR)
+            pSummoned->AI()->AttackStart(m_creature->getVictim());
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-        
-        if (m_creature->GetHealthPercent() < 20)
-            DoCastSpellIfCan(m_creature, SPELL_ENRAGE, CAST_AURA_NOT_PRESENT);
+
+        if (!m_bFrenzy && m_creature->GetHealthPercent() <= 10.0f)
+        {
+            DoCastSpellIfCan(m_creature, SPELL_FRENZY);
+            DoScriptText(EMOTE_BOSS_GENERIC_FRENZY, m_creature);
+            m_bFrenzy = true;
+        }
 
         if (m_uiCurseTimer < uiDiff)
-        {    
-            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_CURSE_OF_FATIGUE: SPELL_CURSE_OF_FATIGUE_H) == CAST_OK)
-                m_uiCurseTimer = urand(11000, 13000);
+        {
+            DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CURSE_OF_FATIGUE : SPELL_CURSE_OF_FATIGUE_H);
+            m_uiCurseTimer = 20000;
+
         }
         else
             m_uiCurseTimer -= uiDiff;
 
         if (m_uiMindFlayTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER))
-            {
-                if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_MIND_FLAY : SPELL_MIND_FLAY_H) == CAST_OK)
-                    m_uiMindFlayTimer = urand(14000, 18000);
-            }
+            DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_MINDFLAY : SPELL_MINDFLAY_H);
+            m_uiMindFlayTimer = 8000;
         }
         else
             m_uiMindFlayTimer -= uiDiff;
 
         if (m_uiSwarmTimer < uiDiff)
         {
-            if (!urand(0, 1))
-            {
-                switch(urand(0, 1))
-                {
-                    case 0: DoScriptText(SAY_SWARM_1, m_creature); break;
-                    case 1: DoScriptText(SAY_SWARM_2, m_creature); break;
-                }
-            }
+            DoScriptText(urand(0, 1) ? SAY_SWARM_1 : SAY_SWARM_2, m_creature);
+            DoCastSpellIfCan(m_creature, SPELL_SWARM);
+            m_uiSwarmTimer = 15000;
 
-            int i;
-            i = 0;
-            do 
-            {
-                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-
-                if (!pTarget)
-                    return;
-
-                float x = pTarget->GetPositionX() + urand(3.0f, 15.0f);
-                float y = pTarget->GetPositionY() + urand(3.0f, 15.0f);
-
-                if (Creature* pSwarm = m_creature->SummonCreature(NPC_SWARM, x, y, pTarget->GetPositionZ(), pTarget->GetOrientation(), TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000))
-                    pSwarm->SetInCombatWith(pTarget);
-                i++;
-            }while (m_bIsRegularMode ? i <= 5 : i <= 12);
-            m_uiSwarmTimer = urand(3000, 5000);
-        }else m_uiSwarmTimer -= uiDiff;
+        }
+        else
+            m_uiSwarmTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
