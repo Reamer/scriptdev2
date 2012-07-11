@@ -39,8 +39,6 @@ void instance_blackfathom_deeps::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     memset(&m_uiSpawnMobsTimer, 0, sizeof(m_uiSpawnMobsTimer));
-    for (uint8 i = 0; i < MAX_FIRES; ++i)
-        m_lWaveMobsGuids[i].clear();
 }
 
 void instance_blackfathom_deeps::OnCreatureCreate(Creature* pCreature)
@@ -79,7 +77,7 @@ void instance_blackfathom_deeps::DoSpawnMobs(uint8 uiWaveIndex)
 
     pKelris->GetRespawnCoord(fX_resp, fY_resp, fZ_resp);
 
-    for (uint8 i = 0; i < sizeof(aWaveSummonInformation) / sizeof(SummonInformation); ++i)
+    for (uint8 i = 0; i < countof(aWaveSummonInformation); ++i)
     {
         if (aWaveSummonInformation[i].m_uiWaveIndex != uiWaveIndex)
             continue;
@@ -102,7 +100,7 @@ void instance_blackfathom_deeps::DoSpawnMobs(uint8 uiWaveIndex)
                 if (Creature* pSummoned = pKelris->SummonCreature(aWaveSummonInformation[i].m_uiNpcEntry, fPosX, fPosY, fPosZ, fPosO, TEMPSUMMON_DEAD_DESPAWN, 0))
                 {
                     pSummoned->GetMotionMaster()->MovePoint(0, fX_resp, fY_resp, fZ_resp);
-                    m_lWaveMobsGuids[uiWaveIndex].push_back(pSummoned->GetObjectGuid());
+                    m_lWaveMobsGuids[uiWaveIndex].push_back(pSummoned->GetGUIDLow());
                 }
             }
         }
@@ -185,22 +183,16 @@ void instance_blackfathom_deeps::OnCreatureDeath(Creature* pCreature)
     switch (pCreature->GetEntry())
     {
         case NPC_AKUMAI_SERVANT:
-            if (!m_lWaveMobsGuids[1].empty())
-                m_lWaveMobsGuids[1].remove(pCreature->GetObjectGuid());
+            m_lWaveMobsGuids[1].remove(pCreature->GetGUIDLow());
             break;
         case NPC_AKUMAI_SNAPJAW:
-            if (!m_lWaveMobsGuids[0].empty())
-                m_lWaveMobsGuids[0].remove(pCreature->GetObjectGuid());
+            m_lWaveMobsGuids[0].remove(pCreature->GetGUIDLow());
             break;
         case NPC_BARBED_CRUSTACEAN:
-            if (!m_lWaveMobsGuids[2].empty())
-                m_lWaveMobsGuids[2].remove(pCreature->GetObjectGuid());
+            m_lWaveMobsGuids[2].remove(pCreature->GetGUIDLow());
             break;
         case NPC_MURKSHALLOW_SOFTSHELL:
-            if (!m_lWaveMobsGuids[3].empty())
-                m_lWaveMobsGuids[3].remove(pCreature->GetObjectGuid());
-            break;
-        default:
+            m_lWaveMobsGuids[3].remove(pCreature->GetGUIDLow());
             break;
     }
 

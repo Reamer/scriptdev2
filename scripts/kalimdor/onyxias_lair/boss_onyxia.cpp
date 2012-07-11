@@ -110,7 +110,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
     {
         m_pInstance = (instance_onyxias_lair*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        m_uiMaxBreathPositions = sizeof(aMoveData)/sizeof(OnyxiaMove);
+        m_uiMaxBreathPositions = countof(aMoveData);
         Reset();
     }
 
@@ -202,7 +202,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
             // Get some random point near the center
             float fX, fY, fZ;
             pSummoned->GetRandomPoint(pTrigger->GetPositionX(), pTrigger->GetPositionY(), pTrigger->GetPositionZ(), 20.0f, fX, fY, fZ);
-            pSummoned->GetMotionMaster()->MovePoint(1, fX, fY, fZ, true, true);
+            pSummoned->GetMotionMaster()->MovePoint(1, fX, fY, fZ);
         }
         else
             pSummoned->SetInCombatWithZone();
@@ -236,8 +236,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
             pSpell->Id == SPELL_BREATH_NORTH_TO_SOUTH)
         {
             // This was sent with SendMonsterMove - which resulted in better speed than now
-            m_pPointData = GetMoveData();
-            if (m_pPointData)
+            if (m_pPointData = GetMoveData())
                 m_creature->GetMotionMaster()->MovePoint(m_pPointData->uiLocId, m_pPointData->fX, m_pPointData->fY, m_pPointData->fZ);
         }
     }
@@ -402,8 +401,8 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                             ++m_uiMovePoint %= m_uiMaxBreathPositions;
                             break;
                     }
-                    m_pPointData = GetMoveData();
-                    if (m_pPointData)
+
+                    if (m_pPointData = GetMoveData())
                         m_creature->GetMotionMaster()->MovePoint(m_pPointData->uiLocId, m_pPointData->fX, m_pPointData->fY, m_pPointData->fZ);
                 }
                 else
