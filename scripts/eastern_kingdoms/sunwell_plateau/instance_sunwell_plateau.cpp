@@ -1,5 +1,4 @@
 /* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2011 - 2012 MangosR2 <http://github.com/mangosR2/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -141,8 +140,6 @@ void instance_sunwell_plateau::OnObjectCreate(GameObject* pGo)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_FIRST_GATE:
-            if (m_auiEncounter[TYPE_FELMYST] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_SECOND_GATE:
             if (m_auiEncounter[TYPE_EREDAR_TWINS] == DONE)
@@ -202,7 +199,6 @@ void instance_sunwell_plateau::SetData(uint32 uiType, uint32 uiData)
                 StartNextDialogueText(NPC_KALECGOS);
                 // Temporary - until spell 46650 is properly fixed
                 DoUseDoorOrButton(GO_FIRE_BARRIER);
-                DoUseDoorOrButton(GO_FIRST_GATE);
             }
             break;
         case TYPE_EREDAR_TWINS:

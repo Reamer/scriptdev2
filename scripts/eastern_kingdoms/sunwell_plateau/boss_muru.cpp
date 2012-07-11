@@ -1,5 +1,4 @@
 /* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2011 - 2012 MangosR2 <http://github.com/mangosR2/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,7 +17,7 @@
 /* ScriptData
 SDName: boss_muru
 SD%Complete: 80
-SDComment: Spell Negative Energy for Entropius needs core support; Summon humanoids spells have some core issues;
+SDComment: Spell Negative Energy for Entropius needs core support; Summon humanoids spells have some core issues; Dark Fiend, Singularity and Darkness NPCs need eventAI support
 SDCategory: Sunwell Plateau
 EndScriptData */
 
@@ -45,10 +44,6 @@ enum
     SPELL_SUMMON_DARK_FIEND_6       = 46005,
     SPELL_SUMMON_DARK_FIEND_7       = 46006,
     SPELL_SUMMON_DARK_FIEND_8       = 46007,
-
-    //Dark Fiend
-    SPELL_DARK_FIEND                = 45934,
-    SPELL_DARK_FIEND_DMG            = 45944,
 
     // transition
     SPELL_OPEN_ALL_PORTALS          = 46177,    // dummy spell which opens all the portals to begin the transition phase - has muru portal as target
@@ -228,7 +223,7 @@ struct MANGOS_DLL_DECL boss_entropiusAI : public ScriptedAI
     uint32 m_uiBlackHoleTimer;
     uint32 m_uiDarknessTimer;
 
-    GUIDList m_lSummonedCreaturesList;
+    GuidList m_lSummonedCreaturesList;
 
     void Reset()
     {
@@ -259,7 +254,7 @@ struct MANGOS_DLL_DECL boss_entropiusAI : public ScriptedAI
     // Wrapper to despawn the Singularities and Darkness on death or on evade
     void DespawnSummonedCreatures()
     {
-        for (GUIDList::const_iterator itr = m_lSummonedCreaturesList.begin(); itr != m_lSummonedCreaturesList.end(); ++itr)
+        for (GuidList::const_iterator itr = m_lSummonedCreaturesList.begin(); itr != m_lSummonedCreaturesList.end(); ++itr)
         {
             if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                 pTemp->ForcedDespawn();
@@ -326,23 +321,19 @@ struct MANGOS_DLL_DECL npc_portal_targetAI : public Scripted_NoMovementAI
     uint8 m_uiTransformCount;
     uint32 m_uiTransformTimer;
     uint32 m_uiSentinelTimer;
-    bool m_bSentinelSummoned;
 
     void Reset()
     {
         m_uiTransformCount = 0;
         m_uiTransformTimer = 0;
         m_uiSentinelTimer  = 0;
-
-        m_bSentinelSummoned = false;
     }
 
     void JustSummoned(Creature* pSummoned)
     {
         // Cast a visual ball on the summoner
-        if (!m_bSentinelSummoned && pSummoned->GetEntry() == NPC_VOID_SENTINEL_SUMMONER)
+        if (pSummoned->GetEntry() == NPC_VOID_SENTINEL_SUMMONER)
             DoCastSpellIfCan(pSummoned, SPELL_SENTINEL_SUMMONER_VISUAL, CAST_TRIGGERED);
-        m_bSentinelSummoned = true; // TODO: Avoid double summoning ! Maybe core bug.
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
@@ -453,114 +444,6 @@ CreatureAI* GetAI_npc_void_sentinel_summoner(Creature *pCreature)
     return new npc_void_sentinel_summonerAI(pCreature);
 }
 
-/*######
-## mob_dark_fiend    // slowly chases a player and exlodes causing AOE to raid when its close to a player
-######*/
-
-struct MANGOS_DLL_DECL mob_dark_fiendAI : public ScriptedAI
-{
-    mob_dark_fiendAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        Reset();
-    }
-
-    bool m_bIsReached;
-
-    void Reset()
-    {
-        m_bIsReached = false;
-
-        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-            AttackStart(pTarget);
-    }
-
-    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
-    {
-        // dispell & and should be purge -- will cause them to despawn
-        switch(pSpell->Id)
-        {
-            case 32375:
-            case 72734:
-            case 32592:
-            case 39897:
-            case 988:
-            case 8012:
-                m_creature->ForcedDespawn();
-                break;
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-        {
-            m_creature->SetInCombatWithZone();
-            return;
-        }
-
-        //Are we with in melee attack distance
-        if (!m_bIsReached && m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
-        {
-            m_creature->CastSpell(m_creature->getVictim(), SPELL_DARK_FIEND_DMG, true);
-            m_creature->RemoveAurasDueToSpell(SPELL_DARK_FIEND);
-            m_creature->ForcedDespawn(10000); // 10 seconds remaining for Periodic Damage Aura
-            m_bIsReached = true;
-        }
-    }
-};
-
-CreatureAI* GetAI_mob_dark_fiend(Creature *pCreature)
-{
-    return new mob_dark_fiendAI(pCreature);
-}
-
-struct MANGOS_DLL_DECL mob_singularityAI : public ScriptedAI
-{
-    mob_singularityAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
-
-    uint32 m_uiChangeTargetTimer;
-    uint32 m_uiLifeTime;
-
-    void Reset()
-    {
-        m_uiChangeTargetTimer = 5000;
-        m_uiLifeTime = 22000;
-        m_creature->SetInCombatWithZone();
-    }
-
-    //nullAI
-    void Aggro(Unit* pWho)           {}
-    void JustDied(Unit* pKiller)     {}
-    void KilledUnit(Unit* pVictim)   {}
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_uiLifeTime < uiDiff)
-        {
-            m_creature->ForcedDespawn();
-        }
-        else
-            m_uiLifeTime -= uiDiff;
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_uiChangeTargetTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, (uint32)0, SELECT_FLAG_PLAYER))
-                AttackStart(pTarget);
-            m_uiChangeTargetTimer = 5000;
-        }
-        else
-            m_uiChangeTargetTimer -= uiDiff;
-    }
-};
-
-CreatureAI* GetAI_mob_singularity(Creature *_Creature)
-{
-    return new mob_singularityAI(_Creature);
-}
-
 void AddSC_boss_muru()
 {
     Script* pNewScript;
@@ -583,15 +466,5 @@ void AddSC_boss_muru()
     pNewScript = new Script;
     pNewScript->Name="npc_void_sentinel_summoner";
     pNewScript->GetAI = &GetAI_npc_void_sentinel_summoner;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name="mob_dark_fiend";
-    pNewScript->GetAI = &GetAI_mob_dark_fiend;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name="mob_singularity";
-    pNewScript->GetAI = &GetAI_mob_singularity;
     pNewScript->RegisterSelf();
 }

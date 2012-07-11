@@ -1,5 +1,4 @@
 /* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2011 - 2012 MangosR2 <http://github.com/mangosR2/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -43,7 +42,7 @@ enum
     SAY_SACROLASH_DEAD                      = -1580056,
     SAY_SACROLASH_BERSERK                   = -1580057,
 
-    SAY_ALYTHESS_CONFLAGRATION              = -1580058,
+    SAY_ALYTHESS_CANFLAGRATION              = -1580058,
     SAY_ALYTHESS_EMPOWER                    = -1580059,
     SAY_ALYTHESS_KILL_1                     = -1580060,
     SAY_ALYTHESS_KILL_2                     = -1580061,
@@ -73,8 +72,6 @@ enum
     SPELL_FLAME_TOUCHED                     = 45348,        // TODO NYI  - Player debuff; removed by shadow damage
     SPELL_CONFLAGRATION                     = 45342,        // 30-35 secs
     SPELL_BLAZE                             = 45235,        // On main target every 3 secs; should trigger 45236 which leaves a fire on the ground
-    SPELL_BLAZE_SUMMON                      = 45236,        //187366 GO  // firepatch
-    SPELL_BLAZE_BURN                        = 45246,        // used by GO
     SPELL_FLAME_SEAR                        = 46771,        // A few random targets debuff
     SPELL_CONFLAGRATION_UNK                 = 45333,        // Unknown
 };
@@ -107,6 +104,7 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
 
     uint32 m_uiEnrageTimer;
     uint32 m_uiPyrogenicsTimer;
+    uint32 m_uiFlameTouchedTimer;
     uint32 m_uiConflagrationTimer;
     uint32 m_uiBlazeTimer;
     uint32 m_uiFlameSearTimer;
@@ -116,6 +114,7 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
     {
         m_uiEnrageTimer = 6*MINUTE*IN_MILLISECONDS;
         m_uiPyrogenicsTimer     = 20000;
+        m_uiFlameTouchedTimer   = 30000;
         m_uiConflagrationTimer  = urand(25000, 30000);
         m_uiBlazeTimer          = 1000;
         m_uiFlameSearTimer      = 5000;
@@ -188,57 +187,6 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
         }
     }
 
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* spell)
-    {
-         switch(spell->Id)
-         {
-            case SPELL_BLAZE:
-                pTarget->CastSpell(pTarget, SPELL_BLAZE_SUMMON, true);
-            case SPELL_BLAZE_BURN:
-            case SPELL_CONFLAGRATION:
-            case SPELL_FLAME_SEAR:
-              HandleTouchedSpells(pTarget, SPELL_FLAME_TOUCHED);
-              break;
-            case SPELL_SHADOW_NOVA:
-              HandleTouchedSpells(pTarget, SPELL_DARK_TOUCHED);
-              break;
-         }
-    }
-
-    void HandleTouchedSpells(Unit* pTarget, uint32 TouchedType)
-    {
-        if (pTarget != m_creature->getVictim())
-            return;
-
-         switch(TouchedType)
-         {
-            case SPELL_FLAME_TOUCHED:
-                if (!pTarget->HasAura(SPELL_DARK_FLAME))
-                {
-                    if (pTarget->HasAura(SPELL_DARK_TOUCHED))
-                    {
-                        pTarget->RemoveAurasDueToSpell(SPELL_DARK_TOUCHED);
-                        pTarget->CastSpell(pTarget, SPELL_DARK_FLAME, true);
-                    }
-                    else
-                        pTarget->CastSpell(pTarget, SPELL_FLAME_TOUCHED, true);
-                }
-                break;
-            case SPELL_DARK_TOUCHED:
-                if (!pTarget->HasAura(SPELL_DARK_FLAME))
-                {
-                    if (pTarget->HasAura(SPELL_FLAME_TOUCHED))
-                    {
-                        pTarget->RemoveAurasDueToSpell(SPELL_FLAME_TOUCHED);
-                        pTarget->CastSpell(pTarget, SPELL_DARK_FLAME, true);
-                    }
-                    else
-                        pTarget->CastSpell(pTarget, SPELL_DARK_TOUCHED, true);
-                }
-                break;
-        }
-    }
-
     void UpdateAI(const uint32 uiDiff)
     {
         if (m_pInstance && m_pInstance->GetData(TYPE_EREDAR_TWINS) == SPECIAL)
@@ -273,32 +221,30 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
         else
             m_uiPyrogenicsTimer -= uiDiff;
 
+        /* // Spell needs research of fix; it shoudn't be cast on self
+        if (m_uiFlameTouchedTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_FLAME_TOUCHED) == CAST_OK)
+                m_uiFlameTouchedTimer = urand(10000, 13000);
+        }
+        else
+            m_uiFlameTouchedTimer -= uiDiff;
+        */
+
         if (m_uiConflagrationTimer < uiDiff)
         {
-            // If sister is dead cast shadownova instead of conflagration
-            bool bSwitchSpell = m_creature->HasAura(SPELL_EMPOWER);
-            Unit* pTarget = NULL;
-
-            if (bSwitchSpell)
-                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 2);
-            else
-                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 3);
-
+            Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 3);
             if (!pTarget)
                 pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
 
+            // If sister is dead cast shadownova instead of conflagration
+            bool bSwitchSpell = m_creature->HasAura(SPELL_EMPOWER);
             if (DoCastSpellIfCan(pTarget, bSwitchSpell ? SPELL_SHADOW_NOVA : SPELL_CONFLAGRATION) == CAST_OK)
             {
                 if (!bSwitchSpell)
-                {
-                    DoScriptText(SAY_ALYTHESS_CONFLAGRATION, m_creature);
-                    m_uiConflagrationTimer = urand(30000, 35000);
-                }
-                else
-                {
-                    DoScriptText(SAY_SACROLASH_SHADOW_NOVA, m_creature);
-                    m_uiConflagrationTimer = urand(20000, 25000);
-                }
+                    DoScriptText(SAY_ALYTHESS_CANFLAGRATION, m_creature);
+
+                m_uiConflagrationTimer = urand(20000, 25000);
             }
         }
         else
@@ -431,61 +377,6 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
             // Attack random range target
             if (Unit* pTarget = GetRandomTargetAtDist(10.0f))
                 pSummoned->AI()->AttackStart(pTarget);
-            else
-                // Solo fight
-                if (Unit* pTarget = m_creature->getVictim())
-                    pSummoned->AI()->AttackStart(pTarget);
-        }
-    }
-
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* spell)
-    {
-        switch(spell->Id)
-        {
-            case SPELL_SHADOW_BLADES:
-            case SPELL_SHADOW_NOVA:
-            case SPELL_CONFOUNDING_BLOW:
-            case SPELL_SHADOWFURY:
-            case SPELL_DARK_STRIKE:
-                HandleTouchedSpells(pTarget, SPELL_DARK_TOUCHED);
-                break;
-            case SPELL_CONFLAGRATION:
-                HandleTouchedSpells(pTarget, SPELL_FLAME_TOUCHED);
-                break;
-        }
-    }
-
-    void HandleTouchedSpells(Unit* pTarget, uint32 TouchedType)
-    {
-        if (pTarget != m_creature->getVictim())
-            return;
-
-        switch(TouchedType)
-        {
-            case SPELL_FLAME_TOUCHED:
-                if (!pTarget->HasAura(SPELL_DARK_FLAME))
-                {
-                    if (pTarget->HasAura(SPELL_DARK_TOUCHED))
-                    {
-                        pTarget->RemoveAurasDueToSpell(SPELL_DARK_TOUCHED);
-                        pTarget->CastSpell(pTarget, SPELL_DARK_FLAME, true);
-                    }
-                    else
-                        pTarget->CastSpell(pTarget, SPELL_FLAME_TOUCHED, true);
-                }
-                break;
-            case SPELL_DARK_TOUCHED:
-                if (!pTarget->HasAura(SPELL_DARK_FLAME))
-                {
-                    if (pTarget->HasAura(SPELL_FLAME_TOUCHED))
-                    {
-                        pTarget->RemoveAurasDueToSpell(SPELL_FLAME_TOUCHED);
-                        pTarget->CastSpell(pTarget, SPELL_DARK_FLAME, true);
-                    }
-                    else
-                        pTarget->CastSpell(pTarget, SPELL_DARK_TOUCHED, true);
-                }
-                break;
         }
     }
 
@@ -525,30 +416,18 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
 
         if (m_uiShadowNovaTimer < uiDiff)
         {
-            // If sister is dead cast conflagration instead of shadownova
-            bool bSwitchSpell = m_creature->HasAura(SPELL_EMPOWER);
-            Unit* pTarget = NULL;
-
-            if (bSwitchSpell)
-                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 3);
-            else
-                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 2);
-
+            Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 2);
             if (!pTarget)
                 pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
 
+            // If sister is dead cast conflagration instead of shadownova
+            bool bSwitchSpell = m_creature->HasAura(SPELL_EMPOWER);
             if (DoCastSpellIfCan(pTarget, bSwitchSpell ? SPELL_CONFLAGRATION : SPELL_SHADOW_NOVA) == CAST_OK)
             {
                 if (!bSwitchSpell)
-                {
                     DoScriptText(SAY_SACROLASH_SHADOW_NOVA, m_creature);
-                    m_uiShadowNovaTimer = urand(20000, 25000);
-                }
-                else
-                {
-                    DoScriptText(SAY_ALYTHESS_CONFLAGRATION, m_creature);
-                    m_uiShadowNovaTimer = urand(30000, 35000);
-                }
+
+                m_uiShadowNovaTimer = urand(30000, 35000);
             }
         }
         else

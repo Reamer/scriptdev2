@@ -1,5 +1,4 @@
 /* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2011 - 2012 MangosR2 <http://github.com/mangosR2/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -47,7 +46,6 @@ enum
     GO_MURU_ENTER_GATE          = 187990,           // muru gates
     GO_MURU_EXIT_GATE           = 188118,
     GO_THIRD_GATE               = 187765,           // door after muru; why another?
-    GO_ORB_OF_THE_BLUE_FLIGHT   = 188415,
 
     SAY_KALECGOS_OUTRO          = -1580043,
     SAY_TWINS_INTRO             = -1580044,
