@@ -177,7 +177,7 @@ extern void AddSC_boss_venoxis();
 extern void AddSC_boss_wushoolay();
 extern void AddSC_instance_zulgurub();
 
-// extern void AddSC_alterac_mountains();
+//extern void AddSC_alterac_mountains();
 extern void AddSC_arathi_highlands();
 extern void AddSC_blasted_lands();
 extern void AddSC_boss_kruul();
@@ -236,9 +236,11 @@ extern void AddSC_razorfen_downs();
 extern void AddSC_instance_razorfen_kraul();                // razorfen_kraul
 extern void AddSC_razorfen_kraul();
 extern void AddSC_boss_ayamiss();                           // ruins_of_ahnqiraj
+extern void AddSC_boss_buru();
 extern void AddSC_boss_kurinnaxx();
 extern void AddSC_boss_ossirian();
 extern void AddSC_boss_moam();
+extern void AddSC_boss_rajaxx();
 extern void AddSC_ruins_of_ahnqiraj();
 extern void AddSC_instance_ruins_of_ahnqiraj();
 extern void AddSC_boss_cthun();                             // temple_of_ahnqiraj
@@ -264,6 +266,7 @@ extern void AddSC_bloodmyst_isle();
 extern void AddSC_boss_azuregos();
 extern void AddSC_darkshore();
 extern void AddSC_desolace();
+extern void AddSC_durotar();
 extern void AddSC_dustwallow_marsh();
 extern void AddSC_felwood();
 extern void AddSC_feralas();
@@ -281,8 +284,8 @@ extern void AddSC_ungoro_crater();
 extern void AddSC_winterspring();
 
 // northrend
-extern void AddSC_boss_jedoga();                            // azjol-nerub, ahnkahet
-extern void AddSC_boss_amanitar();
+extern void AddSC_boss_amanitar();                          // azjol-nerub, ahnkahet
+extern void AddSC_boss_jedoga();
 extern void AddSC_boss_nadox();
 extern void AddSC_boss_taldaram();
 extern void AddSC_boss_volazj();
@@ -700,7 +703,7 @@ void AddScripts()
     AddSC_boss_wushoolay();
     AddSC_instance_zulgurub();
 
-    // AddSC_alterac_mountains();
+    //AddSC_alterac_mountains();
     AddSC_arathi_highlands();
     AddSC_blasted_lands();
     AddSC_boss_kruul();
@@ -729,12 +732,12 @@ void AddScripts()
 
     // kalimdor
     AddSC_instance_blackfathom_deeps();                     // blackfathom deeps
-    AddSC_boss_aeonus();                                    // COT, dark_portal
+    AddSC_boss_aeonus();                                    // CoT, dark_portal
     AddSC_boss_chrono_lord_deja();
     AddSC_boss_temporus();
     AddSC_dark_portal();
     AddSC_instance_dark_portal();
-    AddSC_hyjal();                                          // COT, hyjal
+    AddSC_hyjal();                                          // CoT, hyjal
     AddSC_boss_archimonde();
     AddSC_instance_mount_hyjal();
     AddSC_boss_captain_skarloc();                           // CoT, old_hillsbrand
@@ -742,7 +745,7 @@ void AddScripts()
     AddSC_boss_lieutenant_drake();
     AddSC_instance_old_hillsbrad();
     AddSC_old_hillsbrad();
-    AddSC_culling_of_stratholme();                          // COT, culling_of_stratholme
+    AddSC_culling_of_stratholme();                          // CoT, culling_of_stratholme
     AddSC_culling_of_stratholmeAI();
     AddSC_instance_culling_of_stratholme();
     AddSC_dire_maul();                                      // dire_maul
@@ -759,9 +762,11 @@ void AddScripts()
     AddSC_instance_razorfen_kraul();                        // razorfen_kraul
     AddSC_razorfen_kraul();
     AddSC_boss_ayamiss();                                   // ruins_of_ahnqiraj
+    AddSC_boss_buru();
     AddSC_boss_kurinnaxx();
     AddSC_boss_ossirian();
     AddSC_boss_moam();
+    AddSC_boss_rajaxx();
     AddSC_ruins_of_ahnqiraj();
     AddSC_instance_ruins_of_ahnqiraj();
     AddSC_boss_cthun();                                     // temple_of_ahnqiraj
@@ -787,6 +792,7 @@ void AddScripts()
     AddSC_boss_azuregos();
     AddSC_darkshore();
     AddSC_desolace();
+    AddSC_durotar();
     AddSC_dustwallow_marsh();
     AddSC_felwood();
     AddSC_feralas();
@@ -804,8 +810,8 @@ void AddScripts()
     AddSC_winterspring();
 
     // northrend
-    AddSC_boss_jedoga();                                    // azjol-nerub, ahnkahet
-    AddSC_boss_amanitar();
+    AddSC_boss_amanitar();                                  // azjol-nerub, ahnkahet
+    AddSC_boss_jedoga();
     AddSC_boss_nadox();
     AddSC_boss_taldaram();
     AddSC_boss_volazj();
@@ -846,7 +852,7 @@ void AddScripts()
     AddSC_boss_marwyn();
     AddSC_halls_of_reflection();
     AddSC_instance_halls_of_reflection();
-    AddSC_boss_garfrost();                                  // ICC, pit_of_saron
+    AddSC_boss_garfrost();                                  // ICC, FH, pit_of_saron
     AddSC_boss_krick_and_ick();
     AddSC_boss_tyrannus();
     AddSC_instance_pit_of_saron();
