@@ -54,6 +54,30 @@ enum
     SPELL_SHADOWBOLT_H          = 56405,
 };
 
+// npc, npc, npc, timer
+static uint32 const auiSummonData[MAX_WAVES][4] =
+{
+    {NPC_UNREL_TRAINEE, 0, 0, 20000},
+    {NPC_UNREL_TRAINEE, 0, 0, 20000},
+    {NPC_UNREL_TRAINEE, 0, 0, 10000},
+    {NPC_UNREL_DEATH_KNIGHT, 0, 0, 10000},
+    {NPC_UNREL_TRAINEE, 0, 0, 15000},
+    {NPC_UNREL_DEATH_KNIGHT, 0, 0, 10000},
+    {NPC_UNREL_TRAINEE, 0, 0, 15000},
+    {NPC_UNREL_DEATH_KNIGHT, NPC_UNREL_TRAINEE, 0, 10000},
+    {NPC_UNREL_RIDER, 0, 0, 10000},
+    {NPC_UNREL_TRAINEE, 0, 0, 5000},
+    {NPC_UNREL_DEATH_KNIGHT, 0, 0, 15000},
+    {NPC_UNREL_TRAINEE, NPC_UNREL_RIDER, 0, 10000},
+    {NPC_UNREL_DEATH_KNIGHT, NPC_UNREL_DEATH_KNIGHT, 0, 10000},
+    {NPC_UNREL_TRAINEE, 0, 0, 10000},
+    {NPC_UNREL_RIDER, 0, 0, 5000},
+    {NPC_UNREL_DEATH_KNIGHT, 0, 0, 5000},
+    {NPC_UNREL_TRAINEE, 0, 0, 20000},
+    {NPC_UNREL_RIDER, NPC_UNREL_DEATH_KNIGHT, NPC_UNREL_TRAINEE, 15000},
+    {NPC_UNREL_TRAINEE, 0, 0, 30000},
+};
+
 enum eSpellDummy
 {
     SPELL_A_TO_ANCHOR_1     = 27892,
@@ -254,30 +278,6 @@ struct MANGOS_DLL_DECL boss_gothikAI : public ScriptedAI
                         m_uiPhase = PHASE_GROUND;
                         return;
                     }
-
-                    // npc, npc, npc, timer
-                    static uint32 const auiSummonData[MAX_WAVES][4] =
-                    {
-                        {NPC_UNREL_TRAINEE, 0, 0, 20000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 20000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 10000},
-                        {NPC_UNREL_DEATH_KNIGHT, 0, 0, 10000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 15000},
-                        {NPC_UNREL_DEATH_KNIGHT, 0, 0, 10000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 15000},
-                        {NPC_UNREL_DEATH_KNIGHT, NPC_UNREL_TRAINEE, 0, 10000},
-                        {NPC_UNREL_RIDER, 0, 0, 10000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 5000},
-                        {NPC_UNREL_DEATH_KNIGHT, 0, 0, 15000},
-                        {NPC_UNREL_TRAINEE, NPC_UNREL_RIDER, 0, 10000},
-                        {NPC_UNREL_DEATH_KNIGHT, NPC_UNREL_DEATH_KNIGHT, 0, 10000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 10000},
-                        {NPC_UNREL_RIDER, 0, 0, 5000},
-                        {NPC_UNREL_DEATH_KNIGHT, 0, 0, 5000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 20000},
-                        {NPC_UNREL_RIDER, NPC_UNREL_DEATH_KNIGHT, NPC_UNREL_TRAINEE, 15000},
-                        {NPC_UNREL_TRAINEE, 0, 0, 30000},
-                    };
 
                     SummonAdds(true, auiSummonData[m_uiSummonCount][0]);
 

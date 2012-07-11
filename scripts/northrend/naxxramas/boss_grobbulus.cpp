@@ -164,12 +164,11 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
     }
     void SpawnFalloutSlime(Unit *target)
     {
-        if (Creature* pTemp = m_creature->SummonCreature(NPC_FALLOUT_SLIME, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000))
+        if (Creature* pFalloutSlime = m_creature->SummonCreature(NPC_FALLOUT_SLIME, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000))
+        {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
-            {
-                pTemp->AddThreat(pTarget,0.0f);
-                pTemp->AI()->AttackStart(pTarget);
-            }
+                pFalloutSlime->AI()->AttackStart(pTarget);
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
