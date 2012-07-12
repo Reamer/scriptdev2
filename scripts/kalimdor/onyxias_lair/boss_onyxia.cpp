@@ -380,14 +380,15 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                     {
                         case 0:                             // breath
                         case 1:
-                            OnyxiaMove* m_pPointData = GetMoveData();
-                            if (m_pPointData)
+                        {
+                            if (OnyxiaMove* m_pPointData = GetMoveData())
                             {
                                 DoScriptText(EMOTE_BREATH, m_creature);
                                 DoCastSpellIfCan(m_creature, m_pPointData->uiSpellId, CAST_INTERRUPT_PREVIOUS);
                                 m_uiMovePoint = m_pPointData->uiLocIdEnd;
                             }
                             return;
+                        }
                         case 2:                             // a point on the left side
                         {
                             // C++ is stupid, so add -1 with +7
@@ -396,7 +397,11 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                             break;
                         }
                         case 3:                             // a point on the right side
+                        {
                             ++m_uiMovePoint %= m_uiMaxBreathPositions;
+                            break;
+                        }
+                        default:
                             break;
                     }
 
