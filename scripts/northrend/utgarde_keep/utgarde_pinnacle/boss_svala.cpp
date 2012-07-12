@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Svala
-SD%Complete: 30%
-SDComment: The way spells for intro works could use more research.
+SD%Complete: 80%
+SDComment: The way spells for intro work could use more research.
 SDCategory: Utgarde Pinnacle
 EndScriptData */
 

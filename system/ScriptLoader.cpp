@@ -430,11 +430,6 @@ extern void AddSC_boss_erekem();                            // violet_hold
 extern void AddSC_boss_ichoron();
 extern void AddSC_instance_violet_hold();
 extern void AddSC_violet_hold();
-extern void AddSC_boss_cyanigosa();
-extern void AddSC_boss_moragg();
-extern void AddSC_boss_xevozz();
-extern void AddSC_boss_zuramat();
-extern void AddSC_boss_lavanthor();
 
 extern void AddSC_borean_tundra();
 extern void AddSC_dalaran();
@@ -956,11 +951,6 @@ void AddScripts()
     AddSC_boss_ichoron();
     AddSC_instance_violet_hold();
     AddSC_violet_hold();
-    AddSC_boss_cyanigosa();
-    AddSC_boss_moragg();
-    AddSC_boss_xevozz();
-    AddSC_boss_zuramat();
-    AddSC_boss_lavanthor();
 
     AddSC_borean_tundra();
     AddSC_dalaran();
