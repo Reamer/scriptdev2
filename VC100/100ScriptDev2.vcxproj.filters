@@ -324,9 +324,6 @@
     <ClCompile Include="..\include\sc_creature.cpp">
       <Filter>include</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\sc_utility.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
     <ClCompile Include="..\include\sc_grid_searchers.cpp">
       <Filter>include</Filter>
     </ClCompile>
@@ -1536,25 +1533,10 @@
     <ClCompile Include="..\scripts\northrend\vault_of_archavon\instance_vault_of_archavon.cpp">
       <Filter>scripts\northrend\vault_of_archavon</Filter>
     </ClCompile>
-    <ClCompile Include="..\scripts\northrend\violet_hold\boss_cyanigosa.cpp">
-      <Filter>scripts\northrend\violet_hold</Filter>
-    </ClCompile>
     <ClCompile Include="..\scripts\northrend\violet_hold\boss_erekem.cpp">
       <Filter>scripts\northrend\violet_hold</Filter>
     </ClCompile>
     <ClCompile Include="..\scripts\northrend\violet_hold\boss_ichoron.cpp">
-      <Filter>scripts\northrend\violet_hold</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\northrend\violet_hold\boss_lavanthor.cpp">
-      <Filter>scripts\northrend\violet_hold</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\northrend\violet_hold\boss_moragg.cpp">
-      <Filter>scripts\northrend\violet_hold</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\northrend\violet_hold\boss_xevozz.cpp">
-      <Filter>scripts\northrend\violet_hold</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scripts\northrend\violet_hold\boss_zuramat.cpp">
       <Filter>scripts\northrend\violet_hold</Filter>
     </ClCompile>
     <ClCompile Include="..\scripts\northrend\violet_hold\instance_violet_hold.cpp">
@@ -1875,9 +1857,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\sc_creature.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\sc_utility.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\sc_gossip.h">
