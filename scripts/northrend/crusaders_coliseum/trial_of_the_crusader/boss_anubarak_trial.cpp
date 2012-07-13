@@ -62,6 +62,52 @@ enum AnubarakSpells
     SPELL_BERSERK                   = 26662,
 };
 
+enum SwarmScarabSpells
+{
+    SPELL_DETERMINATION             = 66092,
+    SPELL_ACID_MANDIBLE             = 65775,
+    SPELL_ACHIEV_TRAITOR_KING_10    = 68186,
+    SPELL_ACHIEV_TRAITOR_KING_25    = 68515,
+};
+
+enum PursuingSpikeSpells
+{
+    SPELL_PURSUING_SPIKES_FAIL      = 66181,
+    SPELL_PURSUING_SPIKES_GROUND    = 65921, // Set as aura in database
+    SPELL_PURSUING_SPIKES_SPEED1    = 65920,
+    SPELL_PURSUING_SPIKES_SPEED2    = 65922,
+    SPELL_PURSUING_SPIKES_SPEED3    = 65923,
+    SPELL_PURSUING_SPIKES_SEARCH    = 67470,
+    SPELL_MARK                      = 67574,
+};
+
+enum PursuingSpikesPhases
+{
+    PHASE_SEARCH            = 0,
+    PHASE_NO_MOVEMENT       = 1,
+    PHASE_IMPALE_NORMAL     = 2,
+    PHASE_IMPALE_MIDDLE     = 3,
+    PHASE_IMPALE_FAST       = 4
+};
+
+enum FrostsphereSpells
+{
+    SPELL_PERMAFROST_VISUAL         = 65882,
+    SPELL_PERMAFROST_TRANSFORM      = 66185,
+    SPELL_PERMAFROST                = 66193,
+    SPELL_FROSTSPHERE_VISUAL        = 67539,
+
+    POINT_GROUND            = 0,
+};
+
+enum NerubianBorrowerSpells
+{
+    SPELL_SPIDER_FRENZY             = 66128,
+    SPELL_SUBMERGE_BURROWER         = 68394,
+    SPELL_EXPOSE_WEAKNESS           = 67720,
+    SPELL_SHADOW_STRIKE             = 66134,
+};
+
 #define MAX_FROSTSPHERES    6
 #define MAX_BURROWS         4
 
@@ -112,15 +158,13 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
     boss_anubarak_trialAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
-        m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
-        m_bIsHeroic = m_uiMapDifficulty > RAID_DIFFICULTY_25MAN_NORMAL;
+        Difficulty m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
+        m_bIsHeroic = (m_uiMapDifficulty == RAID_DIFFICULTY_10MAN_HEROIC || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
-
         Reset();
     }
 
     instance_trial_of_the_crusader* m_pInstance;
-    Difficulty m_uiMapDifficulty;
     bool m_bIsHeroic;
     bool m_bIs25Man;
 
@@ -134,9 +178,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
     bool m_bDidIntroYell;
 
     ObjectGuid m_PursuingSpikesGuid;
-    GuidList m_lFrostSphereGuids;
-    GuidList m_lBurrowGuids;
-
+    GuidVector m_vSpheresGuidVector;
 
     void Reset() 
     {
@@ -147,46 +189,14 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
         m_uiFreezingSlashTimer          = 20000;
         m_uiPenetratingColdTimer        = urand(15000, 25000);
         m_uiNerubianBurrowerSummonTimer = 10000;
-        m_uiBerserkTimer                = 480000;
-
-        DoDespawnAdds();
-    }
-
-    void DoDespawnAdds()
-    {
-        for (GuidList::const_iterator itr = m_lBurrowGuids.begin(); itr != m_lBurrowGuids.end(); ++itr)
-            if (Creature* pBurrow = m_creature->GetMap()->GetCreature(*itr))
-                pBurrow->ForcedDespawn();
-
-        m_lBurrowGuids.clear();
-
-        DoDespawnPursuingSpikes();
-
-        for (GuidList::const_iterator itr = m_lFrostSphereGuids.begin(); itr != m_lFrostSphereGuids.end(); ++itr)
-            if (Creature* pFrostSphere = m_creature->GetMap()->GetCreature(*itr))
-                pFrostSphere->ForcedDespawn();
-
-        m_lFrostSphereGuids.clear();
-
-        std::list<Creature*> lNerubianBurrowers;
-        GetCreatureListWithEntryInGrid(lNerubianBurrowers, m_creature, NPC_NERUBIAN_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
-
-        for (std::list<Creature*>::iterator itr = lNerubianBurrowers.begin(); itr != lNerubianBurrowers.end(); ++itr)
-            if ((*itr) && (*itr)->isAlive())
-                (*itr)->ForcedDespawn();
-
-        std::list<Creature*> lScarabs;
-        GetCreatureListWithEntryInGrid(lScarabs, m_creature, NPC_SCARAB, DEFAULT_VISIBILITY_INSTANCE);
-
-        for (std::list<Creature*>::iterator itr = lScarabs.begin(); itr != lScarabs.end(); ++itr)
-            if ((*itr) && (*itr)->isAlive())
-                (*itr)->ForcedDespawn();
+        m_uiBerserkTimer                = 10*MINUTE*IN_MILLISECONDS;
     }
 
     void KilledUnit(Unit* pVictim)
     {
         DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2,m_creature);
     }
+
     void MoveInLineOfSight(Unit* pWho)
     {
         if (m_pInstance && m_pInstance->GetData(TYPE_TWIN_VALKYR) == DONE && !m_bDidIntroYell && !m_creature->IsInEvadeMode() && pWho->GetTypeId() == TYPEID_PLAYER && pWho->isAlive() && !((Player*)pWho)->isGameMaster() && pWho->GetPositionZ() < m_creature->GetPositionZ() + 2.0f)
@@ -204,16 +214,12 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        DoDespawnAdds();
-
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ANUBARAK, FAIL);
     }
 
     void JustDied(Unit* pKiller)
     {
-        DoDespawnAdds();
-
         DoScriptText(SAY_DEATH, m_creature);
 
         if (m_pInstance)
@@ -226,9 +232,14 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
 
         DoCastSpellIfCan(m_creature, SPELL_DAZE_IMMUNITY);
 
-        for (uint8 i = 0; i < MAX_FROSTSPHERES; ++i)
-            m_creature->SummonCreature(NPC_FROSTSPHERE, aFrostSphereSpawnPositions[i][0], aFrostSphereSpawnPositions[i][1], aFrostSphereSpawnPositions[i][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
+        m_vSpheresGuidVector.reserve(MAX_FROSTSPHERES);
 
+        // Summon the spheres on random points
+        for (uint8 i = 0; i < MAX_FROSTSPHERES; ++i)
+        {
+            if (Creature* pTemp = m_creature->SummonCreature(NPC_FROSTSPHERE, aFrostSphereSpawnPositions[i][0], aFrostSphereSpawnPositions[i][1], aFrostSphereSpawnPositions[i][2], 0, TEMPSUMMON_DEAD_DESPAWN, 0))
+                m_vSpheresGuidVector[i] = pTemp->GetObjectGuid();
+        }
         for (uint8 i = 0; i < MAX_BURROWS; ++i)
             m_creature->SummonCreature(NPC_BURROW, aBurrowSpawnPositions[i][0], aBurrowSpawnPositions[i][1], aBurrowSpawnPositions[i][2], aBurrowSpawnPositions[i][3], TEMPSUMMON_DEAD_DESPAWN, 0);
 
@@ -236,18 +247,53 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
             m_pInstance->SetData(TYPE_ANUBARAK, IN_PROGRESS);
     }
 
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_SUBMERGE && m_creature->isInCombat())
+        {
+            // Without this some players may have anubarak still as target
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+
+            // [Unconfirmed] Spawn new Frostspheres
+            if (!m_bIsHeroic)
+                DoRefreshSpheres();
+
+            DoCastSpellIfCan(m_creature, SPELL_CLEAR_ALL_DEBUFFS, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPIKES, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature, SPELL_SUMMON_SCARAB, CAST_TRIGGERED);
+        }
+    }
+
+    // Wrapper to refresh frost spheres - it's not very clear how ofter should this happen
+    void DoRefreshSpheres()
+    {
+        uint8 uiNewSpheres = 0;
+        for (uint8 i = 0; i < MAX_FROSTSPHERES; ++i)
+        {
+            // If the sphere is alive and hasn't transfomed to permafrost yet summon a new one
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_vSpheresGuidVector[i]))
+            {
+                if (!pTemp->HasAura(SPELL_PERMAFROST_TRANSFORM))
+                continue;
+            }
+            // Summon a new frost sphere instead of the killed one
+            if (Creature* pTemp = m_creature->SummonCreature(NPC_FROSTSPHERE, aFrostSphereSpawnPositions[i][0], aFrostSphereSpawnPositions[i][1], aFrostSphereSpawnPositions[i][2], 0, TEMPSUMMON_DEAD_DESPAWN, 0))
+                m_vSpheresGuidVector[i] = pTemp->GetObjectGuid();
+        }
+    }
+
     void JustSummoned(Creature* pCreature)
     {
         switch (pCreature->GetEntry())
         {
-            case NPC_FROSTSPHERE:
-                m_lFrostSphereGuids.push_back(pCreature->GetObjectGuid());
+            case NPC_NERUBIAN_BURROWER:
+            case NPC_SCARAB:
+                pCreature->AI()->AttackStart(m_creature->getVictim());
                 break;
             case NPC_ANUBARAK_SPIKED:
                 m_PursuingSpikesGuid = pCreature->GetObjectGuid();
                 break;
-            case NPC_BURROW:
-                m_lBurrowGuids.push_back(pCreature->GetObjectGuid());
+            default:
                 break;
         }
     }
@@ -358,8 +404,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public ScriptedAI
 
                     if (!m_bIsHeroic)
                     {
-                        for (uint8 i = 0; i < MAX_FROSTSPHERES; ++i)
-                            m_creature->SummonCreature(NPC_FROSTSPHERE, aFrostSphereSpawnPositions[i][0], aFrostSphereSpawnPositions[i][1], aFrostSphereSpawnPositions[i][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
+                        DoRefreshSpheres();
                     }
 
                     m_PhaseSwitchTimer = 80000;
@@ -380,14 +425,6 @@ CreatureAI* GetAI_boss_anubarak_trial(Creature* pCreature)
 {
     return new boss_anubarak_trialAI(pCreature);
 }
-
-enum SwarmScarabSpells
-{
-    SPELL_DETERMINATION             = 66092,
-    SPELL_ACID_MANDIBLE             = 65775,
-    SPELL_ACHIEV_TRAITOR_KING_10    = 68186,
-    SPELL_ACHIEV_TRAITOR_KING_25    = 68515,
-};
 
 struct MANGOS_DLL_DECL mob_swarm_scarabAI : public ScriptedAI
 {
@@ -450,16 +487,6 @@ CreatureAI* GetAI_mob_swarm_scarab(Creature* pCreature)
     return new mob_swarm_scarabAI(pCreature);
 };
 
-enum FrostsphereSpells
-{
-    SPELL_PERMAFROST_VISUAL         = 65882,
-    SPELL_FROSTSPHERE_INVISIBLE     = 66185,
-    SPELL_PERMAFROST                = 66193,
-    SPELL_FROSTSPHERE_VISUAL        = 67539,
-
-    POINT_GROUND            = 0,
-};
-
 struct MANGOS_DLL_DECL npc_anubarak_trial_frostsphereAI : public ScriptedAI
 {
     npc_anubarak_trial_frostsphereAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
@@ -469,32 +496,32 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_frostsphereAI : public ScriptedAI
     void Reset()
     {
         m_bPermafrost = false;
+        SetCombatMovement(false);
     }
 
     void AttackStart(Unit* pWho) { }
-    void MoveInLineOfSight(Unit* pWho) {}
     void UpdateAI(const uint32 uiDiff) { }
 
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    void DamageTaken(Unit* pDealer, uint32& uiDamage)
     {
-        if (m_creature->GetHealth() > uiDamage)
-            return;
+        if (m_creature->GetHealth() <= uiDamage)
+        {
+            uiDamage = 0;
 
-        uiDamage = 0;
+            if (m_bPermafrost)
+                return;
 
-        if (m_bPermafrost)
-            return;
+            float fx ,fy, fz;
+            m_creature->GetPosition(fx, fy, fz);  
+            fz = m_creature->GetMap()->GetHeight(m_creature->GetPhaseMask(), fx, fy, fz, true, MAX_FALL_DISTANCE);
+            if (fz <= INVALID_HEIGHT)
+                return;
+            m_creature->GetMotionMaster()->MovePoint(POINT_GROUND, fx ,fy, fz);
 
-        float fZ = m_creature->GetMap()->GetHeight(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), true, MAX_FALL_DISTANCE);
-
-        if (fZ <= INVALID_HEIGHT)
-            return;
-
-        m_creature->GetMotionMaster()->MoveIdle();
-        m_creature->GetMotionMaster()->MovePoint(POINT_GROUND, m_creature->GetPositionX(), m_creature->GetPositionY(), fZ);
-        m_creature->RemoveAurasDueToSpell(SPELL_FROSTSPHERE_VISUAL);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        m_bPermafrost = true;
+            m_creature->RemoveAurasDueToSpell(SPELL_FROSTSPHERE_VISUAL);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_bPermafrost = true;
+        }
     }
 
     void MovementInform(uint32 uiMoveType, uint32 uiPointId)
@@ -506,7 +533,7 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_frostsphereAI : public ScriptedAI
         {
             DoCastSpellIfCan(m_creature, SPELL_PERMAFROST, CAST_TRIGGERED);
             DoCastSpellIfCan(m_creature, SPELL_PERMAFROST_VISUAL, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_FROSTSPHERE_INVISIBLE, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature, SPELL_PERMAFROST_TRANSFORM, CAST_TRIGGERED);
         }
     }
 };
@@ -514,25 +541,6 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_frostsphereAI : public ScriptedAI
 CreatureAI* GetAI_mob_frost_sphere(Creature* pCreature)
 {
     return new npc_anubarak_trial_frostsphereAI(pCreature);
-};
-enum PursuingSpikeSpells
-{
-    SPELL_PURSUING_SPIKES_FAIL      = 66181,
-    SPELL_PURSUING_SPIKES_GROUND    = 65921, // Set as aura in database
-    SPELL_PURSUING_SPIKES_SPEED1    = 65920,
-    SPELL_PURSUING_SPIKES_SPEED2    = 65922,
-    SPELL_PURSUING_SPIKES_SPEED3    = 65923,
-    SPELL_PURSUING_SPIKES_SEARCH    = 67470,
-    SPELL_MARK                      = 67574,
-};
-
-enum PursuingSpikesPhases
-{
-    PHASE_SEARCH            = 0,
-    PHASE_NO_MOVEMENT       = 1,
-    PHASE_IMPALE_NORMAL     = 2,
-    PHASE_IMPALE_MIDDLE     = 3,
-    PHASE_IMPALE_FAST       = 4
 };
 
 struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
@@ -556,7 +564,6 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
         m_PursuingVictimGuid.Clear();
 
         SetCombatMovement(false);
-        m_creature->SetInCombatWithZone();
     }
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
@@ -573,9 +580,6 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
         if (m_PhaseSwitchTimer)
         {
             if (m_PhaseSwitchTimer <= uiDiff)
@@ -587,7 +591,7 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
                         if (DoCastSpellIfCan(m_creature, SPELL_PURSUING_SPIKES_SEARCH) == CAST_OK)
                         {
                             m_Phase = PHASE_NO_MOVEMENT;
-                            m_PhaseSwitchTimer = 3000;
+                            m_PhaseSwitchTimer = 1000;
                         }
                         break;
                     }
@@ -652,23 +656,31 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
 
         // Despawn Permafrost
         if (pPermafrost)
-            pPermafrost->ForcedDespawn(3000);
+            pPermafrost->ForcedDespawn();
 
         // After the spikes hit the icy surface they can't move for about ~5 seconds
         m_Phase = PHASE_SEARCH;
         m_PhaseSwitchTimer = 1000;
+        m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveIdle();
     }
 
     void SetPursuingVictim(Unit* pWho)
     {
-        if (pWho && m_PursuingVictimGuid != pWho->GetObjectGuid())
+        if (m_PursuingVictimGuid != pWho->GetObjectGuid())
         {
-            DoScriptText(EMOTE_PURSUE, m_creature, pWho);
-            DoCastSpellIfCan(pWho, SPELL_MARK, CAST_TRIGGERED);
-            m_PursuingVictimGuid = pWho->GetObjectGuid();
-            DoStartMovement(pWho);
+            if (Unit* pMarkTarget = m_creature->GetMap()->GetUnit(m_PursuingVictimGuid))
+            {
+                pMarkTarget->RemoveAurasDueToSpell(SPELL_MARK);
+            }
         }
+
+        DoScriptText(EMOTE_PURSUE, m_creature, pWho);
+        DoCastSpellIfCan(pWho, SPELL_MARK, CAST_TRIGGERED);
+        m_PursuingVictimGuid = pWho->GetObjectGuid();
+        m_creature->AI()->AttackStart(pWho);
+        m_creature->GetMotionMaster()->Clear();
+        m_creature->GetMotionMaster()->MoveChase(pWho);
     }
 };
 
@@ -677,13 +689,6 @@ CreatureAI* GetAI_npc_anubarak_trial_spikes(Creature* pCreature)
     return new npc_anubarak_trial_spikesAI(pCreature);
 }
 
-enum NerubianBorrowerSpells
-{
-    SPELL_SPIDER_FRENZY             = 66128,
-    SPELL_SUBMERGE_BURROWER         = 68394,
-    SPELL_EXPOSE_WEAKNESS           = 67720,
-    SPELL_SHADOW_STRIKE             = 66134,
-};
 struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public ScriptedAI
 {
     mob_nerubian_borrowerAI(Creature* pCreature) : ScriptedAI(pCreature)

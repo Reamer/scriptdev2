@@ -207,13 +207,10 @@ enum
     NPC_DARK_ESSENCE            = 34567,
 
     GO_MAIN_GATE                = 195647,
+    GO_WEST_GATE                = 195648,                   // entrance gate
+    GO_SOUTH_GATE               = 195649,                   // south and north doors are used to allow the Champions to enter the arena
+    GO_NORTH_GATE               = 195650,
     GO_COLISEUM_FLOOR           = 195527,
-
-    GO_WEST_PORTCULLIS          = 195589,
-    GO_SOUTH_PORTCULLIS         = 195590,
-    GO_NORTH_PORTCULLIS         = 195591,
-
-    GO_ARGENT_COLISEUM_FLOOR    = 195527, //20943
     GO_WEB_DOOR                 = 195485,
 
     GO_CRUSADERS_CACHE_10       = 195631,

@@ -270,10 +270,19 @@ void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
             }
             break;
         case GO_MAIN_GATE:
+        case GO_WEB_DOOR:
         case GO_CRUSADERS_CACHE_10:
         case GO_CRUSADERS_CACHE_25:
         case GO_CRUSADERS_CACHE_10_H:
         case GO_CRUSADERS_CACHE_25_H:
+        case GO_TRIBUTE_CHEST_10H_25:
+        case GO_TRIBUTE_CHEST_10H_45:
+        case GO_TRIBUTE_CHEST_10H_50:
+        case GO_TRIBUTE_CHEST_10H_99:
+        case GO_TRIBUTE_CHEST_25H_25:
+        case GO_TRIBUTE_CHEST_25H_45:
+        case GO_TRIBUTE_CHEST_25H_50:
+        case GO_TRIBUTE_CHEST_25H_99:
             break;
         default:
             return;
@@ -426,6 +435,8 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
                 StartNextDialogueText(TYPE_ANUBARAK);
             else if (uiData == FAIL)
                 SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+            if (uiData != SPECIAL)
+                DoUseDoorOrButton(GO_WEB_DOOR);
             m_auiEncounter[uiType] = uiData;
             break;
         case TYPE_CRUSADERS_COUNT:
