@@ -127,7 +127,8 @@ static const DialogueEntryTwoSide aTocDialogues[] =
     {NPC_RAMSEY_4, 0, 0, 0,                                 0},
     // Twin Valkyrs
     {TYPE_TWIN_VALKYR, 0, 0, 0,                             17000},
-    {EVENT_SUMMON_TWINS, 0, 0, 0,                           0},
+    {EVENT_SUMMON_TWINS, 0, 0, 0,                           20000},
+    {EVENT_MAKE_TWINS_ATTACKABLE, 0, 0, 0,                  0},
     {EVENT_TWINS_KILLED, 0, 0, 0,                           2000},
     {NPC_RAMSEY_5, 0, 0, 0,                                 4000},
     {SAY_VARIAN_TWINS_A_WIN,        NPC_VARIAN,         SAY_GARROSH_TWINS_H_WIN,    NPC_GARROSH, 1000},
@@ -214,6 +215,7 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
         case NPC_TIRION_B:
         case NPC_VARIAN:
         case NPC_GARROSH:
+        case NPC_GORMOK:
         case NPC_DREADSCALE:
         case NPC_ACIDMAW:
         case NPC_JARAXXUS:
@@ -560,6 +562,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
             if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
             {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
+                pChampion->SetInCombatWithZone();
             }
         }
         for(std::list<uint32>::const_iterator itr = lSummonMagicDDList.begin(); itr != lSummonMagicDDList.end(); ++itr)
@@ -568,6 +571,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
             if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
             {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
+                pChampion->SetInCombatWithZone();
             }
         }
         for(std::list<uint32>::const_iterator itr = lSummonMeleeDDList.begin(); itr != lSummonMeleeDDList.end(); ++itr)
@@ -576,6 +580,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
             if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
             {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
+                pChampion->SetInCombatWithZone();
             }
         }
     }
@@ -707,6 +712,19 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
                 }
             }
             break;
+        }
+        case EVENT_MAKE_TWINS_ATTACKABLE:
+        {
+            if (Creature* pFjola = GetSingleCreatureFromStorage(NPC_LIGHT_FJOLA))
+            {
+                pFjola->RemoveFlag(UNIT_FIELD_FLAGS , UNIT_FLAG_PASSIVE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                pFjola->SetInCombatWithZone();
+            }
+            if (Creature* pEydis = GetSingleCreatureFromStorage(NPC_DARK_EYDIS))
+            {
+                pEydis->RemoveFlag(UNIT_FIELD_FLAGS , UNIT_FLAG_PASSIVE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                pEydis->SetInCombatWithZone();
+            }
         }
         case SAY_LKING_ANUB_INTRO_1:
         {

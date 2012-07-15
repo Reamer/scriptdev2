@@ -419,7 +419,8 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
             if (apply)
             {
                 DoCastSpellIfCan(m_creature, SPELL_SNOBOLLED);
-                DoCastSpellIfCan(m_creature, SPELL_RISING_ANGER);
+                DoCastSpellIfCan(m_creature, SPELL_RISING_ANGER, CAST_TRIGGERED);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS , UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
                 m_VehicleBasePlayer = pWho->GetObjectGuid();
             }
             else
@@ -440,8 +441,16 @@ struct MANGOS_DLL_DECL mob_snobold_vassalAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
+        // Snowbold need always a vehicle (Player or Gormok)
         if (!m_creature->GetVehicle() || !m_creature->GetVehicle()->GetBase())
+        {
             m_creature->DealDamage(m_creature, m_creature->GetMaxHealth(), 0, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+            return;
+        }
+
+        // If Snowbold is not on player no actions
+        if (m_creature->GetVehicle()->GetBase()->GetTypeId() != TYPEID_PLAYER)
+            return;
 
         if (m_uiBatterTimer <= uiDiff)
         {

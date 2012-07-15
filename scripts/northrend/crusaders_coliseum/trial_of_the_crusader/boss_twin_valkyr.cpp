@@ -36,7 +36,7 @@ enum BossSpells
     SPELL_LIGHT_TOUCH             = 67296,
 
     SPELL_SUMMON_LIGHT_BULLET     = 66140,      // every 30 seconds; target= 34720; limit to 10 target (need core support) - source sniff;
-    SPELL_SUMMON_DARK_BULLET      = 66140,      // every 30 seconds; target= 34704; limit to 10 target (need core support); together with above spell - source sniff
+    SPELL_SUMMON_DARK_BULLET      = 66141,      // every 30 seconds; target= 34704; limit to 10 target (need core support); together with above spell - source sniff
 
     // Eydis
     SPELL_TWIN_EMPATHY_TO_LIGHT   = 66133,              // use spell_script_target DB entry
@@ -127,14 +127,13 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
     boss_fjolaAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
-        m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
+        Difficulty m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
         m_bIsHeroic = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_10MAN_HEROIC);
         m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         Reset();
     }
 
     instance_trial_of_the_crusader* m_pInstance;
-    Difficulty m_uiMapDifficulty;
     bool m_bIsHeroic;
     bool m_bIs25Man;
 
@@ -161,6 +160,7 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TWIN_VALKYR, FAIL);
+        m_creature->ForcedDespawn();
     }
 
     void JustDied(Unit* pKiller)
@@ -326,6 +326,7 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TWIN_VALKYR, FAIL);
+        m_creature->ForcedDespawn();
     }
 
     void KilledUnit(Unit* pVictim)
@@ -451,7 +452,7 @@ struct MANGOS_DLL_DECL npc_light_or_dark_essenceAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_pInstance->GetData(TYPE_TWIN_VALKYR) != IN_PROGRESS)
+        if (m_pInstance->GetData(TYPE_TWIN_VALKYR) == FAIL || m_pInstance->GetData(TYPE_TWIN_VALKYR) == DONE)
         {
             Map* pMap = m_creature->GetMap();
             Map::PlayerList const &lPlayers = pMap->GetPlayers();

@@ -68,9 +68,10 @@ INSERT INTO creature (guid, id, map, spawnMask, phaseMask, position_x, position_
 -- ************** Twin Valkyr *************
 UPDATE creature_template SET scriptname = 'boss_fjola', AIName = '' WHERE entry = 34497;
 UPDATE creature_template SET scriptname = 'boss_eydis', AIName = '' WHERE entry = 34496;
+DELETE FROM creature_template_addon WHERE entry IN (34497, 34496);
 UPDATE creature_template SET npcflag = 1, scriptname = 'npc_light_or_dark_essence',  AIName = '' WHERE entry IN (34568, 34567);
 UPDATE creature_template SET AIName = '', scriptname = 'npc_light_or_dark_bullet' WHERE entry IN (34628, 34630);
-UPDATE creature_template SET AIName ='NullAI' WHERE entry IN (34720, 34704);
+UPDATE creature_template SET AIName ='NullAI' WHERE entry IN (34720, 34704); -- bullet Stalker
 
 -- Twin Valkyrs
 REPLACE INTO `creature_template_addon` (entry, auras) VALUES ('34497', '65766'); -- Fjona light surge
