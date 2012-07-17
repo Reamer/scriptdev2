@@ -82,7 +82,9 @@ enum
     SAY_TIRION_ABUN_INTRO_1             = -1649035,
     SAY_LKING_ANUB_INTRO_2              = -1649036,
     SAY_LKING_ANUB_INTRO_3              = -1649037,
-    SAY_ANUB_ANUB_INTRO_1               = -1649038,         // NYI
+
+    // Epilogue
+    SAY_TIRION_EPILOGUE                 = -1649075,
 };
 
 static const DialogueEntryTwoSide aTocDialogues[] =
@@ -173,31 +175,15 @@ bool instance_trial_of_the_crusader::IsEncounterInProgress() const
     return false;
 }
 
-bool instance_trial_of_the_crusader::IsRaidWiped()
-{
-    Map::PlayerList const &players = instance->GetPlayers();
-
-    for (Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
-    {
-        if (Player* pPlayer = i->getSource())
-        {
-            if (pPlayer->isAlive())
-                return false;
-
-        }
-    }
-    return true;
-}
-
 void instance_trial_of_the_crusader::UpdateWorldState()
 {
-    if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC || true /*for TEST*/)
+    if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
     {
-        int32 counter = 50 - GetData(TYPE_WIPE_COUNT);
+        int32 counter = MAX_WIPES_ALLOWED - GetData(TYPE_WIPE_COUNT);
         if (counter < 0)
             counter = 0;
-        DoUpdateWorldState(UPDATE_STATE_UI_SHOW, 1);
-        DoUpdateWorldState(UPDATE_STATE_UI_COUNT, counter);
+        DoUpdateWorldState(WORLD_STATE_WIPES, 1);
+        DoUpdateWorldState(WORLD_STATE_WIPES_COUNT, counter);
     }
 }
 
@@ -207,10 +193,7 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
     {
         case NPC_FIZZLEBANG:
         case NPC_LIGHT_FJOLA:
-        {
-            DoUseDoorOrButton(GO_MAIN_GATE); // should open the main gate
-            break;
-        }
+            DoUseDoorOrButton(GO_MAIN_GATE);
         case NPC_TIRION_A:
         case NPC_TIRION_B:
         case NPC_VARIAN:
@@ -225,12 +208,6 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
         case NPC_THE_LICHKING:
         case NPC_THE_LICHKING_VISUAL:
             break;
-        case NPC_VALKYR_TWINS_BULLET_STALKER_DARK:
-            m_lBulletStalkerDark.push_back(pCreature->GetObjectGuid());
-            return;
-        case NPC_VALKYR_TWINS_BULLET_STALKER_LIGHT:
-            m_lBulletStalkerLight.push_back(pCreature->GetObjectGuid());
-            return;
         case NPC_MISTRESS:
             ++m_uiMistressLifeCounter;
             return;
@@ -271,8 +248,6 @@ void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             }
             break;
-        case GO_MAIN_GATE:
-        case GO_WEB_DOOR:
         case GO_CRUSADERS_CACHE_10:
         case GO_CRUSADERS_CACHE_25:
         case GO_CRUSADERS_CACHE_10_H:
@@ -285,6 +260,8 @@ void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
         case GO_TRIBUTE_CHEST_25H_25:
         case GO_TRIBUTE_CHEST_25H_45:
         case GO_TRIBUTE_CHEST_25H_50:
+        case GO_MAIN_GATE:
+        case GO_WEB_DOOR:
             break;
         default:
             return;
@@ -348,6 +325,7 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
     switch(uiType)
     {
         case TYPE_WIPE_COUNT:
+            UpdateWorldState();
             m_auiEncounter[uiType] = uiData;
             break;
         case TYPE_NORTHREND_BEASTS:
@@ -383,7 +361,7 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
             if (m_auiEncounter[uiType] != uiData)
             {
             if (uiData == SPECIAL)
-                StartNextDialogueText(m_auiEncounter[TYPE_FACTION_CHAMPIONS] != FAIL ? SAY_TIRION_PVP_INTRO_1 : TYPE_FACTION_CHAMPIONS);
+                StartNextDialogueText(m_auiEncounter[uiType] != FAIL ? SAY_TIRION_PVP_INTRO_1 : TYPE_FACTION_CHAMPIONS);
             else if (uiData == FAIL)
             {
                 SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
@@ -391,7 +369,6 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
             }
             else if (uiData == DONE)
             {
-                StartNextDialogueText(SAY_VARIAN_PVP_A_WIN);
                 switch (instance->GetDifficulty())
                 {
                     case RAID_DIFFICULTY_10MAN_NORMAL:
@@ -409,6 +386,7 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
                     default:
                         break;
                 }
+                StartNextDialogueText(SAY_VARIAN_PVP_A_WIN);
             }
             m_auiEncounter[uiType] = uiData;
             }
@@ -438,7 +416,8 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
             else if (uiData == FAIL)
                 SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
             else if (uiData == DONE)
-                SpawnTributeChest();
+                DoHandleEventEpilogue();
+            // Handle combat door
             if (uiData != SPECIAL)
                 DoUseDoorOrButton(GO_WEB_DOOR);
             m_auiEncounter[uiType] = uiData;
@@ -463,7 +442,6 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
             error_log("SD2: Instance Trial of The Crusader: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
             return;
     }
-    UpdateWorldState();
 
     if (uiData == DONE || uiType == TYPE_WIPE_COUNT)
     {
@@ -588,29 +566,29 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
     }
 }
 
-void instance_trial_of_the_crusader::SpawnTributeChest()
+void instance_trial_of_the_crusader::DoHandleEventEpilogue()
 {
-    Difficulty difficulty = instance->GetDifficulty();
-    if (difficulty == RAID_DIFFICULTY_10MAN_HEROIC || difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+    Player* pPlayer = GetPlayerInMap();
+    if (!pPlayer)
+        return;
+
+    // Spawn Tirion and the mage
+    if (Creature* pTirion = pPlayer->SummonCreature(NPC_TIRION_B, aSpawnPositions[12][0], aSpawnPositions[12][1], aSpawnPositions[12][2], aSpawnPositions[12][3], TEMPSUMMON_CORPSE_DESPAWN, 0))
+        DoScriptText(SAY_TIRION_EPILOGUE, pTirion);
+
+    pPlayer->SummonCreature(NPC_ARGENT_MAGE, aSpawnPositions[13][0], aSpawnPositions[13][1], aSpawnPositions[13][2], aSpawnPositions[13][3], TEMPSUMMON_CORPSE_DESPAWN, 0);
+
+    // Spawn the chest for heroic difficulty
+    if (IsHeroicDifficulty())
     {
-        uint32 uiWipeCount = GetData(TYPE_WIPE_COUNT);
-        bool Is25Man = (difficulty == RAID_DIFFICULTY_25MAN_HEROIC) ? true : false;
-        if (uiWipeCount == 0)
-        {
-            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_50 : GO_TRIBUTE_CHEST_10H_50, 30*MINUTE);
-        }
-        else if (uiWipeCount < 5)
-        {
-            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_45 : GO_TRIBUTE_CHEST_10H_45, 30*MINUTE);
-        }
-        else if (uiWipeCount < 25)
-        {
-            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_25 : GO_TRIBUTE_CHEST_10H_01, 30*MINUTE);
-        }
+        if (GetData(TYPE_WIPE_COUNT) == 0)
+            DoRespawnGameObject(Is25ManDifficulty() ? GO_TRIBUTE_CHEST_25H_50 : GO_TRIBUTE_CHEST_10H_50, 60*MINUTE);
+        else if (GetData(TYPE_WIPE_COUNT) < 5)
+            DoRespawnGameObject(Is25ManDifficulty() ? GO_TRIBUTE_CHEST_25H_45 : GO_TRIBUTE_CHEST_10H_45, 60*MINUTE);
+        else if (GetData(TYPE_WIPE_COUNT) < 25)
+            DoRespawnGameObject(Is25ManDifficulty() ? GO_TRIBUTE_CHEST_25H_25 : GO_TRIBUTE_CHEST_10H_25, 60*MINUTE);
         else
-        {
-            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_01 : GO_TRIBUTE_CHEST_10H_01, 30*MINUTE);
-        }
+            DoRespawnGameObject(Is25ManDifficulty() ? GO_TRIBUTE_CHEST_25H_01 : GO_TRIBUTE_CHEST_10H_01, 60*MINUTE);
     }
 }
 

@@ -103,17 +103,16 @@ static const Locations SpawnLoc[]=
 enum
 {
     MAX_ENCOUNTER               = 6,
+    MAX_WIPES_ALLOWED           = 50,
 
     TYPE_WIPE_COUNT             = 0,
     TYPE_NORTHREND_BEASTS       = 1,
     TYPE_JARAXXUS               = 2,
     TYPE_FACTION_CHAMPIONS      = 3,
+    TYPE_CRUSADERS_COUNT        = 31,
     TYPE_TWIN_VALKYR            = 4,
     TYPE_ANUBARAK               = 5,
 
-    TYPE_EVENT_TIMER            = 102,
-    TYPE_EVENT_NPC              = 103,
-    TYPE_CRUSADERS_COUNT        = 104,
     EVENT_OPEN_PORTAL           = 6,
     EVENT_KILL_FIZZLEBANG       = 7,
     EVENT_JARAXXUS_START_ATTACK = 8,
@@ -186,6 +185,7 @@ enum
 
     NPC_TIRION_A                = 34996,
     NPC_TIRION_B                = 36095,                    // Summoned after his text (Champions, you're alive! Not only have you defeated every challenge of the Trial of the Crusader, but also thwarted Arthas' plans! Your skill and cunning will prove to be a powerful weapon against the Scourge. Well done! Allow one of the Crusade's mages to transport you to the surface!) is said..
+    NPC_ARGENT_MAGE             = 36097,                    // Summoned along with Tirion B
     NPC_VARIAN                  = 34990,
     NPC_GARROSH                 = 34995,
     NPC_FIZZLEBANG              = 35458,
@@ -239,6 +239,9 @@ enum
 
     DISPLAYID_DESTROYED_FLOOR   = 9060,
     POINT_COMBAT_POSITION       = 10,
+
+    WORLD_STATE_WIPES           = 4390,
+    WORLD_STATE_WIPES_COUNT     = 4389,
 };
 
 static const float aRamsayPositions[2][4] =
@@ -261,6 +264,8 @@ static const float aSpawnPositions[][4] =
     {563.6996f, 175.9826f, 394.5042f, 4.694936f},           // World Trigger Large
     {563.5712f, 174.8351f, 394.4954f, 4.712389f},           // Lich King
     {563.6858f, 139.4323f, 393.9862f, 4.694936f},           // Purple Rune / Center Position
+    {648.9169f, 131.0209f, 141.6159f, 0.0f},                // Tirion B
+    {649.1610f, 142.0399f, 141.3060f, 0.0f},                // Argent mage
 };
 
 static const float aMovePositions[][3] =
@@ -282,12 +287,6 @@ static const float aEssencePositions[4][4] =
     { 541.602112f, 161.879837f, 394.587952f, 0.0f }, // Dark essence
 };
 
-enum uiWorldStates
-{
-    UPDATE_STATE_UI_SHOW            = 4390,
-    UPDATE_STATE_UI_COUNT           = 4389,
-};
-
 enum DummyNPC
 {
     NPC_VALKYR_TWINS_BULLET_STALKER_DARK    = 34704,
@@ -305,7 +304,6 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
         bool IsEncounterInProgress() const;
 
 
-        bool IsRaidWiped();
         void UpdateWorldState();
 
         void OnCreatureCreate(Creature* pCreature);
@@ -321,28 +319,28 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
         void SetData(uint32 uiType, uint32 uiData);
         uint32 GetData(uint32 uiType);
 
+        // Difficulty wrappers
+        bool IsHeroicDifficulty() { return instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
+        bool Is25ManDifficulty() { return instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
+
         const char* Save() { return m_strInstData.c_str(); }
         void Load(const char* chrIn);
 
         void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
 
-        void SummonFactionChampion();
-        void SpawnTributeChest();
-
     private:
         void DoSummonRamsey(uint32 uiEntry);
         void JustDidDialogueStep(int32 iEntry);
+        void SummonFactionChampion();
+        void DoHandleEventEpilogue();
+
+        uint32 m_auiEncounter[MAX_ENCOUNTER];
+        std::string m_strInstData;
 
         Team m_uiTeam;
 
-        uint32 m_auiEncounter[MAX_ENCOUNTER];
-        uint32 m_uiNorthrendBeastState;
-        std::string m_strInstData;
-
         bool m_bAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
 
-        GuidList m_lBulletStalkerDark;
-        GuidList m_lBulletStalkerLight;
         GuidList m_lNerubianBurrow;
         GuidList m_lFactionChampion;
 
