@@ -219,15 +219,15 @@ enum
     GO_CRUSADERS_CACHE_10_H     = 195633,
     GO_CRUSADERS_CACHE_25_H     = 195635,
 
-    GO_TRIBUTE_CHEST_10H_25     = 195665,
-    GO_TRIBUTE_CHEST_10H_45     = 195666,
-    GO_TRIBUTE_CHEST_10H_50     = 195667,
-    GO_TRIBUTE_CHEST_10H_99     = 195668,
+    GO_TRIBUTE_CHEST_10H_01     = 195665,
+    GO_TRIBUTE_CHEST_10H_25     = 195666,
+    GO_TRIBUTE_CHEST_10H_45     = 195667,
+    GO_TRIBUTE_CHEST_10H_50     = 195668,
 
-    GO_TRIBUTE_CHEST_25H_25     = 195669,
-    GO_TRIBUTE_CHEST_25H_45     = 195670,
-    GO_TRIBUTE_CHEST_25H_50     = 195671,
-    GO_TRIBUTE_CHEST_25H_99     = 195672,
+    GO_TRIBUTE_CHEST_25H_01     = 195669,
+    GO_TRIBUTE_CHEST_25H_25     = 195670,
+    GO_TRIBUTE_CHEST_25H_45     = 195671,
+    GO_TRIBUTE_CHEST_25H_50     = 195672,
 
     SPELL_OPEN_PORTAL           = 67864,
     SPELL_FEL_LIGHTNING_KILL    = 67888,
@@ -327,6 +327,7 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
         void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
 
         void SummonFactionChampion();
+        void SpawnTributeChest();
 
     private:
         void DoSummonRamsey(uint32 uiEntry);

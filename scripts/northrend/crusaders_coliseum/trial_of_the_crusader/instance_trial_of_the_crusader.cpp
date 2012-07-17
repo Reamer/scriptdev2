@@ -277,14 +277,14 @@ void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
         case GO_CRUSADERS_CACHE_25:
         case GO_CRUSADERS_CACHE_10_H:
         case GO_CRUSADERS_CACHE_25_H:
+        case GO_TRIBUTE_CHEST_10H_01:
         case GO_TRIBUTE_CHEST_10H_25:
         case GO_TRIBUTE_CHEST_10H_45:
         case GO_TRIBUTE_CHEST_10H_50:
-        case GO_TRIBUTE_CHEST_10H_99:
+        case GO_TRIBUTE_CHEST_25H_01:
         case GO_TRIBUTE_CHEST_25H_25:
         case GO_TRIBUTE_CHEST_25H_45:
         case GO_TRIBUTE_CHEST_25H_50:
-        case GO_TRIBUTE_CHEST_25H_99:
             break;
         default:
             return;
@@ -437,6 +437,8 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
                 StartNextDialogueText(TYPE_ANUBARAK);
             else if (uiData == FAIL)
                 SetData(TYPE_WIPE_COUNT, m_auiEncounter[TYPE_WIPE_COUNT] + 1);
+            else if (uiData == DONE)
+                SpawnTributeChest();
             if (uiData != SPECIAL)
                 DoUseDoorOrButton(GO_WEB_DOOR);
             m_auiEncounter[uiType] = uiData;
@@ -585,6 +587,33 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         }
     }
 }
+
+void instance_trial_of_the_crusader::SpawnTributeChest()
+{
+    Difficulty difficulty = instance->GetDifficulty();
+    if (difficulty == RAID_DIFFICULTY_10MAN_HEROIC || difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+    {
+        uint32 uiWipeCount = GetData(TYPE_WIPE_COUNT);
+        bool Is25Man = (difficulty == RAID_DIFFICULTY_25MAN_HEROIC) ? true : false;
+        if (uiWipeCount == 0)
+        {
+            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_50 : GO_TRIBUTE_CHEST_10H_50, 30*MINUTE);
+        }
+        else if (uiWipeCount < 5)
+        {
+            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_45 : GO_TRIBUTE_CHEST_10H_45, 30*MINUTE);
+        }
+        else if (uiWipeCount < 25)
+        {
+            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_25 : GO_TRIBUTE_CHEST_10H_01, 30*MINUTE);
+        }
+        else
+        {
+            DoRespawnGameObject(Is25Man ? GO_TRIBUTE_CHEST_25H_01 : GO_TRIBUTE_CHEST_10H_01, 30*MINUTE);
+        }
+    }
+}
+
 void instance_trial_of_the_crusader::DoSummonRamsey(uint32 uiEntry)
 {
     Player* pPlayer = GetPlayerInMap();
