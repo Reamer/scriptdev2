@@ -421,8 +421,7 @@ extern void AddSC_boss_skadi();
 extern void AddSC_boss_svala();
 extern void AddSC_boss_ymiron();
 extern void AddSC_instance_pinnacle();
-extern void AddSC_boss_archavon();                          // vault_of_archavon
-extern void AddSC_boss_emalon();
+extern void AddSC_boss_emalon();                            // vault_of_archavon
 extern void AddSC_boss_koralon();
 extern void AddSC_boss_toravon();
 extern void AddSC_instance_vault_of_archavon();
@@ -942,8 +941,7 @@ void AddScripts()
     AddSC_boss_svala();
     AddSC_boss_ymiron();
     AddSC_instance_pinnacle();
-    AddSC_boss_archavon();                                  // vault_of_archavon
-    AddSC_boss_emalon();
+    AddSC_boss_emalon();                                    // vault_of_archavon
     AddSC_boss_koralon();
     AddSC_boss_toravon();
     AddSC_instance_vault_of_archavon();
