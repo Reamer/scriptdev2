@@ -180,7 +180,7 @@ void instance_trial_of_the_crusader::UpdateWorldState()
     if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
     {
         DoUpdateWorldState(WORLD_STATE_WIPES, 1);
-        DoUpdateWorldState(WORLD_STATE_WIPES_COUNT, GetData(TYPE_WIPE_COUNT) <= MAX_WIPES_ALLOWED : GetData(TYPE_WIPE_COUNT) - MAX_WIPES_ALLOWED : 0);
+        DoUpdateWorldState(WORLD_STATE_WIPES_COUNT, GetData(TYPE_WIPE_COUNT) <= MAX_WIPES_ALLOWED ? GetData(TYPE_WIPE_COUNT) - MAX_WIPES_ALLOWED : 0);
     }
 }
 
@@ -191,6 +191,7 @@ void instance_trial_of_the_crusader::OnCreatureCreate(Creature* pCreature)
         case NPC_FIZZLEBANG:
         case NPC_LIGHT_FJOLA:
             DoUseDoorOrButton(GO_MAIN_GATE);
+            break;
         case NPC_TIRION_A:
         case NPC_TIRION_B:
         case NPC_VARIAN:
