@@ -132,9 +132,6 @@ void instance_ulduar::OnCreatureCreate(Creature* pCreature)
     case NPC_OMINOUS_CLOUD:
         m_lCloudGuids.push_back(pCreature->GetObjectGuid());
         return;
-    case NPC_SANCTUM_SENTRY:
-        m_lSanctumSentryGuids.push_back(pCreature->GetObjectGuid());
-        return;
 
         // used to handle the keepers images
         // set to invisible by default and only made visible if the encounter is done
