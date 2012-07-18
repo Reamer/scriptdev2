@@ -97,35 +97,6 @@ void instance_vault_of_archavon::OnCreatureDeath(Creature * pCreature)
 void instance_vault_of_archavon::SetData(uint32 uiType, uint32 uiData)
 {
     m_auiEncounter[uiType] = uiData;
-    switch (uiType)
-    {
-        case TYPE_EMALON:
-        {
-            if (uiData == DONE)
-            {
-                for (GuidList::iterator itr = m_lTempestMinion.begin(); itr !=m_lTempestMinion.end(); ++itr)
-                {
-                    if (Creature* pMinion = instance->GetCreature(*itr))
-                    {
-                        pMinion->DealDamage(pMinion, pMinion->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                    }
-                }
-            }
-            else if (uiData == FAIL)
-            {
-                for (GuidList::iterator itr = m_lTempestMinion.begin(); itr !=m_lTempestMinion.end(); ++itr)
-                {
-                    if (Creature* pMinion = instance->GetCreature(*itr))
-                    {
-                        pMinion->Respawn();
-                    }
-                }
-            }
-            break;
-        }
-        default:
-            break;
-    }
 
     if (uiData == DONE)
     {

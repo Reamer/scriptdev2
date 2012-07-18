@@ -130,7 +130,7 @@ void instance_ulduar::OnCreatureCreate(Creature* pCreature)
     case NPC_ALGALON:
         break;
     case NPC_OMINOUS_CLOUD:
-        m_lCLoudGuids.push_back(pCreature->GetObjectGuid());
+        m_lCloudGuids.push_back(pCreature->GetObjectGuid());
         return;
     case NPC_SANCTUM_SENTRY:
         m_lSanctumSentryGuids.push_back(pCreature->GetObjectGuid());
@@ -642,7 +642,7 @@ void instance_ulduar::SetData(uint32 uiType, uint32 uiData)
         if (uiData == FAIL)
         {
             // respawn clouds
-            for(GuidList::iterator iter = m_lCLoudGuids.begin(); iter != m_lCLoudGuids.end(); ++iter)
+            for(GuidList::iterator iter = m_lCloudGuids.begin(); iter != m_lCloudGuids.end(); ++iter)
                 if (Creature *pTmp = instance->GetCreature(*iter))
                     pTmp->Respawn();
             // respawn Sara

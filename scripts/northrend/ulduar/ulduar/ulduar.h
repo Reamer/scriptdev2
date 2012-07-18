@@ -402,8 +402,7 @@ class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         GuidList m_lHandTriggerGuids[2][10];
         GuidList m_lLowerOrbs;
         GuidList m_lUpperOrbs;
-        GuidList m_lSanctumSentryGuids;
-        GuidList m_lCLoudGuids;
+        GuidList m_lCloudGuids;
 
         GuidVector m_lBreakHarpoonGUID;
 

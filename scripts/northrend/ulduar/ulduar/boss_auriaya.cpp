@@ -105,43 +105,20 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
         m_uiSentinelBlastTimer      = 40000;
         m_uiTerrifyingScreechTimer  = 38000;
         m_uiDefenderTimer           = 1*MINUTE*IN_MILLISECONDS;
-
-        for (GuidList::iterator itr = m_pInstance->m_lSanctumSentryGuids.begin(); itr != m_pInstance->m_lSanctumSentryGuids.end(); ++itr)
-        {
-            if (Creature* pSanity = m_creature->GetMap()->GetCreature(*itr))
-            {
-                if (!pSanity->isAlive())
-                {
-                    pSanity->Respawn();
-                    pSanity->NearTeleportTo(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0.0f);
-                }
-            }
-        }
     }
 
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-
         if (m_pInstance)
             m_pInstance->SetData(TYPE_AURIAYA, DONE);
     }
 
     void Aggro(Unit* pWho)
     {
+        DoScriptText(SAY_AGGRO, m_creature);
         if (m_pInstance)
             m_pInstance->SetData(TYPE_AURIAYA, IN_PROGRESS);
-
-        for (GuidList::iterator itr = m_pInstance->m_lSanctumSentryGuids.begin(); itr != m_pInstance->m_lSanctumSentryGuids.end(); ++itr)
-        {
-            if (Creature* pSanity = m_creature->GetMap()->GetCreature(*itr))
-            {
-                if (pSanity->isAlive())
-                    pSanity->SetInCombatWithZone();
-            }
-        }
-
-        DoScriptText(SAY_AGGRO, m_creature);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -383,90 +360,6 @@ CreatureAI* GetAI_boss_feral_defender(Creature* pCreature)
     return new boss_feral_defenderAI(pCreature);
 }
 
-// Sanctum Sentry
-struct MANGOS_DLL_DECL boss_sanctum_sentryAI : public ScriptedAI
-{
-    boss_sanctum_sentryAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
-    }
-
-    instance_ulduar* m_pInstance;
-    bool m_bIsRegularMode;
-
-    bool m_bIsFollowing;
-
-    uint32 m_uiRip_Flesh_Timer;
-    uint32 m_uiJump_Timer;
-
-    void Reset()
-    {
-        m_uiRip_Flesh_Timer = 13000;
-        m_uiJump_Timer = 0;
-        m_bIsFollowing = false;
-    }
-
-    void Aggro(Unit* pWho)
-    {
-        if (m_pInstance)
-        {
-            if (Creature* pAuriaya = m_pInstance->GetSingleCreatureFromStorage(NPC_AURIAYA))
-            {
-                if (pAuriaya->isAlive())
-                    pAuriaya->SetInCombatWithZone();
-            }
-
-            for (GuidList::iterator itr = m_pInstance->m_lSanctumSentryGuids.begin(); itr != m_pInstance->m_lSanctumSentryGuids.end(); ++itr)
-            {
-                if (Creature* pSanity = m_creature->GetMap()->GetCreature(*itr))
-                {
-                    if (pSanity->isAlive())
-                        pSanity->SetInCombatWithZone();
-                }
-            }
-        }
-        DoCast(m_creature, SPELL_STRENGHT_OF_PACK);
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-        {
-            if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() != FOLLOW_MOTION_TYPE)
-                if (m_pInstance)
-                    if (Creature *pAuriaya = m_pInstance->GetSingleCreatureFromStorage(NPC_AURIAYA))
-                        m_creature->GetMotionMaster()->MoveFollow(pAuriaya, 5.0f, urand(60, 250)/100.0f);
-            return;
-        }
-
-        if (m_uiRip_Flesh_Timer < diff)
-        {
-            if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_RIP_FLESH : SPELL_RIP_FLESH_H) == CAST_OK)
-                m_uiRip_Flesh_Timer = 13000;
-        }
-        else
-            m_uiRip_Flesh_Timer -= diff;
-
-        if (m_uiJump_Timer < diff)
-        {
-            if (!m_creature->IsWithinDistInMap(m_creature->getVictim(), 8) && m_creature->IsWithinDistInMap(m_creature->getVictim(), 25))
-                DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SAVAGE_POUNCE : SPELL_SAVAGE_POUNCE_H);
-            m_uiJump_Timer = 1000;
-        }
-        else
-            m_uiJump_Timer -= diff;
-
-        DoMeleeAttackIfReady();
-    }
-};
-
-CreatureAI* GetAI_boss_sanctum_sentry(Creature* pCreature)
-{
-    return new boss_sanctum_sentryAI(pCreature);
-}
-
 void AddSC_boss_auriaya()
 {
     Script* pNewScript;
@@ -474,11 +367,6 @@ void AddSC_boss_auriaya()
     pNewScript = new Script;
     pNewScript->Name = "boss_auriaya";
     pNewScript->GetAI = GetAI_boss_auriaya;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "mob_sanctum_sentry";
-    pNewScript->GetAI = &GetAI_boss_sanctum_sentry;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

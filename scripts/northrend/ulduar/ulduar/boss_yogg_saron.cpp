@@ -629,7 +629,7 @@ struct MANGOS_DLL_DECL boss_yogg_saronAI : public ScriptedAI
         if (m_pInstance)
         {
             //remove Clouds
-            for(GuidList::iterator iter = m_pInstance->m_lCLoudGuids.begin(); iter != m_pInstance->m_lCLoudGuids.end(); ++iter)
+            for(GuidList::iterator iter = m_pInstance->m_lCloudGuids.begin(); iter != m_pInstance->m_lCloudGuids.end(); ++iter)
                 if (Creature *pTmp = m_pInstance->instance->GetCreature(*iter))
                     pTmp->ForcedDespawn();
         }
