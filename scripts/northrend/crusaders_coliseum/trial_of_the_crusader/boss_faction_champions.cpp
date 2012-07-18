@@ -98,7 +98,7 @@ enum Spells
     SPELL_SEARING_PAIN          = 65819,
     SPELL_SHADOW_BOLT           = 65821,
     SPELL_UNSTABLE              = 65812,
-    SPELL_SUMMON_FEL            = 67514,
+    SPELL_SUMMON_FEL            = 67514, // not in use, because SummonPropertiesEntry is missing
 
     //Mage
     SPELL_BARRAGE               = 65799, //3s
@@ -121,7 +121,7 @@ enum Spells
     SPELL_STEADY_SHOT           = 65867, //3s
     SPELL_WING_CLIP             = 66207, //6s
     SPELL_WYVERN_STING          = 65877, //60s
-    SPELL_CALL_PET              = 67777,
+    SPELL_CALL_PET              = 67777, // not in use, because SummonPropertiesEntry is missing
 
     //Druid Balance
     SPELL_CYCLONE               = 65859, //6s
@@ -238,17 +238,23 @@ struct MANGOS_DLL_DECL boss_faction_championsAI : public ScriptedAI
     uint32 m_uiChangeTargetTimer;
     uint32 m_uiInsygniaTimer;
 
+    ObjectGuid m_PetGuid;
+
     void Reset()
     {
         UpdateTimer = 5000;
         m_uiChangeTargetTimer = 6000;
         m_uiInsygniaTimer = urand(30*IN_MILLISECONDS, 60*IN_MILLISECONDS);
+        if (Creature* pPet = m_creature->GetMap()->GetCreature(m_PetGuid))
+            pPet->ForcedDespawn();
     }
 
     void JustDied(Unit *killer)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_CRUSADERS_COUNT, SPECIAL);
+        if (Creature* pPet = m_creature->GetMap()->GetCreature(m_PetGuid))
+            pPet->ForcedDespawn();
     }
 
     void Aggro(Unit *who)
@@ -539,7 +545,9 @@ struct MANGOS_DLL_DECL mob_toc_druidAI : public boss_faction_championsAI
                     case 1:
                         if (DoCastSpellIfCan(target, SPELL_REGROWTH) == CAST_OK)
                             m_uiCastHealTimer = urand(2500, 15000);
-                        break; 
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -1163,8 +1171,11 @@ struct MANGOS_DLL_DECL mob_toc_warlockAI : public boss_faction_championsAI
 
         if (m_uiSummonTimer < uiDiff)
         {
-            m_creature->SummonCreature(NPC_FELHUNTER, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
-            m_uiSummonTimer = 10*MINUTE*IN_MILLISECONDS;
+            if (Creature* pPet = m_creature->SummonCreature(NPC_FELHUNTER, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0))
+            {
+                m_PetGuid = pPet->GetObjectGuid();
+                m_uiSummonTimer = 10*MINUTE*IN_MILLISECONDS;
+            }
         }
         else
             m_uiSummonTimer -= uiDiff;
@@ -1446,8 +1457,11 @@ struct MANGOS_DLL_DECL mob_toc_hunterAI : public boss_faction_championsAI
 
         if (m_uiSummonTimer < uiDiff)
         {
-            m_creature->SummonCreature(NPC_CAT, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
-            m_uiSummonTimer = 10*MINUTE*IN_MILLISECONDS;
+            if (Creature* pPet = m_creature->SummonCreature(NPC_CAT, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+            {
+                m_PetGuid = pPet->GetObjectGuid();
+                m_uiSummonTimer = 10*MINUTE*IN_MILLISECONDS;
+            }
         }
         else
             m_uiSummonTimer -= uiDiff;
@@ -2550,7 +2564,7 @@ void AddSC_boss_faction_champions()
     newscript->RegisterSelf();
 
     newscript = new Script;
-    newscript->Name = "mob_toc_boomkin";
+    newscript->Name = "mob_toc_moomkin";
     newscript->GetAI = &GetAI_mob_toc_boomkin;
     newscript->RegisterSelf();
 

@@ -179,11 +179,8 @@ void instance_trial_of_the_crusader::UpdateWorldState()
 {
     if (instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
     {
-        int32 counter = MAX_WIPES_ALLOWED - GetData(TYPE_WIPE_COUNT);
-        if (counter < 0)
-            counter = 0;
         DoUpdateWorldState(WORLD_STATE_WIPES, 1);
-        DoUpdateWorldState(WORLD_STATE_WIPES_COUNT, counter);
+        DoUpdateWorldState(WORLD_STATE_WIPES_COUNT, GetData(TYPE_WIPE_COUNT) <= MAX_WIPES_ALLOWED : GetData(TYPE_WIPE_COUNT) - MAX_WIPES_ALLOWED : 0);
     }
 }
 
@@ -491,10 +488,10 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
 {
     bool bIs25Man = instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC;
     std::list<uint32> lSummonHealerList;
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_1 : NPC_CRUSADER_2_1);
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_2 : NPC_CRUSADER_2_2);
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_12: NPC_CRUSADER_2_12);
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_13: NPC_CRUSADER_2_13);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DRUID_HEAL : NPC_CRUSADER_HORDE_DRUID_HEAL);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHAMAN_HEAL : NPC_CRUSADER_HORDE_SHAMAN_MELEE);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_PRIEST: NPC_CRUSADER_HORDE_PRIEST);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_HOLY_PALA: NPC_CRUSADER_HORDE_HOLY_PALA);
     do
     {
         std::list<uint32>::iterator itr = lSummonHealerList.begin();
@@ -503,10 +500,11 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
     }while (lSummonHealerList.size() > (bIs25Man ? FACTION_CHAMPIONS_HEALER_AMOUNT_25: FACTION_CHAMPIONS_HEALER_AMOUNT_10));
 
     std::list<uint32> lSummonMeleeDDList;
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_3 : NPC_CRUSADER_2_3);
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_4 : NPC_CRUSADER_2_4);
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_5 : NPC_CRUSADER_2_5);
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_6 : NPC_CRUSADER_2_6);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DEATHKNIGHT : NPC_CRUSADER_HORDE_DEATHKNIGHT);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_ROGUE : NPC_CRUSADER_HORDE_ROGUE);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_WARRIOR : NPC_CRUSADER_HORDE_WARRIOR);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_PALA_MELEE : NPC_CRUSADER_HORDE_RETRO_PALA);
+    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHAMAN_MELEE : NPC_CRUSADER_HORDE_SHAMAN_MELEE);
     do
     {
         std::list<uint32>::iterator itr = lSummonMeleeDDList.begin();
@@ -515,10 +513,9 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
     }while (lSummonMeleeDDList.size() > (bIs25Man ? FACTION_CHAMPIONS_MELEE_DD_AMOUNT_25: FACTION_CHAMPIONS_MELEE_DD_AMOUNT_10));
 
     std::list<uint32> lSummonMagicDDList;
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_7 : NPC_CRUSADER_2_7);
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_8 : NPC_CRUSADER_2_8);
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_11 : NPC_CRUSADER_2_11);
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_1_14 : NPC_CRUSADER_2_14);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHADOW_PRIEST : NPC_CRUSADER_HORDE_SHADOW_PRIEST);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_MAGE : NPC_CRUSADER_HORDE_MAGE);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DRUID_MOONKIN : NPC_CRUSADER_HORDE_DRUID_MOONKIN);
     do
     {
         std::list<uint32>::iterator itr = lSummonMagicDDList.begin();
@@ -528,10 +525,8 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
 
     if (bIs25Man)
     {
-        lSummonMagicDDList.push_back(NPC_CRUSADER_1_9);  //Hunter+warlock
-        lSummonMagicDDList.push_back(NPC_CRUSADER_1_10);
-        lSummonMagicDDList.push_back(NPC_CRUSADER_0_1); // TODO: check this 2 NPC's
-        lSummonMagicDDList.push_back(NPC_CRUSADER_0_2);
+        lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_HUNTER : NPC_CRUSADER_HORDE_HUNTER);  //Hunter+warlock
+        lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_WARLOCK : NPC_CRUSADER_HORDE_WARLOCK);
     }
 
     if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION_A))
@@ -732,6 +727,7 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
                 pEydis->RemoveFlag(UNIT_FIELD_FLAGS , UNIT_FLAG_PASSIVE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
                 pEydis->SetInCombatWithZone();
             }
+            break;
         }
         case SAY_LKING_ANUB_INTRO_1:
         {

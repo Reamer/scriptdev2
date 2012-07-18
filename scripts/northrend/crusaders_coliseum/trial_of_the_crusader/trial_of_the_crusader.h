@@ -143,40 +143,35 @@ enum
     NPC_DARK_EYDIS              = 34496,
     NPC_ANUBARAK                = 34564,
 
-    // Allianz Champions
-    NPC_CRUSADER_1_1            = 34460, //Druid
-    NPC_CRUSADER_1_2            = 34463, //Shaman
-    NPC_CRUSADER_1_3            = 34461, //DK
-    NPC_CRUSADER_1_4            = 34472, //Rogue
-    NPC_CRUSADER_1_5            = 34475, //Warrior
-    NPC_CRUSADER_1_6            = 34471, //Retro pal
-    NPC_CRUSADER_1_7            = 34473, //Shadow priest
-    NPC_CRUSADER_1_8            = 34468, //Mage
-    NPC_CRUSADER_1_9            = 34467, //Hunter
-    NPC_CRUSADER_1_10           = 34474, //Warlock
-    NPC_CRUSADER_1_11           = 34470, //Enh shaman
-    NPC_CRUSADER_1_12           = 34466, //Priest
-    NPC_CRUSADER_1_13           = 34465, //Holy paladin
-    NPC_CRUSADER_1_14           = 34469, //Moonkin
+    NPC_CRUSADER_ALLY_DRUID_HEAL    = 34469,
+    NPC_CRUSADER_ALLY_SHAMAN_HEAL   = 34470,
+    NPC_CRUSADER_ALLY_PRIEST        = 34466,
+    NPC_CRUSADER_ALLY_HOLY_PALA     = 34465,
+    NPC_CRUSADER_ALLY_DEATHKNIGHT   = 34461,
+    NPC_CRUSADER_ALLY_ROGUE         = 34472,
+    NPC_CRUSADER_ALLY_WARRIOR       = 34475,
+    NPC_CRUSADER_ALLY_PALA_MELEE    = 34471,
+    NPC_CRUSADER_ALLY_SHADOW_PRIEST = 34473,
+    NPC_CRUSADER_ALLY_MAGE          = 34468,
+    NPC_CRUSADER_ALLY_HUNTER        = 34467,
+    NPC_CRUSADER_ALLY_WARLOCK       = 34474,
+    NPC_CRUSADER_ALLY_SHAMAN_MELEE  = 34463,
+    NPC_CRUSADER_ALLY_DRUID_MOONKIN = 34460,
 
-    // Horde Champions
-    NPC_CRUSADER_2_1            = 34451, //Druid
-    NPC_CRUSADER_2_2            = 34455, //Shaman
-    NPC_CRUSADER_2_3            = 34458, //DK
-    NPC_CRUSADER_2_4            = 34454, //Rogue
-    NPC_CRUSADER_2_5            = 34453, //Warrior
-    NPC_CRUSADER_2_6            = 34456, //Retro pal
-    NPC_CRUSADER_2_7            = 34441, //Shadow Priest
-    NPC_CRUSADER_2_8            = 34449, //Mage
-    NPC_CRUSADER_2_9            = 34448, //Hunter
-    NPC_CRUSADER_2_10           = 34450, //Warlock
-    NPC_CRUSADER_2_11           = 34444, //Enh shaman
-    NPC_CRUSADER_2_12           = 34447, //Priest
-    NPC_CRUSADER_2_13           = 34445, //Holy paladin
-    NPC_CRUSADER_2_14           = 34459, //Moonkin
-
-    NPC_CRUSADER_0_1            = 35465,
-    NPC_CRUSADER_0_2            = 35610,
+    NPC_CRUSADER_HORDE_DRUID_HEAL   = 34459,
+    NPC_CRUSADER_HORDE_SHAMAN_HEAL  = 34444,
+    NPC_CRUSADER_HORDE_PRIEST       = 34447,
+    NPC_CRUSADER_HORDE_HOLY_PALA    = 34445,
+    NPC_CRUSADER_HORDE_DEATHKNIGHT  = 34458,
+    NPC_CRUSADER_HORDE_ROGUE        = 34454,
+    NPC_CRUSADER_HORDE_WARRIOR      = 34453,
+    NPC_CRUSADER_HORDE_RETRO_PALA   = 34456,
+    NPC_CRUSADER_HORDE_SHADOW_PRIEST= 34441,
+    NPC_CRUSADER_HORDE_MAGE         = 34449,
+    NPC_CRUSADER_HORDE_HUNTER       = 34448,
+    NPC_CRUSADER_HORDE_WARLOCK      = 34450,
+    NPC_CRUSADER_HORDE_SHAMAN_MELEE = 34455,
+    NPC_CRUSADER_HORDE_DRUID_MOONKIN= 34451,
 
     NPC_THRALL                  = 34994,
     NPC_PROUDMOORE              = 34992,

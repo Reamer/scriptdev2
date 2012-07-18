@@ -216,8 +216,8 @@ INSERT INTO vehicle_accessory (entry, accessory_entry, seat_id, minion, descript
 -- ********************** Grand crusaders ******************
 UPDATE creature_template SET scriptname = 'mob_toc_warrior', AIName = '' WHERE entry IN (34475,34453);
 UPDATE creature_template SET scriptname = 'mob_toc_mage', AIName = '' WHERE entry IN (34468,34449);
-UPDATE creature_template SET scriptname = 'mob_toc_shaman', AIName = '' WHERE entry IN (34463,34455);
-UPDATE creature_template SET scriptname = 'mob_toc_enh_shaman', AIName = '' WHERE entry IN (34470,34444);
+UPDATE creature_template SET scriptname = 'mob_toc_shaman', AIName = '' WHERE entry IN (34470,34444);
+UPDATE creature_template SET scriptname = 'mob_toc_enh_shaman', AIName = '' WHERE entry IN (34455,34463);
 UPDATE creature_template SET scriptname = 'mob_toc_hunter', AIName = '' WHERE entry IN (34467,34448);
 UPDATE creature_template SET scriptname = 'mob_toc_rogue', AIName = '' WHERE entry IN (34472,34454);
 UPDATE creature_template SET scriptname = 'mob_toc_priest', AIName = '' WHERE entry IN (34466,34447);
@@ -225,8 +225,8 @@ UPDATE creature_template SET scriptname = 'mob_toc_shadow_priest', AIName = '' W
 UPDATE creature_template SET scriptname = 'mob_toc_dk', AIName = '' WHERE entry IN (34461,34458);
 UPDATE creature_template SET scriptname = 'mob_toc_paladin', AIName = '' WHERE entry IN (34465,34445);
 UPDATE creature_template SET scriptname = 'mob_toc_retro_paladin', AIName = '' WHERE entry IN (34471,34456);
-UPDATE creature_template SET scriptname = 'mob_toc_druid', AIName = '' WHERE entry IN (34460,34451);
-UPDATE creature_template SET scriptname = 'mob_toc_boomkin', AIName = '' WHERE entry IN (34469,34459);
+UPDATE creature_template SET scriptname = 'mob_toc_druid', AIName = '' WHERE entry IN (34469,34459);
+UPDATE creature_template SET scriptname = 'mob_toc_moomkin', AIName = '' WHERE entry IN (34460,34451);
 UPDATE creature_template SET scriptname = 'mob_toc_warlock' WHERE entry IN (34474,34450);
 UPDATE creature_template SET scriptname = 'mob_toc_pet_warlock', AIName = '' WHERE entry IN (35465);
 UPDATE creature_template SET scriptname = 'mob_toc_pet_hunter', AIName = '' WHERE entry IN (35610);
