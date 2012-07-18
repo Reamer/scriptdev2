@@ -14,12 +14,6 @@ enum
     TYPE_KORALON                = 2,
     TYPE_TORAVON                = 3,
 
-    DATA_TEMPEST_MINION_1       = 101,
-    DATA_TEMPEST_MINION_2       = 102,
-    DATA_TEMPEST_MINION_3       = 103,
-    DATA_TEMPEST_MINION_4       = 104,
-
-
     NPC_TORAVON                 = 38433,
     NPC_ARCHAVON                = 31125,
     NPC_EMALON                  = 33993,
@@ -35,6 +29,11 @@ class MANGOS_DLL_DECL instance_vault_of_archavon : public ScriptedInstance
         void Initialize();
 
         void OnCreatureCreate(Creature* pCreature);
+        void OnCreatureEnterCombat(Creature * pCreature);
+        void OnCreatureEvade(Creature * pCreature);
+        void OnCreatureDeath(Creature * pCreature);
+
+        void Update(uint32 uiDiff);
 
         uint32 GetData(uint32 uiType);
         void SetData(uint32 uiType, uint32 uiData);
@@ -43,10 +42,13 @@ class MANGOS_DLL_DECL instance_vault_of_archavon : public ScriptedInstance
 
         bool IsEncounterInProgress() const;
        
-        GuidList m_lTempestMinion;
+
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
+
+        uint32 m_uiRespawnEmalonMinion;
+        GuidList m_lTempestMinion;
 };
 
 #endif

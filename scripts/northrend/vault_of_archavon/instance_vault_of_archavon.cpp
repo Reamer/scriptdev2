@@ -25,7 +25,8 @@ EndScriptData */
 #include "vault_of_archavon.h"
 
 
-instance_vault_of_archavon::instance_vault_of_archavon(Map* pMap) : ScriptedInstance(pMap)
+instance_vault_of_archavon::instance_vault_of_archavon(Map* pMap) : ScriptedInstance(pMap),
+    m_uiRespawnEmalonMinion(0)
 {
         Initialize();
 }
@@ -47,6 +48,48 @@ void instance_vault_of_archavon::OnCreatureCreate(Creature* pCreature)
             break;
         case NPC_TEMPEST_MINION:
             m_lTempestMinion.push_back(pCreature->GetObjectGuid());
+            break;
+    }
+}
+
+void instance_vault_of_archavon::OnCreatureEnterCombat(Creature * pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_TORAVON:  SetData(TYPE_TORAVON, IN_PROGRESS);  break;
+        case NPC_ARCHAVON: SetData(TYPE_ARCHAVON, IN_PROGRESS); break;
+        case NPC_EMALON:   SetData(TYPE_EMALON, IN_PROGRESS);   break;
+        case NPC_KORALON:  SetData(TYPE_KORALON, IN_PROGRESS);  break;
+        default:
+            break;
+    }
+}
+
+void instance_vault_of_archavon::OnCreatureEvade(Creature * pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_TORAVON:  SetData(TYPE_TORAVON, FAIL);  break;
+        case NPC_ARCHAVON: SetData(TYPE_ARCHAVON, FAIL); break;
+        case NPC_EMALON:   SetData(TYPE_EMALON, FAIL);   break;
+        case NPC_KORALON:  SetData(TYPE_KORALON, FAIL);  break;
+        default:
+            break;
+    }
+}
+
+void instance_vault_of_archavon::OnCreatureDeath(Creature * pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_TORAVON:  SetData(TYPE_TORAVON, DONE);  break;
+        case NPC_ARCHAVON: SetData(TYPE_ARCHAVON, DONE); break;
+        case NPC_EMALON:   SetData(TYPE_EMALON, DONE);   break;
+        case NPC_KORALON:  SetData(TYPE_KORALON, DONE);  break;
+        case NPC_TEMPEST_MINION:
+            m_uiRespawnEmalonMinion = 4000;
+            break;
+        default:
             break;
     }
 }
@@ -100,17 +143,8 @@ void instance_vault_of_archavon::SetData(uint32 uiType, uint32 uiData)
 
 uint32 instance_vault_of_archavon::GetData(uint32 uiType)
 {
-    switch (uiType)
-    {
-        case TYPE_ARCHAVON:
-            return m_auiEncounter[0];
-        case TYPE_EMALON:
-            return m_auiEncounter[1];
-        case TYPE_KORALON:
-            return m_auiEncounter[2];
-        case TYPE_TORAVON:
-            return m_auiEncounter[3];
-    }
+    if (uiType < MAX_ENCOUNTER)
+        return m_auiEncounter[uiType];
     return 0;
 }
 
@@ -144,6 +178,25 @@ bool instance_vault_of_archavon::IsEncounterInProgress() const
     return false;
 }
 
+void instance_vault_of_archavon::Update(const uint32 uiDiff)
+{
+    if (m_uiRespawnEmalonMinion)
+    {
+        if (m_uiRespawnEmalonMinion <= uiDiff)
+        {
+            for (GuidList::iterator itr = m_lTempestMinion.begin(); itr !=m_lTempestMinion.end(); ++itr)
+            {
+                if (Creature* pMinion = instance->GetCreature(*itr))
+                {
+                    pMinion->Respawn();
+                }
+            }
+            m_uiRespawnEmalonMinion = 0;
+        }
+        else
+            m_uiRespawnEmalonMinion -= uiDiff;
+    }
+}
 
 InstanceData* GetInstanceData_instance_vault_of_archavon(Map* pMap)
 {
