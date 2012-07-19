@@ -38,7 +38,6 @@ enum
 
     SPELL_BEAM_VISUAL               = 60342,        // Visual spell, used before Taltaram is lowered to the ground
     SPELL_CONJURE_FLAME_SPHERE      = 55931,
-    SPELL_FLAME_ORB_SUMMON          = 57752,        // summons 30702
     SPELL_BLOODTHIRST               = 55968,
     SPELL_VANISH                    = 55964,
     SPELL_EMBRACE_OF_THE_VAMPYR     = 55959,
@@ -52,6 +51,10 @@ enum
     SPELL_FLAME_SPHERE_DEATH_EFFECT = 55947,
 
     MAX_FLAME_ORBS                  = 3,
+
+    NPC_FLAME_ORB_1                 = 30106,
+    NPC_FLAME_ORB_2                 = 31686,
+    NPC_FLAME_ORB_3                 = 31687
 };
 
 /*######
@@ -80,7 +83,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
     uint32 m_uiVanishExpireTimer;
     uint32 m_uiEmbraceTimer;
 
-    GuidList m_lFlameOrbsGuidList;
+    uint8 m_uiFlameCounter;
 
     void Reset()
     {
@@ -90,6 +93,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         m_uiVanishTimer         = 0;
         m_uiEmbraceTimer        = 0;
         m_uiVanishExpireTimer   = 0;
+        m_uiFlameCounter        = 0;
         m_bIsFirstAggro         = false;
     }
 
@@ -165,33 +169,29 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned)
     {
-        pSummoned->CastSpell(pSummoned, SPELL_FLAME_SPHERE_SPAWN_EFFECT, true);
-        pSummoned->CastSpell(pSummoned, SPELL_FLAME_SPHERE_VISUAL, true);
-
-        m_lFlameOrbsGuidList.push_back(pSummoned->GetObjectGuid());
+        switch (pSummoned->GetEntry())
+        {
+            case NPC_FLAME_ORB_1:
+            case NPC_FLAME_ORB_2:
+            case NPC_FLAME_ORB_3:
+            {
+                float destx, desty, destz;
+                m_creature->GetPosition(destx, desty, destz);
+                pSummoned->CastSpell(pSummoned, SPELL_FLAME_SPHERE_SPAWN_EFFECT, true);
+                pSummoned->CastSpell(pSummoned, SPELL_FLAME_SPHERE_VISUAL, true);
+                pSummoned->CastSpell(pSummoned, m_bIsRegularMode ? SPELL_FLAME_ORB : SPELL_FLAME_ORB_H, true);
+                m_creature->GetClosePoint(destx,desty,destz, 0, 40.0f, 120.0f* m_uiFlameCounter++);
+                pSummoned->GetMotionMaster()->MovePoint(0, destx, desty, m_creature->GetPositionZ() + 5.0f, false);
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     void SummonedCreatureDespawn(Creature* pSummoned)
     {
         pSummoned->CastSpell(pSummoned, SPELL_FLAME_SPHERE_DEATH_EFFECT, true);
-    }
-
-    // Wrapper which sends each orb in a different direction
-    void DoSetOrbsInMotion()
-    {
-        float fX, fY;
-        uint8 uiIndex = 0;
-        for (GuidList::const_iterator itr = m_lFlameOrbsGuidList.begin(); itr != m_lFlameOrbsGuidList.end(); ++itr)
-        {
-            if (Creature* pOrb = m_creature->GetMap()->GetCreature(*itr))
-            {
-                pOrb->CastSpell(pOrb, m_bIsRegularMode ? SPELL_FLAME_ORB : SPELL_FLAME_ORB_H, true);
-
-                pOrb->GetNearPoint2D(fX, fY, 70.0f, (2*M_PI_F/3)*uiIndex);
-                pOrb->GetMotionMaster()->MovePoint(0, fX, fY, pOrb->GetPositionZ());
-            }
-            ++uiIndex;
-        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -277,12 +277,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature, SPELL_CONJURE_FLAME_SPHERE) == CAST_OK)
             {
-                m_lFlameOrbsGuidList.clear();
-
-                // Flame orbs are summoned above the boss
-                for (uint8 i = 0; i < MAX_FLAME_ORBS; ++i)
-                    m_creature->CastSpell(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 5.0f, SPELL_FLAME_ORB_SUMMON, true);
-
+                m_uiFlameCounter = 0;
                 m_uiFlameOrbTimer = urand(50000, 60000);
                 m_uiVanishTimer   = 12000;
             }
@@ -297,21 +292,6 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 CreatureAI* GetAI_boss_taldaram(Creature* pCreature)
 {
     return new boss_taldaramAI(pCreature);
-}
-
-bool EffectDummyCreature_spell_conjure_flame_orbs(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, Creature* pCreatureTarget)
-{
-    //always check spellid and effectindex
-    if (uiSpellId == SPELL_CONJURE_FLAME_SPHERE && uiEffIndex == EFFECT_INDEX_0)
-    {
-        if (boss_taldaramAI* pBossAI = dynamic_cast<boss_taldaramAI*>(pCreatureTarget->AI()))
-            pBossAI->DoSetOrbsInMotion();
-
-        //always return true when we are handling this spell and effect
-        return true;
-    }
-
-    return false;
 }
 
 /*######
@@ -340,7 +320,6 @@ void AddSC_boss_taldaram()
     pNewScript = new Script;
     pNewScript->Name = "boss_taldaram";
     pNewScript->GetAI = &GetAI_boss_taldaram;
-    pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_conjure_flame_orbs;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

@@ -103,8 +103,6 @@ void instance_ahnkahet::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData == IN_PROGRESS)
                 m_bRespectElders = true;
-            if (uiData == SPECIAL)
-                m_bRespectElders = false;
             if (uiData == DONE)
             {
                 DoToggleGameObjectFlags(GO_ANCIENT_DEVICE_L, GO_FLAG_NO_INTERACT, false);
@@ -180,22 +178,33 @@ void instance_ahnkahet::SetData(uint32 uiType, uint32 uiData)
 
 void instance_ahnkahet::OnCreatureDeath(Creature* pCreature)
 {
-    if (pCreature->GetEntry() == NPC_TWILIGHT_INITIATE)
+    switch (pCreature->GetEntry())
     {
-        ++m_uiInitiatesKilled;
-
-        // If all initiates are killed, then land Jedoga and stop the channeling
-        if (m_uiInitiatesKilled == MAX_INITIATES)
+        case NPC_TWILIGHT_INITIATE:
         {
-            if (Creature* pJedoga = GetSingleCreatureFromStorage(NPC_JEDOGA_SHADOWSEEKER))
-                pJedoga->GetMotionMaster()->MovePoint(1, aJedogaLandingLoc[0], aJedogaLandingLoc[1], aJedogaLandingLoc[2]);
+            ++m_uiInitiatesKilled;
 
-            for (GuidList::const_iterator itr = m_lJedogaEventControllersGuidList.begin(); itr != m_lJedogaEventControllersGuidList.end(); ++itr)
+            // If all initiates are killed, then land Jedoga and stop the channeling
+            if (m_uiInitiatesKilled == MAX_INITIATES)
             {
-                if (Creature* pTemp = instance->GetCreature(*itr))
-                    pTemp->InterruptNonMeleeSpells(false);
+                if (Creature* pJedoga = GetSingleCreatureFromStorage(NPC_JEDOGA_SHADOWSEEKER))
+                    pJedoga->GetMotionMaster()->MovePoint(1, aJedogaLandingLoc[0], aJedogaLandingLoc[1], aJedogaLandingLoc[2]);
+
+                for (GuidList::const_iterator itr = m_lJedogaEventControllersGuidList.begin(); itr != m_lJedogaEventControllersGuidList.end(); ++itr)
+                {
+                    if (Creature* pTemp = instance->GetCreature(*itr))
+                        pTemp->InterruptNonMeleeSpells(false);
+                }
             }
+            break;
         }
+        case NPC_AHNKAHAR_GUARDIAN:
+        {
+            m_bRespectElders = false;
+            break;
+        }
+        default:
+            break;
     }
 }
 

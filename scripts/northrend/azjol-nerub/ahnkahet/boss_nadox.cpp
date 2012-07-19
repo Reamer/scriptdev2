@@ -46,7 +46,6 @@ enum
     SPELL_SUMMON_SWARM_GUARDIAN   = 56120,
     SPELL_SUMMON_SWARMERS         = 56119,
 
-    NPC_AHNKAHAR_GUARDIAN         = 30176,
     NPC_AHNKAHAR_SWARMER          = 30178
 };
 
@@ -70,10 +69,7 @@ struct MANGOS_DLL_DECL mob_ahnkahar_eggAI : public ScriptedAI
     void JustSummoned(Creature* pSummoned)
     {
         if (pSummoned->GetEntry() == NPC_AHNKAHAR_GUARDIAN)
-        {
-            pSummoned->CastSpell(pSummoned, SPELL_GUARDIAN_AURA, true);
             DoScriptText(EMOTE_HATCH, m_creature);
-        }
 
         if (m_pInstance)
         {
@@ -84,16 +80,6 @@ struct MANGOS_DLL_DECL mob_ahnkahar_eggAI : public ScriptedAI
                 pSummoned->SetWalk(false);
                 pSummoned->GetMotionMaster()->MovePoint(0, fPosX, fPosY, fPosZ);
             }
-        }
-    }
-
-    void SummonedCreatureJustDied(Creature* pSummoned)
-    {
-        // If the Guardian is killed set the achiev criteria to false
-        if (pSummoned->GetEntry() == NPC_AHNKAHAR_GUARDIAN)
-        {
-            if (m_pInstance)
-                m_pInstance->SetData(TYPE_NADOX, SPECIAL);
         }
     }
 };
