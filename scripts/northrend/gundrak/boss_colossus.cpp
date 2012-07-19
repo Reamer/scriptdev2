@@ -287,8 +287,8 @@ struct MANGOS_DLL_DECL boss_drakkari_colossusAI : public ScriptedAI
 
         if (m_uiMightyBlowTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIGHTY_BLOW);
-            m_uiMightyBlowTimer = 10000;
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIGHTY_BLOW) == CAST_OK)
+                m_uiMightyBlowTimer = 10000;
         }
         else
             m_uiMightyBlowTimer -= uiDiff;
