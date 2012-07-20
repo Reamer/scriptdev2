@@ -656,7 +656,7 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
 
         // Despawn Permafrost
         if (pPermafrost)
-            pPermafrost->ForcedDespawn();
+            pPermafrost->ForcedDespawn(1000);
 
         // After the spikes hit the icy surface they can't move for about ~5 seconds
         m_Phase = PHASE_SEARCH;

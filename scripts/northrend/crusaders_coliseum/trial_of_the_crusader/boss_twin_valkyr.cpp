@@ -43,7 +43,7 @@ enum BossSpells
     SPELL_TWIN_SPIKE_DARK         = 66069,
     SPELL_DARK_SURGE              = 65768,
     SPELL_DARK_SHIELD             = 65874,
-    SPELL_TWIN_PACT_DARK          = 65875,              // TODO: test the third effekt SPELL_EFFECT_SCRIPT_EFFECT
+    SPELL_TWIN_PACT_DARK          = 65875,
     SPELL_DARK_VORTEX             = 66058,
     SPELL_DARK_TOUCH              = 67281,
 
@@ -229,7 +229,6 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
                         case LIGHT_VORTEX: // Vortex
                             if (DoCastSpellIfCan(m_creature, SPELL_LIGHT_VORTEX) == CAST_OK)
                             {
-                                m_creature->SetLevitate(true);
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
@@ -241,9 +240,9 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
                         case LIGHT_PACT: // Pact
                             if (DoCastSpellIfCan(m_creature, SPELL_TWIN_PACT_LIGHT) == CAST_OK)
                             {
-                                //pSister->CastSpell(pSister, SPELL_TWIN_POWER, true);
                                 DoCastSpellIfCan(m_creature, SPELL_LIGHT_SHIELD, CAST_TRIGGERED);
-                                m_creature->SetLevitate(true);
+                                if (Creature* pSister = m_pInstance->GetSingleCreatureFromStorage(NPC_DARK_EYDIS))
+                                    pSister->CastSpell(pSister, SPELL_TWIN_POWER, true);
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
@@ -265,11 +264,9 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
                 if (m_creature->IsNonMeleeSpellCasted(true))
                     return;
 
-                m_creature->SetLevitate(false);
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                 m_Phase = PHASE_NORMAL;
-                m_uiSpecialAbilityTimer -= uiDiff;
                 break;
             default:
                 break;
@@ -372,13 +369,11 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
 
                 if (m_uiSpecialAbilityTimer <= uiDiff)
                 {
-                    m_creature->InterruptNonMeleeSpells(true);
                     switch(m_NextSpecialSpell)
                     {
                         case DARK_VORTEX:
                             if (DoCastSpellIfCan(m_creature, SPELL_DARK_VORTEX) == CAST_OK)
                             {
-                                m_creature->SetLevitate(true);
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
@@ -391,8 +386,8 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
                             if (DoCastSpellIfCan(m_creature, SPELL_TWIN_PACT_DARK) == CAST_OK)
                             {
                                 DoCastSpellIfCan(m_creature, SPELL_DARK_SHIELD, CAST_TRIGGERED);
-//                                pSister->CastSpell(pSister, SPELL_TWIN_POWER, true);
-                                m_creature->SetLevitate(true);
+                                if (Creature* pSister = m_pInstance->GetSingleCreatureFromStorage(NPC_LIGHT_FJOLA))
+                                    pSister->CastSpell(pSister, SPELL_TWIN_POWER, true);
                                 float x, y, z;
                                 m_creature->GetPosition(x, y, z);
                                 m_creature->GetMotionMaster()->MovePoint(0, x, y, z + 5.0f);
@@ -414,11 +409,9 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
                 if (m_creature->IsNonMeleeSpellCasted(true))
                     return;
 
-                m_creature->SetLevitate(false);
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                 m_Phase = PHASE_NORMAL;
-                m_uiSpecialAbilityTimer -= uiDiff;
                 break;
             default:
                 break;
@@ -520,17 +513,9 @@ struct MANGOS_DLL_DECL npc_light_or_dark_bulletAI : public ScriptedAI
         m_bIsLightBullet = m_creature->GetEntry() == NPC_UNLEASHED_LIGHT ? true : false;
         m_bHasCastUnleashedSpell = false;
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-        MoveRandom();
+        m_creature->GetMotionMaster()->MoveRandomAroundPoint(563.672974f, 139.571f, m_creature->GetPositionZ(), 50.0f);
         DoCastSpellIfCan(m_creature, m_bIsLightBullet ? SPELL_LIGHT_BALL_PASSIVE : SPELL_DARK_BALL_PASSIVE);
         SetCombatMovement(false); 
-    }
-
-    // Move to a Point with a 50.0f distance from middle
-    void MoveRandom()
-    {
-        float x, y,z;
-        m_creature->GetRandomPoint(563.8941f, 137.3333f, m_creature->GetPositionZ(), 50.0f, x, y, z);
-        m_creature->GetMotionMaster()->MovePoint(1, x, y, z);
     }
 
     void AttackStart(Unit *pWho)
