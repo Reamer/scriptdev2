@@ -241,9 +241,7 @@ void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
         case GO_COLISEUM_FLOOR:
             if (m_auiEncounter[TYPE_TWIN_VALKYR] == DONE)
             {
-                pGo->SetDisplayId(DISPLAYID_DESTROYED_FLOOR);
-                pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT | GO_FLAG_NODESPAWN);
-                pGo->SetGoState(GO_STATE_ACTIVE);
+                pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
             }
             break;
         case GO_CRUSADERS_CACHE_10:
@@ -752,9 +750,7 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
         {
             if (GameObject* pColiseumFloor = GetSingleGameObjectFromStorage(GO_COLISEUM_FLOOR))
             {
-                pColiseumFloor->SetDisplayId(DISPLAYID_DESTROYED_FLOOR);
-                pColiseumFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT | GO_FLAG_NODESPAWN);
-                pColiseumFloor->SetGoState(GO_STATE_ACTIVE);
+                pColiseumFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
             }
 
             if (Creature* pLichKingVisual = GetSingleCreatureFromStorage(NPC_THE_LICHKING_VISUAL))
