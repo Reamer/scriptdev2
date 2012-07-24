@@ -205,7 +205,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
         if (m_uiFelFireballTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_FEL_FIREBALL, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_FEL_FIREBALL) == CAST_OK)
                     m_uiFelFireballTimer = 12000;
@@ -216,7 +216,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
         if (m_uiFelLightingTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_FEL_LIGHTING, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_FEL_LIGHTING) == CAST_OK)
                     m_uiFelLightingTimer = 25000;
@@ -227,7 +227,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
         if (m_uiIncinerateFleshTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_INCINERATE_FLESH, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_INCINERATE_FLESH) == CAST_OK)
                 {
@@ -241,7 +241,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
         if (m_uiLegionFlameTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_LEGION_FLAME, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_LEGION_FLAME) == CAST_OK)
                     m_uiLegionFlameTimer = 30000;

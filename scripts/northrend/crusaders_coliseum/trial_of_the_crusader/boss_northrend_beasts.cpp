@@ -843,7 +843,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_MASSIVE_CRASH) == CAST_OK)
                 {
-                    pFocus = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+                    pFocus = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER);
                     DoScriptText(EMOTE_TRAMPLE, m_creature, pFocus);
                     m_creature->SetSpeedRate(MOVE_WALK, 6.0f);
                     m_creature->SetSpeedRate(MOVE_RUN, 6.0f);
