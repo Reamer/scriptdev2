@@ -150,13 +150,9 @@ void instance_halls_of_stone::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[1] = uiData;
             if (uiData == IN_PROGRESS)
                 DoStartTimedAchievement(ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE, ACHIEV_START_MAIDEN_ID);
-            if (uiData == DONE)
-                DoUseDoorOrButton(GO_DOOR_TO_TRIBUNAL);
             break;
         case TYPE_KRYSTALLUS:
             m_auiEncounter[2] = uiData;
-            if (uiData == DONE)
-                DoUseDoorOrButton(GO_DOOR_MAIDEN);
             break;
         case TYPE_SJONNIR:
             m_auiEncounter[3] = uiData;
