@@ -611,19 +611,6 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
         }
     }
 
-    void MoveRandom()
-    {
-        if (Creature* pBeastStalker =  m_pInstance->GetSingleCreatureFromStorage(NPC_BEAST_COMBAT_STALKER))
-        {
-            float x, y, z;
-            float destX, destY, destZ;
-            pBeastStalker->GetPosition(x,y,z);
-            m_creature->GetRandomPoint(x, y, z, 30.0f, destX, destY, destZ);
-            m_creature->UpdateAllowedPositionZ(destX,destY, destZ);
-            m_creature->GetMotionMaster()->Clear();
-            m_creature->GetMotionMaster()->MovePoint(1, destX, destY, destZ);
-        }
-    }
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -669,7 +656,8 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                             m_Phase = PHASE_SUBMERGED;
                             m_uiPhaseTimer = 7000;
-                            MoveRandom();
+                            m_creature->GetMotionMaster()->Clear();
+                            m_creature->GetMotionMaster()->MoveRandomAroundPoint(563.672974f, 139.571f, m_creature->GetPositionZ(), 50.0f);
                         }
                     }
                     else
@@ -759,7 +747,8 @@ struct MANGOS_DLL_DECL boss_acidmaw_and_dreadscaleAI : public ScriptedAI
                         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                         m_Phase = PHASE_SUBMERGED;
                         m_uiPhaseTimer = 7000;
-                        MoveRandom();
+                        m_creature->GetMotionMaster()->Clear();
+                        m_creature->GetMotionMaster()->MoveRandomAroundPoint(563.672974f, 139.571f, m_creature->GetPositionZ(), 50.0f);
                     }
                 }
                 else

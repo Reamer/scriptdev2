@@ -617,8 +617,6 @@
     <ClCompile Include="..\scripts\northrend\utgarde_keep\utgarde_pinnacle\boss_svala.cpp" />
     <ClCompile Include="..\scripts\northrend\utgarde_keep\utgarde_pinnacle\boss_ymiron.cpp" />
     <ClCompile Include="..\scripts\northrend\utgarde_keep\utgarde_pinnacle\instance_utgarde_pinnacle.cpp" />
-    <ClCompile Include="..\scripts\northrend\vault_of_archavon\boss_archavon.cpp" />
-    <ClCompile Include="..\scripts\northrend\vault_of_archavon\boss_emalon.cpp" />
     <ClCompile Include="..\scripts\northrend\vault_of_archavon\boss_koralon.cpp" />
     <ClCompile Include="..\scripts\northrend\vault_of_archavon\boss_toravon.cpp" />
     <ClCompile Include="..\scripts\northrend\vault_of_archavon\instance_vault_of_archavon.cpp" />
