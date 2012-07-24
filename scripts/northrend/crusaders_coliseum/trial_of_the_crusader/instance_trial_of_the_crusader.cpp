@@ -123,7 +123,8 @@ static const DialogueEntryTwoSide aTocDialogues[] =
     {SAY_TIRION_PVP_INTRO_2,        NPC_TIRION_A, 0, 0,     1000},
     {TYPE_FACTION_CHAMPIONS, 0, 0, 0,                       5000},
     {EVENT_SUMMON_FACTION_CHAMPIONS, 0, 0, 0,               1000},
-    {SAY_GARROSH_PVP_A_INTRO_2,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_2,   NPC_VARIAN, 0},
+    {SAY_GARROSH_PVP_A_INTRO_2,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_2,   NPC_VARIAN, 1000},
+    {EVENT_FACTION_CHAMPIONS_ATTACK, 0, 0, 0,               0},
     {SAY_VARIAN_PVP_A_WIN,          NPC_VARIAN,         SAY_GARROSH_PVP_H_WIN,      NPC_GARROSH, 4000},
     {SAY_TIRION_PVP_WIN,            NPC_TIRION_A, 0, 0,     27000},
     {NPC_RAMSEY_4, 0, 0, 0,                                 0},
@@ -487,7 +488,7 @@ void instance_trial_of_the_crusader::Load(const char* chrIn)
 
 void instance_trial_of_the_crusader::SummonFactionChampion()
 {
-    bool bIs25Man = instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC;
+    bool bIs25Man = Is25ManDifficulty();
     std::list<uint32> lSummonHealerList;
     lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DRUID_HEAL : NPC_CRUSADER_HORDE_DRUID_HEAL);
     lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHAMAN_HEAL : NPC_CRUSADER_HORDE_SHAMAN_MELEE);
@@ -517,6 +518,8 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
     lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHADOW_PRIEST : NPC_CRUSADER_HORDE_SHADOW_PRIEST);
     lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_MAGE : NPC_CRUSADER_HORDE_MAGE);
     lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DRUID_MOONKIN : NPC_CRUSADER_HORDE_DRUID_MOONKIN);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_HUNTER : NPC_CRUSADER_HORDE_HUNTER);
+    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_WARLOCK : NPC_CRUSADER_HORDE_WARLOCK);
     do
     {
         std::list<uint32>::iterator itr = lSummonMagicDDList.begin();
@@ -524,40 +527,25 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
         lSummonMagicDDList.erase(itr);
     }while (lSummonMagicDDList.size() > (bIs25Man ? FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25: FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10));
 
-    if (bIs25Man)
-    {
-        lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_HUNTER : NPC_CRUSADER_HORDE_HUNTER);  //Hunter+warlock
-        lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_WARLOCK : NPC_CRUSADER_HORDE_WARLOCK);
-    }
-
     if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION_A))
     {
         for(std::list<uint32>::const_iterator itr = lSummonHealerList.begin(); itr != lSummonHealerList.end(); ++itr)
         {
             uint8 position = 5 + urand(0,1);
             if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
-            {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
-                pChampion->SetInCombatWithZone();
-            }
         }
         for(std::list<uint32>::const_iterator itr = lSummonMagicDDList.begin(); itr != lSummonMagicDDList.end(); ++itr)
         {
             uint8 position = 5 + urand(0,1);
             if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
-            {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
-                pChampion->SetInCombatWithZone();
-            }
         }
         for(std::list<uint32>::const_iterator itr = lSummonMeleeDDList.begin(); itr != lSummonMeleeDDList.end(); ++itr)
         {
             uint8 position = 5 + urand(0,1);
             if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
-            {
                 m_lFactionChampion.push_back(pChampion->GetObjectGuid());
-                pChampion->SetInCombatWithZone();
-            }
         }
     }
 }
@@ -699,6 +687,17 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
         case EVENT_SUMMON_FACTION_CHAMPIONS:
         {
             SummonFactionChampion();
+            break;
+        }
+        case EVENT_FACTION_CHAMPIONS_ATTACK:
+        {
+            for (GuidList::const_iterator itr = m_lFactionChampion.begin(); itr != m_lFactionChampion.end(); ++itr)
+            {
+                if (Creature* pChampion = instance->GetCreature(*itr))
+                {
+                    pChampion->SetInCombatWithZone();
+                }
+            }
             break;
         }
         case EVENT_SUMMON_TWINS:
