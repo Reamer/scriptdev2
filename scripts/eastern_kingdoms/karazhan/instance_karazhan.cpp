@@ -64,7 +64,8 @@ bool instance_karazhan::IsEncounterInProgress() const
 void instance_karazhan::OnCreatureCreate(Creature* pCreature)
 {
     pCreature->SetLevel(82);
-    pCreature->CastSpell(pCreature, SPELL_CYBER_INSTANZ_BOOST, true);
+    if (!pCreature->IsPet())
+        pCreature->CastSpell(pCreature, SPELL_CYBER_INSTANZ_BOOST, true);
 
     switch (pCreature->GetEntry())
     {
@@ -106,7 +107,7 @@ void instance_karazhan::OnCreatureEvade(Creature * pCreature)
 
 void instance_karazhan::OnCreatureEnterCombat(Creature * pCreature)
 {
-    if (!pCreature->HasAura(SPELL_CYBER_INSTANZ_BOOST))
+    if (!pCreature->HasAura(SPELL_CYBER_INSTANZ_BOOST) && !pCreature->IsPet())
         pCreature->CastSpell(pCreature, SPELL_CYBER_INSTANZ_BOOST, true);
 
     if (IsMoroesOrGuest(pCreature->GetEntry()))
