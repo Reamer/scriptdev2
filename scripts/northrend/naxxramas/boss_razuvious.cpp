@@ -174,14 +174,12 @@ bool GossipHello_obedience_crystal(Player* pPlayer, Creature* pCreature)
 {
     if (instance_naxxramas* m_pInstance = (instance_naxxramas*) pCreature->GetInstanceData())
     {
-        for(int i=0;i<2;i++)
+        for(GuidList::const_iterator itr = m_pInstance->m_lDeathKnightUnderstudyGuids.begin(); itr != m_pInstance->m_lDeathKnightUnderstudyGuids.end(); ++itr)
         {
-            if (Creature* pUnderstudy = pCreature->GetMap()->GetCreature(m_pInstance->m_lDeathKnightUnderstudyGUIDs.at(i)))
+            if (Creature* pUnderstudy = pCreature->GetMap()->GetCreature(*itr))
             {
-                if (pUnderstudy->HasAura(SPELL_FORCE_OBEDIENCE))
-                    continue;
-                pPlayer->CastSpell(pUnderstudy,SPELL_FORCE_OBEDIENCE,true);
-                return true;
+                if (!pUnderstudy->HasAura(SPELL_FORCE_OBEDIENCE))
+                    pPlayer->CastSpell(pUnderstudy,SPELL_FORCE_OBEDIENCE,true);
             }
         }
     }
