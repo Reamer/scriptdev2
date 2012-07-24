@@ -73,10 +73,6 @@ UPDATE creature_template SET npcflag = 1, scriptname = 'npc_light_or_dark_essenc
 UPDATE creature_template SET AIName = '', scriptname = 'npc_light_or_dark_bullet' WHERE entry IN (34628, 34630);
 UPDATE creature_template SET AIName ='NullAI' WHERE entry IN (34720, 34704); -- bullet Stalker
 
--- Twin Valkyrs
-REPLACE INTO `creature_template_addon` (entry, auras) VALUES ('34497', '65766'); -- Fjona light surge
-REPLACE INTO `creature_template_addon` (entry, auras) VALUES ('34496', '65768'); -- Eydis dark surge
-
 -- Twin pact by Wowka321
 DELETE FROM spell_script_target WHERE entry IN (65875,67303,67304,67305,65876,67306,67307,67308);
 INSERT INTO spell_script_target (entry, type, targetEntry) VALUES 
