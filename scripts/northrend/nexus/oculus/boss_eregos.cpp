@@ -38,6 +38,7 @@ enum Spells
     SAY_FRENZY           = -1578048,
     SAY_SPAWN            = -1578049,
 
+    SPELL_PLANAR_SHIFT                            = 51162,
     SPELL_ARCANE_BARRAGE_N                        = 50804,
     SPELL_ARCANE_BARRAGE_H                        = 59381,
     SPELL_ARCANE_VOLLEY_N                         = 51153,
@@ -45,10 +46,9 @@ enum Spells
     SPELL_ENRAGED_ASSAULT                         = 51170,
     SPELL_SUMMON_DRAKE                            = 51175,
     SPELL_PLANAR_ANOMALIES                        = 57959,
-    SPELL_PLANAR_ANOMALIES_SUMMON                 = 57963, //need spell script on m_creature 27656
+    SPELL_PLANAR_ANOMALIES_SUMMON                 = 57963,
     SPELL_PLANAR_ANOMALIES_VISUAL                 = 57971,
-    SPELL_PLANAR_SHIFT                            = 51162,
-    SPELL_PLANAR_ANOMALIES_DMG                    = 57976,
+    SPELL_PLANAR_ANOMALIES_DMG_AURA               = 59379,
 
     NPC_PLANAR_ANOMALY                            = 30879,
     NPC_DRAGON                                    = 28276
@@ -71,49 +71,22 @@ struct MANGOS_DLL_DECL boss_eregosAI : public ScriptedAI
     uint32 uiEnragedAssaultTimer;
     uint32 uiSummonTimer;
 
-    uint8 m_uiSummonCount;
+    float m_fHealthPercentForSpecial;
 
     bool m_bIsMove;
 
     void Reset()
     {
-        m_creature->SetVisibility(VISIBILITY_ON);
-        if (m_pInstance)
-        {
-           m_pInstance->SetData(TYPE_EREGOS, NOT_STARTED);
-           if(m_pInstance->GetData(TYPE_UROM) == DONE)
-           {
-              m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-           }
-           else
-           {
-              m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-           }
-        }
-
         m_creature->SetLevitate(true);
         m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
         m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
-        uiArcaneBarrageTimer = 12000;
-        uiArcaneVolleyTimer = 17000;
-        uiEnragedAssaultTimer = 24000;
-        uiSummonTimer = 15000;
-        m_uiSummonCount = 0;
-        m_bIsMove = true;
-    }
 
-    void MoveInLineOfSight(Unit* pWho)
-    {
-        if(pWho->GetTypeId() == TYPEID_PLAYER
-           && m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE)
-           && !((Player*)pWho)->isGameMaster()
-           && m_creature->IsWithinDistInMap(pWho, 100.0f)
-           && pWho->GetVehicle()
-           && m_pInstance->GetData(TYPE_UROM) == DONE)
-        {
-              m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        }
-        ScriptedAI::MoveInLineOfSight(pWho);
+        uiArcaneBarrageTimer    = 12000;
+        uiArcaneVolleyTimer     = 17000;
+        uiEnragedAssaultTimer   = 24000;
+        uiSummonTimer           = 15000;
+        m_fHealthPercentForSpecial = 60.0f;
+        m_bIsMove               = true;
     }
 
     void Aggro(Unit* who)
@@ -136,8 +109,6 @@ struct MANGOS_DLL_DECL boss_eregosAI : public ScriptedAI
 
     void JustDied(Unit* killer)
     {
-        m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-100.0f, 0);
-        // m_creature->SendMonsterMove(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-100.0f, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), 6000);
         DoScriptText(SAY_DEATH, m_creature);
         if (m_pInstance)
             m_pInstance->SetData(TYPE_EREGOS, DONE);
@@ -151,45 +122,8 @@ struct MANGOS_DLL_DECL boss_eregosAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned)
     {
-        if(pSummoned->GetEntry() == NPC_PLANAR_ANOMALY)
-        {
-           pSummoned->SetDisplayId(11686);
-           pSummoned->SetInCombatWithZone();
-           if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-              pSummoned->AI()->AttackStart(pTarget);
-        }
-
         if(pSummoned->GetEntry() == NPC_DRAGON)
-        {
            pSummoned->SetInCombatWithZone();
-           if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-              pSummoned->AI()->AttackStart(pTarget);
-        }
-    }
-
-    void AttackStart(Unit* who)
-    {
-        if (!who)
-            return;
-
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
-            return;
-
-        ScriptedAI::AttackStart(who);
-    }
-
-    void SummonAnomalies()
-    {
-        ThreatList t_list = m_creature->getThreatManager().getThreatList();
-        if (t_list.size())
-        {
-            for (ThreatList::iterator itr = t_list.begin(); itr != t_list.end(); ++itr)
-            {
-                Unit *pTarget = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
-                if (pTarget && pTarget->isAlive() && pTarget->GetTypeId() == TYPEID_PLAYER)
-                   DoCast(m_creature, SPELL_PLANAR_ANOMALIES_SUMMON, true);
-            }
-        }
     }
 
     void UpdateAI(const uint32 diff)
@@ -197,62 +131,67 @@ struct MANGOS_DLL_DECL boss_eregosAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_creature->GetHealthPercent() < 50.0f && m_uiSummonCount == 0)
+        if (m_creature->GetHealthPercent() < m_fHealthPercentForSpecial)
         {
-           SummonAnomalies();
-           m_uiSummonCount = 1;
-           m_creature->CastSpell(m_creature, SPELL_PLANAR_SHIFT,true);
-        }
-
-        if(m_creature->GetHealthPercent() < 25.0f && m_uiSummonCount == 1)
-        {
-            SummonAnomalies();
-            m_uiSummonCount = 2;
-            m_creature->CastSpell(m_creature, SPELL_PLANAR_SHIFT,true);
+            if (DoCastSpellIfCan(m_creature, SPELL_PLANAR_SHIFT) == CAST_OK)
+            {
+                m_fHealthPercentForSpecial -= 40.0f;
+                DoCastSpellIfCan(m_creature, SPELL_PLANAR_ANOMALIES, CAST_TRIGGERED);
+            }
         }
 
         if(m_creature->GetDistance2d(m_creature->getVictim()) > 35.0f && !m_bIsMove)
         {
-           m_bIsMove = true;
-           SetCombatMovement(m_bIsMove);
-           if(Unit* pTarget = m_creature->getVictim())
-              m_creature->GetMotionMaster()->MoveChase(pTarget);
+            m_bIsMove = true;
+            SetCombatMovement(m_bIsMove);
+            if(Unit* pTarget = m_creature->getVictim())
+                m_creature->GetMotionMaster()->MoveChase(pTarget);
         }
 
         if(m_creature->GetDistance2d(m_creature->getVictim()) < 20.0f && m_bIsMove)
         {
-           m_bIsMove = false;
-           SetCombatMovement(m_bIsMove);
-           m_creature->GetMotionMaster()->Clear(false);
-           m_creature->GetMotionMaster()->MoveIdle();
-           m_creature->StopMoving();
+            m_bIsMove = false;
+            SetCombatMovement(m_bIsMove);
+            m_creature->GetMotionMaster()->Clear(false);
+            m_creature->GetMotionMaster()->MoveIdle();
+            m_creature->StopMoving();
         }
 
         if(uiArcaneBarrageTimer <= diff)
         {
-           if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-               DoCast(pTarget, m_bIsRegularMode ? SPELL_ARCANE_BARRAGE_N : SPELL_ARCANE_BARRAGE_H);
-              uiArcaneBarrageTimer = 3000;
-        } else uiArcaneBarrageTimer -= diff;
+            if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            {
+                if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_ARCANE_BARRAGE_N : SPELL_ARCANE_BARRAGE_H) == CAST_OK)
+                    uiArcaneBarrageTimer = 3000;
+            }
+        }
+        else
+            uiArcaneBarrageTimer -= diff;
 
         if(uiSummonTimer <= diff)
         {
            for(uint8 i = 1; i < 3; i++)
                DoCast(m_creature, SPELL_SUMMON_DRAKE, true);
            uiSummonTimer = 15000;
-        } else uiSummonTimer -= diff;
+        }
+        else
+            uiSummonTimer -= diff;
 
         if(uiArcaneVolleyTimer <= diff)
         {
-            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_ARCANE_VOLLEY_N : SPELL_ARCANE_VOLLEY_H);
-            uiArcaneVolleyTimer = 17000;
-        } else uiArcaneVolleyTimer -= diff;
+            if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_ARCANE_VOLLEY_N : SPELL_ARCANE_VOLLEY_H) == CAST_OK)
+                uiArcaneVolleyTimer = 17000;
+        }
+        else
+            uiArcaneVolleyTimer -= diff;
 
         if(uiEnragedAssaultTimer <= diff)
         {
-            DoCast(m_creature, SPELL_ENRAGED_ASSAULT, true);
-            uiEnragedAssaultTimer = 44000;
-        } else uiEnragedAssaultTimer -= diff;
+            if (DoCastSpellIfCan(m_creature, SPELL_ENRAGED_ASSAULT) == CAST_OK)
+                uiEnragedAssaultTimer = 44000;
+        }
+        else
+            uiEnragedAssaultTimer -= diff;
     }
 };
 
@@ -263,34 +202,24 @@ struct MANGOS_DLL_DECL npc_planar_anomalyAI : public ScriptedAI
        Reset();
     }
 
-    uint32 uiPulseTimer;
-    uint32 uiDeathTimer;
-
     void Reset()
     {
+        SetCombatMovement(false);
         m_creature->SetDisplayId(11686);
         m_creature->SetObjectScale(2.0f);
         m_creature->SetLevitate(true);
         m_creature->SetSpeedRate(MOVE_RUN, 1.5, true);
-        m_creature->setFaction(14);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        DoCast(m_creature, SPELL_PLANAR_ANOMALIES_VISUAL, true);
-        uiDeathTimer = 20500;
-        uiPulseTimer = 19000;
+        if (Unit* pTarget = m_creature->GetMap()->GetUnit(m_creature->GetCreatorGuid()))
+            m_creature->GetMotionMaster()->MoveChase(pTarget);
+        else
+            m_creature->MonsterSay("I have no Creator", LANG_UNIVERSAL);
     }
 
     void UpdateAI(const uint32 diff)
     {
-        if (uiPulseTimer < diff)
-        {
-            m_creature->RemoveAurasDueToSpell(SPELL_PLANAR_ANOMALIES_VISUAL);
-            m_creature->CastSpell(m_creature, SPELL_PLANAR_ANOMALIES_DMG, true);
-            uiPulseTimer = 6000;
-        } else uiPulseTimer -= diff;
-
-        if (uiDeathTimer < diff)
-            m_creature->DealDamage(m_creature, m_creature->GetMaxHealth(),NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        else uiDeathTimer -= diff;
+        DoCastSpellIfCan(m_creature, SPELL_PLANAR_ANOMALIES_VISUAL, CAST_AURA_NOT_PRESENT);
+        DoCastSpellIfCan(m_creature, SPELL_PLANAR_ANOMALIES_DMG_AURA, CAST_AURA_NOT_PRESENT);
     }
 };
 

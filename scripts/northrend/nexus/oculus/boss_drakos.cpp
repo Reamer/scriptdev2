@@ -41,13 +41,10 @@ enum
     SAY_STOMP_3                                   = -1578011,
 
     SPELL_MAGIC_PULL                              = 51336,
-    SPELL_MAGIC_PULL_EFFECT                       = 50770,
-    SPELL_THUNDERING_STOMP_N                      = 50774,
+    SPELL_THUNDERING_STOMP                        = 50774,
     SPELL_THUNDERING_STOMP_H                      = 59370,
     SPELL_UNSTABLE_SPHERE_PASSIVE                 = 50756,
     SPELL_UNSTABLE_SPHERE_PULSE                   = 50757,
-    SPELL_UNSTABLE_SPHERE_TIMER                   = 50758,
-    SPELL_UNSTABLE_SPHERE_EXPLODE                 = 50759,
 
     NPC_UNSTABLE_SPHERE                           = 28166
 };
@@ -60,22 +57,29 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
     boss_drakosAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
 
-    uint32 m_uiMagicPullTimer ;
-    uint32 m_uiStompTimer ;
-    uint32 m_uiBombSummonTimer ;
+    uint32 m_uiMagicPullTimer;
+    uint32 m_uiStompTimer;
+    uint32 m_uiBombSummonTimer;
+
+    bool m_bIsRegularMode;
 
     void Reset()
     {
-        m_uiMagicPullTimer = urand(12000, 15000);
-        m_uiStompTimer = urand(3000, 6000);
+        m_uiMagicPullTimer  = urand(12000, 15000);
+        m_uiStompTimer      = urand(3000, 6000);
         m_uiBombSummonTimer = 7000;
-        if (m_pInstance && m_creature->isAlive())
-            m_pInstance->SetData(TYPE_DRAKOS, NOT_STARTED);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_DRAKOS, FAIL);
     }
 
     void Aggro(Unit* who)
@@ -101,14 +105,9 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
             case 0: DoScriptText(SAY_KILL_1, m_creature); break;
             case 1: DoScriptText(SAY_KILL_2, m_creature); break;
             case 2: DoScriptText(SAY_KILL_3, m_creature); break;
+            default:
+                break;
         }
-    }
-
-    void SpellHitTarget(Unit *target, const SpellEntry *spell)
-    {
-        if (spell->Id == SPELL_MAGIC_PULL)
-            if (target->GetTypeId() == TYPEID_PLAYER)
-                DoCast(target, SPELL_MAGIC_PULL_EFFECT, true);
     }
 
     void UpdateAI(const uint32 diff)
@@ -118,8 +117,8 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
 
         if (m_uiBombSummonTimer < diff)
         {
-            m_creature->SummonCreature(NPC_UNSTABLE_SPHERE, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1000);
-            m_creature->SummonCreature(NPC_UNSTABLE_SPHERE, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1000);
+            m_creature->SummonCreature(NPC_UNSTABLE_SPHERE, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
+            m_creature->SummonCreature(NPC_UNSTABLE_SPHERE, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
             m_uiBombSummonTimer = 3000;
         }
         else
@@ -127,14 +126,18 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
 
         if (m_uiMagicPullTimer < diff)
         {
-            DoCast(m_creature, SPELL_MAGIC_PULL);
-            m_uiMagicPullTimer = urand(15000, 25000);
-            switch (urand(0, 3))
+            if (DoCastSpellIfCan(m_creature, SPELL_MAGIC_PULL) == CAST_OK)
             {
-               case 0: DoScriptText(SAY_PULL_1, m_creature); break;
-               case 1: DoScriptText(SAY_PULL_2, m_creature); break;
-               case 2: DoScriptText(SAY_PULL_3, m_creature); break;
-               case 3: DoScriptText(SAY_PULL_4, m_creature); break;
+                m_uiMagicPullTimer = urand(15000, 25000);
+                switch (urand(0, 3))
+                {
+                   case 0: DoScriptText(SAY_PULL_1, m_creature); break;
+                   case 1: DoScriptText(SAY_PULL_2, m_creature); break;
+                   case 2: DoScriptText(SAY_PULL_3, m_creature); break;
+                   case 3: DoScriptText(SAY_PULL_4, m_creature); break;
+                   default:
+                       break;
+                }
             }
         }
         else
@@ -142,13 +145,15 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
 
         if (m_uiStompTimer < diff)
         {
-            DoCast(m_creature, SPELL_THUNDERING_STOMP_N);
-            m_uiStompTimer = urand(11000, 18000);
-            switch (urand(0, 2))
+            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_THUNDERING_STOMP : SPELL_THUNDERING_STOMP_H) == CAST_OK)
             {
-               case 0: DoScriptText(SAY_STOMP_1, m_creature); break;
-               case 1: DoScriptText(SAY_STOMP_2, m_creature); break;
-               case 2: DoScriptText(SAY_STOMP_3, m_creature); break;
+                m_uiStompTimer = urand(11000, 18000);
+                switch (urand(0, 2))
+                {
+                   case 0: DoScriptText(SAY_STOMP_1, m_creature); break;
+                   case 1: DoScriptText(SAY_STOMP_2, m_creature); break;
+                   case 2: DoScriptText(SAY_STOMP_3, m_creature); break;
+                }
             }
         }
         else
@@ -167,23 +172,19 @@ struct MANGOS_DLL_DECL npc_unstable_sphereAI : public ScriptedAI
 {
     npc_unstable_sphereAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
     uint32 m_uiPulseTimer;
 
     void Reset()
     {
+        SetCombatMovement(false);
         m_creature->SetLevitate(true);
-        m_creature->GetMotionMaster()->MovePoint(0, (CENTER_X-35)+rand()%70, (CENTER_Y-35)+rand()%70, m_creature->GetPositionZ());
+        m_creature->GetMotionMaster()->MoveRandomAroundPoint(CENTER_X, CENTER_Y, m_creature->GetPositionZ(), 35.0f);
         m_creature->SetSpeedRate(MOVE_RUN, 2, true);
-        m_creature->setFaction(14);
         DoCast(m_creature, SPELL_UNSTABLE_SPHERE_PASSIVE, true);
-        DoCast(m_creature, SPELL_UNSTABLE_SPHERE_TIMER, true);
         m_uiPulseTimer = 3000;
-        m_creature->ForcedDespawn(19000);
     }
 
     void AttackStart(Unit* pWho)
@@ -192,14 +193,10 @@ struct MANGOS_DLL_DECL npc_unstable_sphereAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-
-        if (m_pInstance && m_pInstance->GetData(TYPE_DRAKOS) != IN_PROGRESS)
-            m_creature->ForcedDespawn();
-
         if (m_uiPulseTimer < diff)
         {
-            DoCast(m_creature, SPELL_UNSTABLE_SPHERE_PULSE, true);
-            m_uiPulseTimer = 3000;
+            if (DoCastSpellIfCan(m_creature, SPELL_UNSTABLE_SPHERE_PULSE) == CAST_OK)
+                m_uiPulseTimer = 3000;
         }
         else
             m_uiPulseTimer -= diff;

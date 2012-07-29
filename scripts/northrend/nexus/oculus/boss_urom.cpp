@@ -39,15 +39,18 @@ enum
     SAY_SUMMON_3                                  = -1578039,
 
     SPELL_ARCANE_BARRIER                          = 53813, //Dummy --> Channeled, shields the caster from damage.
-    SPELL_EMPOWERED_ARCANE_EXPLOSION              = 51110,
-    SPELL_EMPOWERED_ARCANE_EXPLOSION_2            = 59377,
-    SPELL_FROSTBOMB                               = 51103, //Urom throws a bomb, hitting its target with the highest aggro which inflict directly 650 frost damage and drops a frost zone on the ground. This zone deals 650 frost damage per second and reduce the movement speed by 35%. Lasts 1 minute.
-    SPELL_SUMMON_MENAGERIE                        = 50476, //Summons an assortment of creatures and teleports the caster to safety.
+
+    SPELL_SUMMON_MENAGERIE_1                      = 50476, //Summons an assortment of creatures and teleports the caster to safety.
     SPELL_SUMMON_MENAGERIE_2                      = 50495,
     SPELL_SUMMON_MENAGERIE_3                      = 50496,
     SPELL_TELEPORT                                = 51112, //Teleports to the center of Oculus
-    SPELL_TIME_BOMB                               = 51121, //Deals arcane damage to a random player, and after 6 seconds, deals zone damage to nearby equal to the health missing of the target afflicted by the debuff.
-    SPELL_TIME_BOMB_2                             = 59376,
+
+    SPELL_TIME_BOMB                               = 51121,
+    SPELL_TIME_BOMB_H                             = 59376,
+    SPELL_EMPOWERED_ARCANE_EXPLOSION              = 51110,
+    SPELL_EMPOWERED_ARCANE_EXPLOSION_H            = 59377,
+    SPELL_FROSTBOMB                               = 51103,
+
 
     //NPCs
     NPC_PHANTASMAL_MAMMOTH                 = 27642,
@@ -60,28 +63,48 @@ enum
     NPC_PHANTASMAL_FIRE                    = 27651,
     NPC_PHANTASMAL_WATER                   = 27653
 };
-/*
-struct Locations
+
+enum UromPhase
 {
-    float x, y, z, o;
-    uint32 id;
-};
-*/
-struct Locations Teleport[]=
-{
-    {1177.469f, 937.721f, 527.405f, 2.21f}, //first platform
-    {968.5880f, 1042.58f, 527.321f, 0.13f}, //second platform
-    {1163.671f, 1171.02f, 527.321f, 4.19f}, //third platform
-    {1116.765f, 1075.93f, 508.361f, 4.26f}, //middle platform
-    {1103.659f, 1049.88f, 518.148f, 5.80f}  //oculus center
+    PHASE_IDLE	    = 0,
+    PHASE_PLATFORM1	= 1,
+    PHASE_PLATFORM2	= 2,
+    PHASE_CENTER	= 3,
 };
 
-struct MANGOS_DLL_DECL boss_uromAI : public BSWScriptedAI
+struct LocationsXY
 {
-    boss_uromAI(Creature *pCreature) : BSWScriptedAI(pCreature)
+    float x, y, z;
+    uint32 id;
+};
+
+static LocationsXY SummonLoc[]=
+{
+    {1177.469f, 937.721f, 527.405f},
+    {968.659f, 1042.53f, 527.320f},
+    {1164.02f, 1170.84f, 527.320f},
+};
+
+struct TrashPacks
+{
+    uint32 firstId, secondId, thirdId;
+    uint32 id;
+};
+
+static TrashPacks PackId[]=
+{
+    {NPC_PHANTASMAL_CLOUDSCRAPER, NPC_PHANTASMAL_MAMMOTH, NPC_PHANTASMAL_WOLF},
+    {NPC_PHANTASMAL_AIR, NPC_PHANTASMAL_FIRE, NPC_PHANTASMAL_WATER},
+    {NPC_PHANTASMAL_MURLOC, NPC_PHANTASMAL_NAGA, NPC_PHANTASMAL_OGRE},
+};
+
+struct MANGOS_DLL_DECL boss_uromAI : public ScriptedAI
+{
+    boss_uromAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        DoCast(m_creature, SPELL_ARCANE_BARRIER);
         Reset();
     }
 
@@ -89,64 +112,150 @@ struct MANGOS_DLL_DECL boss_uromAI : public BSWScriptedAI
     bool m_bIsRegularMode;
 
     uint32 m_uiFrostBombTimer;
-    uint32 m_uiLiveBombTimer;
-    uint32 m_uiTeleportTimer;
-    uint32 m_uiArcaneExplodeTimer;
-    uint32 m_uiRelocateTimer;
-    uint32 m_uiBackTimer;
+    uint32 m_uiTimeBombTimer;
+    uint32 m_uiExplosionStepTimer;
+
     uint32 m_uiCheckTimer;
 
-    bool m_bIsTeleported;
-    bool m_bIsTalk;
+    bool m_bHasCasted;
+    bool m_bIsInArcanExplode;
+
+    UromPhase m_UromPhase;
+    std::vector<uint32> TrashPacksEntries;
 
     void Reset()
     {
-       m_uiFrostBombTimer = 9000;
-       m_uiLiveBombTimer = 14000;
-       m_uiTeleportTimer = 30000;
-       m_uiRelocateTimer = 31500;
-       m_uiBackTimer = 9000;
-       m_uiCheckTimer = 2000;
-       m_uiArcaneExplodeTimer = 1000;
+        TrashPacksEntries.clear();
+        SetPacks();
 
-       m_bIsTeleported = false;
-       m_bIsTalk = false;
+        m_UromPhase             = PHASE_IDLE;
+        m_uiExplosionStepTimer  = urand(30000,35000);
+        m_uiFrostBombTimer	    = urand(5000,8000);
+        m_uiFrostBombTimer      = 9000;
+        m_uiTimeBombTimer       = 14000;
+        m_uiCheckTimer          = 2000;
 
-       if (m_pInstance && m_pInstance->GetData(TYPE_UROM) != IN_PROGRESS)
-       {
-           m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-           m_pInstance->SetData(TYPE_UROM, NOT_STARTED);
-           if(m_pInstance->GetData(TYPE_VAROS) == DONE)
-           {
-              m_creature->RemoveAurasDueToSpell(SPELL_ARCANE_BARRIER);
-              m_creature->InterruptNonMeleeSpells(false);
-//              m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-           }
-           else
-           {
-              DoCast(m_creature, SPELL_ARCANE_BARRIER);
-           }
-        }
+        m_bHasCasted            = false;
+        m_bIsInArcanExplode     = false;
     }
 
-    void DoSummon(uint32 Entry01, uint32 Entry02, uint32 Entry03, uint32 Entry04, uint32 Entry05 = 0)
+    void JustReachedHome()
     {
-       m_creature->SummonCreature(Entry01, m_creature->GetPositionX() - (10.0f) * cos(M_PI / 2), m_creature->GetPositionY() - (10.0f) * sin(M_PI / 2), m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 15000);
-       m_creature->SummonCreature(Entry02, m_creature->GetPositionX() - (10.0f) * cos(M_PI * 2), m_creature->GetPositionY() - (10.0f) * sin(M_PI * 2), m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 15000);
-       m_creature->SummonCreature(Entry03, m_creature->GetPositionX() - (10.0f) * cos(M_PI + M_PI / 2), m_creature->GetPositionY() - (10.0f) * sin(M_PI + M_PI / 2), m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 15000);
-       m_creature->SummonCreature(Entry04, m_creature->GetPositionX() - (10.0f) * cos(M_PI), m_creature->GetPositionY() - (10.0f) * sin(M_PI), m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 15000);
-       if(Entry05 != 0)
-          m_creature->SummonCreature(Entry05, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 15000);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_UROM, FAIL);
+    }
+
+    void MoveInLineOfSight(Unit* pWho)
+    {
+        if(pWho->GetTypeId() == TYPEID_PLAYER
+           && m_creature->IsWithinDistInMap(pWho, 30.0f)
+           && !pWho->GetVehicle()
+           && m_pInstance->GetData(TYPE_VAROS) == DONE
+           && !m_bHasCasted)
+        {
+            switch(m_UromPhase)
+            {
+                case PHASE_IDLE:
+                    m_bHasCasted = true;
+                    m_creature->CastStop();
+                    DoScriptText(SAY_SUMMON_1, m_creature);
+                    DoCast(m_creature, SPELL_SUMMON_MENAGERIE_1);
+                    break;
+                case PHASE_PLATFORM1:
+                    m_bHasCasted = true;
+                    m_creature->CastStop();
+                    DoScriptText(SAY_SUMMON_2, m_creature);
+                    DoCast(m_creature, SPELL_SUMMON_MENAGERIE_2);
+                    break;
+                case PHASE_PLATFORM2:
+                    m_bHasCasted = true;
+                    m_creature->CastStop();
+                    DoScriptText(SAY_SUMMON_3, m_creature);
+                    DoCast(m_creature, SPELL_SUMMON_MENAGERIE_3);
+                    break;
+                default:
+                    break;
+            }
+        }
+        ScriptedAI::MoveInLineOfSight(pWho);
+    }
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        if (pDoneBy->GetVehicle())
+        {
+            EnterEvadeMode();
+            return;
+        }
+        if(m_UromPhase != PHASE_CENTER)
+            uiDamage = 0;
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if(m_pInstance->GetData(TYPE_VAROS) != DONE)
+            return;
+
+        if(m_UromPhase != PHASE_CENTER)
+            return;
+
+        ScriptedAI::AttackStart(pWho);
+    }
+
+    void SetPacks()
+    {
+        TrashPacksEntries.reserve(3);
+        TrashPacksEntries.push_back(0);
+        TrashPacksEntries.push_back(1);
+        TrashPacksEntries.push_back(2);
+
+        if(!TrashPacksEntries.empty())
+            std::random_shuffle(TrashPacksEntries.begin(), TrashPacksEntries.end());
+    }
+
+    void SummonTrashPack(uint32 uiPackId, uint32 uiLocId)
+    {
+        float angle = (float) rand()*360/RAND_MAX + 1;
+        float homeX = SummonLoc[uiLocId].x + 10*cos(angle*(M_PI/180));
+        float homeY = SummonLoc[uiLocId].y + 10*sin(angle*(M_PI/180));
+        m_creature->SummonCreature(PackId[uiPackId].firstId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+
+        angle = (float) rand()*360/RAND_MAX + 1;
+        homeX = SummonLoc[uiLocId].x + 10*cos(angle*(M_PI/180));
+        homeY = SummonLoc[uiLocId].y + 10*sin(angle*(M_PI/180));
+        m_creature->SummonCreature(PackId[uiPackId].secondId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+
+        angle = (float) rand()*360/RAND_MAX + 1;
+        homeX = SummonLoc[uiLocId].x + 10*cos(angle*(M_PI/180));
+        homeY = SummonLoc[uiLocId].y + 10*sin(angle*(M_PI/180));
+        m_creature->SummonCreature(PackId[uiPackId].thirdId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        if(pSpell->Id == SPELL_SUMMON_MENAGERIE) //|| pSpell->Id == SPELL_SUMMON_MENAGERIE_2 || pSpell->Id == SPELL_SUMMON_MENAGERIE_3)
-            m_bIsTalk = false;
-        if(pSpell->Id == SPELL_SUMMON_MENAGERIE_2)
-            m_bIsTalk = false;
-        if(pSpell->Id == SPELL_SUMMON_MENAGERIE_3)
-            m_bIsTalk = false;
+        switch(pSpell->Id)
+        {
+            case SPELL_SUMMON_MENAGERIE_1:
+                m_bHasCasted = false;
+                SummonTrashPack(TrashPacksEntries[0], 0);
+                m_UromPhase = PHASE_PLATFORM1;
+                break;
+            case SPELL_SUMMON_MENAGERIE_2:
+                m_bHasCasted = false;
+                SummonTrashPack(TrashPacksEntries[1], 1);
+                m_UromPhase = PHASE_PLATFORM2;
+                break;
+            case SPELL_SUMMON_MENAGERIE_3:
+                m_bHasCasted = false;
+                SummonTrashPack(TrashPacksEntries[2], 2);
+                m_UromPhase = PHASE_CENTER;
+                break;
+            case SPELL_TELEPORT:
+                DoCast(m_creature, m_bIsRegularMode ? SPELL_EMPOWERED_ARCANE_EXPLOSION : SPELL_EMPOWERED_ARCANE_EXPLOSION_H);
+                m_uiExplosionStepTimer = 9000;
+                break;
+            default:
+                break;
+        }
     }
 
     void TeleportBoss(float X, float Y, float Z, float O)
@@ -156,109 +265,11 @@ struct MANGOS_DLL_DECL boss_uromAI : public BSWScriptedAI
         m_creature->Relocate(X, Y, Z, O);
     }
 
-    void AttackStart(Unit* pWho)
-    {
-        if (!m_pInstance)
-            return;
-
-        if(m_pInstance->GetData(TYPE_UROM_PHASE) < 3)
-            return;
-
-        if (m_bIsTeleported)
-            return;
-
-        ScriptedAI::AttackStart(pWho);
-    }
-
-    void MoveInLineOfSight(Unit* pWho)
-    {
-        if (!m_pInstance)
-            return;
-
-        if(pWho->GetTypeId() == TYPEID_PLAYER
-           && !((Player*)pWho)->isGameMaster()
-           && m_creature->IsWithinDistInMap(pWho, 30.0f)
-           && !pWho->GetVehicle()
-           && m_pInstance->GetData(TYPE_VAROS) == DONE
-           && !m_bIsTalk)
-        {
-            switch(m_pInstance->GetData(TYPE_UROM_PHASE))
-            {
-            case 0:
-                m_bIsTalk = true;
-                SetCombatMovement(false);
-                m_pInstance->SetData(TYPE_UROM, IN_PROGRESS);
-                m_creature->InterruptNonMeleeSpells(false);
-                m_creature->RemoveAurasDueToSpell(53813);
-                DoScriptText(SAY_SUMMON_1, m_creature);
-                DoSummon(NPC_PHANTASMAL_FIRE, NPC_PHANTASMAL_FIRE, NPC_PHANTASMAL_AIR, NPC_PHANTASMAL_WATER);
-                DoCast(m_creature, SPELL_SUMMON_MENAGERIE);
-                TeleportBoss(Teleport[1].x, Teleport[1].y, Teleport[1].z, Teleport[1].o);
-                m_pInstance->SetData(TYPE_UROM_PHASE, 1);
-                break;
-            case 1:
-                m_bIsTalk = true;
-                DoScriptText(SAY_SUMMON_2, m_creature);
-                DoSummon(NPC_PHANTASMAL_OGRE, NPC_PHANTASMAL_OGRE, NPC_PHANTASMAL_NAGA, NPC_PHANTASMAL_MURLOC);
-                DoCast(m_creature, SPELL_SUMMON_MENAGERIE_2);
-                TeleportBoss(Teleport[2].x, Teleport[2].y, Teleport[2].z, Teleport[2].o);
-                m_pInstance->SetData(TYPE_UROM_PHASE, 2);
-                break;
-            case 2:
-                m_bIsTalk = true;
-                DoScriptText(SAY_SUMMON_3, m_creature);
-                DoSummon(NPC_PHANTASMAL_MAMMOTH, NPC_PHANTASMAL_WOLF, NPC_PHANTASMAL_WOLF, NPC_PHANTASMAL_CLOUDSCRAPER, NPC_PHANTASMAL_CLOUDSCRAPER);
-                DoCast(m_creature, SPELL_SUMMON_MENAGERIE_3);
-                TeleportBoss(Teleport[3].x, Teleport[3].y, Teleport[3].z, Teleport[3].o);
-                m_pInstance->SetData(TYPE_UROM_PHASE, 3);
-                break;
-            case 3:
-                m_bIsTalk = true;
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                SetCombatMovement(true);
-                AttackStart(pWho);
-                break;
-            default:
-                break;
-            }
-        }
-
-        ScriptedAI::MoveInLineOfSight(pWho);
-    }
-
     void Aggro(Unit* pWho)
     {
-       if(pWho->GetTypeId() != TYPEID_PLAYER)
-          EnterEvadeMode();
-       else DoScriptText(SAY_AGGRO, m_creature);
-    }
-
-    void JustSummoned(Creature* summoned)
-    {
-        if(!m_pInstance || !summoned) return;
-
-        if (Unit* pTarget = doSelectRandomPlayerAtRange(100.0f))
-        {
-            summoned->SetInCombatWith(pTarget);
-            summoned->AddThreat(pTarget,100.0f);
-        }
-    }
-
-    void EnterEvadeMode()
-    {
-
-       if (!m_pInstance)
-           return;
-
-       if( m_pInstance->GetData(TYPE_UROM_PHASE) < 3)
-       {
-           Map::PlayerList const &pList = m_creature->GetMap()->GetPlayers();
-           if (!pList.isEmpty())
-               return;
-       }
-       m_pInstance->SetData(TYPE_UROM, FAIL);
-       m_pInstance->SetData(TYPE_UROM_PHASE, 0);
-       ScriptedAI::EnterEvadeMode();
+        DoScriptText(SAY_AGGRO, m_creature);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_UROM, IN_PROGRESS);
     }
 
     void JustDied(Unit* killer)
@@ -300,68 +311,71 @@ struct MANGOS_DLL_DECL boss_uromAI : public BSWScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if(!m_bIsTeleported)
+        if (m_UromPhase == PHASE_CENTER)
         {
-           if(m_uiFrostBombTimer < uiDiff)
-           {
-               m_creature->CastSpell(m_creature->getVictim(), SPELL_FROSTBOMB, false);
-               m_uiFrostBombTimer = urand(5000, 7000);
-           } else m_uiFrostBombTimer -= uiDiff;
+            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+                return;
 
-           if(m_uiLiveBombTimer < uiDiff)
-           {
-               if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                  DoCast(pTarget, m_bIsRegularMode ? SPELL_TIME_BOMB : SPELL_TIME_BOMB_2);
-               m_uiLiveBombTimer = urand(15000, 25000);
-           } else m_uiLiveBombTimer -= uiDiff;
+            if(m_uiCheckTimer < uiDiff)
+            {
+                CheckVehicle();
+                m_uiCheckTimer = 2000;
+            }
+            else
+                m_uiCheckTimer -= uiDiff;
 
-           if(m_uiTeleportTimer < uiDiff)
-           {
-               DoCast(m_creature, SPELL_TELEPORT);
-               m_uiTeleportTimer = 31500;
-           } else m_uiTeleportTimer -= uiDiff;
+            if (!m_bIsInArcanExplode)
+            {
+                if(m_uiFrostBombTimer < uiDiff)
+                {
+                    if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    {
+                        if (DoCastSpellIfCan(pTarget, SPELL_FROSTBOMB) == CAST_OK)
+                            m_uiFrostBombTimer = urand(5000, 7000);
+                    }
+                }
+                else
+                    m_uiFrostBombTimer -= uiDiff;
 
-           if(m_uiCheckTimer < uiDiff)
-           {
-               CheckVehicle();
-               m_uiCheckTimer = 2000;
-           } else m_uiCheckTimer -= uiDiff;
+                if(m_uiTimeBombTimer < uiDiff)
+                {
+                    if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, m_bIsRegularMode ? SPELL_TIME_BOMB : SPELL_TIME_BOMB_H, SELECT_FLAG_PLAYER))
+                    {
+                        if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_TIME_BOMB : SPELL_TIME_BOMB_H) == CAST_OK)
+                            m_uiTimeBombTimer = urand(15000, 25000);
+                    }
+                }
+                else
+                    m_uiTimeBombTimer -= uiDiff;
 
-           if(m_uiRelocateTimer < uiDiff)
-           {
-               m_bIsTeleported = true;
-               m_creature->SetLevitate(true);
-               m_creature->GetMotionMaster()->Clear(false);
-               m_creature->GetMotionMaster()->MoveIdle();
-               m_creature->StopMoving();
-               TeleportBoss(Teleport[4].x,Teleport[4].y,Teleport[4].z,Teleport[4].o);
-               m_uiRelocateTimer = 31500;
-           } else m_uiRelocateTimer -= uiDiff;
-
-           DoMeleeAttackIfReady();
-        }
-        else
-        {
-           if(m_uiArcaneExplodeTimer < uiDiff)
-           {
-               DoScriptText(urand(0,1) ? SAY_EXPLOSION_1 : SAY_EXPLOSION_2, m_creature);
-               DoCast(m_creature, m_bIsRegularMode ? SPELL_EMPOWERED_ARCANE_EXPLOSION : SPELL_EMPOWERED_ARCANE_EXPLOSION_2);
-               m_uiArcaneExplodeTimer = 32000;
-           } else m_uiArcaneExplodeTimer -= uiDiff;
-
-           if(m_uiBackTimer < uiDiff)
-           {
-               TeleportBoss((m_creature->getVictim())->GetPositionX(),(m_creature->getVictim())->GetPositionY(),(m_creature->getVictim())->GetPositionZ(),(m_creature->getVictim())->GetOrientation());
-               m_creature->SetLevitate(false);
-               if(m_creature->getVictim())
-                  m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-               m_uiBackTimer = m_bIsRegularMode ? 9500 : 7500;
-               m_bIsTeleported = false;
-               m_uiArcaneExplodeTimer = 1000;
-           } else m_uiBackTimer -= uiDiff;
+                if(m_uiExplosionStepTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT) == CAST_OK)
+                    {
+                        DoScriptText(urand(0,1) ? SAY_EXPLOSION_1 : SAY_EXPLOSION_2, m_creature);
+                        m_uiExplosionStepTimer = 1500;
+                        m_bIsInArcanExplode = true;
+                    }
+                }
+                else
+                    m_uiExplosionStepTimer -= uiDiff;
+            }
+            else
+            {
+                if (m_uiExplosionStepTimer < uiDiff)
+                {
+                    if (Unit* pVictim = m_creature->getVictim())
+                    {
+                        float x, y, z;
+                        pVictim->GetPosition(x, y, z);
+                        TeleportBoss(x, y, z, m_creature->GetOrientation());
+                        m_uiExplosionStepTimer = 30000;
+                        m_bIsInArcanExplode = false;
+                    }
+                }
+                else
+                    m_uiExplosionStepTimer -= uiDiff;
+            }
         }
     }
 };
