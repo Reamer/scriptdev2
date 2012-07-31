@@ -151,7 +151,7 @@ bool instance_vault_of_archavon::IsEncounterInProgress() const
 
 void instance_vault_of_archavon::Update(const uint32 uiDiff)
 {
-    if (m_uiRespawnEmalonMinion)
+    if (m_uiRespawnEmalonMinion && GetData(TYPE_EMALON) == IN_PROGRESS)
     {
         if (m_uiRespawnEmalonMinion <= uiDiff)
         {

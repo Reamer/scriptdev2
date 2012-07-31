@@ -24,11 +24,6 @@ EndScriptData */
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
-enum BossSpells
-{
-
-};
-
 enum AnubarakYells
 {
     SAY_ANUB_ANUB_INTRO_1           = -1649038,

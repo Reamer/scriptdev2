@@ -49,8 +49,8 @@ enum
     NPC_UNSTABLE_SPHERE                           = 28166
 };
 
-#define CENTER_X                960.120f
-#define CENTER_Y                1049.413f
+#define DRAKOS_CENTER_X                960.120f
+#define DRAKOS_CENTER_Y                1049.413f
 
 struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
 {
@@ -172,17 +172,17 @@ struct MANGOS_DLL_DECL npc_unstable_sphereAI : public ScriptedAI
 {
     npc_unstable_sphereAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
     }
 
+    ScriptedInstance* m_pInstance;
     uint32 m_uiPulseTimer;
 
     void Reset()
     {
         SetCombatMovement(false);
-        m_creature->SetLevitate(true);
-        m_creature->GetMotionMaster()->MoveRandomAroundPoint(CENTER_X, CENTER_Y, m_creature->GetPositionZ(), 35.0f);
-        m_creature->SetSpeedRate(MOVE_RUN, 2, true);
+        m_creature->GetMotionMaster()->MoveRandomAroundPoint(DRAKOS_CENTER_X, DRAKOS_CENTER_Y, m_creature->GetPositionZ(), 35.0f);
         DoCast(m_creature, SPELL_UNSTABLE_SPHERE_PASSIVE, true);
         m_uiPulseTimer = 3000;
     }
@@ -193,6 +193,9 @@ struct MANGOS_DLL_DECL npc_unstable_sphereAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
+        if (m_pInstance && m_pInstance->GetData(TYPE_DRAKOS) != IN_PROGRESS)
+            m_creature->ForcedDespawn();
+
         if (m_uiPulseTimer < diff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_UNSTABLE_SPHERE_PULSE) == CAST_OK)
