@@ -186,7 +186,8 @@ struct MANGOS_DLL_DECL boss_varosAI : public ScriptedAI
             {
                 if (Creature* pCore = m_pInstance->GetFarestVaromOrb())
                 {
-                    m_creature->SetOrientation(m_creature->GetAngle(pCore));
+                    m_creature->SetTargetGuid(pCore->GetTargetGuid());
+                    m_creature->SetInFront(pCore);
                     if (DoCastSpellIfCan(pCore, SPELL_ENERGIZE_CORES_SHOW) == CAST_OK)
                     {
                         m_Core = pCore->GetObjectGuid();
@@ -204,7 +205,8 @@ struct MANGOS_DLL_DECL boss_varosAI : public ScriptedAI
             {
                 if (Creature* pCore = m_creature->GetMap()->GetCreature(m_Core))
                 {
-                    m_creature->SetOrientation(m_creature->GetAngle(pCore));
+                    m_creature->SetTargetGuid(pCore->GetTargetGuid());
+                    m_creature->SetInFront(pCore);
                     if (DoCastSpellIfCan(pCore, m_bIsRegularMode ? SPELL_ENERGIZE_CORES : SPELL_ENERGIZE_CORES_H) == CAST_OK)
                     {
                         m_bIsCastChain = false;
