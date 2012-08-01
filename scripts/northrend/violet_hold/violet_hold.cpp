@@ -530,7 +530,7 @@ struct MANGOS_DLL_DECL npc_teleportation_portalAI : public ScriptedAI
             case NPC_AZURE_MAGE_SLAYER_INTRO:
                 // Move them to the entrance. They will attack the guards automatically
                 pSummoned->SetWalk(false);
-                pSummoned->GetMotionMaster()->MovePoint(1, fSealAttackLoc[0], fSealAttackLoc[1], fSealAttackLoc[2]);
+                pSummoned->GetMotionMaster()->MovePoint(1, fSealAttackLoc[0], fSealAttackLoc[1], fSealAttackLoc[2], true, true);
                 break;
         }
     }
