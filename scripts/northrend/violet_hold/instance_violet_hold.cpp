@@ -33,7 +33,7 @@ instance_violet_hold::instance_violet_hold(Map* pMap) : ScriptedInstance(pMap),
     m_bIsDefenseless(false),
     m_bIsDehydratation(false),
 
-    m_uiSealYellCount(0),
+    m_uiSealYellCount(1),
     m_uiEventResetTimer(0),
 
     m_uiPortalId(0),
@@ -53,7 +53,7 @@ void instance_violet_hold::ResetVariables()
 {
     m_uiWorldStateSealCount = 100;
     m_uiWorldStatePortalCount = 0;
-    m_uiSealYellCount = 0;
+    m_uiSealYellCount = 1;
 }
 
 void instance_violet_hold::ResetAll()
