@@ -345,7 +345,7 @@ struct MANGOS_DLL_DECL npc_crystal_channel_targetAI : public ScriptedAI
             if (Creature* pNovos = m_pInstance->GetSingleCreatureFromStorage(NPC_NOVOS))
             {
                 m_creature->GetRandomPoint(0.70*pNovos->GetPositionX() + 0.30*pSummoned->GetPositionX(), 0.70*pNovos->GetPositionY() + 0.30*pSummoned->GetPositionY(), pNovos->GetPositionZ() + 1.5f, 4.0f, fX, fY, fZ);
-                pSummoned->GetMotionMaster()->MovePoint(1, fX, fY, fZ);
+                pSummoned->GetMotionMaster()->MovePoint(1, fX, fY, fZ, true, true);
             }
         }
     }
