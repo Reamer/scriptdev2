@@ -138,7 +138,7 @@ struct MANGOS_DLL_DECL boss_anubarakAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_ANUBARAK, NOT_STARTED);
+            m_pInstance->SetData(TYPE_ANUBARAK, FAIL);
     }
 
     void MoveInLineOfSight(Unit* pWho)
