@@ -170,9 +170,8 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
         {
             m_lWellGuids.push_back(pSummoned->GetObjectGuid());
             pSummoned->CastSpell(pSummoned, SPELL_WELL_OF_SOULS_TRIGGER, true, NULL, NULL, m_creature->GetObjectGuid());
-            // Commented as of not stacking auras
-            //pSummoned->CastSpell(pSummoned, SPELL_WELL_OF_SOULS_VISUAL1, true);
-            //pSummoned->CastSpell(pSummoned, SPELL_WELL_OF_SOULS_VISUAL2, true);
+            pSummoned->CastSpell(pSummoned, SPELL_WELL_OF_SOULS_VISUAL1, true);
+            pSummoned->CastSpell(pSummoned, SPELL_WELL_OF_SOULS_VISUAL2, true);
         }
         else if (pSummoned->GetEntry() == NPC_UNLEASHED_SOUL)
         {
@@ -180,9 +179,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
             {
                 // It seems the summoned should rather walk towards the boss, but this results in them attacking the healer
                 pSummoned->AI()->AttackStart(pEnemy);
-                pSummoned->AddThreat(pEnemy, 10000.0f);
             }
-            pSummoned->ForcedDespawn(15000);                // Note that this is sort of a hack, the more correct fix however would require to toggle the interpretation of summon properties in mangos
         }
     }
 
