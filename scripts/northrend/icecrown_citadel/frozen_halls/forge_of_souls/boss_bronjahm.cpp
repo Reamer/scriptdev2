@@ -160,6 +160,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 /* no break*/
             }
             case BronjahmPhaseTwo:
+            {
 
                 // Magic's Bane
                 if (m_uiMagicsBaneTimer < uiDiff)
@@ -195,7 +196,9 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
 
                 DoMeleeAttackIfReady();
                 break;
+            }
             default:
+            {
                 m_creature->MonsterSay("Unknown Phase", LANG_UNIVERSAL);
                 break;
             }
