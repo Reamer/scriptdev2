@@ -118,7 +118,7 @@ bool GossipSelect_npc_toc5_announcer(Player* pPlayer, Creature* pCreature, uint3
             if (m_pInstance->GetData(DATA_TOC5_ANNOUNCER) == 0)
             {
                 m_pInstance->SetData(DATA_TOC5_ANNOUNCER, pCreature->GetEntry());
-                if (m_pInstance->GetData(DATA_TOC5_ANNOUNCER) == NPC_ARELAS)
+                if (m_pInstance->GetData(DATA_TOC5_ANNOUNCER) == NPC_ARELAS_BRIGHTSTAR)
                 {
                     m_pInstance->SetData(DATA_BLACK_KNIGHT_MINION, 35564);
                     switch(urand(0, 4))
@@ -151,7 +151,7 @@ bool GossipSelect_npc_toc5_announcer(Player* pPlayer, Creature* pCreature, uint3
                     } while(m_pInstance->GetData(DATA_CHAMPIONID_1) == m_pInstance->GetData(DATA_CHAMPIONID_3) || m_pInstance->GetData(DATA_CHAMPIONID_2) == m_pInstance->GetData(DATA_CHAMPIONID_3));
                 }
 
-                if (m_pInstance->GetData(DATA_TOC5_ANNOUNCER) == NPC_JAEREN)
+                if (m_pInstance->GetData(DATA_TOC5_ANNOUNCER) == NPC_JAEREN_SUNSWORN)
                 {
                     m_pInstance->SetData(DATA_BLACK_KNIGHT_MINION, 35545);
 
