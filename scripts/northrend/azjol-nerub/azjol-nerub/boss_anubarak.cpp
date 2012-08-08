@@ -44,6 +44,8 @@ enum
     SPELL_IMPALE_AURA               = 53456,        // ticks at each 10 secs - summons 29184
     SPELL_POUND                     = 53472,
     SPELL_POUND_H                   = 59433,
+    SPELL_POUND_DAMAGE              = 53509,
+    SPELL_POUND_DAMAGE_H            = 59432,
     SPELL_SUBMERGE                  = 53421,
     SPELL_EMERGE                    = 53500,
 
@@ -150,6 +152,21 @@ struct MANGOS_DLL_DECL boss_anubarakAI : public ScriptedAI
         }
 
         ScriptedAI::MoveInLineOfSight(pWho);
+    }
+
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    {
+        switch (pSpell->Id)
+        {
+            case SPELL_POUND:
+                DoCastSpellIfCan(pTarget, SPELL_POUND_DAMAGE, CAST_TRIGGERED);
+                break;
+            case SPELL_POUND_H:
+                DoCastSpellIfCan(pTarget, SPELL_POUND_DAMAGE_H, CAST_TRIGGERED);
+                break;
+            default:
+                break;
+        }
     }
 
     void JustSummoned(Creature* pSummoned)
