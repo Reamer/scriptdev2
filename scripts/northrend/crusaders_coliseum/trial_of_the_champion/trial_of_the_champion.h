@@ -33,7 +33,7 @@ enum
     NPC_ARGENT_WARHORSE_1       = 35644,    // hostile to horde
     NPC_ARGENT_WARHORSE_2       = 36557,    // friendly to alliance
     NPC_ARGENT_BATTLEWORG_1     = 36558,    // hostile to alliance
-    NPC_ARGENT_BATTLEWORG_1     = 36559,    // friendly to horde
+    NPC_ARGENT_BATTLEWORG_2     = 36559,    // friendly to horde
 
 
     DATA_CHAMPION_1             = 3,

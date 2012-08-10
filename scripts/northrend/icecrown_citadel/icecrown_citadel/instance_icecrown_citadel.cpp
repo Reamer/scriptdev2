@@ -35,13 +35,13 @@ static Locations SpawnLoc[]=
     {-428.140503f, 2421.336914f, 191.233078f},  // 1 Alliance ship enter
 };
 
-instance_icecrown_spire::instance_icecrown_spire(Map* pMap) : ScriptedInstance(pMap)
+instance_icecrown_citadel::instance_icecrown_citadel(Map* pMap) : ScriptedInstance(pMap)
 {
     Difficulty = pMap->GetDifficulty();
     Initialize();
 }
 
-void instance_icecrown_spire::Initialize()
+void instance_icecrown_citadel::Initialize()
 {
     for (uint8 i = 0; i < MAX_ENCOUNTERS; ++i)
         m_auiEncounter[i] = NOT_STARTED;
@@ -86,7 +86,7 @@ void instance_icecrown_spire::Initialize()
     }
 }
 
-bool instance_icecrown_spire::IsEncounterInProgress()
+bool instance_icecrown_citadel::IsEncounterInProgress()
 {
     for(uint8 i = 1; i < MAX_ENCOUNTERS-2 ; ++i)
     {
@@ -97,7 +97,7 @@ bool instance_icecrown_spire::IsEncounterInProgress()
     return false;
 }
 
-void instance_icecrown_spire::OnCreatureCreate(Creature* pCreature)
+void instance_icecrown_citadel::OnCreatureCreate(Creature* pCreature)
 {
     switch(pCreature->GetEntry())
     {
@@ -130,7 +130,7 @@ void instance_icecrown_spire::OnCreatureCreate(Creature* pCreature)
     }
 }
 
-void instance_icecrown_spire::OnObjectCreate(GameObject* pGo)
+void instance_icecrown_citadel::OnObjectCreate(GameObject* pGo)
 {
     switch(pGo->GetEntry())
     {
@@ -264,7 +264,7 @@ void instance_icecrown_spire::OnObjectCreate(GameObject* pGo)
     }
 }
 
-void instance_icecrown_spire::SetData(uint32 uiType, uint32 uiData)
+void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
 {
     switch(uiType)
     {
@@ -486,7 +486,7 @@ void instance_icecrown_spire::SetData(uint32 uiType, uint32 uiData)
     }
 }
 
-uint32 instance_icecrown_spire::GetData(uint32 uiType)
+uint32 instance_icecrown_citadel::GetData(uint32 uiType)
 {
     switch(uiType)
     {
@@ -512,7 +512,7 @@ uint32 instance_icecrown_spire::GetData(uint32 uiType)
     }
 }
 
-void instance_icecrown_spire::Load(const char* chrIn)
+void instance_icecrown_citadel::Load(const char* chrIn)
 {
     if (!chrIn)
     {
@@ -537,7 +537,7 @@ void instance_icecrown_spire::Load(const char* chrIn)
 
 InstanceData* GetInstanceData_instance_icecrown_spire(Map* pMap)
 {
-    return new instance_icecrown_spire(pMap);
+    return new instance_icecrown_citadel(pMap);
 }
 
 
