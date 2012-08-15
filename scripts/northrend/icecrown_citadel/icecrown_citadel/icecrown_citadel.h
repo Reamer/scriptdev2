@@ -158,23 +158,30 @@ enum
     DESPAWN_TIME                = 300000,
     SPELL_SHADOWS_EDGE          = 71168,
 
+    TYPE_ACHIEVE_BONED = 0,
+
 };
 
-class MANGOS_DLL_DECL instance_icecrown_spire : public ScriptedInstance
+class MANGOS_DLL_DECL instance_icecrown_citadel : public ScriptedInstance
 {
 public:
-    instance_icecrown_spire(Map* pMap);
-    ~instance_icecrown_spire() {}
+    instance_icecrown_citadel(Map* pMap);
+    ~instance_icecrown_citadel() {}
 
     void Initialize();
 
     void OnObjectCreate(GameObject* pGo);
     void OnCreatureCreate(Creature* pCreature);
 
+
     bool IsEncounterInProgress();
+    void SetSpecialAchievementCriteria (uint32 type, bool isMet) {};
 
     void SetData(uint32 uiType, uint32 uiData);
     uint32 GetData(uint32 uiType);
+
+    bool IsHeroicDifficulty() { return instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC ||
+                                       instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; };
 
     const char* Save() { return strSaveData.c_str(); }
     void Load(const char* chrIn);
