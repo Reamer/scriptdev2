@@ -115,7 +115,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         m_uiSummonTimer             = 20*IN_MILLISECONDS;
         m_uiEnrageTimer             = 10*MINUTE*IN_MILLISECONDS;
 
-        m_bNextVolcanoSummon            = urand(0,1) ? false : true;
+        m_bNextVolcanoSummon        = urand(0,1) ? false : true;
     }
 
     void JustReachedHome()

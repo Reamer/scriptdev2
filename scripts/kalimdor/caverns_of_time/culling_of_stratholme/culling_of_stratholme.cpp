@@ -702,6 +702,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
          switch(m_uiStep)
          {
             case 0:
+                DoCast(m_creature, SPELL_MALGANIS_KILL_CREDIT, true);
                 // KillCredit with Spell, i have no idea how
                 if (Player* pPlayer = m_pInstance->GetPlayerInMap(true))
                 {

@@ -217,17 +217,17 @@ struct MANGOS_DLL_DECL boss_uromAI : public ScriptedAI
         float angle = (float) rand()*360/RAND_MAX + 1;
         float homeX = SummonLoc[uiLocId].x + 10*cos(angle*(M_PI/180));
         float homeY = SummonLoc[uiLocId].y + 10*sin(angle*(M_PI/180));
-        m_creature->SummonCreature(PackId[uiPackId].firstId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+        m_creature->SummonCreature(PackId[uiPackId].firstId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 30000);
 
         angle = (float) rand()*360/RAND_MAX + 1;
         homeX = SummonLoc[uiLocId].x + 10*cos(angle*(M_PI/180));
         homeY = SummonLoc[uiLocId].y + 10*sin(angle*(M_PI/180));
-        m_creature->SummonCreature(PackId[uiPackId].secondId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+        m_creature->SummonCreature(PackId[uiPackId].secondId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 30000);
 
         angle = (float) rand()*360/RAND_MAX + 1;
         homeX = SummonLoc[uiLocId].x + 10*cos(angle*(M_PI/180));
         homeY = SummonLoc[uiLocId].y + 10*sin(angle*(M_PI/180));
-        m_creature->SummonCreature(PackId[uiPackId].thirdId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+        m_creature->SummonCreature(PackId[uiPackId].thirdId, homeX, homeY, SummonLoc[uiLocId].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 30000);
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
