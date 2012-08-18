@@ -770,118 +770,113 @@ CreatureAI* GetAI_boss_acidmaw_and_dreadscale(Creature* pCreature)
     return new boss_acidmaw_and_dreadscaleAI(pCreature);
 }
 
-enum IcehowlSpells
+/*######
+## boss_icehowl
+######*/
+
+enum
 {
+    EMOTE_MASSIVE_CRASH          = -1649039,
+
+    // icehowl spells
     SPELL_FEROCIOUS_BUTT        = 66770,
-    SPELL_MASSIVE_CRASH         = 66683,
-    SPELL_WHIRL                 = 67345,
     SPELL_ARCTIC_BREATH         = 66689,
+    SPELL_WHIRL                 = 67345,
+    SPELL_MASSIVE_CRASH         = 66683,
+    SPELL_SURGE_OF_ADRENALINE   = 68667,    // used only in non heroic
     SPELL_TRAMPLE               = 66734,
-    SPELL_ADRENALINE            = 68667,
-    SPELL_FROTHING_RAGE         = 66759,
     SPELL_STAGGERED_DAZE        = 66758,
-};
+    SPELL_FROTHING_RAGE         = 66759,
 
-enum IcehowlPhase
-{
-    PHASE_NORMAL                = 0,
-    PHASE_MOVING                = 1,
-    PHASE_TRAMPLE               = 2,
-};
-
-enum IcehowlPoints
-{
-    POINT_CENTER                = 0,
-    POINT_TARGET                = 1,
+    POINT_ID_TRAMPLE            = 10,
 };
 
 struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 {
     boss_icehowlAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = ((instance_trial_of_the_crusader*)pCreature->GetInstanceData());
+        m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
         Reset();
     }
 
     instance_trial_of_the_crusader* m_pInstance;
 
     uint32 m_uiFerociousButtTimer;
-    uint32 m_uiArcticBreathTimer;
+    uint32 m_uiArticBreathTimer;
     uint32 m_uiWhirlTimer;
     uint32 m_uiMassiveCrashTimer;
-    uint32 m_uiWaitTimer;
-    uint32 m_uiPhaseTimer;
-    IcehowlPhase m_Phase;
+    uint32 m_uiTrampleTimer;
+    uint32 m_uiFrothingRageTimer;
+
+    uint8 m_uiTrampleStage;
+
+    bool m_bIsTrample;
+    bool m_bTrampleCasted;
+    bool m_bMovementStarted;
+    bool m_bAdrenalineCasted;
 
     float fPosX, fPosY, fPosZ;
-    Unit *pFocus;
 
     void Reset()
     {
-        m_uiFerociousButtTimer         = 15000;
-        m_uiArcticBreathTimer          = 25000;
-        m_uiWhirlTimer                 = 20000;
-        m_uiMassiveCrashTimer          = 30000;
-        m_Phase                      = PHASE_NORMAL;
+        m_uiFerociousButtTimer  = urand(20000,30000);
+        m_uiArticBreathTimer    = urand(25000,30000);
+        m_uiWhirlTimer          = urand(20000,25000);
+        m_uiMassiveCrashTimer   = 45000;
+        m_uiTrampleTimer        = 50000;
+        m_uiFrothingRageTimer   = 30000;
 
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->SetSpeedRate(MOVE_WALK, 3.0f);
-        m_creature->SetSpeedRate(MOVE_RUN, 3.0f);
+        m_uiTrampleStage    = 0;
 
-        pFocus = NULL;
-
-    }
-
-    void MovementInform(uint32 uiMovementType, uint32 uiData)
-    {
-        if (uiMovementType != POINT_MOTION_TYPE)
-            return;
-
-        if (uiData == POINT_CENTER)
-        {
-            if (m_Phase == PHASE_MOVING)
-            {
-                if (DoCastSpellIfCan(m_creature, SPELL_MASSIVE_CRASH) == CAST_OK)
-                {
-                    pFocus = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER);
-                    DoScriptText(EMOTE_TRAMPLE, m_creature, pFocus);
-                    m_creature->SetSpeedRate(MOVE_WALK, 6.0f);
-                    m_creature->SetSpeedRate(MOVE_RUN, 6.0f);
-                    m_uiWaitTimer = 5000;
-                    m_uiPhaseTimer = 8000;
-                    m_Phase = PHASE_TRAMPLE;
-                }
-            }
-        }
-        else if (uiData == POINT_TARGET)
-        {
-            if (m_Phase == PHASE_MOVING)
-            {
-                if (pFocus && pFocus->isAlive() && m_creature->IsWithinDistInMap(pFocus, 10.0f))  // I think that it should be any player not only focused.
-                {
-                    DoCastSpellIfCan(m_creature, SPELL_TRAMPLE, CAST_TRIGGERED);
-                    DoCastSpellIfCan(m_creature, SPELL_FROTHING_RAGE, CAST_TRIGGERED);
-                }
-                else
-                {
-                    DoCastSpellIfCan(m_creature, SPELL_STAGGERED_DAZE, CAST_TRIGGERED);
-                    DoScriptText(EMOTE_STAGGERED, m_creature);
-                }
-
-                if (m_creature->getVictim())
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-                m_creature->SetSpeedRate(MOVE_WALK, 3.0f);
-                m_creature->SetSpeedRate(MOVE_RUN, 3.0f);
-                SetCombatMovement(true);
-                m_Phase = PHASE_NORMAL;
-                pFocus = NULL;
-            }
-        }
+        m_bMovementStarted  = false;
+        m_bTrampleCasted    = false;
+        m_bIsTrample        = false;
+        m_bAdrenalineCasted = false;
+        fPosX = 0;
+        fPosY = 0;
+        fPosZ = 0;
     }
 
     void JustReachedHome()
     {
-        m_creature->ForcedDespawn();
+    }
+
+    void Aggro(Unit* pWho)
+    {
+        if (m_pInstance)
+            m_pInstance->DoUseDoorOrButton(GO_MAIN_GATE);
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_NORTHREND_BEASTS, DONE);
+    }
+
+    void MovementInform(uint32 type, uint32 id)
+    {
+        if (type != POINT_MOTION_TYPE || id != POINT_ID_TRAMPLE)
+            return;
+
+        m_bMovementStarted = false;
+        SetCombatMovement(true);
+        if (m_creature->getVictim())
+            m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+    }
+
+    // every player casts surge of addrenaline on normal difficulty
+    void DoCastSurgeOfAdrenaline()
+    {
+        Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
+
+        if (PlayerList.isEmpty())
+            return;
+
+        for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+        {
+            if (i->getSource()->isAlive())
+                i->getSource()->CastSpell(i->getSource(), SPELL_SURGE_OF_ADRENALINE, false);
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -889,83 +884,161 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        switch (m_Phase)
+        if (m_bIsTrample)
         {
-            case PHASE_NORMAL:
-                 if (m_uiFerociousButtTimer <= uiDiff)
-                 {
-                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FEROCIOUS_BUTT) == CAST_OK)
-                         m_uiFerociousButtTimer = urand(15000, 30000);
-                 }
-                 else
-                     m_uiFerociousButtTimer -= uiDiff;
-
-                 if (m_uiArcticBreathTimer <= uiDiff)
-                 {
-                     if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
-                     {
-                         if (DoCastSpellIfCan(pTarget, SPELL_ARCTIC_BREATH) == CAST_OK)
-                             m_uiArcticBreathTimer = urand(25000, 40000);
-                     }
-                 }
-                 else
-                     m_uiArcticBreathTimer -= uiDiff;
-
-                 if (m_uiWhirlTimer <= uiDiff)
-                 {
-                     if (DoCastSpellIfCan(m_creature, SPELL_WHIRL) == CAST_OK)
-                         m_uiWhirlTimer = urand(20000, 30000);
-                 }
-                 else
-                     m_uiWhirlTimer -= uiDiff;
-
-                 if (m_uiMassiveCrashTimer <= uiDiff)
-                 {
-                     m_creature->AttackStop();
-                     SetCombatMovement(false);
-                     m_creature->GetMotionMaster()->Clear();
-                     m_creature->GetMotionMaster()->MovePoint(POINT_CENTER, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                     m_Phase = PHASE_MOVING;
-                     m_uiMassiveCrashTimer = 40000;
-                 }
-                 else
-                     m_uiMassiveCrashTimer -= uiDiff;
-
-                DoMeleeAttackIfReady();
-
-                break;
-            case PHASE_TRAMPLE:
-                if (m_creature->IsNonMeleeSpellCasted(true))
-                    return;
-
-                if (m_uiWaitTimer < uiDiff)
+            if(m_uiTrampleTimer < uiDiff)
+            {
+                switch(m_uiTrampleStage)
                 {
-                    if (pFocus && pFocus->isAlive())
-                    {
-                        pFocus->GetPosition(fPosX, fPosY, fPosZ);
-                        m_creature->SetFacingToObject(pFocus);
-                        m_uiWaitTimer = 10000; // For count only once
-                    }
-                }
-                else
-                    m_uiWaitTimer -= uiDiff;
+                    // go to center
+                    case 0:
+                        SetCombatMovement(false);
+                        m_creature->GetMotionMaster()->MoveIdle();
+                        m_creature->GetMotionMaster()->MoveJump(aSpawnPositions[11][0], aSpawnPositions[11][1], aSpawnPositions[11][2], 10.0f, 10.0f);
 
-                if (m_uiPhaseTimer <= uiDiff)
-                {
-                    if (pFocus && pFocus->isAlive())
-                    {
-                        m_creature->GetMotionMaster()->Clear();
-                        m_creature->GetMotionMaster()->MovePoint(POINT_TARGET, fPosX, fPosY, fPosZ);
-                        DoScriptText(EMOTE_CRASH, m_creature);
-                        m_Phase = PHASE_MOVING;
-                    }
+                        ++m_uiTrampleStage;
+                        m_uiTrampleTimer = 3000;
+                        break;
+                        // cast massive crash & stop
+                    case 1:
+                        if (DoCastSpellIfCan(m_creature, SPELL_MASSIVE_CRASH) == CAST_OK)
+                        {
+                            ++m_uiTrampleStage;
+                            m_uiTrampleTimer = 8000;
+                        }
+                        break;
+                        // wait 5 secs -> cast surge of addrenaline on players
+                    case 2:
+                        if (m_creature->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL || m_creature->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL)
+                        {
+                            if (!m_bAdrenalineCasted)
+                            {
+                                m_bAdrenalineCasted = true;
+                                DoCastSurgeOfAdrenaline();
+                            }
+                        }
+                        // pick a target and run for it
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        {
+                            pTarget->GetPosition(fPosX, fPosY, fPosZ);
+                            DoScriptText(EMOTE_MASSIVE_CRASH, m_creature, pTarget);
+                            m_bMovementStarted = true;
+                            m_creature->GetMotionMaster()->Clear();
+                            m_creature->SetSpeedRate(MOVE_RUN, 2.0f);
+                            m_creature->SetWalk(false);
+                            m_creature->GetMotionMaster()->MovePoint(POINT_ID_TRAMPLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
+                            ++m_uiTrampleStage;
+                            m_uiTrampleTimer = 500;
+                        }
+                        break;
+                        // run to the target; if target hit cast Trample, else go to next phase
+                    case 3:
+                        if (m_bMovementStarted)
+                        {
+                            Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+                            if (lPlayers.isEmpty())
+                                return;
+
+                            for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                            {
+                                Player* pPlayer = itr->getSource();
+                                if (!pPlayer)
+                                    continue;
+
+                                if (pPlayer->isAlive() && pPlayer->IsWithinDistInMap(m_creature, 5.0f))
+                                {
+                                    DoCast(pPlayer, SPELL_TRAMPLE);
+                                    m_bTrampleCasted = true;
+                                    m_bMovementStarted = false;
+                                    m_creature->GetMotionMaster()->MovementExpired();
+                                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                                }
+                            }
+                        }
+                        else
+                            ++m_uiTrampleStage;
+
+                        if (m_bTrampleCasted)
+                            ++m_uiTrampleStage;
+                        break;
+                        // if trample not casted, cast stun, else continue
+                    case 4:
+                        if (!m_bTrampleCasted)
+                        {
+                            // Missing emote!
+                            //DoScriptText(EMOTE_STUN, m_creature);
+                            DoCast(m_creature, SPELL_STAGGERED_DAZE);
+                        }
+                        m_bMovementStarted = false;
+                        m_bAdrenalineCasted = false;
+                        m_bTrampleCasted = false;
+                        SetCombatMovement(true);
+                        m_creature->GetMotionMaster()->MovementExpired();
+                        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                        m_uiMassiveCrashTimer = urand(45000, 50000);
+                        m_bIsTrample = false;
+                        break;
+                    default:
+                        m_uiTrampleTimer = 100000;
                 }
-                else
-                    m_uiPhaseTimer -= uiDiff;
-                break;
-            case PHASE_MOVING:
-                break;
+            }
+            else
+                m_uiTrampleTimer -= uiDiff;
         }
+
+        // return if doing trample
+        if(m_bIsTrample)
+            return;
+
+        if (m_uiFrothingRageTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_FROTHING_RAGE) == CAST_OK)
+                m_uiFrothingRageTimer = 40000;
+        }
+        else
+            m_uiFrothingRageTimer -= uiDiff;
+
+        if (m_uiMassiveCrashTimer < uiDiff)
+        {
+            m_bIsTrample = true;
+            m_uiTrampleTimer = 1000;
+            m_uiTrampleStage = 0;
+            m_uiMassiveCrashTimer = urand(45000, 50000);
+        }
+        else
+            m_uiMassiveCrashTimer -= uiDiff;
+
+        if (m_uiWhirlTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature, SPELL_WHIRL) == CAST_OK)
+                m_uiWhirlTimer = urand(20000, 25000);
+        }
+        else
+            m_uiWhirlTimer -= uiDiff;
+
+        if (m_uiArticBreathTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_ARCTIC_BREATH) == CAST_OK)
+                    m_uiArticBreathTimer = urand(25000,30000);
+            }
+        }
+        else
+            m_uiArticBreathTimer -= uiDiff;
+
+        if (m_uiFerociousButtTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_FEROCIOUS_BUTT) == CAST_OK)
+                    m_uiFerociousButtTimer = urand(20000, 30000);
+            }
+        }
+        else
+            m_uiFerociousButtTimer -= uiDiff;
+
+        DoMeleeAttackIfReady();
     }
 };
 
