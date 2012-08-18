@@ -268,7 +268,7 @@ struct MANGOS_DLL_DECL npc_prison_event_controllerAI : public ScriptedAI
             case NPC_AZURE_BINDER:
             case NPC_AZURE_MAGE_SLAYER:
                 pSummoned->SetWalk(false);
-                pSummoned->GetMotionMaster()->MovePoint(1, fSealAttackLoc[0], fSealAttackLoc[1], fSealAttackLoc[2]);
+                pSummoned->GetMotionMaster()->MovePoint(1, fSealAttackLoc[0], fSealAttackLoc[1], fSealAttackLoc[2], true, true);
                 break;
             case NPC_AZURE_SABOTEUR:
             {
