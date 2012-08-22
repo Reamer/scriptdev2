@@ -284,8 +284,6 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     GuidList lIronDwarfes;
     GuidList m_lArenaSummonGUID;
 
-
-
     void Reset()
     {
         m_uiPreAddsKilled       = 0;

@@ -40,7 +40,6 @@ enum saysSD2
     EMOTE_DEEP_FREEZE                   = -1658023,
 
     SPELL_PERMAFROST                    = 70326,
-    SPELL_PERMAFROST_AURA               = 68786,
     SPELL_THROW_SARONITE                = 68788,
     SPELL_THUNDERING_STOMP              = 68771,
     SPELL_FORGE_FROZEN_BLADE            = 68774,
@@ -228,6 +227,7 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
 
                 default:
                     m_uiSpeech_Timer = 100000;
+                    break;
                 }
             }else m_uiSpeech_Timer -= uiDiff;
         }
