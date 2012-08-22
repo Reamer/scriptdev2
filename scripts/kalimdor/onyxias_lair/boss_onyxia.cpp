@@ -200,7 +200,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
             // Get some random point near the center
             float fX, fY, fZ;
             pSummoned->GetRandomPoint(pTrigger->GetPositionX(), pTrigger->GetPositionY(), pTrigger->GetPositionZ(), 20.0f, fX, fY, fZ);
-            pSummoned->GetMotionMaster()->MovePoint(1, fX, fY, fZ);
+            pSummoned->GetMotionMaster()->MovePoint(1, fX, fY, fZ, true, true);
         }
         else
             pSummoned->SetInCombatWithZone();
