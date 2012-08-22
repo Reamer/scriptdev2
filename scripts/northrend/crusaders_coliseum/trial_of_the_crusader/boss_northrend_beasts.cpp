@@ -806,7 +806,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
     uint32 m_uiWhirlTimer;
     uint32 m_uiMassiveCrashTimer;
     uint32 m_uiTrampleTimer;
-    uint32 m_uiFrothingRageTimer;
 
     uint8 m_uiTrampleStage;
 
@@ -824,7 +823,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         m_uiWhirlTimer          = urand(20000,25000);
         m_uiMassiveCrashTimer   = 45000;
         m_uiTrampleTimer        = 50000;
-        m_uiFrothingRageTimer   = 30000;
 
         m_uiTrampleStage    = 0;
 
@@ -893,8 +891,8 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                     // go to center
                     case 0:
                         SetCombatMovement(false);
-                        m_creature->GetMotionMaster()->MoveIdle();
-                        m_creature->GetMotionMaster()->MoveJump(aSpawnPositions[11][0], aSpawnPositions[11][1], aSpawnPositions[11][2], 10.0f, 10.0f);
+                        m_creature->GetMotionMaster()->Clear();
+                        m_creature->GetMotionMaster()->MoveJump(aSpawnPositions[11][0], aSpawnPositions[11][1], aSpawnPositions[11][2], 35.0f, 10.0f);
 
                         ++m_uiTrampleStage;
                         m_uiTrampleTimer = 3000;
@@ -924,8 +922,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                             DoScriptText(EMOTE_MASSIVE_CRASH, m_creature, pTarget);
                             m_bMovementStarted = true;
                             m_creature->GetMotionMaster()->Clear();
-                            m_creature->SetSpeedRate(MOVE_RUN, 2.0f);
-                            m_creature->SetWalk(false);
                             m_creature->GetMotionMaster()->MovePoint(POINT_ID_TRAMPLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
                             ++m_uiTrampleStage;
                             m_uiTrampleTimer = 500;
@@ -948,6 +944,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                                 if (pPlayer->isAlive() && pPlayer->IsWithinDistInMap(m_creature, 5.0f))
                                 {
                                     DoCast(pPlayer, SPELL_TRAMPLE);
+                                    DoCastSpellIfCan(m_creature, SPELL_FROTHING_RAGE);
                                     m_bTrampleCasted = true;
                                     m_bMovementStarted = false;
                                     m_creature->GetMotionMaster()->MovementExpired();
@@ -980,6 +977,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         break;
                     default:
                         m_uiTrampleTimer = 100000;
+                        break;
                 }
             }
             else
@@ -989,14 +987,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         // return if doing trample
         if(m_bIsTrample)
             return;
-
-        if (m_uiFrothingRageTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_FROTHING_RAGE) == CAST_OK)
-                m_uiFrothingRageTimer = 40000;
-        }
-        else
-            m_uiFrothingRageTimer -= uiDiff;
 
         if (m_uiMassiveCrashTimer < uiDiff)
         {
