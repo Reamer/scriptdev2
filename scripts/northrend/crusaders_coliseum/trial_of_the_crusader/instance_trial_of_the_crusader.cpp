@@ -123,7 +123,7 @@ static const DialogueEntryTwoSide aTocDialogues[] =
     {SAY_TIRION_PVP_INTRO_2,        NPC_TIRION_A, 0, 0,     1000},
     {TYPE_FACTION_CHAMPIONS, 0, 0, 0,                       5000},
     {EVENT_SUMMON_FACTION_CHAMPIONS, 0, 0, 0,               1000},
-    {SAY_GARROSH_PVP_A_INTRO_2,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_2,   NPC_VARIAN, 10000},
+    {SAY_GARROSH_PVP_A_INTRO_2,     NPC_GARROSH,        SAY_VARIAN_PVP_H_INTRO_2,   NPC_VARIAN, 25000},
     {EVENT_FACTION_CHAMPIONS_ATTACK, 0, 0, 0,               0},
     {SAY_VARIAN_PVP_A_WIN,          NPC_VARIAN,         SAY_GARROSH_PVP_H_WIN,      NPC_GARROSH, 4000},
     {SAY_TIRION_PVP_WIN,            NPC_TIRION_A, 0, 0,     27000},
