@@ -44,14 +44,10 @@ enum saysSD2
     SPELL_THUNDERING_STOMP              = 68771,
     SPELL_FORGE_FROZEN_BLADE            = 68774,
     SPELL_CHILLING_WAVE                 = 68778,
-    SPELL_CHILLING_WAVE_H               = 70333,
     SPELL_FORGE_FROSTBORN_MACE          = 68785,
     SPELL_DEEP_FREEZE                   = 70381,
-    SPELL_DEEP_FREEZE_H                 = 72930,
     SPELL_FORGE_MACE                    = 68785,
-    SPELL_FORGE_MACE_H                  = 70335,
     SPELL_FORGE_BLADE                   = 68774,
-    SPELL_FORGE_BLADE_H                 = 70334,
 
     SAY_FREE_SLAVE_HORDE                = -1658013,
     SAY_FREE_SLAVE_ALLY                 = -1658012,
@@ -60,7 +56,6 @@ enum saysSD2
     PHASE_NO_ENCHANTMENT                = 1,
     PHASE_BLADE_ENCHANTMENT             = 2,
     PHASE_MACE_ENCHANTMENT              = 3,
-    PHASE_MOVEMENT                      = 4,
 
     EQUIP_ID_SWORD                      = 49345,
     EQUIP_ID_MACE                       = 49344,
@@ -129,47 +124,41 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
     {
         for (uint8 i = 0; i < 5; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z, true, true);
         }
 
         for (uint8 i = 5; i < 10; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z, true, true);
         }
 
         for (uint8 i = 10; i < 15; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z, true, true);
         }
     }
 
-    void SummonAlySlaves()
+    void SummonAllySlaves()
     {
         for (uint8 i = 0; i < 5; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z, true, true);
         }
 
         for (uint8 i = 5; i < 10; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z, true, true);
         }
 
         for (uint8 i = 10; i < 15; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z, true, true);
         }
     }
 
@@ -185,7 +174,7 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
                     switch (creatureEntry)
                     {
                     case NPC_MARTIN_VICTUS_SLAVE:
-                        SummonAlySlaves();
+                        SummonAllySlaves();
                         break;
                     case NPC_GORKUN_IRONSKULL_SLAVE:
                         SummonHordeSlaves();
@@ -210,7 +199,7 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
                 case 2:
                     if(Creature* pTyrannus = m_creature->SummonCreature(NPC_TYRANNUS_INTRO, 695.46f, -156.31f, 546.061f, 4.7f, TEMPSUMMON_TIMED_DESPAWN, 10000))
                     {
-                        //pTyrannus->SetGuidValue(UNIT_FIELD_TARGET, m_creature->GetObjectGuid());
+                        pTyrannus->SetTargetGuid(m_creature->GetObjectGuid());
                         pTyrannus->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         m_uiTyrannusGuid = pTyrannus->GetObjectGuid();
                     }
@@ -246,13 +235,12 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
 
     uint32 m_uiThrowSaroniteTimer;
     uint32 m_uiPhase;
-    uint32 TeamInInstance;
     uint32 m_uiChillingWaveTimer;
     uint32 m_uiDeepFreezeTimer;
 
-    uint32 GetFaction()
+    Team GetFaction()
     {
-        uint32 faction = 0;
+        Team faction = ALLIANCE;
         Map *map = m_creature->GetMap();
         if (map->IsDungeon())
         {
@@ -261,7 +249,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
             if (!PlayerList.isEmpty())
             {
                 if (Player* pPlayer = PlayerList.begin()->getSource())
-                    faction = pPlayer->GetTeam();
+                    return pPlayer->GetTeam();
             }
         }
         return faction;
@@ -274,7 +262,6 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
         m_uiDeepFreezeTimer = 10000;
         SetCombatMovement(true);
         m_uiPhase = PHASE_NO_ENCHANTMENT;
-        TeamInInstance = GetFaction();
     }
 
     void Aggro(Unit* pWho)
@@ -293,17 +280,15 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
 
         DoScriptText(SAY_DEATH, m_creature, pKiller);
 
-        if(TeamInInstance == ALLIANCE)
+        if(GetFaction() == ALLIANCE)
         {
-            Creature *pMartin = m_creature->SummonCreature(NPC_MARTIN_VICTUS_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
-            if (pMartin)
+            if (Creature* pMartin = m_creature->SummonCreature(NPC_MARTIN_VICTUS_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000))
                 pMartin->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX() + 15, m_creature->GetPositionY() - 5, m_creature->GetPositionZ());
         }
 
-        if(TeamInInstance == HORDE)
+        if(GetFaction() == HORDE)
         {
-            Creature *pGorkun = m_creature->SummonCreature(NPC_GORKUN_IRONSKULL_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
-            if (pGorkun)
+            if (Creature* pGorkun = m_creature->SummonCreature(NPC_GORKUN_IRONSKULL_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000))
                 pGorkun->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX() + 15, m_creature->GetPositionY() - 5, m_creature->GetPositionZ());
         }
     }
@@ -315,27 +300,14 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
 
     void MovementInform(uint32 uiMotionType, uint32 uiPointId)
     {
-        // TODO Change to jump movement type when proper implemented
-        if (uiMotionType != POINT_MOTION_TYPE)
-            return;
-
-        if (uiPointId != PHASE_BLADE_ENCHANTMENT && uiPointId != PHASE_MACE_ENCHANTMENT)
+        if (uiMotionType != EFFECT_MOTION_TYPE)
             return;
 
         // Cast and say expected spell
-        DoCastSpellIfCan(m_creature, uiPointId == PHASE_BLADE_ENCHANTMENT ? SPELL_FORGE_FROZEN_BLADE : SPELL_FORGE_FROSTBORN_MACE);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        DoScriptText(uiPointId == PHASE_BLADE_ENCHANTMENT ? SAY_FORGE_1 : SAY_FORGE_2, m_creature);
+        DoCastSpellIfCan(m_creature, m_uiPhase == PHASE_BLADE_ENCHANTMENT ? SPELL_FORGE_FROZEN_BLADE : SPELL_FORGE_FROSTBORN_MACE);
+        DoScriptText(m_uiPhase == PHASE_BLADE_ENCHANTMENT ? SAY_FORGE_1 : SAY_FORGE_2, m_creature);
 
         m_uiThrowSaroniteTimer += 5000;                     // Delay next Saronit
-        m_uiPhase = uiPointId;
-        SetCombatMovement(true);
-
-        if (m_creature->getVictim())
-        {
-            m_creature->GetMotionMaster()->Clear();
-            m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -343,15 +315,10 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // Do nothing more while moving
-        if (m_uiPhase == PHASE_MOVEMENT)
-            return;
-
         // Casted in every phase
         if (m_uiThrowSaroniteTimer < uiDiff)
         {
-            // TODO - only target players?
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_THROW_SARONITE, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_THROW_SARONITE) == CAST_OK)
                 {
@@ -369,15 +336,14 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
             {
                 if (m_creature->GetHealthPercent() < 66.0f)
                 {
-                    DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP, CAST_INTERRUPT_PREVIOUS);
-                    SetCombatMovement(false);
+                    if (DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP) == CAST_OK)
+                    {
+                        m_creature->GetMotionMaster()->MoveJump(aGarfrostMoveLocs[0][0], aGarfrostMoveLocs[0][1], aGarfrostMoveLocs[0][2], 25.0f, 15.0f);
+                        m_uiPhase = PHASE_BLADE_ENCHANTMENT;
 
-                    // TODO This should actually be jump movement
-                    m_creature->GetMotionMaster()->MovePoint(PHASE_BLADE_ENCHANTMENT, aGarfrostMoveLocs[0][0], aGarfrostMoveLocs[0][1], aGarfrostMoveLocs[0][2]);
-                    m_uiPhase = PHASE_MOVEMENT;
-
-                    // Stop further action
-                    return;
+                        // Stop further action
+                        return;
+                    }
                 }
                 break;
             }
@@ -385,15 +351,14 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
             {
                 if (m_creature->GetHealthPercent() < 33.0f)
                 {
-                    DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP, CAST_INTERRUPT_PREVIOUS);
-                    SetCombatMovement(false);
+                    if (DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP, CAST_INTERRUPT_PREVIOUS))
+                    {
+                        m_creature->GetMotionMaster()->MoveJump(aGarfrostMoveLocs[1][0], aGarfrostMoveLocs[1][1], aGarfrostMoveLocs[1][2], 25.0f, 15.0f);
+                        m_uiPhase = PHASE_MACE_ENCHANTMENT;
 
-                    // TODO This should actually be jump movement
-                    m_creature->GetMotionMaster()->MovePoint(PHASE_MACE_ENCHANTMENT, aGarfrostMoveLocs[1][0], aGarfrostMoveLocs[1][1], aGarfrostMoveLocs[1][2]);
-                    m_uiPhase = PHASE_MOVEMENT;
-
-                    // Stop further action
-                    return;
+                        // Stop further action
+                        return;
+                    }
                 }
 
                 if (m_uiChillingWaveTimer < uiDiff)

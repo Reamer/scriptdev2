@@ -40,16 +40,12 @@ enum
     EMOTE_SMASH                         = -1658062,
 
     SPELL_FORCEFUL_SMASH                = 69155,
-    SPELL_FORCEFUL_SMASH_H              = 69627,
     SPELL_OVERLORDS_BRAND               = 69172,
     SPELL_DARK_MIGHT                    = 69167,
-    SPELL_DARK_MIGHT_H                  = 69629,
     SPELL_HOARFROST                     = 69246,
     SPELL_MARK_OF_RIMEFANG              = 69275,
     SPELL_ICY_BLAST                     = 69233,
-    SPELL_ICY_BLAST_H                   = 69646,
     SPELL_ICY_BLAST_SLOW                = 69238,
-    SPELL_ICY_BLAST_SLOW_H              = 69628,
 
     SAY_OUTRO1_SLAVE_HORDE              = -1658061,
     SAY_OUTRO1_SLAVE_ALLY               = -1658061,
@@ -122,14 +118,12 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
     boss_rimefangAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_pit_of_saron*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         SetCombatMovement(false);
         m_uiMainTargetGUID.Clear();
         Reset();
     }
 
     instance_pit_of_saron* m_pInstance;
-    bool m_bIsRegularMode;
 
     uint32 m_uiHoarfrostTimer;
     uint32 m_uiIcyBlastTimer;
@@ -163,34 +157,45 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
 
         if (m_uiHoarfrostTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID))
-                DoCastSpellIfCan(pTarget, SPELL_HOARFROST);
-            else if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCastSpellIfCan(pTarget, SPELL_HOARFROST);
-            DoScriptText(EMOTE_RIMEFANG_ICEBOLT, m_creature);
-            m_uiHoarfrostTimer = 20000;
+            Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID);
+            if (!pTarget)
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+            if (pTarget)
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_HOARFROST) == CAST_OK)
+                {
+                    DoScriptText(EMOTE_RIMEFANG_ICEBOLT, m_creature);
+                    m_uiHoarfrostTimer = 20000;
+                }
+            }
         }
         else
             m_uiHoarfrostTimer -= uiDiff;
 
         if (m_uiIcyBlastTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID))
-                DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_ICY_BLAST : SPELL_ICY_BLAST_H);
-            else if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_ICY_BLAST : SPELL_ICY_BLAST_H);
-            m_uiIcyBlastTimer = 35000;
+            Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID);
+            if (!pTarget)
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+            if (pTarget)
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST) == CAST_OK)
+                    m_uiIcyBlastTimer = 35000;
+            }
         }
         else
             m_uiIcyBlastTimer -= uiDiff;
 
         if (m_uiIcyBlastSlowTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID))
-                DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_ICY_BLAST_SLOW : SPELL_ICY_BLAST_SLOW_H);
-            else if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_ICY_BLAST_SLOW : SPELL_ICY_BLAST_SLOW_H);
-            m_uiIcyBlastSlowTimer = 40000;
+            Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID);
+            if (!pTarget)
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+            if (pTarget)
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST_SLOW))
+                    m_uiIcyBlastSlowTimer = 40000;
+            }
         }
         else
             m_uiIcyBlastSlowTimer -= uiDiff;
@@ -202,14 +207,12 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     boss_tyrannusAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_pit_of_saron*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         SetEquipmentSlots(false, EQUIP_ID, -1, -1);
         m_uiRimefangGUID.Clear();
         Reset();
     }
 
     instance_pit_of_saron* m_pInstance;
-    bool m_bIsRegularMode;
 
     uint32 m_uiForcefulSmashTimer;
     uint32 m_uiOverlordsBrandTimer;
@@ -305,7 +308,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
         if (m_uiForcefulSmashTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FORCEFUL_SMASH : SPELL_FORCEFUL_SMASH_H) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FORCEFUL_SMASH) == CAST_OK)
                 m_uiForcefulSmashTimer = 50000;
         }
         else
@@ -324,11 +327,10 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
         if (m_uiDarkMightTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_DARK_MIGHT : SPELL_DARK_MIGHT_H) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature, SPELL_DARK_MIGHT) == CAST_OK)
             {
                 DoScriptText(SAY_SMASH, m_creature);
                 DoScriptText(EMOTE_SMASH, m_creature);
-
                 m_uiDarkMightTimer = 60000;
             }
         }
@@ -687,6 +689,7 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_endAI: public ScriptedAI
                     }
                     ++m_uiOutro_Phase;
                     m_uiSpeech_Timer = 5000;
+                    break;
                 case 5:
                     switch (creatureEntry)
                     {
@@ -735,8 +738,11 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_endAI: public ScriptedAI
 
                 default:
                     m_uiSpeech_Timer = 100000;
+                    break;
                 }
-            }else m_uiSpeech_Timer -= uiDiff;
+            }
+            else
+                m_uiSpeech_Timer -= uiDiff;
         }
     }
 };

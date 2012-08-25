@@ -393,6 +393,7 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
                         break;
                     default:
                         m_uiSpeech_Timer = 100000;
+                        break;
                 }
             }
             else
