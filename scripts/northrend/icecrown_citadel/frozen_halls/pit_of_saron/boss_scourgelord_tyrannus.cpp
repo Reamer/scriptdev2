@@ -505,7 +505,7 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_endAI: public ScriptedAI
     {
         for (uint8 i = 0; i < 5; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
+            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALLY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             if (pTemp)
             {
                 pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
@@ -515,7 +515,7 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_endAI: public ScriptedAI
 
         for (uint8 i = 5; i < 10; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
+            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALLY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             if (pTemp)
             {
                 pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
@@ -525,7 +525,7 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_endAI: public ScriptedAI
 
         for (uint8 i = 10; i < 15; i++)
         {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
+            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALLY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             if (pTemp)
             {
                 pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);

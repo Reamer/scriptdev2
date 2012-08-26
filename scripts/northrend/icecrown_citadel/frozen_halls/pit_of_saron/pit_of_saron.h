@@ -43,9 +43,9 @@ enum
     NPC_SLAVE_HORDE_1               = 37578,
     NPC_SLAVE_HORDE_2               = 37577,
     NPC_SLAVE_HORDE_3               = 37579,
-    NPC_SLAVE_ALY_1                 = 37572,
-    NPC_SLAVE_ALY_2                 = 37575,
-    NPC_SLAVE_ALY_3                 = 37576,
+    NPC_SLAVE_ALLY_1                = 37572,
+    NPC_SLAVE_ALLY_2                = 37575,
+    NPC_SLAVE_ALLY_3                = 37576,
     NPC_MARTIN_VICTUS_SLAVE         = 37591, 
     NPC_MARTIN_VICTUS_END           = 37580,
     NPC_GORKUN_IRONSKULL_SLAVE      = 37592,
@@ -79,11 +79,13 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
         void Load(const char* chrIn);
 
          void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
+         Team GetFaction() {return m_Team; };
 
     protected:
         void JustDidDialogueStep(int32 iEntry);
 
         void SendTyrannusToMiddle();
+        void SummonSlaves();
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string strInstData;
 

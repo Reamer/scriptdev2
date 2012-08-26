@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: boss_forgemaster_garfrost
 SD%Complete: 70
-SDComment: TODO movement to the forges currently workaround (need core support for Jump-MMGen)
+SDComment:
 SDCategory: Pit of Saron
 EndScriptData */
 
@@ -49,10 +49,6 @@ enum saysSD2
     SPELL_FORGE_MACE                    = 68785,
     SPELL_FORGE_BLADE                   = 68774,
 
-    SAY_FREE_SLAVE_HORDE                = -1658013,
-    SAY_FREE_SLAVE_ALLY                 = -1658012,
-    SAY_TYRANNUS_OUTRO                  = -1658020,
-
     PHASE_NO_ENCHANTMENT                = 1,
     PHASE_BLADE_ENCHANTMENT             = 2,
     PHASE_MACE_ENCHANTMENT              = 3,
@@ -74,186 +70,20 @@ static LocationsXYZ aGarfrostMoveLocs[] =
     {657.539f, -203.564f, 526.691f},
 };
 
-
-static LocationsXYZ SummonLoc[]=
-{
-    {719.812f, -167.183f, 526.721f,},
-    {698.703f, -165.497f, 527.464f,},
-    {671.455f, -167.968f, 526.741f,},
-};
-
-static LocationsXYZ MoveLoc[]=
-{
-    {677.445f, -186.521f, 526.702f},
-    {708.190f, -194.619f, 526.805f},
-    {687.257f, -193.644f, 526.717f},
-};
-
-struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
-{
-    npc_martin_gorkunAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_uiTyrannusGuid.Clear();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-
-    uint32 m_uiSpeech_Timer;
-    uint8 m_uiOutro_Phase;
-    bool m_bIsOutro;
-    uint32 creatureEntry;
-
-    ObjectGuid m_uiTyrannusGuid;
-
-    void Reset()
-    {
-        m_uiOutro_Phase     = 0;
-        m_uiSpeech_Timer    = 1000;
-        m_bIsOutro          = true;
-        m_uiTyrannusGuid.Clear();
-        creatureEntry = m_creature->GetEntry();
-    }
-
-    void SummonHordeSlaves()
-    {
-        for (uint8 i = 0; i < 5; i++)
-        {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
-        }
-
-        for (uint8 i = 5; i < 10; i++)
-        {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
-        }
-
-        for (uint8 i = 10; i < 15; i++)
-        {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
-        }
-    }
-
-    void SummonAllySlaves()
-    {
-        for (uint8 i = 0; i < 5; i++)
-        {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
-        }
-
-        for (uint8 i = 5; i < 10; i++)
-        {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
-        }
-
-        for (uint8 i = 10; i < 15; i++)
-        {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_bIsOutro)
-        {
-            if(m_uiSpeech_Timer < uiDiff)
-            {
-                switch(m_uiOutro_Phase)
-                {
-                case 0:
-                    switch (creatureEntry)
-                    {
-                    case NPC_MARTIN_VICTUS_SLAVE:
-                        SummonAllySlaves();
-                        break;
-                    case NPC_GORKUN_IRONSKULL_SLAVE:
-                        SummonHordeSlaves();
-                        break;
-                    }
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 6000;
-                    break;
-                case 1:
-                    switch (creatureEntry)
-                    {
-                        case NPC_MARTIN_VICTUS_SLAVE:
-                            DoScriptText(SAY_FREE_SLAVE_ALLY,m_creature);
-                            break;
-                        case NPC_GORKUN_IRONSKULL_SLAVE:
-                            DoScriptText(SAY_FREE_SLAVE_HORDE,m_creature);
-                            break;
-                        default:
-                            break;
-                    }
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 10000;
-                    break;
-                case 2:
-                    if(Creature* pTyrannus = m_creature->SummonCreature(NPC_TYRANNUS_INTRO, 695.46f, -156.31f, 546.061f, 4.7f, TEMPSUMMON_TIMED_DESPAWN, 10000))
-                    {
-                        pTyrannus->SetTargetGuid(m_creature->GetObjectGuid());
-                        pTyrannus->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        m_uiTyrannusGuid = pTyrannus->GetObjectGuid();
-                    }
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 3000;
-                    break;
-                case 3:
-                    if(Creature* pTyrannus = m_pInstance->instance->GetCreature(m_uiTyrannusGuid))
-                        DoScriptText(SAY_TYRANNUS_OUTRO, pTyrannus);
-                    m_bIsOutro = false;
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 10000;
-                    break;
-
-                default:
-                    m_uiSpeech_Timer = 100000;
-                    break;
-                }
-            }
-            else
-                m_uiSpeech_Timer -= uiDiff;
-        }
-    }
-};
-
 struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
 {
     boss_forgemaster_garfrostAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_pit_of_saron*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_pit_of_saron* m_pInstance;
 
     uint32 m_uiThrowSaroniteTimer;
     uint32 m_uiPhase;
     uint32 m_uiChillingWaveTimer;
     uint32 m_uiDeepFreezeTimer;
-
-    Team GetFaction()
-    {
-        Team faction = ALLIANCE;
-        Map *map = m_creature->GetMap();
-        if (map->IsDungeon())
-        {
-            Map::PlayerList const &PlayerList = map->GetPlayers();
-
-            if (!PlayerList.isEmpty())
-            {
-                if (Player* pPlayer = PlayerList.begin()->getSource())
-                    return pPlayer->GetTeam();
-            }
-        }
-        return faction;
-    }
 
     void Reset()
     {
@@ -275,19 +105,9 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        DoScriptText(SAY_DEATH, m_creature, pKiller);
         if (m_pInstance)
             m_pInstance->SetData(TYPE_GARFROST, DONE);
-
-        DoScriptText(SAY_DEATH, m_creature, pKiller);
-
-        if(GetFaction() == ALLIANCE)
-        {
-            m_creature->SummonCreature(NPC_MARTIN_VICTUS_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
-        }
-        else
-        {
-            m_creature->SummonCreature(NPC_GORKUN_IRONSKULL_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
-        }
     }
 
     void KilledUnit(Unit* pVictim)
@@ -399,11 +219,6 @@ CreatureAI* GetAI_boss_forgemaster_garfrost(Creature* pCreature)
     return new boss_forgemaster_garfrostAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_martin_gorkun(Creature* pCreature)
-{
-    return new npc_martin_gorkunAI (pCreature);
-}
-
 void AddSC_boss_garfrost()
 {
     Script* pNewScript;
@@ -411,10 +226,5 @@ void AddSC_boss_garfrost()
     pNewScript = new Script;
     pNewScript->Name = "boss_forgemaster_garfrost";
     pNewScript->GetAI = &GetAI_boss_forgemaster_garfrost;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name="npc_martin_gorkun";
-    pNewScript->GetAI = &GetAI_npc_martin_gorkun;
     pNewScript->RegisterSelf();
 }
