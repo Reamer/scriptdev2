@@ -23,20 +23,20 @@ enum
     NPC_RIMEFANG                    = 36661,
     NPC_SINDRAGOSA                  = 37755,
 
-    NPC_SYLVANAS_PART1              = 36990,
-    NPC_SYLVANAS_PART2              = 38189,
-    NPC_JAINA_PART1                 = 36993,
-    NPC_JAINA_PART2                 = 38188,
-    NPC_KALIRA                      = 37583,
-    NPC_ELANDRA                     = 37774,
-    NPC_LORALEN                     = 37779,
-    NPC_KORELN                      = 37582,
-    NPC_CHAMPION_1_HORDE            = 37584,
-    NPC_CHAMPION_2_HORDE            = 37587,
-    NPC_CHAMPION_3_HORDE            = 37588,
-    NPC_CHAMPION_1_ALLIANCE         = 37496,
-    NPC_CHAMPION_2_ALLIANCE         = 37497,
-    NPC_CHAMPION_3_ALLIANCE         = 37498,
+    NPC_SILVANA_BEGIN               = 36990,
+    NPC_SILVANA_END                 = 38189,
+    NPC_JAINA_BEGIN                 = 36993,
+    NPC_JAINA_END                   = 38188,
+    NPC_DARK_RANGER_KALIRA          = 37583,
+    NPC_DARK_RANGER_LORALEN         = 37779,
+    NPC_ARCHMAGE_ELANDRA            = 37774,
+    NPC_ARCHMAGE_KORELN             = 37582,
+    NPC_COLISEUM_CHAMPION_A_P       = 37498,                    // Alliance Paladin
+    NPC_COLISEUM_CHAMPION_A_F       = 37496,                    // Alliance Footman
+    NPC_COLISEUM_CHAMPION_A_M       = 37497,                    // Alliance Mage
+    NPC_COLISEUM_CHAMPION_H_F       = 37584,                    // Horde Footman
+    NPC_COLISEUM_CHAMPION_H_T       = 37587,                    // Horde Taure
+    NPC_COLISEUM_CHAMPION_H_M       = 37588,                    // Horde Mage
 
     NPC_SLAVE_1                     = 36770,
 
@@ -83,13 +83,15 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
 
     protected:
         void JustDidDialogueStep(int32 iEntry);
-
+        void ProcessEventNpcs(Player* pPlayer, bool bChanged);
         void SendTyrannusToMiddle();
         void SummonSlaves();
+        void SummonSlavesEnd();
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string strInstData;
 
         GuidList m_lGuardGuid;
+        GuidList m_lEventMobGUIDs;
         Team m_Team;
 
 };

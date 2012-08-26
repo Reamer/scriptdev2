@@ -218,26 +218,8 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     uint32 m_uiOverlordsBrandTimer;
     uint32 m_uiDarkMightTimer;
     uint32 m_uiMarkOfRimefangTimer;
-    uint32 TeamInInstance;
 
     ObjectGuid m_uiRimefangGUID;
-
-    uint32 GetFaction()
-    {
-        uint32 faction = 0;
-        Map *map = m_creature->GetMap();
-        if (map->IsDungeon())
-        {
-            Map::PlayerList const &PlayerList = map->GetPlayers();
-
-            if (!PlayerList.isEmpty())
-            {
-                if (Player* pPlayer = PlayerList.begin()->getSource())
-                    faction = pPlayer->GetTeam();
-            }
-        }
-        return faction;
-    }
 
     void Reset()
     {
@@ -246,7 +228,6 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         m_uiOverlordsBrandTimer = 35000;
         m_uiDarkMightTimer      = 40000;
         m_uiMarkOfRimefangTimer = 30000;
-        TeamInInstance = GetFaction();
     }
 
     void JustReachedHome()
@@ -288,17 +269,6 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TYRANNUS, DONE);
 
-        if(TeamInInstance == ALLIANCE)
-        {
-            m_creature->SummonCreature(NPC_MARTIN_VICTUS_END, 1060.983f, 94.954f, 630.997f, 2.247f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
-            m_creature->SummonCreature(NPC_JAINA_PART2, 1065.983f, 94.954f, 630.997f, 2.247f, TEMPSUMMON_DEAD_DESPAWN, 0);
-        }
-
-        if(TeamInInstance == HORDE)
-        {
-            m_creature->SummonCreature(NPC_GORKUN_IRONSKULL_END, 1065.983f, 94.954f, 630.997f, 2.247f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
-            m_creature->SummonCreature(NPC_SYLVANAS_PART2, 1060.983f, 94.954f, 630.997f, 2.247f, TEMPSUMMON_DEAD_DESPAWN, 0);
-        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -468,91 +438,6 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_endAI: public ScriptedAI
         }
     }
 
-    void SummonHordeSlaves()
-    {
-        for (uint8 i = 0; i < 5; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 5; i < 10; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 10; i < 15; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-    }
-
-    void SummonAlySlaves()
-    {
-        for (uint8 i = 0; i < 5; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALLY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 5; i < 10; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALLY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 10; i < 15; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALLY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-    }
-
-    void SummonAlyAssist()
-    {
-        Creature *pElandra = m_creature->SummonCreature(NPC_ELANDRA, SummonLoc[0].x, SummonLoc[0].y, SummonLoc[0].z, SummonLoc[20].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-        if (pElandra)
-            pElandra->GetMotionMaster()->MovePoint(0, MoveLoc[3].x, MoveLoc[3].y, MoveLoc[3].z);
-        Creature *pKoreln = m_creature->SummonCreature(NPC_KORELN, SummonLoc[1].x, SummonLoc[1].y, SummonLoc[1].z, SummonLoc[21].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-        if (pKoreln)
-            pKoreln->GetMotionMaster()->MovePoint(0, MoveLoc[4].x, MoveLoc[4].y, MoveLoc[4].z);
-    }
-
-    void SummonHordeAssist()
-    {
-        Creature *pLoralen = m_creature->SummonCreature(NPC_LORALEN, SummonLoc[0].x, SummonLoc[0].y, SummonLoc[0].z, SummonLoc[20].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-        if (pLoralen)
-            pLoralen->GetMotionMaster()->MovePoint(0, MoveLoc[3].x, MoveLoc[3].y, MoveLoc[3].z);
-        Creature *pKelira = m_creature->SummonCreature(NPC_KALIRA, SummonLoc[1].x, SummonLoc[1].y, SummonLoc[1].z, SummonLoc[21].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-        if (pKelira)
-            pKelira->GetMotionMaster()->MovePoint(0, MoveLoc[4].x, MoveLoc[4].y, MoveLoc[4].z);
-    }
 
     void UpdateAI(const uint32 uiDiff)
     {

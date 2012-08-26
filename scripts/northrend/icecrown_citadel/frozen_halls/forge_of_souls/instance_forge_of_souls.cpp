@@ -133,8 +133,9 @@ void instance_forge_of_souls::ProcessEventNpcs(Player* pPlayer, bool bChanged)
 
             for (uint8 i = 0; i < sizeof(aEventEndLocations)/sizeof(sExtroEventNpcLocations); ++i)
             {
-                pPlayer->SummonCreature(m_uiTeam == HORDE ? aEventEndLocations[i].uiEntryHorde : aEventEndLocations[i].uiEntryAlliance,
-                                        aEventEndLocations[i].fSpawnX, aEventEndLocations[i].fSpawnY, aEventEndLocations[i].fSpawnZ, aEventEndLocations[i].fStartO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
+                if (Creature* pSummon = pPlayer->SummonCreature(m_uiTeam == HORDE ? aEventEndLocations[i].uiEntryHorde : aEventEndLocations[i].uiEntryAlliance,
+                                        aEventEndLocations[i].fSpawnX, aEventEndLocations[i].fSpawnY, aEventEndLocations[i].fSpawnZ, aEventEndLocations[i].fStartO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS))
+                    pSummon->MonsterMoveToDestination(aEventEndLocations[i].fEndX, aEventEndLocations[i].fEndY, aEventEndLocations[i].fEndZ, aEventEndLocations[i].fEndO, 10.0f, 0.0f);
 
                 // TODO: Let the NPCs Move along their paths
             }
