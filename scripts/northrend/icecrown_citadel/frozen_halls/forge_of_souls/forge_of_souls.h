@@ -4,15 +4,17 @@
 
 #ifndef DEF_FORGE_OF_SOULS_H
 #define DEF_FORGE_OF_SOULS_H
-#include "BSW_ai.h"
 
 enum
 {
-    MAX_ENCOUNTER               = 2,
+    MAX_ENCOUNTER               = 4,
     TYPE_INTRO                  = 0,
     TYPE_BRONJAHM               = 1,
     TYPE_DEVOURER_OF_SOULS      = 2,
-    TYPE_ACHIEV_PHANTOM_BLAST   = 3,
+    TYPE_OUTRO                  = 3,
+
+
+    TYPE_ACHIEV_PHANTOM_BLAST   = 4,
 
     DATA_SOULFRAGMENT_REMOVE    = 4,                        // on Death and on Use
 
@@ -90,7 +92,7 @@ const sExtroEventNpcLocations aEventEndLocations[18] =
     {NPC_COLISEUM_CHAMPION_H_M, NPC_COLISEUM_CHAMPION_A_M, 0.8726646f, 0.977384f, 5593.93652f, 2410.875f, 705.9351f,   5642.629f, 2474.331f, 708.6959f}
 };
 
-class MANGOS_DLL_DECL instance_forge_of_souls : public ScriptedInstance
+class MANGOS_DLL_DECL instance_forge_of_souls : public ScriptedInstance, private DialogueHelper
 {
     public:
         instance_forge_of_souls(Map* pMap);
@@ -111,7 +113,10 @@ class MANGOS_DLL_DECL instance_forge_of_souls : public ScriptedInstance
         const char* Save() { return m_strInstData.c_str(); }
         void Load(const char* chrIn);
 
+        void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
+
     protected:
+        void JustDidDialogueStep(int32 iEntry);
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
 

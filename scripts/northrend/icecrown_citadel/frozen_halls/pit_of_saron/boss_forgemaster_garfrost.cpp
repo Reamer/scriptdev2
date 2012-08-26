@@ -62,36 +62,32 @@ enum saysSD2
 
     ACHIEV_DOESNT_GO_TO_ELEVEN          = 4524,
 };
+//Positional defines 
+struct LocationsXYZ
+{
+    float x, y, z;
+};
 
-static const float aGarfrostMoveLocs[2][3] =
+static LocationsXYZ aGarfrostMoveLocs[] =
 {
     {719.785f, -230.227f, 527.033f},
     {657.539f, -203.564f, 526.691f},
 };
 
-//Positional defines 
-struct LocationsXY
-{
-    float x, y, z, o;
-    uint32 id;
-};
 
-static LocationsXY SummonLoc[]=
+static LocationsXYZ SummonLoc[]=
 {
     {719.812f, -167.183f, 526.721f,},
     {698.703f, -165.497f, 527.464f,},
     {671.455f, -167.968f, 526.741f,},
 };
 
-static LocationsXY MoveLoc[]=
+static LocationsXYZ MoveLoc[]=
 {
     {677.445f, -186.521f, 526.702f},
     {708.190f, -194.619f, 526.805f},
     {687.257f, -193.644f, 526.717f},
 };
-
-#define HOME_X                      712.927f
-#define HOME_Y                      -231.605f
 
 struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
 {
@@ -124,20 +120,20 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
     {
         for (uint8 i = 0; i < 5; i++)
         {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z, true, true);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
         }
 
         for (uint8 i = 5; i < 10; i++)
         {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z, true, true);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
         }
 
         for (uint8 i = 10; i < 15; i++)
         {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z, true, true);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_HORDE_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
         }
     }
 
@@ -145,20 +141,20 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
     {
         for (uint8 i = 0; i < 5; i++)
         {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z, true, true);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
         }
 
         for (uint8 i = 5; i < 10; i++)
         {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z, true, true);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
         }
 
         for (uint8 i = 10; i < 15; i++)
         {
-            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z, true, true);
+            if (Creature *pTemp = m_creature->SummonCreature(NPC_SLAVE_ALY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
         }
     }
 
@@ -186,12 +182,14 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
                 case 1:
                     switch (creatureEntry)
                     {
-                    case NPC_MARTIN_VICTUS_SLAVE:
-                        DoScriptText(SAY_FREE_SLAVE_ALLY,m_creature);
-                        break;
-                    case NPC_GORKUN_IRONSKULL_SLAVE:
-                        DoScriptText(SAY_FREE_SLAVE_HORDE,m_creature);
-                        break;
+                        case NPC_MARTIN_VICTUS_SLAVE:
+                            DoScriptText(SAY_FREE_SLAVE_ALLY,m_creature);
+                            break;
+                        case NPC_GORKUN_IRONSKULL_SLAVE:
+                            DoScriptText(SAY_FREE_SLAVE_HORDE,m_creature);
+                            break;
+                        default:
+                            break;
                     }
                     ++m_uiOutro_Phase;
                     m_uiSpeech_Timer = 10000;
@@ -218,7 +216,9 @@ struct MANGOS_DLL_DECL npc_martin_gorkunAI: public ScriptedAI
                     m_uiSpeech_Timer = 100000;
                     break;
                 }
-            }else m_uiSpeech_Timer -= uiDiff;
+            }
+            else
+                m_uiSpeech_Timer -= uiDiff;
         }
     }
 };
@@ -282,14 +282,11 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
 
         if(GetFaction() == ALLIANCE)
         {
-            if (Creature* pMartin = m_creature->SummonCreature(NPC_MARTIN_VICTUS_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000))
-                pMartin->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX() + 15, m_creature->GetPositionY() - 5, m_creature->GetPositionZ());
+            m_creature->SummonCreature(NPC_MARTIN_VICTUS_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
         }
-
-        if(GetFaction() == HORDE)
+        else
         {
-            if (Creature* pGorkun = m_creature->SummonCreature(NPC_GORKUN_IRONSKULL_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000))
-                pGorkun->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX() + 15, m_creature->GetPositionY() - 5, m_creature->GetPositionZ());
+            m_creature->SummonCreature(NPC_GORKUN_IRONSKULL_SLAVE, 695.46f, -156.31f, 528.061f, 4.77f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
         }
     }
 
@@ -338,7 +335,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP) == CAST_OK)
                     {
-                        m_creature->GetMotionMaster()->MoveJump(aGarfrostMoveLocs[0][0], aGarfrostMoveLocs[0][1], aGarfrostMoveLocs[0][2], 25.0f, 15.0f);
+                        m_creature->GetMotionMaster()->MoveJump(aGarfrostMoveLocs[0].x, aGarfrostMoveLocs[0].y, aGarfrostMoveLocs[0].z, 25.0f, 15.0f);
                         m_uiPhase = PHASE_BLADE_ENCHANTMENT;
 
                         // Stop further action
@@ -351,9 +348,9 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
             {
                 if (m_creature->GetHealthPercent() < 33.0f)
                 {
-                    if (DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP, CAST_INTERRUPT_PREVIOUS))
+                    if (DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP) == CAST_OK)
                     {
-                        m_creature->GetMotionMaster()->MoveJump(aGarfrostMoveLocs[1][0], aGarfrostMoveLocs[1][1], aGarfrostMoveLocs[1][2], 25.0f, 15.0f);
+                        m_creature->GetMotionMaster()->MoveJump(aGarfrostMoveLocs[1].x, aGarfrostMoveLocs[1].y, aGarfrostMoveLocs[1].z, 25.0f, 15.0f);
                         m_uiPhase = PHASE_MACE_ENCHANTMENT;
 
                         // Stop further action
@@ -389,6 +386,8 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
 
                 break;
             }
+            default:
+                break;
         }
 
         DoMeleeAttackIfReady();

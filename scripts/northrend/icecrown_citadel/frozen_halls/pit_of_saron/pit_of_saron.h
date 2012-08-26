@@ -54,9 +54,12 @@ enum
     GO_BALL_AND_CHAIN               = 201969,
     GO_ICEWALL                      = 201885,               // open after gafrost/krick
     GO_HALLS_OF_REFLECT_PORT        = 201848,               // unlocked by jaina/sylvanas at last outro
+
+    SPELL_STRANGULATING             = 69413,
+    SPELL_NECROTIC_POWER            = 69347,
 };
 
-class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
+class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private DialogueHelper
 {
     public:
         instance_pit_of_saron(Map* pMap);
@@ -67,15 +70,25 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         void OnCreatureCreate(Creature* pCreature);
         void OnObjectCreate(GameObject* pGo);
 
+        void OnPlayerEnter(Player* pPlayer);
+
         void SetData(uint32 uiType, uint32 uiData);
         uint32 GetData(uint32 uiType);
 
         const char* Save() { return strInstData.c_str(); }
         void Load(const char* chrIn);
 
+         void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
+
     protected:
+        void JustDidDialogueStep(int32 iEntry);
+
+        void SendTyrannusToMiddle();
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string strInstData;
+
+        GuidList m_lGuardGuid;
+        Team m_Team;
 
 };
  

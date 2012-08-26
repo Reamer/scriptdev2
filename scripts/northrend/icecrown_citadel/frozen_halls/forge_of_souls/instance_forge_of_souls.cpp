@@ -24,7 +24,49 @@ EndScriptData */
 #include "precompiled.h"
 #include "forge_of_souls.h"
 
-instance_forge_of_souls::instance_forge_of_souls(Map* pMap) : ScriptedInstance(pMap),
+enum
+{
+    SAY_JAINA_FS01             = -1632040,
+    SAY_JAINA_FS02             = -1632041,
+    SAY_JAINA_FS03             = -1632042,
+    SAY_JAINA_FS04             = -1632043,
+    SAY_JAINA_FS05             = -1632044,
+    SAY_JAINA_FS06             = -1632045,
+    SAY_JAINA_FS07             = -1632046,
+    SAY_JAINA_FS08             = -1632047,
+    
+    SAY_SYLVANA_FS01           = -1632050,
+    SAY_SYLVANA_FS02           = -1632051,
+    SAY_SYLVANA_FS03           = -1632052,
+    SAY_SYLVANA_FS04           = -1632053,
+    SAY_SYLVANA_FS05           = -1632054,
+    SAY_SYLVANA_FS06           = -1632055,
+
+    SAY_JAINA_FS09_EXTRO       = -1632029,
+    SAY_SYLVANA_FS07_EXTRO     = -1632030,
+
+    GOSSIP_SPEECHINTRO         = 13525,
+};
+
+static const DialogueEntryTwoSide aHoSDialogues[] =
+{
+    // Intro Event
+    {TYPE_INTRO, 0, 0, 0,                         4000},
+    {SAY_JAINA_FS01, NPC_JAINA_BEGIN, SAY_SYLVANA_FS01, NPC_SILVANA_BEGIN, 7000},
+    {SAY_JAINA_FS02, NPC_JAINA_BEGIN, SAY_SYLVANA_FS02, NPC_SILVANA_BEGIN, 12000},
+    {SAY_JAINA_FS03, NPC_JAINA_BEGIN, SAY_SYLVANA_FS03, NPC_SILVANA_BEGIN, 11000},
+    {SAY_JAINA_FS04, NPC_JAINA_BEGIN, SAY_SYLVANA_FS04, NPC_SILVANA_BEGIN, 11000},
+    {SAY_JAINA_FS05, NPC_JAINA_BEGIN, SAY_SYLVANA_FS05, NPC_SILVANA_BEGIN, 12000},
+    {SAY_JAINA_FS06, NPC_JAINA_BEGIN, SAY_SYLVANA_FS06, NPC_SILVANA_BEGIN, 12000},
+    {SAY_JAINA_FS07, NPC_JAINA_BEGIN, 0, 0, 7000},
+    {SAY_JAINA_FS08, NPC_JAINA_BEGIN, 0, 0, 0},
+    {0, 0, 0, 0, 0},
+    {TYPE_OUTRO, 0, 0, 0,                         3000},
+    {SAY_JAINA_FS09_EXTRO, NPC_JAINA_END, SAY_SYLVANA_FS07_EXTRO, NPC_SILVANA_END, 0},
+    {0, 0, 0, 0, 0},
+};
+
+instance_forge_of_souls::instance_forge_of_souls(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aHoSDialogues),
     m_bCriteriaPhantomBlastFailed(false),
     m_uiTeam(0)
 {
@@ -33,7 +75,9 @@ instance_forge_of_souls::instance_forge_of_souls(Map* pMap) : ScriptedInstance(p
 
 void instance_forge_of_souls::Initialize()
 {
-    memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+    InitializeDialogueHelper(this);
+    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+        m_auiEncounter[i] = NOT_STARTED;
 }
 
 void instance_forge_of_souls::OnCreatureCreate(Creature* pCreature)
@@ -56,6 +100,7 @@ void instance_forge_of_souls::OnPlayerEnter(Player* pPlayer)
     if (!m_uiTeam)                                          // very first player to enter
     {
         m_uiTeam = pPlayer->GetTeam();
+        SetDialogueSide(m_uiTeam == ALLIANCE);
         ProcessEventNpcs(pPlayer, false);
     }
 }
@@ -122,6 +167,11 @@ void instance_forge_of_souls::SetData(uint32 uiType, uint32 uiData)
 {
     switch(uiType)
     {
+        case TYPE_INTRO:
+        case TYPE_OUTRO:
+            if (uiData == SPECIAL)
+                StartNextDialogueText(uiType);
+            break;
         case TYPE_BRONJAHM:
             m_auiEncounter[0] = uiData;
 
@@ -196,6 +246,26 @@ void instance_forge_of_souls::SetData64(uint32 uiType, uint64 uiData)
 {
     if (uiType == DATA_SOULFRAGMENT_REMOVE)
         m_luiSoulFragmentAliveGUIDs.remove(ObjectGuid(uiData));
+}
+
+void instance_forge_of_souls::JustDidDialogueStep(int32 iEntry)
+{
+    switch(iEntry)
+    {
+        case TYPE_INTRO:
+        {
+            SetData(TYPE_INTRO, IN_PROGRESS);
+            break;
+        }
+        case SAY_JAINA_FS08:
+        case SAY_SYLVANA_FS06:
+        {
+            SetData(TYPE_INTRO, DONE);
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 InstanceData* GetInstanceData_instance_forge_of_souls(Map* pMap)

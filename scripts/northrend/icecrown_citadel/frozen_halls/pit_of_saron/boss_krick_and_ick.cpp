@@ -33,7 +33,6 @@ enum
     SPELL_CONFUSION               = 69029,
     // krick
     SPELL_TOXIC_WASTE             = 69024,
-    SPELL_STRANGULATING           = 69413,
     SPELL_SHADOW_BOLT             = 69028,
     SPELL_EXPLOSIVE_BARRAGE       = 69012,
 

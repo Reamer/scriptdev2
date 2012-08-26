@@ -66,10 +66,9 @@ enum
     SAY_TYRANNUS3           = -1658005,
     SAY_TYRANNUS4           = -1658072,
     SAY_TYRANNUS5           = -1658008, 
-    SPELL_NECROTIC_POWER    = 69347,
 };
 
-struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
+/*struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
 {
     npc_sylvanas_jaina_pos_startAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
@@ -87,7 +86,6 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
     uint32 creatureEntry;
 
     ObjectGuid m_uiTyrannusGuid;
-    GuidList m_lGuards;
 
     void Reset()
     {
@@ -117,72 +115,6 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
         }
     }
 
-    void SummonHordeChampions()
-    {
-        for (uint8 i = 0; i < 5; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_CHAMPION_1_HORDE, SummonLoc[0].x + urand(0, 15), SummonLoc[0].y - urand(0, 15), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->HandleEmote(EMOTE_STATE_READY1H);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 5; i < 10; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_CHAMPION_2_HORDE, SummonLoc[1].x + urand(0, 15), SummonLoc[1].y + urand(0, 15), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->HandleEmote(EMOTE_STATE_READY1H);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 10; i < 15; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_CHAMPION_3_HORDE, SummonLoc[2].x + urand(0, 15), SummonLoc[2].y + urand(0, 15), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->HandleEmote(EMOTE_STATE_READY1H);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-    }
-
-    void SummonAlyChampions()
-    {
-        for (uint8 i = 0; i < 5; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_CHAMPION_1_ALLIANCE, SummonLoc[0].x + urand(0, 15), SummonLoc[0].y + urand(0, 15), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->HandleEmote(EMOTE_STATE_READY1H);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 5; i < 10; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_CHAMPION_2_ALLIANCE, SummonLoc[1].x + urand(0, 15), SummonLoc[1].y + urand(0, 15), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->HandleEmote(EMOTE_STATE_READY1H);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-
-        for (uint8 i = 10; i < 15; i++)
-        {
-            Creature *pTemp = m_creature->SummonCreature(NPC_CHAMPION_3_ALLIANCE, SummonLoc[2].x + urand(0, 15), SummonLoc[2].y + urand(0, 15), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pTemp)
-            {
-                pTemp->HandleEmote(EMOTE_STATE_READY1H);
-                m_lGuards.push_back(pTemp->GetObjectGuid());
-            }
-        }
-    }
-
     void UpdateAI(const uint32 uiDiff)
     {
         if (m_bIsIntro)
@@ -202,15 +134,6 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
                             m_uiTyrannusGuid = pTyrannus->GetObjectGuid();
                         }
 
-                        switch (creatureEntry)
-                        {
-                            case NPC_JAINA_PART1:
-                                SummonAlyChampions();
-                                break;
-                            case NPC_SYLVANAS_PART1:
-                                SummonHordeChampions();
-                                break;
-                        }
                         ++m_uiIntro_Phase;
                         m_uiSpeech_Timer = 7000;
                         break;
@@ -238,15 +161,16 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
                             case NPC_SYLVANAS_PART1:
                                 DoScriptText(SAY_SPEECH_SYLVANAS1, m_creature);
                                 m_creature->setFaction(1801);
-                                for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
-                                {
-                                    if (Creature *pTemp = m_creature->GetMap()->GetCreature(*i))
-                                    {
-                                        pTemp->SetWalk(false);
-                                        pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x + urand(0, 20), MoveLoc[1].y + urand(0, 20), MoveLoc[1].z);
-                                    }
-                                }
+
                                 break;
+                        }
+                        for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
+                        {
+                            if (Creature *pTemp = m_creature->GetMap()->GetCreature(*i))
+                            {
+                                pTemp->SetWalk(false);
+                                pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x + urand(0, 20), MoveLoc[1].y + urand(0, 20), MoveLoc[1].z);
+                            }
                         }
                         ++m_uiIntro_Phase;
                         m_uiSpeech_Timer = 5000;
@@ -403,7 +327,7 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
 };
 
 // TODO: Intelligent slaves
-/*bool GOUse_ball_and_chain(Player* pPlayer, GameObject* pGo)
+bool GOUse_ball_and_chain(Player* pPlayer, GameObject* pGo)
 {
     if (ScriptedInstance* m_pInstance = (ScriptedInstance*)pGo->GetInstanceData())
     if (Creature* pSlave = m_pInstance->GetSingleCreatureFromStorage(NPC_SLAVE_1))
@@ -413,23 +337,23 @@ struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_startAI: public ScriptedAI
     }
 
     return true;
-}*/
+}
 
 CreatureAI* GetAI_npc_sylvanas_jaina_pos_start(Creature* pCreature)
 {
     return new npc_sylvanas_jaina_pos_startAI (pCreature);
 }
-
+*/
 void AddSC_pit_of_saron()
 {
-    Script *pNewScript;
+  /*  Script *pNewScript;
 
     pNewScript = new Script;
     pNewScript->GetAI = &GetAI_npc_sylvanas_jaina_pos_start;
     pNewScript->Name = "npc_slyvanas_jaina_pos_start";
     pNewScript->RegisterSelf();
 
-    /*pNewScript = new Script;
+    pNewScript = new Script;
     pNewScript->Name = "go_ball_and_chain";
     pNewScript->pGOUse=&GOUse_ball_and_chain;
     pNewScript->RegisterSelf();*/
