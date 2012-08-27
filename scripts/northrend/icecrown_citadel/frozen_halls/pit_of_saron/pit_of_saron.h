@@ -57,6 +57,7 @@ enum
 
     SPELL_STRANGULATING             = 69413,
     SPELL_NECROTIC_POWER            = 69347,
+    SPELL_FROST_BOMB                = 70521,
 };
 
 class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private DialogueHelper

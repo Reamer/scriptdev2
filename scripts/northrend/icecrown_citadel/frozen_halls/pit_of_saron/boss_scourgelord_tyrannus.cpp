@@ -26,18 +26,15 @@ EndScriptData */
 
 enum
 {
-    SAY_GENERAL_TRASH                   = -1658051,
-    SAY_PREFIGHT_1                      = -1658053,
-    SAY_PREFIGHT_2                      = -1658054,
-    SAY_AGGRO                           = -1658055,
-    SAY_SLAY_1                          = -1658056,
-    SAY_SLAY_2                          = -1658057,
-    SAY_DEATH                           = -1658058,
-    SAY_MARK                            = -1658059,
-    SAY_SMASH                           = -1658061,
+    SAY_AGGRO                           = -1658053,
+    SAY_SLAY_1                          = -1658054,
+    SAY_SLAY_2                          = -1658055,
+    SAY_DEATH                           = -1658056,
+    SAY_MARK                            = -1658057,
+    SAY_SMASH                           = -1658058,
 
-    EMOTE_RIMEFANG_ICEBOLT              = -1658060,
-    EMOTE_SMASH                         = -1658062,
+    EMOTE_RIMEFANG_ICEBOLT              = -1658059,
+    EMOTE_SMASH                         = -1658060,
 
     SPELL_FORCEFUL_SMASH                = 69155,
     SPELL_OVERLORDS_BRAND               = 69172,
@@ -46,17 +43,6 @@ enum
     SPELL_MARK_OF_RIMEFANG              = 69275,
     SPELL_ICY_BLAST                     = 69233,
     SPELL_ICY_BLAST_SLOW                = 69238,
-
-    SAY_OUTRO1_SLAVE_HORDE              = -1658061,
-    SAY_OUTRO1_SLAVE_ALLY               = -1658061,
-    SAY_OUTRO2_SLAVE                    = -1658062,
-    SAY_OUTRO3_HORDE                    = -1658064,
-    SAY_OUTRO3_ALY                      = -1658063,
-    SAY_OUTRO4_HORDE                    = -1658067,
-    SAY_OUTRO4_ALY                      = -1658065,
-    SAY_OUTRO5_ALY                      = -1658066,
-
-    SPELL_FROST_BOMB                    = 70521,
 
     NPC_ICY_BLAST                       = 36731,
     SPELL_ICY_BLAST_AURA                = 69238,
@@ -68,12 +54,6 @@ enum
 };
 
 const float RimefangSummon[4] = {1013.827f, 169.71f, 628.157f, 5.31f};
-
-struct LocationsXY
-{
-    float x, y, z, o;
-    uint32 id;
-};
 
 enum gauntlet
 {
@@ -95,22 +75,6 @@ enum gauntlet
     NPC_WRATHBONE_COLDWRAITH = 36842,
     NPC_WRATHBONE_SORCERER   = 37728,    // this is for the end event, not used
     NPC_GLACIAL_REVENANT     = 36874,
-};
-
-static LocationsXY SummonLoc[]=
-{
-    {1060.955f, 107.274f, 628.424f},
-    {1052.122f, 103.916f, 628.454f},
-    {1068.363f, 110.432f, 629.009f},
-};
-
-static LocationsXY MoveLoc[]=
-{
-    {1019.006f, 129.684f, 628.156f}, 
-    {1003.889f, 159.652f, 628.159f},
-    {1015.389f, 183.650f, 628.156f},
-    {1065.827f, 210.836f, 628.156f},
-    {1072.659f, 204.432f, 628.156f},
 };
 
 struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
@@ -362,276 +326,6 @@ struct MANGOS_DLL_DECL npc_colapsing_icicleAI: public ScriptedAI
     }
 };
 
-struct MANGOS_DLL_DECL npc_sylvanas_jaina_pos_endAI: public ScriptedAI
-{
-    npc_sylvanas_jaina_pos_endAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_lGuards.clear();
-        lSlavesList.clear();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-
-    uint32 m_uiSpeech_Timer;
-    uint8 m_uiOutro_Phase;
-    bool m_bIsOutro;
-    uint32 creatureEntry;
-    uint32 TeamInInstance;
-
-    ObjectGuid m_uiMartinGuid;
-    ObjectGuid m_uiGorkunGuid;
-    ObjectGuid m_uiTyrannusGuid;
-    ObjectGuid m_uiSindragosaGuid;
-    GuidList m_lGuards;
-
-    std::list<Creature*> lSlavesList;
-
-    uint32 GetFaction()
-    {
-        uint32 faction = 0;
-        Map *map = m_creature->GetMap();
-        if (map->IsDungeon())
-        {
-            Map::PlayerList const &PlayerList = map->GetPlayers();
-
-            if (!PlayerList.isEmpty())
-            {
-                if (Player* pPlayer = PlayerList.begin()->getSource())
-                    faction = pPlayer->GetTeam();
-            }
-        }
-        return faction;
-    }
-
-    void Reset()
-    {
-        m_lGuards.clear();
-        lSlavesList.clear();
-        m_uiOutro_Phase     = 0;
-        m_uiSpeech_Timer    = 1000;
-        m_bIsOutro          = true;
-        TeamInInstance = GetFaction();
-        creatureEntry = m_creature->GetEntry();
-
-        m_uiMartinGuid.Clear();
-        m_uiGorkunGuid.Clear();
-        m_uiTyrannusGuid.Clear();
-        m_uiSindragosaGuid.Clear();
-    }
-
-    void TeleportPlayers()
-    {
-        Map* pMap = m_creature->GetMap();
-        if(pMap)
-        {
-            Map::PlayerList const &lPlayers = pMap->GetPlayers();
-            if (!lPlayers.isEmpty())
-            {
-                for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
-                {
-                    if (Player* pPlayer = itr->getSource())
-                        pPlayer->TeleportTo(m_creature->GetMapId(), 1065.983f, 94.954f, 630.997f, 2.247f);
-                }
-            }
-        }
-    }
-
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_bIsOutro)
-        {
-            if(m_uiSpeech_Timer < uiDiff)
-            {
-                switch(m_uiOutro_Phase)
-                {
-                case 0:
-                    if (TeamInInstance == ALLIANCE)
-                    {
-                        switch (creatureEntry)
-                        {
-                        case NPC_JAINA_PART2:
-                            if(Creature* pSylvanas = GetClosestCreatureWithEntry(m_creature, NPC_SYLVANAS_PART2, 100.0f))
-                            {
-                                pSylvanas->ForcedDespawn();
-                            }
-                            break;
-                        }
-                    }
-                    if (TeamInInstance == HORDE)
-                    {
-                        switch (creatureEntry)
-                        {
-                            case NPC_JAINA_PART2:
-                            if(Creature* pSylvanas = GetClosestCreatureWithEntry(m_creature, NPC_SYLVANAS_PART2, 100.0f))
-                            {
-                                pSylvanas->ForcedDespawn();
-                            }
-                            break;
-                            case NPC_SYLVANAS_PART2:
-                            if(Creature* pJaina = GetClosestCreatureWithEntry(m_creature, NPC_JAINA_PART2, 100.0f))
-                            {
-                                pJaina->ForcedDespawn();
-                            }
-                            break;
-                        }
-                    }
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 5000;
-                    break;
-                case 1:
-                    if(Creature* pTyrannus = GetClosestCreatureWithEntry(m_creature, NPC_RIMEFANG, 100.0f))
-                    {
-                        pTyrannus->ForcedDespawn();
-                        pTyrannus->DealDamage(pTyrannus, pTyrannus->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                        m_uiTyrannusGuid = pTyrannus->GetObjectGuid();
-                    }
-                    switch (creatureEntry)
-                    {
-                    case NPC_JAINA_PART2:
-                        if(Creature* pMartin = GetClosestCreatureWithEntry(m_creature, NPC_MARTIN_VICTUS_END, 100.0f))
-                        {
-                            DoScriptText(SAY_OUTRO1_SLAVE_ALLY, pMartin);
-                            SummonAlySlaves();
-                            pMartin->GetMotionMaster()->MovePoint(0, 1014.670f, 158.714f, 628.156f);
-                            pMartin->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                            m_uiMartinGuid = pMartin->GetObjectGuid();
-                        }
-                        break;
-                    case NPC_SYLVANAS_PART2:
-                        if(Creature* pGorkun = GetClosestCreatureWithEntry(m_creature, NPC_GORKUN_IRONSKULL_END, 100.0f))
-                        {
-                            DoScriptText(SAY_OUTRO1_SLAVE_HORDE, pGorkun);
-                            SummonHordeSlaves();
-                            pGorkun->GetMotionMaster()->MovePoint(0, 1014.670f, 158.714f, 628.156f);
-                            pGorkun->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                            m_uiGorkunGuid = pGorkun->GetObjectGuid();
-                        }
-                        break;
-                    }
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 18000;
-                    break;
-                case 2:
-                    if(Creature* pSindragosa = m_creature->SummonCreature(NPC_SINDRAGOSA, 977.224f, 164.056f, 653.216f,  0.3f, TEMPSUMMON_TIMED_DESPAWN, 18000))
-                    {
-                        m_uiSindragosaGuid = pSindragosa->GetObjectGuid();
-                    }
-                    switch (creatureEntry)
-                    {
-                    case NPC_JAINA_PART2:
-                        if(Creature* pMartin = m_pInstance->instance->GetCreature(m_uiMartinGuid))
-                            DoScriptText(SAY_OUTRO2_SLAVE, pMartin);
-                        break;
-                    case NPC_SYLVANAS_PART2:
-                        if(Creature* pGorkun = m_pInstance->instance->GetCreature(m_uiGorkunGuid))
-                            DoScriptText(SAY_OUTRO2_SLAVE, pGorkun);
-                        break;
-                    }
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 13000;
-                    break;
-                case 3:
-                    switch (creatureEntry)
-                    {
-                    case NPC_JAINA_PART2:
-                        if(Creature* pMartin = m_pInstance->instance->GetCreature(m_uiMartinGuid))
-                        {
-                            if(Creature* pSindragosa = m_pInstance->instance->GetCreature(m_uiSindragosaGuid))
-                            {
-                                pSindragosa->CastSpell(pMartin, SPELL_FROST_BOMB, false);
-                            }
-                        }
-                        DoScriptText(SAY_OUTRO3_ALY, m_creature);
-                        break;
-                    case NPC_SYLVANAS_PART2:
-                        if(Creature* pGorkun = m_pInstance->instance->GetCreature(m_uiGorkunGuid))
-                        {
-                            if(Creature* pSindragosa = m_pInstance->instance->GetCreature(m_uiSindragosaGuid))
-                            {
-                                pSindragosa->CastSpell(pGorkun, SPELL_FROST_BOMB, false);
-                            }
-                        }
-                        DoScriptText(SAY_OUTRO3_HORDE, m_creature);
-                        break;
-                    }
-                    TeleportPlayers();
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 5000;
-                    break;
-                case 4:
-                    for (GuidList::iterator i = m_lGuards.begin(); i != m_lGuards.end(); ++i)
-                    {
-                        if (Creature *pTemp = m_creature->GetMap()->GetCreature(*i))
-                        {
-                            pTemp->SetDeathState(JUST_DIED);
-                            pTemp->SetHealth(0);
-                            pTemp->SetStandFlags(UNIT_STAND_STATE_DEAD);
-                            pTemp->DealDamage(pTemp, pTemp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                        }
-                    }
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 5000;
-                    break;
-                case 5:
-                    switch (creatureEntry)
-                    {
-                    case NPC_JAINA_PART2:
-                        if(Creature* pMartin = m_pInstance->instance->GetCreature(m_uiMartinGuid))
-                        {
-                            pMartin->SetDeathState(JUST_DIED);
-                            pMartin->SetHealth(0);
-                            pMartin->SetStandFlags(UNIT_STAND_STATE_DEAD);
-                            pMartin->DealDamage(pMartin, pMartin->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                        }
-                        DoScriptText(SAY_OUTRO4_ALY, m_creature);
-                        m_creature->GetMotionMaster()->MovePoint(0, 1068.709f, 208.378f, 628.156f);
-                        SummonAlyAssist();
-                        m_uiSpeech_Timer = 7000;
-                        break;
-                    case NPC_SYLVANAS_PART2:
-                        if(Creature* pGorkun = m_pInstance->instance->GetCreature(m_uiGorkunGuid))
-                        {
-                            pGorkun->SetDeathState(JUST_DIED);
-                            pGorkun->SetHealth(0);
-                            pGorkun->SetStandFlags(UNIT_STAND_STATE_DEAD);
-                            pGorkun->DealDamage(pGorkun, pGorkun->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-                        }
-                        DoScriptText(SAY_OUTRO4_HORDE, m_creature);
-                        m_creature->GetMotionMaster()->MovePoint(0, 1068.709f, 208.378f, 628.156f);
-                        SummonHordeAssist();
-                        m_bIsOutro = false;
-                        break;
-                    }
-                    ++m_uiOutro_Phase;
-                    break;
-                case 6:
-                    switch (creatureEntry)
-                    {
-                    case NPC_JAINA_PART2:
-                        DoScriptText(SAY_OUTRO5_ALY, m_creature);
-                        break;
-                    case NPC_SYLVANAS_PART2:
-                        break;
-                    }
-                    m_bIsOutro = false;
-                    ++m_uiOutro_Phase;
-                    m_uiSpeech_Timer = 5000;
-                    break;
-
-                default:
-                    m_uiSpeech_Timer = 100000;
-                    break;
-                }
-            }
-            else
-                m_uiSpeech_Timer -= uiDiff;
-        }
-    }
-};
-
 CreatureAI* GetAI_boss_tyrannus(Creature* pCreature)
 {
     return new boss_tyrannusAI (pCreature);
@@ -645,11 +339,6 @@ CreatureAI* GetAI_boss_rimefang(Creature* pCreature)
 CreatureAI* GetAI_npc_colapsing_icicle(Creature* pCreature)
 {
     return new npc_colapsing_icicleAI (pCreature);
-}
-
-CreatureAI* GetAI_npc_sylvanas_jaina_pos_end(Creature* pCreature)
-{
-    return new npc_sylvanas_jaina_pos_endAI (pCreature);
 }
 
 void AddSC_boss_tyrannus()
@@ -669,10 +358,5 @@ void AddSC_boss_tyrannus()
     pNewScript = new Script;
     pNewScript->Name="npc_colapsing_icicle";
     pNewScript->GetAI = &GetAI_npc_colapsing_icicle;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->GetAI = &GetAI_npc_sylvanas_jaina_pos_end;
-    pNewScript->Name = "npc_slyvanas_jaina_pos_end";
     pNewScript->RegisterSelf();
 }

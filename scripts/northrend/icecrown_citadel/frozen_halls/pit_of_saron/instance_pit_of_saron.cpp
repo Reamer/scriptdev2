@@ -53,22 +53,6 @@ static LocationsXYZ MoveLocForSlaves[]=
     {687.257f, -193.644f, 526.717f},
 };
 
-static LocationsXYZ SummonLoc[]=
-{
-    {1060.955f, 107.274f, 628.424f},
-    {1052.122f, 103.916f, 628.454f},
-    {1068.363f, 110.432f, 629.009f},
-};
-
-static LocationsXYZ MoveLoc[]=
-{
-    {1019.006f, 129.684f, 628.156f}, 
-    {1003.889f, 159.652f, 628.159f},
-    {1015.389f, 183.650f, 628.156f},
-    {1065.827f, 210.836f, 628.156f},
-    {1072.659f, 204.432f, 628.156f},
-};
-
 struct sIntoEventNpcSpawnLocations
 {
     uint32 uiEntryHorde, uiEntryAlliance;
@@ -98,10 +82,25 @@ const sIntoEventNpcSpawnLocations aEventBeginLocations[] =
     {NPC_COLISEUM_CHAMPION_H_T, NPC_COLISEUM_CHAMPION_A_P, 422.503f, 211.469f, 530.609f, 0.0f},
 };
 
-const sIntoEventNpcSpawnLocations aEventEndLocations[]=
+struct sExtroEventNpcLocations
 {
-    {NPC_MARTIN_VICTUS_END, NPC_GORKUN_IRONSKULL_END          , 1060.983f, 94.954f, 630.997f, 2.247f},
-    {NPC_JAINA_END        , NPC_SILVANA_END                   , 1065.983f, 94.954f, 630.997f, 2.247f},
+    uint32 uiEntryHorde, uiEntryAlliance;
+    float fStartO, fEndO;                                   // Orientation for Spawning
+    float fSpawnX, fSpawnY, fSpawnZ;
+    float fEndX, fEndY, fEndZ;
+};
+
+//TODO: Fill
+const sExtroEventNpcLocations aEventEndLocations[]=
+{
+    // Horde Entry              Ally Entry                 O_Spawn     O_End      SpawnPos                             EndPos
+    {NPC_GORKUN_IRONSKULL_END,  NPC_MARTIN_VICTUS_END,     2.247f,     0.0f,      1060.983f, 94.954f, 630.997f,        1014.670f, 158.714f, 628.156f},
+    {NPC_SILVANA_END         ,  NPC_JAINA_END,             2.247f,     0.0f,      1065.983f, 94.954f, 630.997f,        1068.709f, 208.378f, 628.156f},
+    {NPC_DARK_RANGER_LORALEN,   NPC_ARCHMAGE_KORELN,       0.0f,       0.0f,      1060.955f, 107.274f, 628.424f,       1065.827f, 210.836f, 628.156f},
+    {NPC_DARK_RANGER_KALIRA,    NPC_ARCHMAGE_ELANDRA,      0.0f,       0.0f,      1052.122f, 103.916f, 628.454f,       1072.659f, 204.432f, 628.156f},
+    {NPC_SLAVE_HORDE_1,         NPC_SLAVE_ALLY_1,          0.0f,       0.0f,      1060.955f, 107.274f, 628.424f,       1019.006f, 129.684f, 628.156f},
+    {NPC_SLAVE_HORDE_2,         NPC_SLAVE_ALLY_2,          0.0f,       0.0f,      1052.122f, 103.916f, 628.454f,       1015.389f, 183.650f, 628.156f},
+    {NPC_SLAVE_HORDE_3,         NPC_SLAVE_ALLY_3,          0.0f,       0.0f,      1068.363f, 110.432f, 629.009f,       1003.889f, 159.652f, 628.159f},
 };
 
 enum
@@ -124,23 +123,37 @@ enum
     SAY_TYRANNUS4           = -1658008,
 
     // Garfrost
-    SAY_FREE_SLAVE_HORDE                = -1658013,
-    SAY_FREE_SLAVE_ALLY                 = -1658012,
-    SAY_TYRANNUS_OUTRO                  = -1658020,
+    SAY_GARFROST_TYRANNUS_OUTRO                  = -1658020,
+    SAY_GARFROST_FREE_SLAVE                      = -1658021,
 
     // Ick and Krick
-    SAY_OUTRO1              = -1658035,
-    SAY_OUTRO2_ALLY         = -1658036,
-    SAY_OUTRO2_HORDE        = -1658037,
-    SAY_OUTRO3              = -1658038,
-    SAY_OUTRO4_ALLY         = -1658039,
-    SAY_OUTRO4_HORDE        = -1658040,
-    SAY_OUTRO5              = -1658041,
-    SAY_OUTRO6_TYRANNUS     = -1658042,
-    SAY_OUTRO7              = -1658043,
-    SAY_OUTRO8_TYRANNUS     = -1658044,
-    SAY_OUTRO9_ALLY         = -1658045,
-    SAY_OUTRO9_HORDE        = -1658046,
+    SAY_OUTRO_KRICK_1                          = -1658035,
+    SAY_OUTRO_KRICK_2_ALLY                     = -1658036,
+    SAY_OUTRO_KRICK_2_HORDE                    = -1658037,
+    SAY_OUTRO_KRICK_3                          = -1658038,
+    SAY_OUTRO_KRICK_4_ALLY                     = -1658039,
+    SAY_OUTRO_KRICK_4_HORDE                    = -1658040,
+    SAY_OUTRO_KRICK_5                          = -1658041,
+    SAY_OUTRO_KRICK_6_TYRANNUS                 = -1658042,
+    SAY_OUTRO_KRICK_7                          = -1658043,
+    SAY_OUTRO_KRICK_8_TYRANNUS                 = -1658044,
+    SAY_OUTRO_KRICK_9_ALLY                     = -1658045,
+    SAY_OUTRO_KRICK_9_HORDE                    = -1658046,
+
+    // Gauntlet
+    SAY_GAUNTLET_1                             = -1658049,
+    SAY_GAUNTLET_PREFIGHT_1                    = -1658050,
+    SAY_GAUNTLET_GENERAL_TRASH                 = -1658051,
+    SAY_GAUNTLET_PREFIGHT_2                    = -1658052,
+
+    // Tyrannus
+    SAY_OUTRO_TYRANNUS_1_SLAVE          = -1658061,
+    SAY_OUTRO_TYRANNUS_2_SLAVE          = -1658062,
+    SAY_OUTRO_TYRANNUS_3_ALLY           = -1658063,
+    SAY_OUTRO_TYRANNUS_3_HORDE          = -1658064,
+    SAY_OUTRO_TYRANNUS_4_ALLY           = -1658065,
+    SAY_OUTRO_TYRANNUS_4_HORDE          = -1658067,
+    SAY_OUTRO_TYRANNUS_5_ALLY           = -1658066,
 
 };
 
@@ -159,19 +172,26 @@ static const DialogueEntryTwoSide aPoSDialogues[] =
     {SAY_SPEECH_JAINA5, NPC_JAINA_BEGIN, SAY_SPEECH_SYLVANAS5, NPC_SILVANA_BEGIN,     0},
     {0, 0, 0, 0, 0},
     {TYPE_GARFROST, 0, 0, 0,                      6000},
-    {SAY_FREE_SLAVE_ALLY, NPC_MARTIN_VICTUS_SLAVE, SAY_FREE_SLAVE_HORDE, NPC_GORKUN_IRONSKULL_SLAVE, 13000},
-    {SAY_TYRANNUS_OUTRO, NPC_TYRANNUS_INTRO, 0, 0, 0},
+    {SAY_GARFROST_FREE_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_GARFROST_FREE_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 13000},
+    {SAY_GARFROST_TYRANNUS_OUTRO, NPC_TYRANNUS_INTRO, 0, 0, 0},
     {0, 0, 0, 0, 0},
     {TYPE_KRICK, 0, 0, 0,                         3000},
-    {SAY_OUTRO1, NPC_KRICK, 0, 0,                 15000},
-    {SAY_OUTRO2_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO2_HORDE, NPC_SILVANA_BEGIN, 5000},
-    {SAY_OUTRO3, NPC_KRICK, 0, 0,                 15000},
-    {SAY_OUTRO4_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO4_HORDE, NPC_SILVANA_BEGIN, 5000},
-    {SAY_OUTRO5, NPC_KRICK, 0, 0,                  4000},
-    {SAY_OUTRO6_TYRANNUS, NPC_TYRANNUS_INTRO, 0, 0, 4000},
-    {SAY_OUTRO7, NPC_KRICK, 0, 0,                  3000},
-    {SAY_OUTRO8_TYRANNUS, NPC_TYRANNUS_INTRO, 0, 0, 10000},
-    {SAY_OUTRO9_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO9_HORDE, NPC_SILVANA_BEGIN, 0},
+    {SAY_OUTRO_KRICK_1, NPC_KRICK, 0, 0,                 15000},
+    {SAY_OUTRO_KRICK_2_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO_KRICK_2_HORDE, NPC_SILVANA_BEGIN, 5000},
+    {SAY_OUTRO_KRICK_3, NPC_KRICK, 0, 0,                 15000},
+    {SAY_OUTRO_KRICK_4_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO_KRICK_4_HORDE, NPC_SILVANA_BEGIN, 5000},
+    {SAY_OUTRO_KRICK_5, NPC_KRICK, 0, 0,                  4000},
+    {SAY_OUTRO_KRICK_6_TYRANNUS, NPC_TYRANNUS_INTRO, 0, 0, 4000},
+    {SAY_OUTRO_KRICK_7, NPC_KRICK, 0, 0,                  3000},
+    {SAY_OUTRO_KRICK_8_TYRANNUS, NPC_TYRANNUS_INTRO, 0, 0, 10000},
+    {SAY_OUTRO_KRICK_9_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO_KRICK_9_HORDE, NPC_SILVANA_BEGIN, 0},
+    {0, 0, 0, 0, 0},
+    {TYPE_TYRANNUS, 0, 0, 0, 2000},
+    {SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 18000},
+    {SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 13000},
+    {SAY_OUTRO_TYRANNUS_3_ALLY, NPC_JAINA_END, SAY_OUTRO_TYRANNUS_3_HORDE, NPC_SILVANA_END, 5000},
+    {SAY_OUTRO_TYRANNUS_4_ALLY, NPC_JAINA_END, SAY_OUTRO_TYRANNUS_4_HORDE, NPC_SILVANA_END, 7000},
+    {SAY_OUTRO_TYRANNUS_5_ALLY, NPC_JAINA_END, 0, 0, 0},
     {0, 0, 0, 0, 0},
 };
 
@@ -193,6 +213,7 @@ void instance_pit_of_saron::OnCreatureCreate(Creature* pCreature)
     switch(pCreature->GetEntry())
     {
         case NPC_TYRANNUS_INTRO:
+        case NPC_SINDRAGOSA:
             pCreature->SetActiveObjectState(true);
             /* no break */
         case NPC_GARFROST:
@@ -201,7 +222,6 @@ void instance_pit_of_saron::OnCreatureCreate(Creature* pCreature)
         case NPC_ICK:
         case NPC_TYRANNUS:
         case NPC_RIMEFANG:
-        case NPC_SINDRAGOSA:
         case NPC_SLAVE_1:
         case NPC_JAINA_BEGIN:
         case NPC_JAINA_END:
@@ -377,18 +397,18 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, bool bChanged)
                     pSummoned->ForcedDespawn();
             }
 
-            for (uint8 i = 0; i < sizeof(aEventEndLocations)/sizeof(sIntoEventNpcSpawnLocations); ++i)
+            for (uint8 i = 0; i < sizeof(aEventEndLocations)/sizeof(sExtroEventNpcLocations); ++i)
             {
-                pPlayer->SummonCreature(m_Team == HORDE ? aEventEndLocations[i].uiEntryHorde : aEventEndLocations[i].uiEntryAlliance, aEventEndLocations[i].fSpawnX, aEventEndLocations[i].fSpawnY, aEventEndLocations[i].fSpawnZ, aEventEndLocations[i].fSpawnO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
+                pPlayer->SummonCreature(m_Team == HORDE ? aEventEndLocations[i].uiEntryHorde : aEventEndLocations[i].uiEntryAlliance, aEventEndLocations[i].fSpawnX, aEventEndLocations[i].fSpawnY, aEventEndLocations[i].fSpawnZ, aEventEndLocations[i].fStartO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
 
                 // TODO: Let the NPCs Move along their paths
             }
         }
         else
         {   // Summon at end, without event
-            for (uint8 i = 0; i < sizeof(aEventEndLocations)/sizeof(sIntoEventNpcSpawnLocations); ++i)
+            for (uint8 i = 0; i < sizeof(aEventEndLocations)/sizeof(sExtroEventNpcLocations); ++i)
             {
-                pPlayer->SummonCreature(m_Team == HORDE ? aEventEndLocations[i].uiEntryHorde : aEventEndLocations[i].uiEntryAlliance, aEventEndLocations[i].fSpawnX, aEventEndLocations[i].fSpawnY, aEventEndLocations[i].fSpawnZ, aEventEndLocations[i].fSpawnO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
+                pPlayer->SummonCreature(m_Team == HORDE ? aEventEndLocations[i].uiEntryHorde : aEventEndLocations[i].uiEntryAlliance, aEventEndLocations[i].fSpawnX, aEventEndLocations[i].fSpawnY, aEventEndLocations[i].fSpawnZ, aEventEndLocations[i].fStartO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
 
                 // TODO: Let the NPCs Move along their paths
             }
@@ -458,7 +478,7 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
             SummonSlaves();
             break;
         }
-        case SAY_TYRANNUS_OUTRO:
+        case SAY_GARFROST_TYRANNUS_OUTRO:
             SendTyrannusToMiddle();
             break;
         case TYPE_KRICK:
@@ -479,14 +499,14 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
             }
             break;
         }
-        case SAY_OUTRO3:
+        case SAY_OUTRO_KRICK_3:
         {
             if (Creature* pTyrannus = GetSingleCreatureFromStorage(NPC_TYRANNUS_INTRO))
                 pTyrannus->GetMotionMaster()->MovePoint(0, GeneralLoc[5].x, GeneralLoc[5].y, GeneralLoc[5].z, false);
             break;
         }
-        case SAY_OUTRO9_ALLY:
-        case SAY_OUTRO9_HORDE:
+        case SAY_OUTRO_KRICK_9_ALLY:
+        case SAY_OUTRO_KRICK_9_HORDE:
         {
             if (Creature* pKrick = GetSingleCreatureFromStorage(NPC_KRICK))
             {
@@ -496,6 +516,16 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
         }
         case TYPE_TYRANNUS:
         {
+            //TODO: Move Sindragosa
+            break;
+        }
+        case SAY_OUTRO_TYRANNUS_3_ALLY:
+        case SAY_OUTRO_TYRANNUS_3_HORDE:
+        {
+            //TODO: teleport
+            if (Creature* pSindragosa = GetSingleCreatureFromStorage(NPC_SINDRAGOSA))
+                pSindragosa->CastSpell(pSindragosa, SPELL_FROST_BOMB, false);
+            break;
         }
         default:
             break;
@@ -508,6 +538,8 @@ void instance_pit_of_saron::SendTyrannusToMiddle()
     {
         pTyrannus->MonsterYell("Ich fliege zur Mitte ihr Schwächlinge", LANG_UNIVERSAL);
         pTyrannus->GetMotionMaster()->MovePoint(0, GeneralLoc[0].x, GeneralLoc[0].y, GeneralLoc[0].z, false);
+        if (GetData(TYPE_KRICK) == DONE && GetData(TYPE_GARFROST) == DONE)
+            pTyrannus->ForcedDespawn(30*IN_MILLISECONDS);
     }
 }
 
@@ -555,91 +587,6 @@ void instance_pit_of_saron::SummonSlaves()
             {
                 if (Creature *pTemp = pTyrannus->SummonCreature(NPC_SLAVE_HORDE_3, SummonLocForSlaves[2].x - urand(0, 20), SummonLocForSlaves[2].y - urand(0, 20), SummonLocForSlaves[2].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
                     pTemp->GetMotionMaster()->MovePoint(0, MoveLocForSlaves[1].x - urand(0, 20), MoveLocForSlaves[1].y - urand(0, 20), MoveLocForSlaves[1].z);
-            }
-        }
-    }
-}
-
-void instance_pit_of_saron::SummonSlavesEnd()
-{
-    if (Player* pPlayer = GetPlayerInMap())
-    {
-        if (m_Team == HORDE)
-        {
-             Creature *pLoralen = pPlayer->SummonCreature(NPC_DARK_RANGER_LORALEN, SummonLoc[0].x, SummonLoc[0].y, SummonLoc[0].z, SummonLoc[20].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pLoralen)
-                pLoralen->GetMotionMaster()->MovePoint(0, MoveLoc[3].x, MoveLoc[3].y, MoveLoc[3].z);
-            Creature *pKelira = pPlayer->SummonCreature(NPC_DARK_RANGER_KALIRA, SummonLoc[1].x, SummonLoc[1].y, SummonLoc[1].z, SummonLoc[21].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pKelira)
-                pKelira->GetMotionMaster()->MovePoint(0, MoveLoc[4].x, MoveLoc[4].y, MoveLoc[4].z);
-
-            for (uint8 i = 0; i < 5; i++)
-            {
-                Creature *pTemp = pPlayer->SummonCreature(NPC_SLAVE_HORDE_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-                if (pTemp)
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
-                    m_lGuards.push_back(pTemp->GetObjectGuid());
-                }
-            }
-
-            for (uint8 i = 5; i < 10; i++)
-            {
-                Creature *pTemp = pPlayer->SummonCreature(NPC_SLAVE_HORDE_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-                if (pTemp)
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
-                    m_lGuards.push_back(pTemp->GetObjectGuid());
-                }
-            }
-
-            for (uint8 i = 10; i < 15; i++)
-            {
-                Creature *pTemp = pPlayer->SummonCreature(NPC_SLAVE_HORDE_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-                if (pTemp)
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
-                    m_lGuards.push_back(pTemp->GetObjectGuid());
-                }
-            }
-        }
-        else
-        {
-            Creature *pElandra = pPlayer->SummonCreature(NPC_ARCHMAGE_ELANDRA, SummonLoc[0].x, SummonLoc[0].y, SummonLoc[0].z, SummonLoc[20].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pElandra)
-                pElandra->GetMotionMaster()->MovePoint(0, MoveLoc[3].x, MoveLoc[3].y, MoveLoc[3].z);
-            Creature *pKoreln = pPlayer->SummonCreature(NPC_ARCHMAGE_KORELN, SummonLoc[1].x, SummonLoc[1].y, SummonLoc[1].z, SummonLoc[21].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-            if (pKoreln)
-                pKoreln->GetMotionMaster()->MovePoint(0, MoveLoc[4].x, MoveLoc[4].y, MoveLoc[4].z);
-
-            for (uint8 i = 0; i < 5; i++)
-            {
-                Creature *pTemp = pPlayer->SummonCreature(NPC_SLAVE_ALLY_1, SummonLoc[0].x + urand(0, 20), SummonLoc[0].y + urand(0, 20), SummonLoc[0].z, SummonLoc[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-                if (pTemp)
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[0].x + urand(0, 20), MoveLoc[0].y + urand(0, 20), MoveLoc[0].z);
-                    m_lGuards.push_back(pTemp->GetObjectGuid());
-                }
-            }
-
-            for (uint8 i = 5; i < 10; i++)
-            {
-                Creature *pTemp = pPlayer->SummonCreature(NPC_SLAVE_ALLY_2, SummonLoc[1].x + urand(0, 10), SummonLoc[1].y - urand(0, 10), SummonLoc[1].z, SummonLoc[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-                if (pTemp)
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[2].x + urand(0, 20), MoveLoc[2].y - urand(0, 20), MoveLoc[2].z);
-                    m_lGuards.push_back(pTemp->GetObjectGuid());
-                }
-            }
-
-            for (uint8 i = 10; i < 15; i++)
-            {
-                Creature *pTemp = pPlayer->SummonCreature(NPC_SLAVE_ALLY_3, SummonLoc[2].x - urand(0, 20), SummonLoc[2].y - urand(0, 20), SummonLoc[2].z, SummonLoc[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
-                if (pTemp)
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, MoveLoc[1].x - urand(0, 20), MoveLoc[1].y - urand(0, 20), MoveLoc[1].z);
-                    m_lGuards.push_back(pTemp->GetObjectGuid());
-                }
             }
         }
     }

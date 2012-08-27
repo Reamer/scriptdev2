@@ -24,17 +24,16 @@ EndScriptData */
 #include "precompiled.h"
 #include "pit_of_saron.h"
 
-enum saysSD2
+enum
 {
     SAY_AGGRO                           = -1658014,
     SAY_SLAY_1                          = -1658015,
     SAY_SLAY_2                          = -1658019,
-    SAY_BOULDER_HIT                     = -1658022,         // TODO How must this be handled?
+    SAY_BOULDER_HIT                     = -1658022,
     SAY_DEATH                           = -1658017,
 
     SAY_FORGE_1                         = -1658018,
-    SAY_FORGE_2                         = -1658071,
-    SAY_TYRANNUS_GARFROST               = -1658020,
+    SAY_FORGE_2                         = -1658019,
 
     EMOTE_THROW_SARONITE                = -1658022,
     EMOTE_DEEP_FREEZE                   = -1658023,
@@ -52,9 +51,6 @@ enum saysSD2
     PHASE_NO_ENCHANTMENT                = 1,
     PHASE_BLADE_ENCHANTMENT             = 2,
     PHASE_MACE_ENCHANTMENT              = 3,
-
-    EQUIP_ID_SWORD                      = 49345,
-    EQUIP_ID_MACE                       = 49344,
 
     ACHIEV_DOESNT_GO_TO_ELEVEN          = 4524,
 };
@@ -139,6 +135,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_garfrostAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_THROW_SARONITE) == CAST_OK)
                 {
+                    DoScriptText(SAY_BOULDER_HIT, m_creature);
                     DoScriptText(EMOTE_THROW_SARONITE, m_creature, pTarget);
                     m_uiThrowSaroniteTimer = 16000;
                 }

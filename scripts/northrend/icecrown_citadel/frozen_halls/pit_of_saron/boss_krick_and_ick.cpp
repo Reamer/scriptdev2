@@ -36,18 +36,17 @@ enum
     SPELL_SHADOW_BOLT             = 69028,
     SPELL_EXPLOSIVE_BARRAGE       = 69012,
 
-    SAY_KRICK_CHASE_1             = -1658029,
-    SAY_KRICK_CHASE_2             = -1658030,
-    SAY_KRICK_CHASE_3             = -1658031,
-    SAY_ICK_CHASE                 = -1658034,
-    SAY_KRICK_POISON              = -1658028,
-    SAY_ICK_POISON                = -1658033,
-
-    SAY_KRICK_BARRAGE             = -1658027,
-    SAY_KRICK_BARRAGE_EMOTE       = -1658032,
     SAY_AGGRO                     = -1658024,
     SAY_SLAY1                     = -1658025,
     SAY_SLAY2                     = -1658026,
+    SAY_KRICK_BARRAGE             = -1658027,
+    SAY_KRICK_POISON              = -1658028,
+    SAY_KRICK_CHASE_1             = -1658029,
+    SAY_KRICK_CHASE_2             = -1658030,
+    SAY_KRICK_CHASE_3             = -1658031,
+    SAY_KRICK_BARRAGE_EMOTE       = -1658032,
+    SAY_ICK_POISON_EMOTE          = -1658033,
+    SAY_ICK_CHASE_EMOTE           = -1658034,
 };
 
 const float KrickPos[4] = {856.237f, 120.484f, 510.01f, 3.48f};
