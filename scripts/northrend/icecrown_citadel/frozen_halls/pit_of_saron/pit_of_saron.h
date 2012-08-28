@@ -60,6 +60,15 @@ enum
     SPELL_FROST_BOMB                = 70521,
 };
 
+enum PitOfSaronEvent
+{
+    EVENT_INTRO                     = 1,
+    EVENT_GARFROST                  = 2,
+    EVENT_KRICK                     = 3,
+    EVENT_GAUNTLET                  = 4,
+    EVENT_TYRANNUS                  = 5,
+};
+
 class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private DialogueHelper
 {
     public:
@@ -84,12 +93,13 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
 
     protected:
         void JustDidDialogueStep(int32 iEntry);
-        void ProcessEventNpcs(Player* pPlayer, uint32 uiType);
+        void ProcessEventNpcs(Player* pPlayer, PitOfSaronEvent uiEvent);
         void SendTyrannusToMiddle();
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string strInstData;
 
         GuidList m_lSoldiersGuids;
+        GuidList m_lEventGuids;
         GuidList m_lSlaveGuids;
         Team m_Team;
 

@@ -166,7 +166,7 @@ enum
 static const DialogueEntryTwoSide aPoSDialogues[] =
 {
     // Intro Event
-    {TYPE_INTRO, 0, 0, 0,                         4000},
+    {EVENT_INTRO, 0, 0, 0,                         4000},
     {SAY_TYRANNUS1, NPC_TYRANNUS_INTRO, 0, 0,     7000},
     {SAY_SPEECH_JAINA1, NPC_JAINA_BEGIN, SAY_SPEECH_SYLVANAS1, NPC_SILVANA_BEGIN,     5000},
     {SAY_TYRANNUS2, NPC_TYRANNUS_INTRO, 0, 0,     7000},
@@ -176,10 +176,10 @@ static const DialogueEntryTwoSide aPoSDialogues[] =
     {SAY_SPEECH_JAINA3, NPC_JAINA_BEGIN, 0, 0,    4000}, // extra text for jaina Proudmoore
     {SAY_SPEECH_JAINA4, NPC_JAINA_BEGIN, SAY_SPEECH_SYLVANAS4, NPC_SILVANA_BEGIN,     7000},
     {SAY_SPEECH_JAINA5, NPC_JAINA_BEGIN, SAY_SPEECH_SYLVANAS5, NPC_SILVANA_BEGIN,     0},
-    {TYPE_GARFROST, 0, 0, 0,                      6000},
+    {EVENT_GARFROST, 0, 0, 0,                      6000},
     {SAY_GARFROST_FREE_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_GARFROST_FREE_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 13000},
     {SAY_GARFROST_TYRANNUS_OUTRO, NPC_TYRANNUS_INTRO, 0, 0, 0},
-    {TYPE_KRICK, 0, 0, 0,                         3000},
+    {EVENT_KRICK, 0, 0, 0,                         3000},
     {SAY_OUTRO_KRICK_1, NPC_KRICK, 0, 0,                 15000},
     {SAY_OUTRO_KRICK_2_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO_KRICK_2_HORDE, NPC_SILVANA_BEGIN, 5000},
     {SAY_OUTRO_KRICK_3, NPC_KRICK, 0, 0,                 15000},
@@ -189,7 +189,7 @@ static const DialogueEntryTwoSide aPoSDialogues[] =
     {SAY_OUTRO_KRICK_7, NPC_KRICK, 0, 0,                  3000},
     {SAY_OUTRO_KRICK_8_TYRANNUS, NPC_TYRANNUS_INTRO, 0, 0, 10000},
     {SAY_OUTRO_KRICK_9_ALLY, NPC_JAINA_BEGIN, SAY_OUTRO_KRICK_9_HORDE, NPC_SILVANA_BEGIN, 0},
-    {TYPE_TYRANNUS, 0, 0, 0, 2000},
+    {EVENT_TYRANNUS, 0, 0, 0, 2000},
     {SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 18000},
     {SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 13000},
     {SAY_OUTRO_TYRANNUS_3_ALLY, NPC_JAINA_END, SAY_OUTRO_TYRANNUS_3_HORDE, NPC_SILVANA_END, 5000},
@@ -235,7 +235,7 @@ void instance_pit_of_saron::OnCreatureCreate(Creature* pCreature)
         case NPC_ARCHMAGE_ELANDRA:
         case NPC_DARK_RANGER_LORALEN:
         case NPC_ARCHMAGE_KORELN:
-            m_lSoldiersGuids.push_back(pCreature->GetObjectGuid());
+            m_lEventGuids.push_back(pCreature->GetObjectGuid());
             break;
         case NPC_MARTIN_VICTUS_SLAVE:
         case NPC_MARTIN_VICTUS_END:
@@ -289,7 +289,7 @@ void instance_pit_of_saron::OnPlayerEnter(Player* pPlayer)
         m_Team = pPlayer->GetTeam();
         SetDialogueSide(m_Team == ALLIANCE);
         if (GetData(TYPE_INTRO) == NOT_STARTED)
-            StartNextDialogueText(TYPE_INTRO);
+            StartNextDialogueText(EVENT_INTRO);
     }
 }
 
@@ -300,7 +300,7 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
         case TYPE_GARFROST:
             if (uiData == DONE)
             {
-                StartNextDialogueText(TYPE_GARFROST);
+                StartNextDialogueText(EVENT_GARFROST);
                 if (GetData(TYPE_KRICK) == DONE)
                 {
                     DoUseDoorOrButton(GO_ICEWALL);
@@ -310,7 +310,7 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
         case TYPE_KRICK:
             if (uiData == DONE)
             {
-                StartNextDialogueText(TYPE_KRICK);
+                StartNextDialogueText(EVENT_KRICK);
                 if (GetData(TYPE_GARFROST) == DONE)
                     DoUseDoorOrButton(GO_ICEWALL);
             }            
@@ -318,8 +318,7 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
         case TYPE_TYRANNUS:
             if (uiData == DONE)
             {
-                StartNextDialogueText(TYPE_TYRANNUS);
-                ProcessEventNpcs(GetPlayerInMap(), true);
+                StartNextDialogueText(EVENT_TYRANNUS);
             }
             break;
         case TYPE_GAUNTLET:
@@ -382,14 +381,14 @@ uint32 instance_pit_of_saron::GetData(uint32 uiType)
     }
 }
 
-void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, uint32 uiType)
+void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, PitOfSaronEvent uiEvent)
 {
     if (!pPlayer)
         return;
 
-    switch (uiType)
+    switch (uiEvent)
     {
-        case TYPE_INTRO:
+        case EVENT_INTRO:
         {
             // Spawn Begin Mobs
             for (uint8 i = 0; i < sizeof(aEventIntroLocations)/sizeof(sIntoEventNpcSpawnLocations); ++i)
@@ -398,7 +397,7 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, uint32 uiType)
             }
             break;
         }
-        case TYPE_GARFROST:
+        case EVENT_GARFROST:
         {
             for (GuidList::const_iterator itr = m_lSlaveGuids.begin(); itr != m_lSlaveGuids.end(); ++itr)
             {
@@ -412,7 +411,7 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, uint32 uiType)
             }
             break;
         }
-        case TYPE_KRICK:
+        case EVENT_KRICK:
         {
             for (GuidList::const_iterator itr = m_lSoldiersGuids.begin(); itr != m_lSoldiersGuids.end(); ++itr)
             {
@@ -426,7 +425,7 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, uint32 uiType)
             }
             break;
         }
-        case TYPE_GAUNTLET:
+        case EVENT_GAUNTLET:
         {
             for (GuidList::const_iterator itr = m_lSlaveGuids.begin(); itr != m_lSlaveGuids.end(); ++itr)
             {
@@ -440,7 +439,7 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, uint32 uiType)
             }
             break;
         }
-        case TYPE_TYRANNUS:
+        case EVENT_TYRANNUS:
         {
             for (GuidList::const_iterator itr = m_lSoldiersGuids.begin(); itr != m_lSoldiersGuids.end(); ++itr)
             {
@@ -463,8 +462,8 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
 {
     switch (iEntry)
     {
-        case TYPE_INTRO:
-            ProcessEventNpcs(GetPlayerInMap(), TYPE_INTRO);
+        case EVENT_INTRO:
+            ProcessEventNpcs(GetPlayerInMap(), EVENT_INTRO);
             SetData(TYPE_INTRO, IN_PROGRESS);
             break;
         case SAY_SPEECH_JAINA1:
@@ -515,9 +514,9 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
             SetData(TYPE_INTRO,DONE);
             SendTyrannusToMiddle();
             break;
-        case TYPE_GARFROST:
+        case EVENT_GARFROST:
         {
-            ProcessEventNpcs(GetPlayerInMap(), TYPE_GARFROST);
+            ProcessEventNpcs(GetPlayerInMap(), EVENT_GARFROST);
             if (Creature* pTyrannus = GetSingleCreatureFromStorage(NPC_TYRANNUS_INTRO))
                 pTyrannus->GetMotionMaster()->MovePoint(0, GeneralLoc[3].x, GeneralLoc[3].y, GeneralLoc[3].z, false);
             break;
@@ -525,9 +524,9 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
         case SAY_GARFROST_TYRANNUS_OUTRO:
             SendTyrannusToMiddle();
             break;
-        case TYPE_KRICK:
+        case EVENT_KRICK:
         {
-            ProcessEventNpcs(GetPlayerInMap(), TYPE_KRICK);
+            ProcessEventNpcs(GetPlayerInMap(), EVENT_KRICK);
             if (Creature* pKrick = GetSingleCreatureFromStorage(NPC_KRICK))
             {
                 pKrick->RemoveAllAuras();
@@ -559,9 +558,9 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
             }
             break;
         }
-        case TYPE_TYRANNUS:
+        case EVENT_TYRANNUS:
         {
-            ProcessEventNpcs(GetPlayerInMap(), TYPE_TYRANNUS);
+            ProcessEventNpcs(GetPlayerInMap(), EVENT_TYRANNUS);
             //TODO: Move Sindragosa
             break;
         }
