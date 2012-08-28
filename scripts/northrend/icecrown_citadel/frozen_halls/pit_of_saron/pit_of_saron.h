@@ -84,15 +84,13 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
 
     protected:
         void JustDidDialogueStep(int32 iEntry);
-        void ProcessEventNpcs(Player* pPlayer, bool bChanged);
+        void ProcessEventNpcs(Player* pPlayer, uint32 uiType);
         void SendTyrannusToMiddle();
-        void SummonSlaves();
-        void SummonSlavesEnd();
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string strInstData;
 
-        GuidList m_lGuardGuid;
-        GuidList m_lEventMobGUIDs;
+        GuidList m_lSoldiersGuids;
+        GuidList m_lSlaveGuids;
         Team m_Team;
 
 };
