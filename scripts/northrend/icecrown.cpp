@@ -684,10 +684,8 @@ struct MANGOS_DLL_DECL npc_blessed_banner_of_the_crusaderAI : public ScriptedAI
     {
         if(pSummoned->GetEntry()== NPC_HALOF_THE_DEATHBRINGER)
         {
-            m_creature->MonsterYell("TOOOOOOOOOR!", 0);
             if(Player *pPlayer = m_creature->GetMap()->GetPlayer(m_creature->GetCreatorGuid())) 
             { 
-                m_creature->MonsterYell("HAAAAAANNNNNNNSSSSS!", 0);
                 //pPlayer->CompleteQuest(QUEST_THE_BATTLE_FOR_CRUSDAERS_PINNACLE);
                 pPlayer->GroupEventHappens(QUEST_THE_BATTLE_FOR_CRUSDAERS_PINNACLE, m_creature);
                 m_creature->ForcedDespawn(); 
