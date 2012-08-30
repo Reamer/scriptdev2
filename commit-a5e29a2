@@ -1,0 +1,221 @@
+commit a5e29a28e6fa4b29c8a1a282c998cb44d166ade8
+Author: Goldi <SebastianHaid@gmx.de>
+Date:   Thu Aug 30 16:22:08 2012 +0200
+
+    Fix for some Quest from Crusaders Pinnacle
+
+diff --git a/scripts/northrend/icecrown.cpp b/scripts/northrend/icecrown.cpp
+index 068df4e..554356f 100644
+--- a/scripts/northrend/icecrown.cpp
++++ b/scripts/northrend/icecrown.cpp
+@@ -400,6 +400,50 @@ CreatureAI* GetAI_npc_scourge_conventor(Creature* pCreature)
+ }
+ 
+ /*######
++## npc_reanimated_crusader  //quest 13110
++######*/
++
++enum QuestRestless // shared enum by conventor mob and fallen hero mob
++{
++    QUEST_THE_RESTLESS_DEAD             = 13110,
++    NPC_REANIMATED_CRUSADER             = 31043,
++    NPC_REANIMATED_CRUSADER_PROXY       = 30546,
++};
++
++enum
++{
++    SPRINKLE_HOLY_WATER                 = 57806,
++};
++
++struct MANGOS_DLL_DECL npc_reanimated_crusaderAI : public ScriptedAI
++{
++    npc_reanimated_crusaderAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
++   
++   uint32 m_uiStrike_Timer;
++
++    void Reset()
++    {
++        m_uiStrike_Timer = 10000;
++    }
++    void SpellHit(Unit *pCaster, const SpellEntry *pSpell)
++    {
++
++        if (pCaster->GetTypeId() == TYPEID_PLAYER && m_creature->isDead() && ((pSpell->Id == SPRINKLE_HOLY_WATER)))
++        {
++            if (((Player*)pCaster)->GetQuestStatus(QUEST_THE_RESTLESS_DEAD) == QUEST_STATUS_INCOMPLETE)
++            {
++                ((Player*)pCaster)->KilledMonsterCredit(NPC_REANIMATED_CRUSADER_PROXY);
++                m_creature->ForcedDespawn();
++            }
++        }
++    }
++};
++
++CreatureAI* GetAI_npc_reanimated_crusader(Creature* pCreature)
++{
++    return new npc_reanimated_crusaderAI(pCreature);
++};
++/*######
+ ## npc_fallen_hero_spirit  //quest 14107
+ ######*/
+ 
+@@ -583,6 +627,146 @@ CreatureAI* GetAI_npc_champions(Creature* pCreature)
+     return new npc_championsAI(pCreature);
+ }
+ 
++
++
++
++/*###### 
++## the_battle_for_crusaders_pinnacle
++######*/  
++enum 
++{ 
++    NPC_CRUSADER_LORD_DALFORS                   = 31003, 
++    NPC_SCOURGE_DRUGDE                          = 30984,
++    NPC_HIDEOUS_PLAGUEBRINGER                   = 30987,
++    NPC_REANIMATED_CAPTAIN                      = 30986,
++    NPC_ARGENT_BATTLE_PRIEST                    = 30919,
++    NPC_ARGENT_MASON                            = 30900, // not used yet
++    NPC_HALOF_THE_DEATHBRINGER                  = 30989,
++    NPC_BLESSED_BANNER_OF_THE_CRUSADER          = 30891,
++    QUEST_THE_BATTLE_FOR_CRUSDAERS_PINNACLE     = 13141, 
++}; 
++struct LocationsXY
++{
++    float x, y, z;
++};
++static LocationsXY SummonLoc[]=
++{
++    {6471.458f, 402.800f, 487.191f}, // Spawnpoint enemies
++    {6428.625f, 418.741f, 506.817f}, // Spawnpoint Lord_Dalfors
++};
++
++struct MANGOS_DLL_DECL npc_blessed_banner_of_the_crusaderAI : public ScriptedAI 
++{ 
++    npc_blessed_banner_of_the_crusaderAI(Creature* pCreature) : ScriptedAI(pCreature)
++    { 
++        Reset(); 
++    } 
++
++    uint32 uiWaveTimer; 
++    uint32 uiWaveCounter;
++    uint32 uiSpawnTimer;
++ 
++    void Reset() 
++    { 
++        uiWaveTimer = 5000; 
++        uiWaveCounter = 0;
++        uiSpawnTimer = 2000;
++        SetCombatMovement(false);
++    }
++
++    void JustSummoned(Creature* pSummoned)
++    { 
++        if(pSummoned->GetEntry()== NPC_ARGENT_BATTLE_PRIEST || pSummoned->GetEntry()== NPC_CRUSADER_LORD_DALFORS)
++            return;
++        pSummoned->AI()->AttackStart(m_creature); 
++    }
++    void SummonedCreatureJustDied(Creature* pSummoned)
++    {
++        if(pSummoned->GetEntry()== NPC_HALOF_THE_DEATHBRINGER)
++        {
++            if(Player *pPlayer = m_creature->GetMap()->GetPlayer(m_creature->GetCreatorGuid())) 
++            { 
++                //pPlayer->CompleteQuest(QUEST_THE_BATTLE_FOR_CRUSDAERS_PINNACLE);
++                pPlayer->GroupEventHappens(QUEST_THE_BATTLE_FOR_CRUSDAERS_PINNACLE, m_creature);
++                m_creature->ForcedDespawn(); 
++            } 
++        }
++    }
++
++    void JustDied(Unit* pKiller) 
++    { 
++       if(Player *pPlayer = m_creature->GetMap()->GetPlayer(m_creature->GetCreatorGuid())) 
++       { 
++           pPlayer->FailQuest(QUEST_THE_BATTLE_FOR_CRUSDAERS_PINNACLE); 
++       } 
++    }
++
++    void SummonCrusader()
++    {
++        m_creature->SummonCreature(NPC_ARGENT_BATTLE_PRIEST, m_creature->GetPositionX()+frand(-2, 2), m_creature->GetPositionY()+frand(-2, 2), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++        m_creature->SummonCreature(NPC_ARGENT_BATTLE_PRIEST, m_creature->GetPositionX()+frand(-2, 2), m_creature->GetPositionY()+frand(-2, 2), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++        m_creature->SummonCreature(NPC_ARGENT_BATTLE_PRIEST, m_creature->GetPositionX()+frand(-2, 2), m_creature->GetPositionY()+frand(-2, 2), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++        m_creature->SummonCreature(NPC_CRUSADER_LORD_DALFORS, SummonLoc[1].x, SummonLoc[1].y, SummonLoc[1].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++    }
++
++    void SummonWave() 
++    { 
++        switch(uiWaveCounter) 
++        { 
++           case 0: m_creature->SummonCreature(NPC_REANIMATED_CAPTAIN, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   m_creature->SummonCreature(NPC_HIDEOUS_PLAGUEBRINGER, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++                   break; 
++           case 1: m_creature->SummonCreature(NPC_REANIMATED_CAPTAIN, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   m_creature->SummonCreature(NPC_REANIMATED_CAPTAIN, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++                   m_creature->SummonCreature(NPC_HIDEOUS_PLAGUEBRINGER, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++                   break; 
++           case 2: m_creature->SummonCreature(NPC_REANIMATED_CAPTAIN, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   m_creature->SummonCreature(NPC_HIDEOUS_PLAGUEBRINGER, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);
++                   m_creature->SummonCreature(NPC_SCOURGE_DRUGDE, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   break; 
++           case 3: m_creature->SummonCreature(NPC_REANIMATED_CAPTAIN, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   m_creature->SummonCreature(NPC_HIDEOUS_PLAGUEBRINGER, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   m_creature->SummonCreature(NPC_SCOURGE_DRUGDE, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   break;
++           case 4: m_creature->SummonCreature(NPC_REANIMATED_CAPTAIN, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000);  
++                   m_creature->SummonCreature(NPC_SCOURGE_DRUGDE, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   m_creature->SummonCreature(NPC_SCOURGE_DRUGDE, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   m_creature->SummonCreature(NPC_HALOF_THE_DEATHBRINGER, SummonLoc[0].x+irand(-2, 3), SummonLoc[0].y, SummonLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 180000); 
++                   break; 
++        } 
++    }
++
++    void UpdateAI(const uint32 uiDiff) 
++    {     
++        if (uiWaveTimer <= uiDiff) 
++        { 
++            if(uiWaveCounter<=4) 
++            {
++                SummonWave(); 
++                uiWaveTimer = 15000; 
++                uiWaveCounter++; 
++            } 
++        } else uiWaveTimer -= uiDiff; 
++
++        if(uiSpawnTimer)
++        {
++            if(uiSpawnTimer <= uiDiff)
++            {
++                SummonCrusader();
++                uiSpawnTimer = 0;
++            }
++            else uiSpawnTimer -= uiDiff;
++        }
++    } 
++};
++ 
++CreatureAI* GetAI_npc_blessed_banner_of_the_crusader(Creature* pCreature) 
++{ 
++   return new  npc_blessed_banner_of_the_crusaderAI(pCreature); 
++}
++
+ void AddSC_icecrown()
+ {
+     Script* pNewScript;
+@@ -632,4 +816,14 @@ void AddSC_icecrown()
+     pNewScript->Name = "npc_champions";
+     pNewScript->GetAI = &GetAI_npc_champions;
+     pNewScript->RegisterSelf();
++
++    pNewScript = new Script;
++    pNewScript->Name = "npc_reanimated_crusader";
++    pNewScript->GetAI = &GetAI_npc_reanimated_crusader;
++    pNewScript->RegisterSelf();
++
++    pNewScript = new Script;
++    pNewScript->Name = "npc_blessed_banner_of_the_crusader";
++    pNewScript->GetAI = &GetAI_npc_blessed_banner_of_the_crusader;
++    pNewScript->RegisterSelf();
+ }
