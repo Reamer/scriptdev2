@@ -58,6 +58,7 @@ enum
     SPELL_STRANGULATING             = 69413,
     SPELL_NECROTIC_POWER            = 69347,
     SPELL_FROST_BOMB                = 70521,
+    SPELL_SUMMON_ICICLE             = 69424,
 };
 
 enum PitOfSaronEvent

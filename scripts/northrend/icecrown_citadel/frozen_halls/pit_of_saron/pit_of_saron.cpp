@@ -345,6 +345,51 @@ CreatureAI* GetAI_npc_sylvanas_jaina_pos_start(Creature* pCreature)
 }
 */
 
+enum
+{
+    SPELL_FALLING_ICICLE            = 69426,
+    SPELL_FALLING_ICICLE_DUMMY      = 69428,
+};
+
+struct MANGOS_DLL_DECL npc_icicle_pit_of_saronAI: public ScriptedAI
+{
+    npc_icicle_pit_of_saronAI(Creature *pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (instance_pit_of_saron*)pCreature->GetInstanceData();
+        Reset();
+    }
+
+    instance_pit_of_saron* m_pInstance;
+    uint32 m_uiActionTimer;
+
+    void Reset()
+    {
+        m_creature->SetDisplayId(28470);
+        SetCombatMovement(false);
+        m_uiActionTimer = 3000;
+    }
+
+    void AttackStart(Unit* pWho) {}
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_uiActionTimer <= uiDiff)
+        {
+            DoCastSpellIfCan(m_creature, SPELL_FALLING_ICICLE, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature, SPELL_FALLING_ICICLE_DUMMY);
+            m_uiActionTimer = 30000;
+        }
+        else
+            m_uiActionTimer -= uiDiff;
+    }
+
+};
+
+CreatureAI* GetAI_npc_icicle_pit_of_saron(Creature* pCreature)
+{
+    return new npc_icicle_pit_of_saronAI (pCreature);
+}
+
 bool AreaTrigger_at_pit_of_Saron_gaunlet(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (instance_pit_of_saron* pInstance = (instance_pit_of_saron*)pPlayer->GetInstanceData())
@@ -358,9 +403,9 @@ bool AreaTrigger_at_pit_of_Saron_gaunlet(Player* pPlayer, AreaTriggerEntry const
 
 void AddSC_pit_of_saron()
 {
-   Script *pNewScript;
+    Script *pNewScript;
 
-    /* pNewScript = new Script;
+    /*  pNewScript = new Script;
     pNewScript->GetAI = &GetAI_npc_sylvanas_jaina_pos_start;
     pNewScript->Name = "npc_slyvanas_jaina_pos_start";
     pNewScript->RegisterSelf();
@@ -373,5 +418,10 @@ void AddSC_pit_of_saron()
     pNewScript = new Script;
     pNewScript->Name = "at_pit_of_Saron_gaunlet";
     pNewScript->pAreaTrigger = &AreaTrigger_at_pit_of_Saron_gaunlet;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_icicle_pit_of_saron";
+    pNewScript->GetAI = &GetAI_npc_icicle_pit_of_saron;
     pNewScript->RegisterSelf();
 }
