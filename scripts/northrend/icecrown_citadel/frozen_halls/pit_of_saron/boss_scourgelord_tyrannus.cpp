@@ -26,6 +26,9 @@ EndScriptData */
 
 enum
 {
+    SAY_GAUNTLET_PREFIGHT_1             = -1658050,
+    SAY_GAUNTLET_GENERAL_TRASH          = -1658051,
+    SAY_GAUNTLET_PREFIGHT_2             = -1658052,
     SAY_AGGRO                           = -1658053,
     SAY_SLAY_1                          = -1658054,
     SAY_SLAY_2                          = -1658055,

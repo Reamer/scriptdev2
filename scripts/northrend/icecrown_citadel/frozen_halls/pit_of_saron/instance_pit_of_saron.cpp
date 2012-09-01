@@ -259,6 +259,11 @@ void instance_pit_of_saron::OnCreatureCreate(Creature* pCreature)
         case NPC_SLAVE_ALLY_3:
             m_lSlaveGuids.push_back(pCreature->GetObjectGuid());
             return;
+        case NPC_GEIST_AMBUSHER:
+            if (pCreature->GetPositionX() < 830.0f)
+                m_lGeistAmbusher[0].push_back(pCreature->GetObjectGuid());
+            else
+                m_lGeistAmbusher[1].push_back(pCreature->GetObjectGuid());
         default:
            return;
 

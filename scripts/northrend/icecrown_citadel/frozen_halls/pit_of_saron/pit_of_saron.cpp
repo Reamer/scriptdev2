@@ -390,12 +390,38 @@ CreatureAI* GetAI_npc_icicle_pit_of_saron(Creature* pCreature)
     return new npc_icicle_pit_of_saronAI (pCreature);
 }
 
+enum
+{
+    // Gauntlet
+    SAY_GAUNTLET        = -1658049,
+};
+
 bool AreaTrigger_at_pit_of_Saron_gaunlet(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (instance_pit_of_saron* pInstance = (instance_pit_of_saron*)pPlayer->GetInstanceData())
     {
-        if (pInstance->GetData(TYPE_GAUNTLET) == NOT_STARTED)
-            pInstance->SetData(TYPE_GAUNTLET, IN_PROGRESS);
+        switch (pAt->id)
+        {
+            case 5581:                                                  // gaunlet end
+                if (pInstance->GetData(TYPE_GAUNTLET) != DONE)
+                    pInstance->SetData(TYPE_GAUNTLET, DONE);            // stop Ice Falling
+                break;
+            case 5580:                                                  // gaunlet begin
+                if (pInstance->GetData(TYPE_GAUNTLET) == NOT_STARTED)
+                {
+                    if (Creature* pTyrannus = pInstance->GetSingleCreatureFromStorage(NPC_TYRANNUS))
+                        DoScriptText(SAY_GAUNTLET, pTyrannus);
+                    
+                    pInstance->SetData(TYPE_GAUNTLET, IN_PROGRESS);     // start Ice Falling
+                }
+                break;
+            case 5599:
+            case 5598:
+                // TODO: make JumpEvent
+                break;
+            default:
+                break;
+        }
     }
 
     return false;
@@ -416,7 +442,7 @@ void AddSC_pit_of_saron()
     pNewScript->RegisterSelf();*/
 
     pNewScript = new Script;
-    pNewScript->Name = "at_pit_of_Saron_gaunlet";
+    pNewScript->Name = "at_pit_of_saron";
     pNewScript->pAreaTrigger = &AreaTrigger_at_pit_of_Saron_gaunlet;
     pNewScript->RegisterSelf();
 

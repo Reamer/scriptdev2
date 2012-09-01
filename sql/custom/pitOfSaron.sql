@@ -4,14 +4,25 @@ UPDATE `creature_template` SET `ScriptName`='boss_krick' WHERE `entry`=36477;
 -- UPDATE `creature_template` SET `ScriptName`='boss_rimefang' WHERE `entry`=36661;
 -- UPDATE `creature_template` SET `ScriptName`='npc_colapsing_icicle' WHERE `entry`=36847;
 -- UPDATE `creature_template` SET `ScriptName`='boss_scourgelord_tyrannus', `AIName` ='' WHERE `entry`=36658;
-
 UPDATE `creature_template` SET `ScriptName`='boss_forgemaster_garfrost', `AIName` ='' WHERE `entry`=36494;
 
 
 -- npc
-UPDATE `creature_template` SET `ScriptName`='npc_slyvanas_jaina_pos_start' WHERE `entry` in (36993, 36990);
-UPDATE `creature_template` SET `ScriptName`='npc_slyvanas_jaina_pos_end' WHERE `entry` in (38188, 38189);
-UPDATE `creature_template` SET `ScriptName`='npc_martin_gorkun' WHERE `entry` in (37591, 37592);
+-- UPDATE `creature_template` SET `ScriptName`='npc_slyvanas_jaina_pos_start' WHERE `entry` in (36993, 36990);
+-- UPDATE `creature_template` SET `ScriptName`='npc_slyvanas_jaina_pos_end' WHERE `entry` in (38188, 38189);
+-- UPDATE `creature_template` SET `ScriptName`='npc_martin_gorkun' WHERE `entry` in (37591, 37592);
+
+
+-- DB Correction
+DELETE FROM creature_template_addon WHERE entry = 36477; -- delete Krick auras
+
+-- trigger
+DELETE FROM scripted_areatrigger WHERE entry IN (5580, 5581)
+INSERT INTO scripted_areatrigger VALUES
+(5580, at_pit_of_saron),
+(5581, at_pit_of_saron);
+(5598, at_pit_of_saron);
+(5599, at_pit_of_saron);
 
 -- Spells:
 

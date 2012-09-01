@@ -51,6 +51,8 @@ enum
     NPC_GORKUN_IRONSKULL_SLAVE      = 37592,
     NPC_GORKUN_IRONSKULL_END        = 37581,
 
+    NPC_GEIST_AMBUSHER              = 36886,
+
     GO_BALL_AND_CHAIN               = 201969,
     GO_ICEWALL                      = 201885,               // open after gafrost/krick
     GO_HALLS_OF_REFLECT_PORT        = 201848,               // unlocked by jaina/sylvanas at last outro
@@ -102,6 +104,7 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
         GuidList m_lSoldiersGuids;
         GuidList m_lEventGuids;
         GuidList m_lSlaveGuids;
+        GuidList m_lGeistAmbusher[2];
         Team m_Team;
 
 };
