@@ -87,17 +87,17 @@ const sEventNpcLocationsWithEndpoint aEventTyrannusLocations[]=
 const sEventNpcLocationsWithEndpoint aEventGarfrostLocations[]=
 {
     // Horde Entry              Ally Entry                 O_Spawn     O_End      SpawnPos                             EndPos
-    {NPC_GORKUN_IRONSKULL_SLAVE,NPC_MARTIN_VICTUS_SLAVE,   4.77f,      0.0f,      695.46f, -156.31f, 528.061f,         0.0f, 0.0f, 0.0f},
-    {NPC_SLAVE_HORDE_1,         NPC_SLAVE_ALLY_1,          0.0f,       0.0f,      719.812f, -167.183f, 526.721f,       677.445f, -186.521f, 526.702f},
-    {NPC_SLAVE_HORDE_2,         NPC_SLAVE_ALLY_2,          0.0f,       0.0f,      698.703f, -165.497f, 527.464f,       687.257f, -193.644f, 526.717f},
-    {NPC_SLAVE_HORDE_3,         NPC_SLAVE_ALLY_3,          0.0f,       0.0f,      671.455f, -167.968f, 526.741f,       708.190f, -194.619f, 526.805f},
+    {NPC_GORKUN_IRONSKULL_SLAVE,NPC_MARTIN_VICTUS_SLAVE,   4.72f,      1.66f,     694.794f, -104.905f, 513.736f,       695.460f, -156.310f, 528.061f},
+    {NPC_SLAVE_HORDE_1,         NPC_SLAVE_ALLY_1,          4.29f,      5.09f,     710.903f, -107.531f, 513.734f,       721.655f, -204.756f, 527.768f},
+    {NPC_SLAVE_HORDE_2,         NPC_SLAVE_ALLY_2,          5.16f,      2.39f,     682.399f, -107.326f, 513.736f,       703.481f, -214.786f, 526.769f},
+    {NPC_SLAVE_HORDE_3,         NPC_SLAVE_ALLY_3,          4.52f,      4.89f,     702.850f, -106.059f, 513.734f,       722.479f, -203.190f, 527.343f},
 };
 
-const sEventNpcLocationsWithEndpoint aEventKrickLocations[]=
+const sIntoEventNpcSpawnLocations aEventKrickLocations[]=
 {
-    {NPC_SILVANA_BEGIN,         NPC_JAINA_BEGIN,           2.247f,     0.0f,      783.565f, 112.559f, 509.461f,        0.0f, 0.0f, 0.0f},
-    {NPC_DARK_RANGER_LORALEN,   NPC_ARCHMAGE_KORELN,       0.0f,       0.0f,      783.565f, 112.559f, 509.461f,        0.0f, 0.0f, 0.0f},
-    {NPC_DARK_RANGER_KALIRA,    NPC_ARCHMAGE_ELANDRA,      0.0f,       0.0f,      783.565f, 112.559f, 509.461f,        0.0f, 0.0f, 0.0f},
+    {NPC_SILVANA_BEGIN,         NPC_JAINA_BEGIN,           783.565f, 112.559f, 509.461f, 2.247f},
+//    {NPC_DARK_RANGER_LORALEN,   NPC_ARCHMAGE_KORELN,       0.0f,       0.0f,      783.565f, 112.559f, 509.461f,        0.0f, 0.0f, 0.0f},
+//    {NPC_DARK_RANGER_KALIRA,    NPC_ARCHMAGE_ELANDRA,      0.0f,       0.0f,      783.565f, 112.559f, 509.461f,        0.0f, 0.0f, 0.0f},
 };
 
 // TODO: More Slaves ~ 10 more
@@ -322,6 +322,8 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
             }
             break;
         case TYPE_GAUNTLET:
+            if (uiData == IN_PROGRESS)
+                StartNextDialogueText(EVENT_GAUNTLET);
         case TYPE_INTRO:
             break;
         default:
@@ -418,10 +420,9 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, PitOfSaronEvent ui
                 if (Creature* pSummoned = instance->GetCreature(*itr))
                     pSummoned->ForcedDespawn();
             }
-            for (uint8 i = 0; i < sizeof(aEventKrickLocations)/sizeof(sEventNpcLocationsWithEndpoint); ++i)
+            for (uint8 i = 0; i < sizeof(aEventKrickLocations)/sizeof(sIntoEventNpcSpawnLocations); ++i)
             {
-                if (Creature* pSummon = pPlayer->SummonCreature(m_Team == HORDE ? aEventKrickLocations[i].uiEntryHorde : aEventKrickLocations[i].uiEntryAlliance, aEventKrickLocations[i].fSpawnX, aEventKrickLocations[i].fSpawnY, aEventKrickLocations[i].fSpawnZ, aEventKrickLocations[i].fStartO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS))
-                    pSummon->GetMotionMaster()->MovePoint(0, aEventKrickLocations[i].fEndX, aEventKrickLocations[i].fEndY, aEventKrickLocations[i].fEndZ);
+                /*Creature* pSummon = */pPlayer->SummonCreature(m_Team == HORDE ? aEventKrickLocations[i].uiEntryHorde : aEventKrickLocations[i].uiEntryAlliance, aEventKrickLocations[i].fSpawnX, aEventKrickLocations[i].fSpawnY, aEventKrickLocations[i].fSpawnZ, aEventKrickLocations[i].fSpawnO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
             }
             break;
         }
@@ -537,8 +538,7 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
                 pKrick->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 if (Creature* pJainaOrSylvanas = GetSingleCreatureFromStorage(m_Team == ALLIANCE ? NPC_JAINA_BEGIN : NPC_SILVANA_BEGIN))
                 {
-                    instance->CreatureRelocation(pJainaOrSylvanas, GeneralLoc[4].x, GeneralLoc[4].y, GeneralLoc[4].z, 0.0f);
-                    pJainaOrSylvanas->GetMotionMaster()->MovePoint(0, pKrick->GetPositionX() - 15, pKrick->GetPositionY(), pKrick->GetPositionZ());
+                    pJainaOrSylvanas->GetMotionMaster()->MovePoint(0, pKrick->GetPositionX(), pKrick->GetPositionY(), pKrick->GetPositionZ());
                 }
             }
             break;
@@ -548,6 +548,16 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
             if (Creature* pTyrannus = GetSingleCreatureFromStorage(NPC_TYRANNUS_INTRO))
                 pTyrannus->GetMotionMaster()->MovePoint(0, GeneralLoc[4].x, GeneralLoc[4].y, GeneralLoc[4].z, false);
             break;
+        }
+        case SAY_OUTRO_KRICK_6_TYRANNUS:
+        {
+            if (Creature* pKrick = GetSingleCreatureFromStorage(NPC_KRICK))
+            {
+                if (Creature* pTyrannus = GetSingleCreatureFromStorage(NPC_TYRANNUS_INTRO))
+                {
+                    pTyrannus->CastSpell(pKrick, SPELL_STRANGULATING, false);
+                }
+            }
         }
         case SAY_OUTRO_KRICK_9_ALLY:
         case SAY_OUTRO_KRICK_9_HORDE:

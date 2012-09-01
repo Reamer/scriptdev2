@@ -344,11 +344,23 @@ CreatureAI* GetAI_npc_sylvanas_jaina_pos_start(Creature* pCreature)
     return new npc_sylvanas_jaina_pos_startAI (pCreature);
 }
 */
+
+bool AreaTrigger_at_pit_of_Saron_gaunlet(Player* pPlayer, AreaTriggerEntry const* pAt)
+{
+    if (instance_pit_of_saron* pInstance = (instance_pit_of_saron*)pPlayer->GetInstanceData())
+    {
+        if (pInstance->GetData(TYPE_GAUNTLET) == NOT_STARTED)
+            pInstance->SetData(TYPE_GAUNTLET, IN_PROGRESS);
+    }
+
+    return false;
+}
+
 void AddSC_pit_of_saron()
 {
-  /*  Script *pNewScript;
+   Script *pNewScript;
 
-    pNewScript = new Script;
+    /* pNewScript = new Script;
     pNewScript->GetAI = &GetAI_npc_sylvanas_jaina_pos_start;
     pNewScript->Name = "npc_slyvanas_jaina_pos_start";
     pNewScript->RegisterSelf();
@@ -357,4 +369,9 @@ void AddSC_pit_of_saron()
     pNewScript->Name = "go_ball_and_chain";
     pNewScript->pGOUse=&GOUse_ball_and_chain;
     pNewScript->RegisterSelf();*/
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_pit_of_Saron_gaunlet";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_pit_of_Saron_gaunlet;
+    pNewScript->RegisterSelf();
 }
