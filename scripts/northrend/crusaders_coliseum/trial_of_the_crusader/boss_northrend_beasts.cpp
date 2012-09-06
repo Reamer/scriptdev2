@@ -839,12 +839,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
     {
     }
 
-    void Aggro(Unit* pWho)
-    {
-        if (m_pInstance)
-            m_pInstance->DoUseDoorOrButton(GO_MAIN_GATE);
-    }
-
     void JustDied(Unit* pKiller)
     {
         if (m_pInstance)
