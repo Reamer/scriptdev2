@@ -489,7 +489,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
     bool bIs25Man = Is25ManDifficulty();
     std::list<uint32> lSummonHealerList;
     lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DRUID_HEAL : NPC_CRUSADER_HORDE_DRUID_HEAL);
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHAMAN_HEAL : NPC_CRUSADER_HORDE_SHAMAN_MELEE);
+    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHAMAN_HEAL : NPC_CRUSADER_HORDE_SHAMAN_HEAL);
     lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_PRIEST: NPC_CRUSADER_HORDE_PRIEST);
     lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_HOLY_PALA: NPC_CRUSADER_HORDE_HOLY_PALA);
     do

@@ -575,6 +575,11 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_spikesAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
+        if (Unit* pVictim = m_creature->GetMap()->GetUnit(m_PursuingVictimGuid))
+        {
+            if (!pVictim->isAlive())
+                DoCastSpellIfCan(m_creature, SPELL_PURSUING_SPIKES_SEARCH);
+        }
         if (m_PhaseSwitchTimer)
         {
             if (m_PhaseSwitchTimer <= uiDiff)

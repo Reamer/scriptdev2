@@ -513,7 +513,7 @@ struct MANGOS_DLL_DECL npc_light_or_dark_bulletAI : public ScriptedAI
         m_bIsLightBullet = m_creature->GetEntry() == NPC_UNLEASHED_LIGHT ? true : false;
         m_bHasCastUnleashedSpell = false;
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-        m_creature->GetMotionMaster()->MoveRandomAroundPoint(563.672974f, 139.571f, m_creature->GetPositionZ(), 50.0f);
+        m_creature->GetMotionMaster()->MoveRandomAroundPoint(563.672974f, 139.571f, m_creature->GetPositionZ() + 5.0f, 50.0f);
         DoCastSpellIfCan(m_creature, m_bIsLightBullet ? SPELL_LIGHT_BALL_PASSIVE : SPELL_DARK_BALL_PASSIVE);
         SetCombatMovement(false); 
     }
