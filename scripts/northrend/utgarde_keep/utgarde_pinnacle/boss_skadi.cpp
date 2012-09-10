@@ -237,7 +237,7 @@ struct boss_skadi_graufAI : public ScriptedAI
     }
 
     instance_pinnacle* m_pInstance;
-    VehicleKit* vehicle;
+    VehicleKitPtr vehicle;
     bool m_bIsRegularMode;
 
     bool isInFlight;

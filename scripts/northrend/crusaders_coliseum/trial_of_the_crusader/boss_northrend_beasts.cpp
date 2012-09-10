@@ -314,7 +314,7 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
     bool ThrowSnobold(Unit *pTarget)
     {
         Unit* pSnoboldVassal = NULL;
-        if (VehicleKit* pGormokVehicle = m_creature->GetVehicleKit())
+        if (VehicleKitPtr pGormokVehicle = m_creature->GetVehicleKit())
         {
             for (int i = 0; i < MAX_VEHICLE_SEAT; ++i)
             {
@@ -325,7 +325,7 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         }
         if (pSnoboldVassal)
         {
-            if (VehicleKit* pPlayerVehicle = pTarget->GetVehicleKit())
+            if (VehicleKitPtr pPlayerVehicle = pTarget->GetVehicleKit())
             {
                 if (pPlayerVehicle->HasEmptySeat(0))
                 {

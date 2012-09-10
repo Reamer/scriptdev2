@@ -81,7 +81,7 @@ struct MANGOS_DLL_DECL npc_freeDragonAI : public ScriptedAI
         {
             if (m_creature->GetDistance(END_X, END_Y, END_Z) < 30)
             {
-                if( VehicleKit* vehicle = m_creature->GetVehicleKit())
+                if( VehicleKitPtr vehicle = m_creature->GetVehicleKit())
                 {
                     if (Unit* pPlayer = vehicle->GetPassenger(0))
                     {

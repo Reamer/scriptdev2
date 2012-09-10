@@ -23,7 +23,7 @@ SDCategory: Battleground_SA
 EndScriptData */
 
 #include "precompiled.h"
-#include "BattleGroundSA.h"
+#include "BattleGround/BattleGroundSA.h"
 #include "Vehicle.h"
 
 struct MANGOS_DLL_DECL npc_sa_demolisherAI : public ScriptedAI
@@ -59,7 +59,7 @@ struct MANGOS_DLL_DECL npc_sa_demolisherAI : public ScriptedAI
             if (((BattleGroundSA*)bg)->GetDefender() == pPlayer->GetTeam() || bg->GetStatus() == STATUS_WAIT_JOIN)
                 return;
 
-            if (VehicleKit *vehicle = pCreature->GetVehicleKit())
+            if (VehicleKitPtr vehicle = pCreature->GetVehicleKit())
             {
                 if (!pCreature->GetCharmerGuid().IsEmpty())
                     pPlayer->EnterVehicle(vehicle);
@@ -163,7 +163,7 @@ struct MANGOS_DLL_DECL npc_sa_cannonAI : public ScriptedAI
             if (bg->GetDefender() != pPlayer->GetTeam())
                 return;
 
-            if (VehicleKit *vehicle = pCreature->GetVehicleKit())
+            if (VehicleKitPtr vehicle = pCreature->GetVehicleKit())
             {
                 if (!pCreature->GetCharmerGuid().IsEmpty())
                     pPlayer->EnterVehicle(vehicle);
@@ -225,13 +225,13 @@ bool GossipHello_npc_sa_cannon(Player* pPlayer, Creature* pCreature)
      ((npc_sa_cannonAI*)pCreature->AI())->StartEvent(pPlayer, pCreature);
          return true;
 }
-#define GOSSIP_START_EVENT_1 "Starte den Bau eines Zerstörers"
+#define GOSSIP_START_EVENT_1 "Starte den Bau eines Zerstï¿½rers"
 #define GOSSIP_START_EVENT_2 "Ich habe nichts zu tun"
 #define GOSSIP_EVENT_STARTED "Ich arbeite daran"
 
 #define NPC_DEMILISHER 28781
 
-#define SA_MESSAGE_0 "Begin der Herstellung des Zerstörers"
+#define SA_MESSAGE_0 "Begin der Herstellung des Zerstï¿½rers"
 #define SA_MESSAGE_1 "verbleibene Zeit: 1 Minute"
 #define SA_MESSAGE_1_1 "verbleibene Zeit: 40 Sekunden"
 #define SA_MESSAGE_1_2 "verbleibene Zeit: 35 Sekunden"

@@ -23,7 +23,7 @@ SDCategory: Battleground_IoC
 EndScriptData */
 
 #include "precompiled.h"
-#include "BattleGroundIC.h"
+#include "BattleGround/BattleGroundIC.h"
 #include "Vehicle.h"
 
 /*######
@@ -135,7 +135,7 @@ struct MANGOS_DLL_DECL npc_ic_vehicleAI : public ScriptedAI
     {
         if (BattleGround *bg = pPlayer->GetBattleGround())
         {
-            if (VehicleKit *vehicle = pCreature->GetVehicleKit())
+            if (VehicleKitPtr vehicle = pCreature->GetVehicleKit())
             {
                 if (!pCreature->GetCharmerGuid().IsEmpty())
                     pPlayer->EnterVehicle(vehicle);
@@ -232,7 +232,7 @@ struct MANGOS_DLL_DECL npc_ic_cannonAI : public ScriptedAI
             if (bg->GetStatus() == STATUS_WAIT_JOIN)
                 return;
 
-            if (VehicleKit *vehicle = pCreature->GetVehicleKit())
+            if (VehicleKitPtr vehicle = pCreature->GetVehicleKit())
             {
                 if (!pCreature->GetCharmerGuid().IsEmpty())
                     pPlayer->EnterVehicle(vehicle);

@@ -245,7 +245,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_IGNIS, FAIL);
-        if (VehicleKit *pVehKit = m_creature->GetVehicleKit())
+        if (VehicleKitPtr pVehKit = m_creature->GetVehicleKit())
             pVehKit->RemoveAllPassengers();
     }
 

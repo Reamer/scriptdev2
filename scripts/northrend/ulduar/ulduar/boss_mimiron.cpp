@@ -194,7 +194,7 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
 
     bool m_bIsRegularMode;
     instance_ulduar* m_pInstance;
-    VehicleKit* pVehicleTank;
+    VehicleKitPtr pVehicleTank;
 
     bool m_bStartAttack;
 
@@ -348,18 +348,16 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public ScriptedAI
             m_creature->SetHealthPercent(50.0f);
             if(Creature* pTorso = m_pInstance->GetSingleCreatureFromStorage(NPC_VX001))
             {
-                if (VehicleKit* pVehicleTank = m_creature->GetVehicleKit())
+                if (VehicleKitPtr pVehicleTank = m_creature->GetVehicleKit())
                 {
                     pVehicleTank->RemoveAllPassengers();
-                    pTorso->_EnterVehicle(pVehicleTank, SEAT_FOR_ROBOT);
                 }
+                pTorso->EnterVehicle(m_creature, SEAT_FOR_ROBOT);
 
                 if(Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
                 {
-                    if (VehicleKit* pVehicleTorso = pTorso->GetVehicleKit())
-                    {
-                        pHead->_EnterVehicle(pVehicleTorso, SEAT_FOR_ROBOT);
-                    }
+                    pHead->EnterVehicle(pTorso, SEAT_FOR_ROBOT);
+
                 }
                 else
                     m_creature->MonsterSay("Kopf nicht gefunden",0);
@@ -715,21 +713,21 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
         {
             if (Creature* pTank = m_pInstance->GetSingleCreatureFromStorage(NPC_LEVIATHAN_MK))
             {
-                if (VehicleKit* pTankV = pTank->GetVehicleKit())
+                if (VehicleKitPtr pTankV = pTank->GetVehicleKit())
                 {
                     if (!pTankV->GetPassenger(SEAT_FOR_ROBOT))
                     {
-                        m_creature->_EnterVehicle(pTankV, SEAT_FOR_ROBOT);
+                        m_creature->EnterVehicle(pTank, SEAT_FOR_ROBOT);
                     }
                 }
             }
-            if (VehicleKit* pVX001V = m_creature->GetVehicleKit())
+            if (VehicleKitPtr pVX001V = m_creature->GetVehicleKit())
             {
                 if (!pVX001V->GetPassenger(SEAT_FOR_ROBOT))
                 {
                     if (Creature* pHead = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
                     {
-                        pHead->_EnterVehicle(pVX001V,SEAT_FOR_ROBOT);
+                        pHead->EnterVehicle(m_creature,SEAT_FOR_ROBOT);
                     }
                 }
             }
