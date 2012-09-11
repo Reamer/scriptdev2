@@ -193,6 +193,8 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         m_uiRubbleNo        = 0;
         m_bOpenArms         = true;
         m_uiDisarmedTimer   = 0;
+        if (vehicle)
+            vehicle->InstallAllAccessories(m_creature->GetEntry());
     }
 
     void JustDied(Unit* pKiller)
@@ -503,12 +505,15 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
         {
             if (Creature* pKologarn = m_pInstance->GetSingleCreatureFromStorage(NPC_KOLOGARN))
             {
-                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STONE_GRIP_GRAB : SPELL_STONE_GRIP_GRAB_H) == CAST_OK)
+                if (Unit* pTarget = pKologarn->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, uint32(0), SELECT_FLAG_PLAYER))
                 {
-                    //DoScriptText(SAY_GRAB, pKologarn);
-                    DoScriptText(EMOTE_STONE_GRIP, m_creature);
-                    m_uiStoneGrip = 30000;
-                }                
+                    if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_STONE_GRIP_GRAB : SPELL_STONE_GRIP_GRAB_H) == CAST_OK)
+                    {
+                        //DoScriptText(SAY_GRAB, pKologarn);
+                        DoScriptText(EMOTE_STONE_GRIP, m_creature);
+                        m_uiStoneGrip = 30000;
+                    }
+                }
             }
         }
         else
