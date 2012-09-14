@@ -99,7 +99,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         m_uiSinisterStrike = 2000;
         m_uiCallFlamesTimer = urand(10000, 15000);
         m_uiMoveToTarget = 0;
-        m_uiRitualPercent = 75;
+        m_uiRitualPercent = 50;
 
         if (m_creature->isAlive() && m_pInstance && m_pInstance->GetData(TYPE_SVALA) > IN_PROGRESS)
         {
@@ -265,7 +265,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature, SPELL_RITUAL_OF_SWORD) == CAST_OK)
             {
-                m_uiRitualPercent -= 25.0f;
+                m_uiRitualPercent -= 50.0f;
             }
         }
         
