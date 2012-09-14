@@ -260,7 +260,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
             {
                 case NPC_RIGHT_ARM: RightArmDead(); break;
                 case NPC_LEFT_ARM: LeftArmDead(); break;
-                default: m_creature->MonsterSay("An Unknow unit hit me with arm damage", 0); break;
+                default: m_creature->MonsterSay("An unknown unit hit me with arm damage", 0); break;
             }
         }
     }
@@ -274,6 +274,23 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_KOLOGARN, FAIL);
+    }
+
+    void PassengerBoarded(Unit* pWho, int8 /*seatId*/, bool apply)
+    {
+        switch (pWho->GetEntry())
+        {
+            case NPC_RIGHT_ARM:
+            case NPC_LEFT_ARM:
+                if (!apply)
+                {
+                    pWho->DealDamage(pWho, pWho->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
+                }
+                break;
+            default:                            // should never appear
+                m_creature->MonsterSay("Unknown Units have boarded", LANG_UNIVERSAL);
+                break;
+        }
     }
 
     void InstallRightArm()
@@ -334,7 +351,8 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
             if (m_bReset)
                 EnterEvadeMode();
             m_uiRange_Timer = 1000;
-        }else
+        }
+        else
             m_uiRange_Timer -= uiDiff;
 
         if (m_uiSpell_Timer < uiDiff)
@@ -344,7 +362,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
                 if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_OVERHEAD_SMASH : SPELL_OVERHEAD_SMASH_H) == CAST_OK)
                     m_uiSpell_Timer = 20000;
             }
-            else if (m_uiRespawnRightTimer > 0 && m_uiRespawnRightTimer > 0)
+            else if (m_uiRespawnRightTimer > 0 && m_uiRespawnLeftTimer > 0)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_STONE_SHOUT : SPELL_STONE_SHOUT_H) == CAST_OK)
                     m_uiSpell_Timer = 2000;
@@ -354,7 +372,8 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
                 if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_ONE_ARMED_SMASH : SPELL_ONE_ARMED_SMASH_H) == CAST_OK)
                     m_uiSpell_Timer = 20000;
             }
-        }else
+        }
+        else
             m_uiSpell_Timer -= uiDiff;
 
         if (m_uiEyebeam_Timer < uiDiff)
@@ -371,17 +390,15 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         if (m_uiRespawnLeftTimer)
         {
             if (m_uiRespawnLeftTimer < uiDiff)
-            {
                 InstallLeftArm();
-            }else
+            else
                 m_uiRespawnLeftTimer -= uiDiff;
         }
         if (m_uiRespawnRightTimer)
         {
             if (m_uiRespawnRightTimer < uiDiff)
-            {
                 InstallRightArm();
-            }else
+            else
                 m_uiRespawnRightTimer -= uiDiff; 
         }
         
