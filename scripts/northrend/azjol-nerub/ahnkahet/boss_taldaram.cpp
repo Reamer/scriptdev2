@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ahnkahet.h"
+#include "Spell.h"
 
 enum
 {
