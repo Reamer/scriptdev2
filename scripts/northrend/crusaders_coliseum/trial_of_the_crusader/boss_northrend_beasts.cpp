@@ -154,7 +154,19 @@ struct MANGOS_DLL_DECL npc_beast_combat_stalkerAI : public Scripted_NoMovementAI
 
         // Next beasts are summoned only for heroic modes
         if (m_creature->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || m_creature->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-            m_uiNextBeastTimer = 150*IN_MILLISECONDS;       // 2 min 30
+        {
+            switch (pSummoned->GetEntry())
+            {
+                case NPC_DREADSCALE:
+                    m_uiNextBeastTimer = 3*MINUTE*IN_MILLISECONDS;  // 3 min
+                    break;
+                case NPC_GORMOK:
+                default:
+                    m_uiNextBeastTimer = 150*IN_MILLISECONDS;       // 2 min 30
+                    break;
+            }
+        }
+
 
         m_uiAttackDelayTimer = 15000;                       // TODO, must be checked.
     }
@@ -217,12 +229,12 @@ struct MANGOS_DLL_DECL npc_beast_combat_stalkerAI : public Scripted_NoMovementAI
         {
             if (m_uiNextBeastTimer <= uiDiff)
             {
+                m_uiNextBeastTimer = 0;
+
                 if (m_uiPhase == PHASE_GORMOK)
                     DoSummonNextBeast(NPC_DREADSCALE);
                 else if (m_uiPhase == PHASE_WORMS)
                     DoSummonNextBeast(NPC_ICEHOWL);
-
-                m_uiNextBeastTimer = 0;
             }
             else
                 m_uiNextBeastTimer -= uiDiff;
