@@ -54,7 +54,10 @@ enum
 
     NPC_FLAME_ORB_1                 = 30106,
     NPC_FLAME_ORB_2                 = 31686,
-    NPC_FLAME_ORB_3                 = 31687
+    NPC_FLAME_ORB_3                 = 31687,
+
+    DAMAGE_FOR_INTERRUPT            = 20000,
+    DAMAGE_FOR_INTERRUPT_H          = 40000,
 };
 
 /*######
@@ -82,6 +85,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
     uint32 m_uiVanishTimer;
     uint32 m_uiVanishExpireTimer;
     uint32 m_uiEmbraceTimer;
+    uint32 m_uiDamageTakenInEmbrace;
 
     uint8 m_uiFlameCounter;
 
@@ -95,6 +99,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         m_uiVanishExpireTimer   = 0;
         m_uiFlameCounter        = 0;
         m_bIsFirstAggro         = false;
+        m_uiDamageTakenInEmbrace= 0;
     }
 
     void Aggro(Unit* pWho)
@@ -117,6 +122,19 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
             case 0: DoScriptText(SAY_SLAY_1, m_creature); break;
             case 1: DoScriptText(SAY_SLAY_2, m_creature); break;
             case 2: DoScriptText(SAY_SLAY_3, m_creature); break;
+        }
+    }
+
+    void DamageTaken(Unit* /*pDealer*/, uint32& uiDamage)
+    {
+        if (Spell* pSpell = m_creature->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
+        {
+            if (pSpell->m_spellInfo->Id == m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H)
+            {
+                m_uiDamageTakenInEmbrace += uiDamage;
+                if (m_uiDamageTakenInEmbrace > m_bIsRegularMode ? DAMAGE_FOR_INTERRUPT : DAMAGE_FOR_INTERRUPT_H)
+                    m_creature->InterruptNonMeleeSpells(false);
+            }
         }
     }
 
@@ -180,7 +198,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
                 pSummoned->CastSpell(pSummoned, SPELL_FLAME_SPHERE_SPAWN_EFFECT, true);
                 pSummoned->CastSpell(pSummoned, SPELL_FLAME_SPHERE_VISUAL, true);
                 pSummoned->CastSpell(pSummoned, m_bIsRegularMode ? SPELL_FLAME_ORB : SPELL_FLAME_ORB_H, true);
-                m_creature->GetClosePoint(destx,desty,destz, 0, 40.0f, 120.0f* m_uiFlameCounter++);
+                m_creature->GetClosePoint(destx,desty,destz, 0, 80.0f, 120.0f* m_uiFlameCounter++);
                 pSummoned->GetMotionMaster()->MovePoint(0, destx, desty, m_creature->GetPositionZ() + 5.0f, false);
                 break;
             }
@@ -258,6 +276,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
                     {
                         DoScriptText(urand(0, 1) ? SAY_FEED_1 : SAY_FEED_2, m_creature);
                         m_uiEmbraceTimer = 0;
+                        m_uiDamageTakenInEmbrace = 0;
                     }
                 }
             }
