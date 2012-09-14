@@ -73,6 +73,8 @@ enum
     SPELL_SUMMON_4                  = 48634,
     SPELL_SUMMON_5                  = 48635,
     SPELL_SUMMON_6                  = 48636,
+
+    HIT_AMOUNT_FOR_SKADI            = 3,                    // how often Grauf must hit with Harpoon before Skadi enter the fight
 };
 
 #define HIT_GRAUF_MESSAGE "Ich habe Grauf getroffen"
@@ -148,7 +150,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         {
             if (Creature* pGrauf = m_pInstance->GetSingleCreatureFromStorage(NPC_GRAUF))
             {
-                m_creature->EnterVehicle(pGrauf->GetVehicleKit(),0);
+                m_creature->EnterVehicle(pGrauf);
                 m_CombatPhase = FLYING;
             }
         }
@@ -345,7 +347,7 @@ struct boss_skadi_graufAI : public ScriptedAI
     {
         ++m_uiHarpoonHitCounter;
         ++m_uiHarpoonHitCounterAchiev;
-        if (m_uiHarpoonHitCounter > 6)
+        if (m_uiHarpoonHitCounter >= HIT_AMOUNT_FOR_SKADI)
         {
             if (m_pInstance)
             {
