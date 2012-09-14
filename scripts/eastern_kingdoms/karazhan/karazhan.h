@@ -72,7 +72,7 @@ enum
 
     SPELL_VANISH                    = 29448,
     // custom stuff
-    SPELL_CYBER_INSTANZ_BOOST       = 100010,
+    SPELL_CYBER_INSTANZ_BOOST       = 80010,
 };
 
 enum OperaEvents

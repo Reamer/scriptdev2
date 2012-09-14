@@ -283,11 +283,11 @@ struct CyberAura
 
 const static CyberAura Auras[] =
 {
-    {100001, "Cyber Geschwindigkeitboost"},
-    {100002, "Cyber Lebensboost"},
-    {100003, "Cyber Energieboost"},
-    {100004, "Cyber Wutboost"},
-    {100005, "Cyber Manaboost"},
+    {80001, "Cyber Geschwindigkeitboost"},
+    {80002, "Cyber Lebensboost"},
+    {80003, "Cyber Energieboost"},
+    {80004, "Cyber Wutboost"},
+    {80005, "Cyber Manaboost"},
 };
 
 bool GossipHello_custum_cybernetic_3(Player* pPlayer, Creature* pCreature)
