@@ -46,7 +46,6 @@ EndContentData */
 #include "ObjectMgr.h"
 #include "TemporarySummon.h"
 #include "WorldPacket.h"
-#include "Vehicle.h"
 // not inuse yet but will be
 //#define LESS_LAG // if you do not have a good server and do not want it to be laggy as hell -- uncomment this if you do
 

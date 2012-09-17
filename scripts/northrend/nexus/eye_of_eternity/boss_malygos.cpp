@@ -31,7 +31,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "eye_of_eternity.h"
-#include "Vehicle.h"
 
 enum
 {

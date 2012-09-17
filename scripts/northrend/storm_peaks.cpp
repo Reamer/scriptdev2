@@ -26,7 +26,6 @@ quest support: 12856, 12983
 EndContentData */
 
 #include "precompiled.h"
-#include "Vehicle.h"
 
 enum{
     SPELL_RIDE = 55074,

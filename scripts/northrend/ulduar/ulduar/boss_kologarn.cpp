@@ -23,7 +23,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
-#include "Vehicle.h"
 
 enum
 {

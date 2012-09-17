@@ -24,7 +24,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "BattleGround/BattleGroundIC.h"
-#include "Vehicle.h"
 
 /*######
 ## go_ic_teleport

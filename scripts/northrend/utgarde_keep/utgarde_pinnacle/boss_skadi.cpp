@@ -29,8 +29,6 @@ trigger mob should use summon spells
 */
 #include "precompiled.h"
 #include "utgarde_pinnacle.h"
-#include "Vehicle.h"
-#include "MotionMaster.h"
 
 enum
 {

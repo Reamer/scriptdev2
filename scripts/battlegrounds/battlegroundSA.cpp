@@ -24,7 +24,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "BattleGround/BattleGroundSA.h"
-#include "Vehicle.h"
 
 struct MANGOS_DLL_DECL npc_sa_demolisherAI : public ScriptedAI
 {

@@ -27,7 +27,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "icecrown_citadel.h"
-#include "Vehicle.h"
 
 enum BossSpells
 {

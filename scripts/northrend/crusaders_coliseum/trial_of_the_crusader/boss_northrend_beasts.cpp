@@ -23,7 +23,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
-#include "Vehicle.h"
 
 enum Emotes
 {
