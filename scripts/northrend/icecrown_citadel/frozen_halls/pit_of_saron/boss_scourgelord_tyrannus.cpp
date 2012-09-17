@@ -85,30 +85,33 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
     boss_rimefangAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_pit_of_saron*)pCreature->GetInstanceData();
-        SetCombatMovement(false);
-        m_uiMainTargetGUID.Clear();
         Reset();
     }
 
     instance_pit_of_saron* m_pInstance;
 
-    uint32 m_uiHoarfrostTimer;
     uint32 m_uiIcyBlastTimer;
     uint32 m_uiIcyBlastSlowTimer;
-    ObjectGuid m_uiMainTargetGUID;
 
     void Reset()
     {
-        m_uiHoarfrostTimer      = 25000;
+        SetCombatMovement(false);
+        m_creature->SetLevitate(true);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+        if (m_creature->GetVehicleKit())
+            m_creature->GetVehicle()->InstallAllAccessories(m_creature->GetEntry());
+
+
         m_uiIcyBlastTimer       = 35000;
         m_uiIcyBlastSlowTimer   = 30000;
-        m_uiMainTargetGUID.Clear();
-        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
     }
 
-    void SetMainTarget(ObjectGuid m_uiTargetGUID)
+    void MoveInLineOfSight(Unit* pWho)
     {
-        m_uiMainTargetGUID = m_uiTargetGUID;
+        if (m_creature->IsWithinDistInMap(pWho, 40.0f))
+        {
+            m_pInstance->SetData(TYPE_TYRANNUS, SPECIAL);
+        }
     }
 
     void JustSummoned(Creature* pSummoned)
@@ -117,37 +120,36 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
             pSummoned->CastSpell(pSummoned, SPELL_ICY_BLAST_AURA, false);
     }
 
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    {
+        if (!pTarget)
+            return;
+        switch (pSpell->Id)
+        {
+            case SPELL_MARK_OF_RIMEFANG:
+                DoCast(pTarget, SPELL_HOARFROST);
+                DoScriptText(EMOTE_RIMEFANG_ICEBOLT, m_creature);
+                break;
+            default:
+                break;
+        }
+
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_uiHoarfrostTimer < uiDiff)
-        {
-            Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID);
-            if (!pTarget)
-                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-            if (pTarget)
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_HOARFROST) == CAST_OK)
-                {
-                    DoScriptText(EMOTE_RIMEFANG_ICEBOLT, m_creature);
-                    m_uiHoarfrostTimer = 20000;
-                }
-            }
-        }
-        else
-            m_uiHoarfrostTimer -= uiDiff;
+        //if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            //  return;
 
         if (m_uiIcyBlastTimer < uiDiff)
         {
-            Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID);
-            if (!pTarget)
-                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-            if (pTarget)
+            if (Creature* pTyrannus = m_pInstance->GetSingleCreatureFromStorage(NPC_TYRANNUS))
             {
-                if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST) == CAST_OK)
-                    m_uiIcyBlastTimer = 35000;
+                if (Unit* pTarget = pTyrannus->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST) == CAST_OK)
+                        m_uiIcyBlastTimer = 35000;
+                }
             }
         }
         else
@@ -155,13 +157,13 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
 
         if (m_uiIcyBlastSlowTimer < uiDiff)
         {
-            Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiMainTargetGUID);
-            if (!pTarget)
-                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-            if (pTarget)
+            if (Creature* pTyrannus = m_pInstance->GetSingleCreatureFromStorage(NPC_TYRANNUS))
             {
-                if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST_SLOW))
-                    m_uiIcyBlastSlowTimer = 40000;
+                if (Unit* pTarget = pTyrannus->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST_SLOW))
+                        m_uiIcyBlastSlowTimer = 40000;
+                }
             }
         }
         else
@@ -175,7 +177,6 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     {
         m_pInstance = (instance_pit_of_saron*)pCreature->GetInstanceData();
         SetEquipmentSlots(false, EQUIP_ID, -1, -1);
-        m_uiRimefangGUID.Clear();
         Reset();
     }
 
@@ -186,11 +187,8 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     uint32 m_uiDarkMightTimer;
     uint32 m_uiMarkOfRimefangTimer;
 
-    ObjectGuid m_uiRimefangGUID;
-
     void Reset()
     {
-        m_uiRimefangGUID.Clear();
         m_uiForcefulSmashTimer  = 10000;
         m_uiOverlordsBrandTimer = 35000;
         m_uiDarkMightTimer      = 40000;
@@ -201,6 +199,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TYRANNUS, FAIL);
+        m_creature->ForcedDespawn();
     }
 
     void Aggro(Unit* pWho)
@@ -218,21 +217,8 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        m_creature->SummonCreature(NPC_DAILY_DUNGEON, 1032.35f, 198.31f, 628.15f, 4.73f, TEMPSUMMON_MANUAL_DESPAWN, 5000);
-
+        //m_creature->SummonCreature(NPC_DAILY_DUNGEON, 1032.35f, 198.31f, 628.15f, 4.73f, TEMPSUMMON_MANUAL_DESPAWN, 5000);
         DoScriptText(SAY_DEATH, m_creature);
-
-        // Temp hack until outro is implemented
-        if (Creature* pRimefang = m_pInstance->instance->GetCreature(m_uiRimefangGUID))
-        {
-            pRimefang->GetMotionMaster()->Clear();
-            pRimefang->GetMotionMaster()->MovePoint(0, 844.752f, 358.993f, 645.330f);
-            pRimefang->setFaction(35);
-            pRimefang->DeleteThreatList();
-            pRimefang->RemoveAllAuras();
-            pRimefang->ForcedDespawn(10000);
-        }
-
         if (m_pInstance)
             m_pInstance->SetData(TYPE_TYRANNUS, DONE);
 
@@ -278,11 +264,9 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                if (DoCastSpellIfCan(pTarget, SPELL_MARK_OF_RIMEFANG) == CAST_OK)
+                if (Creature* pRimefang = m_pInstance->GetSingleCreatureFromStorage(NPC_RIMEFANG))
                 {
-                    if (Creature* pRimefang = m_pInstance->GetSingleCreatureFromStorage(NPC_RIMEFANG))
-                        ((boss_rimefangAI*)pRimefang->AI())->SetMainTarget(pTarget->GetObjectGuid());
-
+                    pRimefang->CastSpell(pTarget, SPELL_MARK_OF_RIMEFANG, false);
                     DoScriptText(SAY_MARK, m_creature);
                     m_uiMarkOfRimefangTimer = urand(30000, 40000);
                 }
@@ -295,40 +279,6 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     }
 };
 
-struct MANGOS_DLL_DECL npc_colapsing_icicleAI: public ScriptedAI
-{
-    npc_colapsing_icicleAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        pCreature->SetDisplayId(11686);     // make invisible
-        m_creature->setFaction(14);
-        SetCombatMovement(false);
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-
-    uint32 m_uiDamageTimer;
-
-    void Reset()
-    {
-        DoCast(m_creature, SPELL_ICICLE);
-        m_uiDamageTimer = 500;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if(m_uiDamageTimer < uiDiff)
-        {
-            DoCast(m_creature, SPELL_ICICLE_DMG);
-            m_uiDamageTimer = 10000;
-        }
-        else m_uiDamageTimer -= uiDiff;
-    }
-};
-
 CreatureAI* GetAI_boss_tyrannus(Creature* pCreature)
 {
     return new boss_tyrannusAI (pCreature);
@@ -337,11 +287,6 @@ CreatureAI* GetAI_boss_tyrannus(Creature* pCreature)
 CreatureAI* GetAI_boss_rimefang(Creature* pCreature)
 {
     return new boss_rimefangAI (pCreature);
-}
-
-CreatureAI* GetAI_npc_colapsing_icicle(Creature* pCreature)
-{
-    return new npc_colapsing_icicleAI (pCreature);
 }
 
 void AddSC_boss_tyrannus()
@@ -356,10 +301,5 @@ void AddSC_boss_tyrannus()
     pNewScript = new Script;
     pNewScript->Name="boss_rimefang";
     pNewScript->GetAI = &GetAI_boss_rimefang;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name="npc_colapsing_icicle";
-    pNewScript->GetAI = &GetAI_npc_colapsing_icicle;
     pNewScript->RegisterSelf();
 }

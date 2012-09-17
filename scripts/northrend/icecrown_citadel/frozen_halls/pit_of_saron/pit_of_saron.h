@@ -69,7 +69,8 @@ enum PitOfSaronEvent
     EVENT_GARFROST                  = 2,
     EVENT_KRICK                     = 3,
     EVENT_GAUNTLET                  = 4,
-    EVENT_TYRANNUS                  = 5,
+    EVENT_TYRANNUS_START            = 5,
+    EVENT_TYRANNUS_END              = 6,
 };
 
 class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private DialogueHelper
@@ -91,8 +92,8 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
         const char* Save() { return strInstData.c_str(); }
         void Load(const char* chrIn);
 
-         void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
-         Team GetFaction() {return m_Team; };
+        void Update(uint32 uiDiff);
+        Team GetFaction() {return m_Team; };
 
     protected:
         void JustDidDialogueStep(int32 iEntry);
@@ -106,6 +107,8 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
         GuidList m_lSlaveGuids;
         GuidList m_lGeistAmbusher[2];
         Team m_Team;
+
+        uint32 m_uiIcicleTimer;
 
 };
  
