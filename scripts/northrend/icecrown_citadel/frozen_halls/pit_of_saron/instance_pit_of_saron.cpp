@@ -403,7 +403,7 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, PitOfSaronEvent ui
             // Spawn Begin Mobs
             for (uint8 i = 0; i < sizeof(aEventIntroLocations)/sizeof(sIntoEventNpcSpawnLocations); ++i)
             {
-                Creature* pSummon = pPlayer->SummonCreature(m_Team == HORDE ? aEventIntroLocations[i].uiEntryHorde : aEventIntroLocations[i].uiEntryAlliance, aEventIntroLocations[i].fSpawnX, aEventIntroLocations[i].fSpawnY, aEventIntroLocations[i].fSpawnZ, aEventIntroLocations[i].fSpawnO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
+                /*Creature* pSummon = */pPlayer->SummonCreature(m_Team == HORDE ? aEventIntroLocations[i].uiEntryHorde : aEventIntroLocations[i].uiEntryAlliance, aEventIntroLocations[i].fSpawnX, aEventIntroLocations[i].fSpawnY, aEventIntroLocations[i].fSpawnZ, aEventIntroLocations[i].fSpawnO, TEMPSUMMON_DEAD_DESPAWN, 24*HOUR*IN_MILLISECONDS);
             }
             break;
         }
@@ -635,7 +635,7 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
         {
             ProcessEventNpcs(GetPlayerInMap(), EVENT_TYRANNUS_END);
             // TODO: Check Fly Away from Rimefang
-            if (Creature* pRimefang = m_pInstance->GetSingleCreatureFromStorage(NPC_RIMEFANG))
+            if (Creature* pRimefang = GetSingleCreatureFromStorage(NPC_RIMEFANG))
             {
                 pRimefang->GetMotionMaster()->Clear();
                 pRimefang->GetMotionMaster()->MovePoint(0, 844.752f, 358.993f, 645.330f);

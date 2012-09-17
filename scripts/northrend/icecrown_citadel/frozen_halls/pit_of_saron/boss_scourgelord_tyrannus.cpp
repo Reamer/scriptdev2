@@ -57,18 +57,8 @@ enum
     NPC_DAILY_DUNGEON                   = 22852,
 };
 
-const float RimefangSummon[4] = {1013.827f, 169.71f, 628.157f, 5.31f};
-
 enum gauntlet
 {
-    SAY_GAUNTLET1            = -1610081,
-    SAY_GAUNTLET2            = -1610082,
-    SAY_TUNNEL               = -1610083,
-    // icicle event
-    NPC_COLLAPSING_ICICLE    = 36847,
-    SPELL_ICICLE             = 69428,
-    SPELL_ICICLE_DMG         = 69426,
-    SPELL_ICICLE_SUMMON      = 69424,
     // mobs
     // first 2 waves
     NPC_WRATHBRINGER         = 36840,

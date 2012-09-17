@@ -89,7 +89,7 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
         void SetData(uint32 uiType, uint32 uiData);
         uint32 GetData(uint32 uiType);
 
-        const char* Save() { return strInstData.c_str(); }
+        const char* Save() { return strInstData.c_str(); };
         void Load(const char* chrIn);
 
         void Update(uint32 uiDiff);
