@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
+#include "Vehicle.h"
 
 struct LocationsXYZ
 {

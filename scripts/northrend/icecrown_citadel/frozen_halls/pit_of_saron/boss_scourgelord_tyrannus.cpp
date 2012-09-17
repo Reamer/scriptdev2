@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
+#include "Vehicle.h"
 
 enum
 {
@@ -100,7 +101,6 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
         if (m_creature->GetVehicleKit())
             m_creature->GetVehicle()->InstallAllAccessories(m_creature->GetEntry());
-
 
         m_uiIcyBlastTimer       = 35000;
         m_uiIcyBlastSlowTimer   = 30000;
