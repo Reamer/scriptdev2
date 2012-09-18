@@ -50,7 +50,10 @@ enum
     NPC_SPARK_OF_IONAR                      = 28926,
 
     MAX_SPARKS                              = 5,
-    POINT_CALLBACK                          = 0
+    POINT_CALLBACK                          = 0,
+
+    // only one time Disperse cast, Hotfix (2009-12-16): "Ionar, in the Halls of Lightning, will now only disperse once during the course of the fight."
+    AMOUNT_OF_DISPERSION                    = 1,
 };
 
 /*######
@@ -80,6 +83,8 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
     uint32 m_uiStaticOverloadTimer;
     uint32 m_uiBallLightningTimer;
 
+    uint32 m_uiHealthAmountModifier;
+
     void Reset()
     {
         m_bIsSplitPhase = true;
@@ -89,6 +94,8 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
         m_uiStaticOverloadTimer = urand(5000, 6000);
         m_uiBallLightningTimer = urand(10000, 11000);
+
+        m_uiHealthAmountModifier = 1;
 
         if (m_creature->GetVisibility() == VISIBILITY_OFF)
             m_creature->SetVisibility(VISIBILITY_ON);
@@ -269,10 +276,11 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
             m_uiBallLightningTimer -= uiDiff;
 
         // Health check
-        // only one time Disperse cast, Hotfix (2009-12-16): "Ionar, in the Halls of Lightning, will now only disperse once during the course of the fight."
-        if (!m_bIsDesperseCasting && m_creature->GetHealthPercent() < 50.0f)
+        if (m_creature->GetHealthPercent() < float(100 - ((100 / (AMOUNT_OF_DISPERSION + 1))*m_uiHealthAmountModifier)))
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_DISPERSE, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+            ++m_uiHealthAmountModifier;
+
+            if (!m_bIsDesperseCasting && DoCastSpellIfCan(m_creature, SPELL_DISPERSE, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
             {
                 DoScriptText(urand(0, 1) ? SAY_SPLIT_1 : SAY_SPLIT_2, m_creature);
                 m_bIsDesperseCasting = true;
