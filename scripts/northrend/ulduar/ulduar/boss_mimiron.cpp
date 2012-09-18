@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
+#include "TransportSystem.h"
 
 enum
 {
@@ -746,7 +747,10 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
                 if (newAngle > 2*M_PI_F)
                     newAngle -= 2*M_PI_F;
 
-                m_creature->SetFacingTo(newAngle);
+                float x, y, z, o;
+                m_creature->GetTransportInfo()->GetLocalPosition(x,y,z,o);
+                m_creature->GetTransportInfo()->SetLocalPosition(x,y,z,newAngle);
+                //m_creature->SetFacingTo(newAngle);
                 m_uiLaserBarrageTick = 100;
             }
             else
@@ -777,8 +781,12 @@ struct MANGOS_DLL_DECL boss_vx001AI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_LASER_SLAVE) == CAST_OK)
                 {
-                    m_creature->SetFacingTo(m_creature->GetAngle(pTarget));
+                    float x, y, z, o;
+                    m_creature->GetTransportInfo()->GetLocalPosition(x,y,z,o);
+                    m_creature->GetTransportInfo()->SetLocalPosition(x,y,z,m_creature->GetAngle(pTarget));
+                    //m_creature->SetFacingTo(m_creature->GetAngle(pTarget));
                     m_uiLaserBarrageTimer = 46000;
+                    return;
                 }
             }
         }
