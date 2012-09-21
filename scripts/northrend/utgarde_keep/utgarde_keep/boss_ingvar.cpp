@@ -157,8 +157,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
             m_creature->UpdateEntry(pSpell->EffectMiscValue[EFFECT_INDEX_0]);
             m_bIsResurrected = true;
             m_bIsFakingDeath = false;
-            if (m_creature->getVictim())
-                m_creature->AI()->AttackStart(m_creature->getVictim());
+            m_creature->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
         }
     }
 
@@ -180,7 +179,6 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
                 // This is not blizzlike - npc should be summoned above the boss and should move slower
                 pSummoned->CastSpell(pSummoned, SPELL_ASTRAL_TELEPORT, false);
                 pSummoned->SetLevitate(true);
-                pSummoned->GetMotionMaster()->Clear();
                 pSummoned->GetMotionMaster()->MovePoint(POINT_ID_ANNHYLDE, pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ() + 15.0f);
                 break;
 
@@ -308,11 +306,13 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 
     uint32 m_uiResurrectTimer;
     uint8 m_uiResurrectPhase;
+    bool m_bSayRescue;
 
     void Reset()
     {
         m_uiResurrectTimer = 0;
         m_uiResurrectPhase = 0;
+        m_bSayRescue = false;
     }
 
     // No attacking
@@ -321,11 +321,12 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 
     void MovementInform(uint32 uiMotionType, uint32 uiPointId)
     {
-        if (uiMotionType != POINT_MOTION_TYPE || uiPointId != POINT_ID_ANNHYLDE)
+        if (uiMotionType != POINT_MOTION_TYPE || uiPointId != POINT_ID_ANNHYLDE || m_bSayRescue)
             return;
 
         DoScriptText(SAY_ANNHYLDE_REZ, m_creature);
         m_uiResurrectTimer = 3000;
+        m_bSayRescue = true;
     }
 
     void UpdateAI(const uint32 uiDiff)
