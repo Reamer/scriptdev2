@@ -102,6 +102,8 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
     uint32 m_uiStaggeringRoarTimer;
     uint32 m_uiEnrageTimer;
 
+    ObjectGuid m_ThrowTarget;
+
     void Reset()
     {
         m_bIsResurrected = false;
@@ -164,8 +166,18 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
     {
         switch (pSummoned->GetEntry())
         {
+            case NPC_THROW_TARGET:
+                m_ThrowTarget = pSummoned->GetObjectGuid();
+                break;
             case NPC_THROW_DUMMY:
-                // ToDo: should this move to the target?
+                if (Creature* pThrowTarget = m_creature->GetMap()->GetCreature(m_ThrowTarget))
+                {
+                    float x, y, z;
+                    pThrowTarget->GetPosition(x, y, z);
+                    pSummoned->GetMotionMaster()->MovePoint(0, x, y, z);
+                }
+                else    // should never appear
+                    pSummoned->MonsterSay("Mistake in Spell order, the target should spawn before.", LANG_UNIVERSAL);
                 pSummoned->CastSpell(pSummoned, m_bIsRegularMode ? SPELL_SHADOW_AXE_PROC : SPELL_SHADOW_AXE_PROC_H, true);
                 break;
 
