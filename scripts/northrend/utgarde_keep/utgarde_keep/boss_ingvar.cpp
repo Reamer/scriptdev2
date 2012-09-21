@@ -157,6 +157,8 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
             m_creature->UpdateEntry(pSpell->EffectMiscValue[EFFECT_INDEX_0]);
             m_bIsResurrected = true;
             m_bIsFakingDeath = false;
+            if (m_creature->getVictim())
+                m_creature->AI()->AttackStart(m_creature->getVictim());
         }
     }
 
