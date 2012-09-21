@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Ingvar
-SD%Complete: 90%
-SDComment: TODO: correct timers. Shadow axe need coreupdate
+SD%Complete: 70%
+SDComment: TODO: correct timers, spell 42912 requires proper position fix in core
 SDCategory: Utgarde Keep
 EndScriptData */
 
@@ -36,9 +36,9 @@ enum
     SAY_ANNHYLDE_REZ            = -1574023,
 
     NPC_ANNHYLDE                = 24068,
-    NPC_THROW_TARGET            = 23996,                    //the target, casting spell and target of moving dummy
-    NPC_THROW_DUMMY             = 23997,                    //the axe, moving to target
-    NPC_INGVAR_ACHIEVEMENT      = 23980,                    //use this mob to apply archievment
+    NPC_THROW_TARGET            = 23996,                    // the target, casting spell and target of moving dummy
+    NPC_THROW_DUMMY             = 23997,                    // the axe, moving to target
+    NPC_GROUND_VISUAL           = 24012,                    // has SPELL_SCOURGE_RES_BUBBLE aura
 
     //phase 1
     SPELL_CLEAVE                = 42724,
@@ -53,11 +53,7 @@ enum
     SPELL_STAGGERING_ROAR_H     = 59708,
 
     //phase 2
-    SPELL_DARK_SMASH            = 42723,
-
-    SPELL_SHADOW_AXE_TRIGGER    = 42748,
-    SPELL_SHADOW_AXE            = 42750,
-    SPELL_SHADOW_AXE_H          = 59719,
+    SPELL_DARK_SMASH_H          = 42723,
 
     SPELL_DREADFUL_ROAR         = 42729,
     SPELL_DREADFUL_ROAR_H       = 59734,
@@ -65,20 +61,22 @@ enum
     SPELL_WOE_STRIKE            = 42730,
     SPELL_WOE_STRIKE_H          = 59735,
 
+    SPELL_SHADOW_AXE            = 42748,
+    SPELL_SHADOW_AXE_PROC       = 42750,                    // triggers 42751
+    SPELL_SHADOW_AXE_PROC_H     = 59719,                    // triggers 59720
+
     //ressurection sequenze
+    SPELL_ASTRAL_TELEPORT       = 34427,                    // aura cast by Annhylde on spawn
+    SPELL_SUMMON_BANSHEE        = 42912,                    // summons Annhylde and sets a glow aura
     SPELL_FEIGN_DEATH           = 42795,
     SPELL_TRANSFORM             = 42796,
-    SPELL_SCOURGE_RES_SUMMON    = 42863,                    //summones a dummy target
-    SPELL_SCOURGE_RES_HEAL      = 42704,                    //heals max HP
-    SPELL_SCOURGE_RES_BUBBLE    = 42862,                    //black bubble
-    SPELL_SCOURGE_RES_CHANNEL   = 42857,                    //the whirl from annhylde
-    SPELL_SPOTLIGHT             = 62897                     //visual spotligth (not correct spell)
+    SPELL_SCOURGE_RES_SUMMON    = 42863,                    // summones a dummy target
+    SPELL_SCOURGE_RES_HEAL      = 42704,                    // heals max HP
+    SPELL_SCOURGE_RES_BUBBLE    = 42862,                    // black bubble
+    SPELL_SCOURGE_RES_CHANNEL   = 42857,                    // the whirl from annhylde
+
+    POINT_ID_ANNHYLDE           = 1
 };
-
-#define PHASE_1_DISPLAY_ID      21953     
-#define PHASE_2_DISPLAY_ID      26351
-
-#define FAC_FRIENDLY            35
 
 /*######
 ## boss_ingvar
@@ -88,92 +86,107 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 {
     boss_ingvarAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (instance_utgarde_keep*)pCreature->GetInstanceData();
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
-    instance_utgarde_keep* m_pInstance;
+    ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
     bool m_bIsResurrected;
-    bool m_bRescureInProgress;
+    bool m_bIsFakingDeath;
 
     uint32 m_uiCleaveTimer;
     uint32 m_uiSmashTimer;
     uint32 m_uiStaggeringRoarTimer;
     uint32 m_uiEnrageTimer;
-    uint32 m_uiDreadfulRoarTimer;
-    uint32 m_uiDarkSmash;
-    uint32 m_uiWoeStrike;
-    uint32 m_uiShadowAxeTimer;
-    uint32 m_uiSpotlightTimer;
-    uint32 m_uiRescureTimer;
-    uint32 m_uiRemoveBlackBubbleTimer;
-    uint64 m_uiLastTargetDummyGUID;
-    uint64 m_uiAxeDummyGUID;
 
     void Reset()
     {
         m_bIsResurrected = false;
-        m_bRescureInProgress = false;
-
-        m_creature->SetDisplayId(PHASE_1_DISPLAY_ID);
+        m_bIsFakingDeath = false;
 
         m_uiCleaveTimer = urand(5000, 7000);
         m_uiSmashTimer = urand(8000, 15000);
         m_uiStaggeringRoarTimer = urand(10000, 25000);
         m_uiEnrageTimer = 30000;
-        m_uiShadowAxeTimer = 20000;
-        m_uiLastTargetDummyGUID = 0;
-        m_uiAxeDummyGUID = 0;
     }
 
     void Aggro(Unit* pWho)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_INGVAR, IN_PROGRESS);
-        DoScriptText(m_bIsResurrected ? SAY_AGGRO_SECOND : SAY_AGGRO_FIRST, m_creature);
+        // don't yell for her
+        if (pWho->GetEntry() == NPC_ANNHYLDE)
+            return;
+
+        // ToDo: it shouldn't yell this aggro text after removing the feign death aura
+        DoScriptText(SAY_AGGRO_FIRST, m_creature);
     }
 
-    void JustReachedHome()
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_INGVAR, FAIL);
-    }
-
-    
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    void DamageTaken(Unit* pDealer, uint32& uiDamage)
     {
         if (m_bIsResurrected)
             return;
 
+        if (m_bIsFakingDeath)
+        {
+            uiDamage = 0;
+            return;
+        }
+
         if (uiDamage >= m_creature->GetHealth())
         {
-            uiDamage = m_creature->GetHealth() -1;
-
-            /*m_creature->GetMotionMaster()->Clear(false);
-            m_creature->GetMotionMaster()->MoveIdle();*/
+            uiDamage = 0;
 
             DoScriptText(SAY_DEATH_FIRST, m_creature);
-            m_creature->RemoveAllAuras();
-            m_creature->CastSpell(m_creature, SPELL_FEIGN_DEATH, true);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            SetCombatMovement(false);
 
-            m_bRescureInProgress = true;
-            m_uiSpotlightTimer = 4000;
-            m_uiRescureTimer = 9999999;
+            DoCastSpellIfCan(m_creature, SPELL_SUMMON_BANSHEE, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature, SPELL_FEIGN_DEATH, CAST_TRIGGERED);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
+            m_bIsFakingDeath = true;
+        }
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_TRANSFORM)
+        {
+            DoScriptText(SAY_AGGRO_SECOND, m_creature);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->UpdateEntry(pSpell->EffectMiscValue[EFFECT_INDEX_0]);
+            m_bIsResurrected = true;
+            m_bIsFakingDeath = false;
+        }
+    }
+
+    void JustSummoned(Creature* pSummoned)
+    {
+        switch (pSummoned->GetEntry())
+        {
+            case NPC_THROW_DUMMY:
+                // ToDo: should this move to the target?
+                pSummoned->CastSpell(pSummoned, m_bIsRegularMode ? SPELL_SHADOW_AXE_PROC : SPELL_SHADOW_AXE_PROC_H, true);
+                break;
+
+            case NPC_ANNHYLDE:
+                // This is not blizzlike - npc should be summoned above the boss and should move slower
+                pSummoned->CastSpell(pSummoned, SPELL_ASTRAL_TELEPORT, false);
+                pSummoned->SetLevitate(true);
+                pSummoned->GetMotionMaster()->MovePoint(POINT_ID_ANNHYLDE, pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ() + 15.0f);
+                break;
+
+            case NPC_GROUND_VISUAL:
+                pSummoned->CastSpell(pSummoned, SPELL_SCOURGE_RES_BUBBLE, false);
+                // npc doesn't despawn on time
+                pSummoned->ForcedDespawn(8000);
+                break;
         }
     }
 
     void JustDied(Unit* pKiller)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_INGVAR, DONE);
         DoScriptText(SAY_DEATH_SECOND, m_creature);
-        if (Player* pPlayerKiller = pKiller->GetCharmerOrOwnerPlayerOrPlayerItself())
-            pPlayerKiller->RewardPlayerAndGroupAtEvent(NPC_INGVAR_ACHIEVEMENT, m_creature);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -182,70 +195,12 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
             DoScriptText(m_bIsResurrected ? SAY_KILL_SECOND : SAY_KILL_FIRST, m_creature);
     }
 
-    //void JustSummoned(Creature* pCreature)
-    //{
-    //    switch (pCreature->GetEntry())
-    //    {
-    //          case NPC_THROW_TARGET: // Target Dummy
-    //              m_uiLastTargetDummyGUID = pCreature->GetGUID();
-    //              break;
-    //          case NPC_THROW_DUMMY: // Axe Dummy
-    //              m_uiAxeDummyGUID = pCreature->GetGUID();
-    //              if (Creature* pTarget = m_creature->GetMap()->GetCreature(m_uiLastTargetDummyGUID))
-    //                  pCreature->GetMotionMaster()->MovePoint(1, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ());
-    //              break;
-    //     }
-    //}
-
-    //void MovementInform(uint32 type, uint32 id)
-    //{
-    //    if(type == POINT_MOTION_TYPE && id ==1)
-    //    {
-    //        if (Creature* pAxe = m_creature->GetMap()->GetCreature(m_uiAxeDummyGUID))
-    //        {
-    //            //SetCombatMovement(false);
-    //            pAxe->CastSpell(pAxe, m_bIsRegularMode ? SPELL_SHADOW_AXE : SPELL_SHADOW_AXE_H, false);
-    //        }
-    //    }
-    //}
-
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_bRescureInProgress)
-        {
-            if (m_uiSpotlightTimer < uiDiff)
-            {
-                if (/*Creature* pValkyr = */m_creature->SummonCreature(NPC_ANNHYLDE, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 5, m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 16000))
-
-                m_creature->CastSpell(m_creature, SPELL_SPOTLIGHT, true, 0, 0, ObjectGuid());
-                m_uiRescureTimer = 14000;
-                m_uiSpotlightTimer = 9999999;
-            }else m_uiSpotlightTimer -= uiDiff;
-
-            if (m_uiRescureTimer < uiDiff)
-            {
-                m_creature->RemoveAurasDueToSpell(SPELL_SPOTLIGHT);
-                m_creature->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
-                m_creature->SetDisplayId(PHASE_2_DISPLAY_ID);
-                m_creature->SetHealth(m_creature->GetMaxHealth());
-                m_creature->CastSpell(m_creature, SPELL_SCOURGE_RES_HEAL, false);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                SetCombatMovement(true);
-                m_bRescureInProgress = false;
-                m_bIsResurrected = true;
-                m_uiRescureTimer = 9999999;
-                m_uiDreadfulRoarTimer = 6000;
-                m_uiDarkSmash = 9000;
-                m_uiWoeStrike = 2000;
-            }else m_uiRescureTimer -= uiDiff;
-
-            return;
-        }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || m_bIsFakingDeath)
             return;
 
-        if (!m_bIsResurrected)
+        if (!m_bIsResurrected)                              // First phase
         {
             if (m_uiCleaveTimer < uiDiff)
             {
@@ -282,44 +237,42 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
             else
                 m_uiEnrageTimer -= uiDiff;
         }
-        else
-        {            
-            if (m_uiDreadfulRoarTimer < uiDiff)
+        else                                                // Second phase
+        {
+            if (m_uiCleaveTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_DREADFUL_ROAR : SPELL_DREADFUL_ROAR_H) == CAST_OK)
-                    m_uiDreadfulRoarTimer = 20000;
+                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode? SPELL_WOE_STRIKE : SPELL_WOE_STRIKE_H) == CAST_OK)
+                    m_uiCleaveTimer = urand(2500, 7000);
             }
             else
-                 m_uiDreadfulRoarTimer -= uiDiff;
+                m_uiCleaveTimer -= uiDiff;
 
-            if (m_uiWoeStrike < uiDiff)
+            if (m_uiSmashTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_WOE_STRIKE : SPELL_WOE_STRIKE_H) == CAST_OK)
-                    m_uiWoeStrike = 20000;
+                if (DoCastSpellIfCan(m_creature, SPELL_DARK_SMASH_H) == CAST_OK)
+                    m_uiSmashTimer = urand(8000, 15000);
             }
             else
-                m_uiWoeStrike -= uiDiff;
+                m_uiSmashTimer -= uiDiff;
 
-            if (m_uiDarkSmash < uiDiff)
+            if (m_uiStaggeringRoarTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_DARK_SMASH) == CAST_OK)
-                    m_uiDarkSmash = 20000;
-            }
-            else
-                m_uiDarkSmash -= uiDiff;
-
-            if (m_uiShadowAxeTimer < uiDiff)
-            {
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_SHADOW_AXE_TRIGGER, SELECT_FLAG_PLAYER))
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_DREADFUL_ROAR : SPELL_DREADFUL_ROAR_H) == CAST_OK)
                 {
-                    if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_AXE_TRIGGER) == CAST_OK)
-                    {
-                        m_uiShadowAxeTimer = 44000;
-                    }
+                    DoScriptText(EMOTE_ROAR, m_creature);
+                    m_uiStaggeringRoarTimer = urand(15000, 30000);
                 }
             }
             else
-                m_uiShadowAxeTimer -= uiDiff;
+                m_uiStaggeringRoarTimer -= uiDiff;
+
+            if (m_uiEnrageTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_SHADOW_AXE) == CAST_OK)
+                    m_uiEnrageTimer = urand(10000, 20000);
+            }
+            else
+                m_uiEnrageTimer -= uiDiff;
         }
 
         DoMeleeAttackIfReady();
@@ -339,48 +292,83 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 {
     npc_annhyldeAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (instance_utgarde_keep*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
     }
 
-    instance_utgarde_keep* m_pInstance;
-    bool m_bIsRegularMode;
-    
-    uint32 SpeakTimer;
-    uint32 ChannelTimer;
+    ScriptedInstance* m_pInstance;
+
+    uint32 m_uiResurrectTimer;
+    uint8 m_uiResurrectPhase;
 
     void Reset()
     {
-        SpeakTimer = 1000;
-        ChannelTimer = 4000;
-        
-        m_creature->GetMotionMaster()->MoveIdle();
-        m_creature->GetMotionMaster()->Clear();
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_uiResurrectTimer = 0;
+        m_uiResurrectPhase = 0;
+    }
+
+    // No attacking
+    void MoveInLineOfSight(Unit*) {}
+    void AttackStart(Unit*) {}
+
+    void MovementInform(uint32 uiMotionType, uint32 uiPointId)
+    {
+        if (uiMotionType != POINT_MOTION_TYPE || uiPointId != POINT_ID_ANNHYLDE)
+            return;
+
+        DoScriptText(SAY_ANNHYLDE_REZ, m_creature);
+        m_uiResurrectTimer = 3000;
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (SpeakTimer < uiDiff)
+        if (m_uiResurrectTimer)
         {
-            DoScriptText(SAY_ANNHYLDE_REZ, m_creature);   
-            SpeakTimer = 9999999;
-        }
-        else
-            SpeakTimer -= uiDiff;
-        
-        if (ChannelTimer < uiDiff)
-        {
-            if (Creature* m_pIngvar = m_pInstance->GetSingleCreatureFromStorage(NPC_INGVAR))
+            if (m_uiResurrectTimer <= uiDiff)
             {
-                m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_BUBBLE, true, 0, 0, ObjectGuid());
-                m_creature->CastSpell(m_pIngvar, SPELL_SCOURGE_RES_CHANNEL, true, 0, 0, ObjectGuid());
-                ChannelTimer = 9999999;
+                if (!m_pInstance)
+                    return;
+
+                switch (m_uiResurrectPhase)
+                {
+                    case 0:
+                        DoCastSpellIfCan(m_creature, SPELL_SCOURGE_RES_CHANNEL);
+                        if (Creature* pIngvar = m_pInstance->GetSingleCreatureFromStorage(NPC_INGVAR))
+                        {
+                            if (pIngvar->HasAura(SPELL_SUMMON_BANSHEE))
+                                pIngvar->RemoveAurasDueToSpell(SPELL_SUMMON_BANSHEE);
+                        }
+                        m_uiResurrectTimer = 3000;
+                        break;
+                    case 1:
+                        if (Creature* pIngvar = m_pInstance->GetSingleCreatureFromStorage(NPC_INGVAR))
+                        {
+                            pIngvar->CastSpell(pIngvar, SPELL_SCOURGE_RES_SUMMON, true);
+                            // Workaround - set Feign death again because it's removed by the previous casted spell
+                            pIngvar->CastSpell(pIngvar, SPELL_FEIGN_DEATH, true);
+                        }
+                        m_uiResurrectTimer = 5000;
+                        break;
+                    case 2:
+                        if (Creature* pIngvar = m_pInstance->GetSingleCreatureFromStorage(NPC_INGVAR))
+                            pIngvar->CastSpell(pIngvar, SPELL_SCOURGE_RES_HEAL, false);
+                        m_uiResurrectTimer = 3000;
+                        break;
+                    case 3:
+                        if (Creature* pIngvar = m_pInstance->GetSingleCreatureFromStorage(NPC_INGVAR))
+                            pIngvar->CastSpell(pIngvar, SPELL_TRANSFORM, false);
+                        // despawn the creature
+                        m_creature->GetMotionMaster()->MovePoint(2, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 50);
+                        m_creature->ForcedDespawn(5000);
+                        m_uiResurrectTimer = 0;
+                        break;
+                }
+
+                ++m_uiResurrectPhase;
             }
+            else
+                m_uiResurrectTimer -= uiDiff;
         }
-        else
-            ChannelTimer -= uiDiff;
     }
 };
 
@@ -389,81 +377,17 @@ CreatureAI* GetAI_npc_annhylde(Creature* pCreature)
     return new npc_annhyldeAI(pCreature);
 }
 
-/*######
-## mob_ingvar_throw_dummy
-######*/
-
-struct MANGOS_DLL_DECL mob_ingvar_throw_dummyAI : public ScriptedAI
-{
-    mob_ingvar_throw_dummyAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        StartRunning();
-    }
-
-    uint32 m_uiSpinTimer;
-    bool m_bIsRegularMode;
-    bool reached;
-
-    void StartRunning()
-    {
-        Reset();
-
-        //if(Creature* pThrowTarget = GetClosestCreatureWithEntry(m_creature, NPC_THROW_TARGET, DEFAULT_VISIBILITY_DISTANCE))
-        if (Unit* pThrowTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
-            m_creature->GetMotionMaster()->MovePoint(1, pThrowTarget->GetPositionX(), pThrowTarget->GetPositionY(), pThrowTarget->GetPositionZ());
-    }
-
-    void Reset()
-    {
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_uiSpinTimer = 10000;
-        reached = false;
-        m_creature->SetInCombatWithZone(); // until GetClosestCreatureWithEntry is broken
-    }
-
-    void MovementInform(uint32 type, uint32 id)
-    {
-        if(type == POINT_MOTION_TYPE && id ==1)
-        {
-            SetCombatMovement(false);
-            reached = true;
-            DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_SHADOW_AXE : SPELL_SHADOW_AXE_H);
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if(reached)
-        {
-            if (m_uiSpinTimer < uiDiff)
-            {
-                m_creature->ForcedDespawn();
-            }else m_uiSpinTimer -= uiDiff;
-        }
-    }
-};
-
-CreatureAI* GetAI_mob_ingvar_throw_dummy(Creature* pCreature)
-{
-    return new mob_ingvar_throw_dummyAI(pCreature);
-}
 void AddSC_boss_ingvar()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_ingvar";
-    newscript->GetAI = &GetAI_boss_ingvar;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_ingvar";
+    pNewScript->GetAI = &GetAI_boss_ingvar;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_annhylde";
-    newscript->GetAI = &GetAI_npc_annhylde;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_ingvar_throw_dummy";
-    newscript->GetAI = &GetAI_mob_ingvar_throw_dummy;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_annhylde";
+    pNewScript->GetAI = &GetAI_npc_annhylde;
+    pNewScript->RegisterSelf();
 }
