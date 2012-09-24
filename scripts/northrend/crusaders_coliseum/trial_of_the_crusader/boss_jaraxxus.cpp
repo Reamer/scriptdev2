@@ -169,6 +169,8 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
                 pSummoned->CastSpell(pSummoned, pSummoned->GetEntry() == NPC_INFERNAL_VOLCANO ? SPELL_SUMMON_INFERNAL_PERIODIC : SPELL_SUMMON_MISTRESS_PERIODIC, false);
                 if (!m_bIsHeroic)
                     pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                else
+                    pSummoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 break;
             default:
                 break;
