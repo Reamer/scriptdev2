@@ -255,7 +255,6 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
             angle -= 2.0f*M_PI_F;
 
         float lborder =  -1 * M_PI_F;                       // in range -pi..0
-        float rborder = 0;                                  // in range 0
         return (( angle >= lborder ) && ( angle <= 0 ));
     }
 
@@ -333,6 +332,33 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
                 m_uiTanglerTimer -= uiDiff;
         }
 
+        // DEBUG CODE
+        Map::PlayerList const& pPlayers = m_creature->GetMap()->GetPlayers();
+        if (!pPlayers.isEmpty())
+        {
+            for (Map::PlayerList::const_iterator itr = pPlayers.begin(); itr != pPlayers.end(); ++itr)
+            {
+                Player* pTarget = itr->getSource();
+                switch (GetOrmorkQuadrant(pTarget))
+                {
+                case RIGHT_IN_FRONT:
+                    pTarget->MonsterSay("right Front", LANG_UNIVERSAL);
+                    break;
+                case RIGHT_IN_BACK:
+                    pTarget->MonsterSay("right Back", LANG_UNIVERSAL);
+                    break;
+                case LEFT_IN_FRONT:
+                    pTarget->MonsterSay("left front", LANG_UNIVERSAL);
+                    break;
+                case LEFT_IN_BACK:
+                    pTarget->MonsterSay("left back", LANG_UNIVERSAL);
+                    break;
+                default:
+                    pTarget->MonsterSay("unknown", LANG_UNIVERSAL);
+                    break;
+                }
+            }
+        }
         DoMeleeAttackIfReady();
     }
 };
