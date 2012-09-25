@@ -40,18 +40,19 @@ enum
     SPELL_CRYSTAL_SPIKES_DMG_H  = 57067,
     SPELL_CRYSTAL_SPIKES_H1     = 57082,
     SPELL_CRYSTAL_SPIKES_H2     = 57083,
+    SPELL_CRYSTAL_SPIKES_VISUAL = 50442,
     // Chain
     SPELL_SUMMON_SPIKES_NORTH   = 47954,
     SPELL_SUMMON_SPIKES_WEST    = 47955,
     SPELL_SUMMON_SPIKES_SOUTH   = 47956,
     SPELL_SUMMON_SPIKES_EAST    = 47957,
-    SPELL_SUMMON_SPIKES_NORTH_EAST = 57077,
-    SPELL_SUMMON_SPIKES_NORTH_WEST = 57078,
-    SPELL_SUMMON_SPIKES_SOUTH_WEST = 57080,
-    SPELL_SUMMON_SPIKES_SOUTH_EAST = 57081,
+    //SPELL_SUMMON_SPIKES_NORTH_EAST = 57077,
+    //SPELL_SUMMON_SPIKES_NORTH_WEST = 57078,
+    //SPELL_SUMMON_SPIKES_SOUTH_WEST = 57080,
+    //SPELL_SUMMON_SPIKES_SOUTH_EAST = 57081,
     // Visual
-    SPELL_SUMMON_SPIKES_VISUAL_1   = 47942,
-    SPELL_SUMMON_SPIKES_VISUAL_2   = 47943,
+    //SPELL_SUMMON_SPIKES_VISUAL_1   = 47942,
+    //SPELL_SUMMON_SPIKES_VISUAL_2   = 47943,
 
 
     SPELL_FRENZY                = 48017,
@@ -100,7 +101,6 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
     uint32 m_uiTanglerTimer;
 
     GuidList CrystalNPCList;
-    GuidList CrystalGoList;
 
     void Reset()
     {
@@ -140,14 +140,11 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
             {
                 if (m_creature->GetDistance(pSummoned) < 40.0f)
                     pSummoned->CastSpell(pSummoned, GetNextSpellForQuadrant(GetOrmorkQuadrant(pSummoned)), false, NULL, NULL, m_creature->GetObjectGuid());
-                pSummoned->CastSpell(m_creature, urand(0,1) ? SPELL_SUMMON_SPIKES_VISUAL_1 : SPELL_SUMMON_SPIKES_VISUAL_2, true, NULL, NULL, m_creature->GetObjectGuid());
-                break;
-            }
-            case NPC_CRYSTAL_SPIKE_VISUAL:
-            {
+                pSummoned->CastSpell(m_creature, SPELL_CRYSTAL_SPIKES_VISUAL, true);
                 CrystalNPCList.push_back(pSummoned->GetObjectGuid());
                 break;
             }
+            case NPC_CRYSTAL_SPIKE_VISUAL:
             default:
                 break;
         }
@@ -158,8 +155,6 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
         switch (pGo->GetEntry())
         {
             case GO_CRYSTAL_SPIKE:
-                CrystalGoList.push_back(pGo->GetObjectGuid());
-                break;
             default:
                 break;
         }
@@ -172,41 +167,41 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
         {
             case LEFT_IN_FRONT:
             {
-                switch (urand (0,3))
+                switch (urand (0,1))
                 {
                     case 0: result = SPELL_SUMMON_SPIKES_NORTH; break;
                     case 1: result = SPELL_SUMMON_SPIKES_WEST; break;
-                    default: result = SPELL_SUMMON_SPIKES_NORTH_WEST; break;
+                    default:break;
                 }
                 break;
             }
             case LEFT_IN_BACK:
             {
-                switch (urand(0,3))
+                switch (urand(0,1))
                 {
                     case 0: result = SPELL_SUMMON_SPIKES_WEST; break;
                     case 1: result = SPELL_SUMMON_SPIKES_SOUTH; break;
-                    default: result = SPELL_SUMMON_SPIKES_SOUTH_WEST; break;
+                    default: break;
                 }
                 break;
             }
             case RIGHT_IN_FRONT:
             {
-                switch (urand(0,3))
+                switch (urand(0,1))
                 {
                     case 0: result = SPELL_SUMMON_SPIKES_NORTH; break;
                     case 1: result = SPELL_SUMMON_SPIKES_EAST; break;
-                    default: result = SPELL_SUMMON_SPIKES_NORTH_EAST; break;
+                    default: break;
                 }
                 break;
             }
             case RIGHT_IN_BACK:
             {
-                switch (urand(0,3))
+                switch (urand(0,1))
                 {
                     case 0: result = SPELL_SUMMON_SPIKES_EAST; break;
                     case 1: result = SPELL_SUMMON_SPIKES_SOUTH; break;
-                    default: result = SPELL_SUMMON_SPIKES_SOUTH_EAST; break;
+                    default: break;
                 }
                 break;
             }
@@ -294,7 +289,7 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
             DoScriptText(SAY_ICESPIKE, m_creature);
             DoCastSpellIfCan(m_creature, SPELL_CRYSTAL_SPIKES);
             m_uiCrystalSpikeTimer = urand(15000, 30000);
-            m_uiCrystalSpikeExplodeTimer = 5000;
+            m_uiCrystalSpikeExplodeTimer = 3000;
         }
         else
             m_uiCrystalSpikeTimer -= uiDiff;
@@ -303,18 +298,12 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
         {
             if (m_uiCrystalSpikeExplodeTimer <= uiDiff)
             {
-                for(GuidList::const_iterator itr = CrystalGoList.begin(); itr != CrystalGoList.end(); ++itr)
-                {
-                    if (GameObject* pGo = m_creature->GetMap()->GetGameObject(*itr))
-                    {
-                        pGo->Use(m_creature);
-                    }
-                }
                 for (GuidList::const_iterator itr = CrystalNPCList.begin(); itr != CrystalNPCList.end(); ++itr)
                 {
                     if (Creature* pCrystal = m_creature->GetMap()->GetCreature(*itr))
                     {
                         pCrystal->CastSpell(pCrystal, m_bIsRegularMode ? SPELL_CRYSTAL_SPIKES_DMG : SPELL_CRYSTAL_SPIKES_DMG_H, false);
+                        pCrystal->ForcedDespawn(1000);
                     }
                 }
                 m_uiCrystalSpikeExplodeTimer = 0;
