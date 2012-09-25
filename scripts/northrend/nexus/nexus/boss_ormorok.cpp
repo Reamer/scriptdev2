@@ -42,6 +42,7 @@ enum
     SPELL_CRYSTAL_SPIKES_H2     = 57083,
     SPELL_CRYSTAL_SPIKES_VISUAL = 50442,
     // Chain
+    SPELL_SUMMON_SPIKE          = 47947,
     SPELL_SUMMON_SPIKES_NORTH   = 47954,
     SPELL_SUMMON_SPIKES_WEST    = 47955,
     SPELL_SUMMON_SPIKES_SOUTH   = 47956,
@@ -63,9 +64,13 @@ enum
 
     SPELL_SUMMON_TANGLER_H      = 61564,
 
-    NPC_CRYSTAL_SPIKE_CHAIN     = 27101,
-    NPC_CRYSTAL_SPIKE_VISUAL    = 27079,
+    NPC_CRYSTAL_SPIKE_INITIAL   = 27101,
+    NPC_CRYSTAL_SPIKE_TRIGGER   = 27079,
+    NPC_CRYSTAL_SPIKE           = 27099,    // summon from 47947
     GO_CRYSTAL_SPIKE            = 188537,
+
+    // Others
+    SPIKE_DISTANCE = 5
 };
 
 enum OrmorkQuadrant
@@ -97,10 +102,14 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
     uint32 m_uiTrampleTimer;
     uint32 m_uiSpellReflectTimer;
     uint32 m_uiCrystalSpikeTimer;
-    uint32 m_uiCrystalSpikeExplodeTimer;
+    uint8  m_uiCrystalSpikesCount;
+    uint32 m_uiCrystalSpikesTimer;
     uint32 m_uiTanglerTimer;
 
-    GuidList CrystalNPCList;
+    float m_fBaseX;
+    float m_fBaseY;
+    float m_fBaseZ;
+    float m_fBaseO;
 
     void Reset()
     {
@@ -109,7 +118,8 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
         m_uiTrampleTimer = urand(10000, 35000);
         m_uiSpellReflectTimer = urand(5000, 10000);
         m_uiCrystalSpikeTimer = urand(15000, 30000);
-        m_uiCrystalSpikeExplodeTimer = 0;
+        m_uiCrystalSpikesCount = 0;
+        m_uiCrystalSpikesTimer = 0;
         m_uiTanglerTimer = 20000;
     }
 
@@ -136,15 +146,12 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
     {
         switch (pSummoned->GetEntry())
         {
-            case NPC_CRYSTAL_SPIKE_CHAIN:
-            {
-                if (m_creature->GetDistance(pSummoned) < 40.0f)
-                    pSummoned->CastSpell(pSummoned, GetNextSpellForQuadrant(GetOrmorkQuadrant(pSummoned)), false, NULL, NULL, m_creature->GetObjectGuid());
-                pSummoned->CastSpell(m_creature, SPELL_CRYSTAL_SPIKES_VISUAL, true);
-                CrystalNPCList.push_back(pSummoned->GetObjectGuid());
+            case NPC_CRYSTAL_SPIKE_INITIAL:
+            case NPC_CRYSTAL_SPIKE_TRIGGER:
                 break;
-            }
-            case NPC_CRYSTAL_SPIKE_VISUAL:
+            case NPC_CRYSTAL_SPIKE:
+                pSummoned->CastSpell(m_creature, SPELL_CRYSTAL_SPIKES_VISUAL, true);
+                break;
             default:
                 break;
         }
@@ -268,6 +275,32 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
             }
         }
 
+        if (m_uiCrystalSpikesTimer)
+        {
+            if (m_uiCrystalSpikesTimer < uiDiff)
+            {
+                float m_fSpikeXY[4][2];
+                m_fSpikeXY[0][0] = m_fBaseX+(SPIKE_DISTANCE*m_uiCrystalSpikesCount*cos(m_fBaseO));
+                m_fSpikeXY[0][1] = m_fBaseY+(SPIKE_DISTANCE*m_uiCrystalSpikesCount*sin(m_fBaseO));
+                m_fSpikeXY[1][0] = m_fBaseX-(SPIKE_DISTANCE*m_uiCrystalSpikesCount*cos(m_fBaseO));
+                m_fSpikeXY[1][1] = m_fBaseY-(SPIKE_DISTANCE*m_uiCrystalSpikesCount*sin(m_fBaseO));
+                m_fSpikeXY[2][0] = m_fBaseX+(SPIKE_DISTANCE*m_uiCrystalSpikesCount*cos(m_fBaseO-(M_PI/2)));
+                m_fSpikeXY[2][1] = m_fBaseY+(SPIKE_DISTANCE*m_uiCrystalSpikesCount*sin(m_fBaseO-(M_PI/2)));
+                m_fSpikeXY[3][0] = m_fBaseX-(SPIKE_DISTANCE*m_uiCrystalSpikesCount*cos(m_fBaseO-(M_PI/2)));
+                m_fSpikeXY[3][1] = m_fBaseY-(SPIKE_DISTANCE*m_uiCrystalSpikesCount*sin(m_fBaseO-(M_PI/2)));
+
+                for (uint8 i = 0; i < 4; i++)
+                    m_creature->CastSpell(m_fSpikeXY[i][0], m_fSpikeXY[i][1], m_fBaseZ, SPELL_SUMMON_SPIKE, true);
+
+                if (++m_uiCrystalSpikesCount >= 13)
+                    m_uiCrystalSpikesTimer = 0;
+
+                m_uiCrystalSpikesTimer = 250;
+            }
+            else
+                m_uiCrystalSpikesTimer -= uiDiff;
+        }
+
         if (m_uiTrampleTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_TRAMPLE : SPELL_TRAMPLE_H);
@@ -287,28 +320,17 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
         if (m_uiCrystalSpikeTimer < uiDiff)
         {
             DoScriptText(SAY_ICESPIKE, m_creature);
-            DoCastSpellIfCan(m_creature, SPELL_CRYSTAL_SPIKES);
+            //DoCastSpellIfCan(m_creature, SPELL_CRYSTAL_SPIKES);
             m_uiCrystalSpikeTimer = urand(15000, 30000);
-            m_uiCrystalSpikeExplodeTimer = 3000;
+            m_uiCrystalSpikesCount = 1;
+            m_uiCrystalSpikesTimer = 250;
+            m_fBaseX = m_creature->GetPositionX();
+            m_fBaseY = m_creature->GetPositionY();
+            m_fBaseZ = m_creature->GetPositionZ();
+            m_fBaseO = m_creature->GetOrientation();
         }
         else
             m_uiCrystalSpikeTimer -= uiDiff;
-
-        if (m_uiCrystalSpikeExplodeTimer)
-        {
-            if (m_uiCrystalSpikeExplodeTimer <= uiDiff)
-            {
-                for (GuidList::const_iterator itr = CrystalNPCList.begin(); itr != CrystalNPCList.end(); ++itr)
-                {
-                    if (Creature* pCrystal = m_creature->GetMap()->GetCreature(*itr))
-                    {
-                        pCrystal->CastSpell(pCrystal, m_bIsRegularMode ? SPELL_CRYSTAL_SPIKES_DMG : SPELL_CRYSTAL_SPIKES_DMG_H, false);
-                        pCrystal->ForcedDespawn(1000);
-                    }
-                }
-                m_uiCrystalSpikeExplodeTimer = 0;
-            }
-        }
 
         if (!m_bIsRegularMode)
         {
