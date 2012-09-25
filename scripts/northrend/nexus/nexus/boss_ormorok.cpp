@@ -222,29 +222,29 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
         // we have target in front
         if (m_creature->HasInArc(M_PI_F, pTarget))
         {
-            if (IsTargetInLeftSide(pTarget))
+            if (IsTargetInRightSide(pTarget))
             {
-                return LEFT_IN_FRONT;
+                return RIGHT_IN_FRONT;
             }
             else
             {
-                return RIGHT_IN_FRONT;
+                return LEFT_IN_FRONT;
             }
         }
         else // target behind
         {
-            if (IsTargetInLeftSide(pTarget))
+            if (IsTargetInRightSide(pTarget))
             {
-                return LEFT_IN_BACK;
+                return RIGHT_IN_BACK;
             }
             else
             {
-                return RIGHT_IN_BACK;
+                return LEFT_IN_BACK;
             }
         }
     }
 
-    bool IsTargetInLeftSide(Unit* pTarget)
+    bool IsTargetInRightSide(Unit* pTarget)
     {
         float angle = m_creature->GetAngle(pTarget);
         angle -= m_creature->GetOrientation();
@@ -332,33 +332,6 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
                 m_uiTanglerTimer -= uiDiff;
         }
 
-        // DEBUG CODE
-        Map::PlayerList const& pPlayers = m_creature->GetMap()->GetPlayers();
-        if (!pPlayers.isEmpty())
-        {
-            for (Map::PlayerList::const_iterator itr = pPlayers.begin(); itr != pPlayers.end(); ++itr)
-            {
-                Player* pTarget = itr->getSource();
-                switch (GetOrmorkQuadrant(pTarget))
-                {
-                case RIGHT_IN_FRONT:
-                    pTarget->MonsterSay("right Front", LANG_UNIVERSAL);
-                    break;
-                case RIGHT_IN_BACK:
-                    pTarget->MonsterSay("right Back", LANG_UNIVERSAL);
-                    break;
-                case LEFT_IN_FRONT:
-                    pTarget->MonsterSay("left front", LANG_UNIVERSAL);
-                    break;
-                case LEFT_IN_BACK:
-                    pTarget->MonsterSay("left back", LANG_UNIVERSAL);
-                    break;
-                default:
-                    pTarget->MonsterSay("unknown", LANG_UNIVERSAL);
-                    break;
-                }
-            }
-        }
         DoMeleeAttackIfReady();
     }
 };
