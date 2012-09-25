@@ -36,8 +36,23 @@ enum
     SPELL_REFLECTION            = 47981,
 
     SPELL_CRYSTAL_SPIKES        = 47958,
+    SPELL_CRYSTAL_SPIKES_DMG    = 47944,
+    SPELL_CRYSTAL_SPIKES_DMG_H  = 57067,
     SPELL_CRYSTAL_SPIKES_H1     = 57082,
     SPELL_CRYSTAL_SPIKES_H2     = 57083,
+    // Chain
+    SPELL_SUMMON_SPIKES_NORTH   = 47954,
+    SPELL_SUMMON_SPIKES_WEST    = 47955,
+    SPELL_SUMMON_SPIKES_SOUTH   = 47956,
+    SPELL_SUMMON_SPIKES_EAST    = 47957,
+    SPELL_SUMMON_SPIKES_NORTH_EAST = 57077,
+    SPELL_SUMMON_SPIKES_NORTH_WEST = 57078,
+    SPELL_SUMMON_SPIKES_SOUTH_WEST = 57080,
+    SPELL_SUMMON_SPIKES_SOUTH_EAST = 57081,
+    // Visual
+    SPELL_SUMMON_SPIKES_VISUAL_1   = 47942,
+    SPELL_SUMMON_SPIKES_VISUAL_2   = 47943,
+
 
     SPELL_FRENZY                = 48017,
     SPELL_FRENZY_H              = 57086,
@@ -45,7 +60,19 @@ enum
     SPELL_TRAMPLE               = 48016,
     SPELL_TRAMPLE_H             = 57066,
 
-    SPELL_SUMMON_TANGLER_H      = 61564
+    SPELL_SUMMON_TANGLER_H      = 61564,
+
+    NPC_CRYSTAL_SPIKE_CHAIN     = 27101,
+    NPC_CRYSTAL_SPIKE_VISUAL    = 27079,
+    GO_CRYSTAL_SPIKE            = 188537,
+};
+
+enum OrmorkQuadrant
+{
+    RIGHT_IN_FRONT,
+    RIGHT_IN_BACK,
+    LEFT_IN_FRONT,
+    LEFT_IN_BACK
 };
 
 /*######
@@ -69,7 +96,11 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
     uint32 m_uiTrampleTimer;
     uint32 m_uiSpellReflectTimer;
     uint32 m_uiCrystalSpikeTimer;
+    uint32 m_uiCrystalSpikeExplodeTimer;
     uint32 m_uiTanglerTimer;
+
+    GuidList CrystalNPCList;
+    GuidList CrystalGoList;
 
     void Reset()
     {
@@ -78,6 +109,7 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
         m_uiTrampleTimer = urand(10000, 35000);
         m_uiSpellReflectTimer = urand(5000, 10000);
         m_uiCrystalSpikeTimer = urand(15000, 30000);
+        m_uiCrystalSpikeExplodeTimer = 0;
         m_uiTanglerTimer = 20000;
     }
 
@@ -102,8 +134,129 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned)
     {
-        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
-            pSummoned->AI()->AttackStart(pTarget);
+        switch (pSummoned->GetEntry())
+        {
+            case NPC_CRYSTAL_SPIKE_CHAIN:
+            {
+                if (m_creature->GetDistance(pSummoned) < 40.0f)
+                    pSummoned->CastSpell(pSummoned, GetNextSpellForQuadrant(GetOrmorkQuadrant(pSummoned)), false, NULL, NULL, m_creature->GetObjectGuid());
+                pSummoned->CastSpell(m_creature, urand(0,1) ? SPELL_SUMMON_SPIKES_VISUAL_1 : SPELL_SUMMON_SPIKES_VISUAL_2, true, NULL, NULL, m_creature->GetObjectGuid());
+                break;
+            }
+            case NPC_CRYSTAL_SPIKE_VISUAL:
+            {
+                CrystalNPCList.push_back(pSummoned->GetObjectGuid());
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    void JustSummoned(GameObject* pGo)
+    {
+        switch (pGo->GetEntry())
+        {
+            case GO_CRYSTAL_SPIKE:
+                CrystalGoList.push_back(pGo->GetObjectGuid());
+                break;
+            default:
+                break;
+        }
+    }
+
+    uint32 GetNextSpellForQuadrant(OrmorkQuadrant ormorkQuadrant)
+    {
+        uint32 result = 0;
+        switch (ormorkQuadrant)
+        {
+            case LEFT_IN_FRONT:
+            {
+                switch (urand (0,3))
+                {
+                    case 0: result = SPELL_SUMMON_SPIKES_NORTH; break;
+                    case 1: result = SPELL_SUMMON_SPIKES_WEST; break;
+                    default: result = SPELL_SUMMON_SPIKES_NORTH_WEST; break;
+                }
+                break;
+            }
+            case LEFT_IN_BACK:
+            {
+                switch (urand(0,3))
+                {
+                    case 0: result = SPELL_SUMMON_SPIKES_WEST; break;
+                    case 1: result = SPELL_SUMMON_SPIKES_SOUTH; break;
+                    default: result = SPELL_SUMMON_SPIKES_SOUTH_WEST; break;
+                }
+                break;
+            }
+            case RIGHT_IN_FRONT:
+            {
+                switch (urand(0,3))
+                {
+                    case 0: result = SPELL_SUMMON_SPIKES_NORTH; break;
+                    case 1: result = SPELL_SUMMON_SPIKES_EAST; break;
+                    default: result = SPELL_SUMMON_SPIKES_NORTH_EAST; break;
+                }
+                break;
+            }
+            case RIGHT_IN_BACK:
+            {
+                switch (urand(0,3))
+                {
+                    case 0: result = SPELL_SUMMON_SPIKES_EAST; break;
+                    case 1: result = SPELL_SUMMON_SPIKES_SOUTH; break;
+                    default: result = SPELL_SUMMON_SPIKES_SOUTH_EAST; break;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+        return result;
+    }
+
+    OrmorkQuadrant GetOrmorkQuadrant(Unit* pTarget)
+    {
+
+        // we have target in front
+        if (m_creature->HasInArc(M_PI_F, pTarget))
+        {
+            if (IsTargetInLeftSide(pTarget))
+            {
+                return LEFT_IN_FRONT;
+            }
+            else
+            {
+                return RIGHT_IN_FRONT;
+            }
+        }
+        else // target behind
+        {
+            if (IsTargetInLeftSide(pTarget))
+            {
+                return LEFT_IN_BACK;
+            }
+            else
+            {
+                return RIGHT_IN_BACK;
+            }
+        }
+    }
+
+    bool IsTargetInLeftSide(Unit* pTarget)
+    {
+        float angle = m_creature->GetAngle(pTarget);
+        angle -= m_creature->GetOrientation();
+
+        // move angle to range -pi ... +pi
+        angle = MapManager::NormalizeOrientation(angle);
+        if (angle > M_PI_F)
+            angle -= 2.0f*M_PI_F;
+
+        float lborder =  -1 * M_PI_F;                       // in range -pi..0
+        float rborder = 0;                                  // in range 0
+        return (( angle >= lborder ) && ( angle <= 0 ));
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -142,9 +295,32 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
             DoScriptText(SAY_ICESPIKE, m_creature);
             DoCastSpellIfCan(m_creature, SPELL_CRYSTAL_SPIKES);
             m_uiCrystalSpikeTimer = urand(15000, 30000);
+            m_uiCrystalSpikeExplodeTimer = 5000;
         }
         else
             m_uiCrystalSpikeTimer -= uiDiff;
+
+        if (m_uiCrystalSpikeExplodeTimer)
+        {
+            if (m_uiCrystalSpikeExplodeTimer <= uiDiff)
+            {
+                for(GuidList::const_iterator itr = CrystalGoList.begin(); itr != CrystalGoList.end(); ++itr)
+                {
+                    if (GameObject* pGo = m_creature->GetMap()->GetGameObject(*itr))
+                    {
+                        pGo->Use(m_creature);
+                    }
+                }
+                for (GuidList::const_iterator itr = CrystalNPCList.begin(); itr != CrystalNPCList.end(); ++itr)
+                {
+                    if (Creature* pCrystal = m_creature->GetMap()->GetCreature(*itr))
+                    {
+                        pCrystal->CastSpell(pCrystal, m_bIsRegularMode ? SPELL_CRYSTAL_SPIKES_DMG : SPELL_CRYSTAL_SPIKES_DMG_H, false);
+                    }
+                }
+                m_uiCrystalSpikeExplodeTimer = 0;
+            }
+        }
 
         if (!m_bIsRegularMode)
         {
