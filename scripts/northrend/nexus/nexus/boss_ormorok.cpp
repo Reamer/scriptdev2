@@ -64,6 +64,7 @@ enum
 
     SPELL_SUMMON_TANGLER_H      = 61564,
 
+    NPC_CRYSTALLINE_TANGLER     = 32665,
     NPC_CRYSTAL_SPIKE_INITIAL   = 27101,
     NPC_CRYSTAL_SPIKE_TRIGGER   = 27079,
     NPC_CRYSTAL_SPIKE           = 27099,    // summon from 47947
@@ -146,12 +147,15 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
     {
         switch (pSummoned->GetEntry())
         {
+            case NPC_CRYSTALLINE_TANGLER:
+            {
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    pSummoned->AI()->AttackStart(pTarget);
+                break;
+            }
             case NPC_CRYSTAL_SPIKE_INITIAL:
             case NPC_CRYSTAL_SPIKE_TRIGGER:
-                break;
             case NPC_CRYSTAL_SPIKE:
-                pSummoned->CastSpell(m_creature, SPELL_CRYSTAL_SPIKES_VISUAL, true);
-                break;
             default:
                 break;
         }
