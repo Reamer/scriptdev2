@@ -74,14 +74,6 @@ enum
     SPIKE_DISTANCE = 5
 };
 
-enum OrmorkQuadrant
-{
-    RIGHT_IN_FRONT,
-    RIGHT_IN_BACK,
-    LEFT_IN_FRONT,
-    LEFT_IN_BACK
-};
-
 /*######
 ## boss_ormorok
 ######*/
@@ -153,115 +145,9 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
                     pSummoned->AI()->AttackStart(pTarget);
                 break;
             }
-            case NPC_CRYSTAL_SPIKE_INITIAL:
-            case NPC_CRYSTAL_SPIKE_TRIGGER:
-            case NPC_CRYSTAL_SPIKE:
             default:
                 break;
         }
-    }
-
-    void JustSummoned(GameObject* pGo)
-    {
-        switch (pGo->GetEntry())
-        {
-            case GO_CRYSTAL_SPIKE:
-            default:
-                break;
-        }
-    }
-
-    uint32 GetNextSpellForQuadrant(OrmorkQuadrant ormorkQuadrant)
-    {
-        uint32 result = 0;
-        switch (ormorkQuadrant)
-        {
-            case LEFT_IN_FRONT:
-            {
-                switch (urand (0,1))
-                {
-                    case 0: result = SPELL_SUMMON_SPIKES_NORTH; break;
-                    case 1: result = SPELL_SUMMON_SPIKES_WEST; break;
-                    default:break;
-                }
-                break;
-            }
-            case LEFT_IN_BACK:
-            {
-                switch (urand(0,1))
-                {
-                    case 0: result = SPELL_SUMMON_SPIKES_WEST; break;
-                    case 1: result = SPELL_SUMMON_SPIKES_SOUTH; break;
-                    default: break;
-                }
-                break;
-            }
-            case RIGHT_IN_FRONT:
-            {
-                switch (urand(0,1))
-                {
-                    case 0: result = SPELL_SUMMON_SPIKES_NORTH; break;
-                    case 1: result = SPELL_SUMMON_SPIKES_EAST; break;
-                    default: break;
-                }
-                break;
-            }
-            case RIGHT_IN_BACK:
-            {
-                switch (urand(0,1))
-                {
-                    case 0: result = SPELL_SUMMON_SPIKES_EAST; break;
-                    case 1: result = SPELL_SUMMON_SPIKES_SOUTH; break;
-                    default: break;
-                }
-                break;
-            }
-            default:
-                break;
-        }
-        return result;
-    }
-
-    OrmorkQuadrant GetOrmorkQuadrant(Unit* pTarget)
-    {
-
-        // we have target in front
-        if (m_creature->HasInArc(M_PI_F, pTarget))
-        {
-            if (IsTargetInRightSide(pTarget))
-            {
-                return RIGHT_IN_FRONT;
-            }
-            else
-            {
-                return LEFT_IN_FRONT;
-            }
-        }
-        else // target behind
-        {
-            if (IsTargetInRightSide(pTarget))
-            {
-                return RIGHT_IN_BACK;
-            }
-            else
-            {
-                return LEFT_IN_BACK;
-            }
-        }
-    }
-
-    bool IsTargetInRightSide(Unit* pTarget)
-    {
-        float angle = m_creature->GetAngle(pTarget);
-        angle -= m_creature->GetOrientation();
-
-        // move angle to range -pi ... +pi
-        angle = MapManager::NormalizeOrientation(angle);
-        if (angle > M_PI_F)
-            angle -= 2.0f*M_PI_F;
-
-        float lborder =  -1 * M_PI_F;                       // in range -pi..0
-        return (( angle >= lborder ) && ( angle <= 0 ));
     }
 
     void UpdateAI(const uint32 uiDiff)
