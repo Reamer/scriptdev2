@@ -49,11 +49,6 @@ enum
     SAY_ICK_CHASE_EMOTE           = -1658034,
 };
 
-const float KrickPos[4] = {856.237f, 120.484f, 510.01f, 3.48f};
-
-#define HOME_X                      852.322f
-#define HOME_Y                      127.969f
-
 struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
 {
     boss_IckAI(Creature *pCreature) : ScriptedAI(pCreature)
@@ -151,19 +146,19 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         {
             if (Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
             {
-                switch (urand(0, 2))
+                if (DoCastSpellIfCan(m_creature, SPELL_PURSUED) == CAST_OK)
                 {
-                    case 0: DoScriptText(SAY_KRICK_CHASE_1, pKrick); break;
-                    case 1: DoScriptText(SAY_KRICK_CHASE_2, pKrick); break;
-                    case 2: DoScriptText(SAY_KRICK_CHASE_3, pKrick); break;
-                    default:
-                        break;
+                    switch (urand(0, 2))
+                    {
+                        case 0: DoScriptText(SAY_KRICK_CHASE_1, pKrick); break;
+                        case 1: DoScriptText(SAY_KRICK_CHASE_2, pKrick); break;
+                        case 2: DoScriptText(SAY_KRICK_CHASE_3, pKrick); break;
+                        default:
+                            break;
+                    }
+                    m_uiPursueTimer = 13000;
                 }
             }
-
-            if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER))
-                DoCast(pTarget, SPELL_PURSUED);
-            m_uiPursueTimer = 13000;
         }
         else
             m_uiPursueTimer -= uiDiff;
