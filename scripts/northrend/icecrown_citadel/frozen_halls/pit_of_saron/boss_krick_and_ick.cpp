@@ -91,8 +91,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
     {
         if (pSpell->Id == SPELL_PURSUED)
         {
-            SetCombatMovement(false);
-            m_creature->GetMotionMaster()->MoveChase(pTarget);
+            m_creature->Attack(pTarget, true);
             m_uiPursueAwayTimer = 12000;
         }
     }
@@ -129,8 +128,25 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+
+        if (m_uiPursueAwayTimer)
+        {
+            if (m_uiPursueAwayTimer <= uiDiff)
+            {
+                m_uiPursueAwayTimer = 0;
+            }
+            else
+                m_uiPursueAwayTimer -= uiDiff;
+        }
+
+        if (!m_creature->getVictim())
             return;
+
+        if (!m_uiPursueAwayTimer)
+        {
+            if (!m_creature->SelectHostileTarget())
+                return;
+        }
 
         if (m_uiPoisonNovaTimer < uiDiff)
         {
@@ -167,16 +183,6 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         else
             m_uiPursueTimer -= uiDiff;
 
-        if (m_uiPursueAwayTimer)
-        {
-            if (m_uiPursueAwayTimer <= uiDiff)
-            {
-                SetCombatMovement(true);
-                m_uiPursueAwayTimer = 0;
-            }
-            else
-                m_uiPursueAwayTimer -= uiDiff;
-        }
 
         if (m_uiMightKickTimer < uiDiff)
         {
@@ -195,7 +201,6 @@ struct MANGOS_DLL_DECL boss_KrickAI : public ScriptedAI
     boss_KrickAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-//        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         Reset();
     }
 
@@ -211,11 +216,6 @@ struct MANGOS_DLL_DECL boss_KrickAI : public ScriptedAI
         m_uiShadowboltTimer      = 15000;
         m_uiExplosivBarrageTimer = 35000;
     }
-
-//    void JustDied(Unit *victim)
-    //{
-        //m_creature->SummonCreature(NPC_KRICK_EVENT, m_creature->GetPositionX() - 5, m_creature->GetPositionY() - 5, m_creature->GetPositionZ(), KrickPos[3], TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000);
-    //}
 
     void UpdateAI(const uint32 uiDiff)
     {
