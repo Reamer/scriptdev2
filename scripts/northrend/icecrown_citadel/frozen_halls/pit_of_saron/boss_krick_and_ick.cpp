@@ -96,18 +96,6 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         }
     }
 
-    void AttackStart(Unit* pWho)
-    {
-        if (pWho)
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            if (!m_uiPursueTimer)
-                m_creature->GetMotionMaster()->MoveChase(pWho);
-        }
-    }
-
     void Aggro(Unit* pWho)
     {
         if (m_pInstance)
@@ -138,9 +126,6 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
             else
                 m_uiPursueAwayTimer -= uiDiff;
         }
-
-        if (!m_creature->getVictim())
-            return;
 
         if (!m_uiPursueAwayTimer)
         {
