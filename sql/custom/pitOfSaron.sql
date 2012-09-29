@@ -1,10 +1,11 @@
 -- Boss
+UPDATE `creature_template` SET `ScriptName`='boss_forgemaster_garfrost', `AIName` ='' WHERE `entry`=36494;
 UPDATE `creature_template` SET `ScriptName`='boss_ick' WHERE `entry`=36476;
 UPDATE `creature_template` SET `ScriptName`='boss_krick' WHERE `entry`=36477;
 UPDATE `creature_template` SET `ScriptName`='boss_rimefang' WHERE `entry`=36661;
-UPDATE `creature_template` SET `ScriptName`='npc_icicle_pit_of_saron' WHERE `entry`=36847;
 UPDATE `creature_template` SET `ScriptName`='boss_scourgelord_tyrannus', `AIName` ='' WHERE `entry`=36658;
-UPDATE `creature_template` SET `ScriptName`='boss_forgemaster_garfrost', `AIName` ='' WHERE `entry`=36494;
+-- Dungeon Mobs
+UPDATE `creature_template` SET `ScriptName`='npc_icicle_pit_of_saron' WHERE `entry`=36847;
 
 -- DB Correction
 DELETE FROM creature_template_addon WHERE entry = 36477; -- delete Krick auras
@@ -14,7 +15,7 @@ INSERT INTO creature_template_addon (entry, auras) VALUES
 (36610, '69017 69020');
 
 -- trigger
-DELETE FROM scripted_areatrigger WHERE entry IN (5580, 5581);
+DELETE FROM scripted_areatrigger WHERE entry IN (5580, 5581, 5598, 5599);
 INSERT INTO scripted_areatrigger VALUES
 (5580, 'at_pit_of_saron'),
 (5581, 'at_pit_of_saron'),
