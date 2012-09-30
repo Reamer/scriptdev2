@@ -422,7 +422,7 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, PitOfSaronEvent ui
         }
         case EVENT_KRICK:
         {
-            for (GuidList::const_iterator itr = m_lEventGuids.begin(); itr != m_lSoldiersGuids.end(); ++itr)
+            for (GuidList::const_iterator itr = m_lEventGuids.begin(); itr != m_lEventGuids.end(); ++itr)
             {
                 if (Creature* pSummoned = instance->GetCreature(*itr))
                     pSummoned->ForcedDespawn();
