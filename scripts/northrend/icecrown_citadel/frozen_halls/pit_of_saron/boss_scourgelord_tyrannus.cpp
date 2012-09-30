@@ -82,6 +82,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
 
     uint32 m_uiIcyBlastTimer;
     uint32 m_uiIcyBlastSlowTimer;
+    bool  m_bStartIntro;
 
     void Reset()
     {
@@ -91,16 +92,19 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         if (m_creature->GetVehicleKit())
             m_creature->GetVehicleKit()->InstallAllAccessories(m_creature->GetEntry());
 
+        m_bStartIntro           = false;
         m_uiIcyBlastTimer       = 35000;
         m_uiIcyBlastSlowTimer   = 30000;
     }
 
     void MoveInLineOfSight(Unit* pWho)
     {
-        if (m_creature->IsWithinDistInMap(pWho, 40.0f))
+        if (m_creature->IsWithinDistInMap(pWho, 40.0f) && pWho->GetTypeId() == TYPEID_PLAYER)
         {
+            m_bStartIntro = true;
             m_pInstance->SetData(TYPE_TYRANNUS, SPECIAL);
         }
+        ScriptedAI::MoveInLineOfSight(pWho);
     }
 
     void JustSummoned(Creature* pSummoned)

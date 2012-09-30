@@ -454,7 +454,7 @@ void instance_pit_of_saron::ProcessEventNpcs(Player* pPlayer, PitOfSaronEvent ui
         }
         case EVENT_TYRANNUS_END:
         {
-            for (GuidList::const_iterator itr = m_lEventGuids.begin(); itr != m_lSoldiersGuids.end(); ++itr)
+            for (GuidList::const_iterator itr = m_lEventGuids.begin(); itr != m_lEventGuids.end(); ++itr)
             {
                 if (Creature* pSummoned = instance->GetCreature(*itr))
                     pSummoned->ForcedDespawn();
@@ -493,7 +493,9 @@ void instance_pit_of_saron::Update(uint32 const uiDiff)
                         if (pTarget && pTarget->isAlive())
                         {
                             if (roll_chance_i(50))
-                                pRimefang->CastSpell(pTarget, SPELL_SUMMON_ICICLE, false);
+                            {
+                                pTarget->CastSpell(pTarget, SPELL_SUMMON_ICICLE, true, NULL, NULL, pRimefang->GetObjectGuid());
+                            }
                         }
                     }
                 }
