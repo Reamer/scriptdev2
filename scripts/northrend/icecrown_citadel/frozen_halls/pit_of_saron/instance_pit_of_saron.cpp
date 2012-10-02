@@ -308,6 +308,7 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
     switch(uiType)
     {
         case TYPE_GARFROST:
+        {
             if (uiData == DONE)
             {
                 StartNextDialogueText(EVENT_GARFROST);
@@ -315,7 +316,9 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
                     DoUseDoorOrButton(GO_ICEWALL);
             }
             break;
+        }
         case TYPE_KRICK:
+        {
             if (uiData == DONE)
             {
                 StartNextDialogueText(EVENT_KRICK);
@@ -323,23 +326,43 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
                     DoUseDoorOrButton(GO_ICEWALL);
             }
             break;
+        }
         case TYPE_TYRANNUS:
-            if (uiData == SPECIAL)
+        {
+            switch (uiData)
             {
-                StartNextDialogueText(EVENT_TYRANNUS_START);
-            }
-            if (uiData == DONE)
-            {
-                StartNextDialogueText(EVENT_TYRANNUS_END);
+                case FAIL:
+                {
+                    if (Creature* pRimefang = GetSingleCreatureFromStorage(NPC_RIMEFANG))
+                    {
+                        pRimefang->AI()->EnterEvadeMode();
+                    }
+                    break;
+                }
+                case SPECIAL:
+                {
+                    StartNextDialogueText(EVENT_TYRANNUS_START);
+                    break;
+                }
+                case DONE:
+                {
+                    StartNextDialogueText(EVENT_TYRANNUS_END);
+                    break;
+                }
+                default:
+                    break;
             }
             break;
+        }
         case TYPE_GAUNTLET:
+        {
             if (uiData == IN_PROGRESS)
             {
                 m_uiIcicleTimer = 3000;
                 StartNextDialogueText(EVENT_GAUNTLET);
             }
             break;
+        }
         case TYPE_INTRO:
             break;
         default:

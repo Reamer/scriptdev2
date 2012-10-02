@@ -99,7 +99,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho)
     {
-        if (m_creature->IsWithinDistInMap(pWho, 40.0f) && pWho->GetTypeId() == TYPEID_PLAYER)
+        if (m_creature->IsWithinDistInMap(pWho, 40.0f) && pWho->GetTypeId() == TYPEID_PLAYER && !m_bStartIntro)
         {
             m_bStartIntro = true;
             m_pInstance->SetData(TYPE_TYRANNUS, SPECIAL);
