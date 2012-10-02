@@ -150,17 +150,15 @@ CreatureAI* GetAI_mob_ulduar_rubble(Creature* pCreature)
 // Kologarn
 struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 {
-    boss_kologarnAI(Creature* pCreature) : ScriptedAI(pCreature) 
+    boss_kologarnAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        vehicle = m_creature->GetVehicleKit();
         SetCombatMovement(false);
         Reset();
     }
 
     instance_ulduar* m_pInstance;
-    VehicleKitPtr vehicle;
     bool m_bIsRegularMode;
 
     uint32 m_uiSpell_Timer;
@@ -192,8 +190,8 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         m_uiRubbleNo        = 0;
         m_bOpenArms         = true;
         m_uiDisarmedTimer   = 0;
-        if (vehicle)
-            vehicle->InstallAllAccessories(m_creature->GetEntry());
+        if (m_creature->GetVehicleKit())
+            m_creature->GetVehicleKit()->InstallAllAccessories(m_creature->GetEntry());
     }
 
     void JustDied(Unit* pKiller)
@@ -294,14 +292,16 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
     void InstallRightArm()
     {
-        vehicle->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_RIGHT_ARM);
+        if (m_creature->GetVehicleKit())
+            m_creature->GetVehicleKit()->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_RIGHT_ARM);
         DoScriptText(EMOTE_RIGHT_ARM, m_creature);
         m_uiRespawnRightTimer = 0;
     }
     
     void InstallLeftArm()
     {
-        vehicle->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_LEFT_ARM);
+        if (m_creature->GetVehicleKit())
+            m_creature->GetVehicleKit()->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_LEFT_ARM);
         DoScriptText(EMOTE_LEFT_ARM, m_creature);
         m_uiRespawnLeftTimer = 0;
     }
