@@ -59,19 +59,27 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
+    // Ick
     uint32 m_uiPoisonNovaTimer;
     uint32 m_uiPursueTimer;
-    uint32 m_uiPursueAwayTimer;
+    uint32 m_uiStopAutomaticMovement;
     uint32 m_uiMightKickTimer;
+    // Krick
+    uint32 m_uiToxicWasteTimer;
+    uint32 m_uiShadowboltTimer;
+    uint32 m_uiExplosivBarrageTimer;
 
     void Reset()
     {
         if (m_creature->GetVehicleKit())
             m_creature->GetVehicleKit()->InstallAllAccessories(m_creature->GetEntry());
-        m_uiPoisonNovaTimer = 30000;
-        m_uiPursueTimer     = 10000;
-        m_uiPursueAwayTimer = 0;
-        m_uiMightKickTimer  = 20000;
+        m_uiPoisonNovaTimer         = 30000;
+        m_uiPursueTimer             = 10000;
+        m_uiStopAutomaticMovement   = 0;
+        m_uiMightKickTimer          = 20000;
+        m_uiToxicWasteTimer         = 5000;
+        m_uiShadowboltTimer         = 15000;
+        m_uiExplosivBarrageTimer    = 35000;
     }
 
     void KilledUnit(Unit *victim)
@@ -87,7 +95,8 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         if (pSpell->Id == SPELL_PURSUED)
         {
             m_creature->Attack(pTarget, true);
-            m_uiPursueAwayTimer = 12000;
+            m_uiStopAutomaticMovement = 12000;
+            m_uiExplosivBarrageTimer += 12000;
         }
     }
 
@@ -98,7 +107,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
 
         if(Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
         {
-            pKrick->AI()->AttackStart(pWho);
+     //       pKrick->AI()->AttackStart(pWho);
             DoScriptText(SAY_AGGRO, pKrick);
         }
     }
@@ -112,17 +121,17 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
 
-        if (m_uiPursueAwayTimer)
+        if (m_uiStopAutomaticMovement)
         {
-            if (m_uiPursueAwayTimer <= uiDiff)
+            if (m_uiStopAutomaticMovement <= uiDiff)
             {
-                m_uiPursueAwayTimer = 0;
+                m_uiStopAutomaticMovement = 0;
             }
             else
-                m_uiPursueAwayTimer -= uiDiff;
+                m_uiStopAutomaticMovement -= uiDiff;
         }
 
-        if (!m_uiPursueAwayTimer)
+        if (!m_uiStopAutomaticMovement)
         {
             if (!m_creature->SelectHostileTarget())
                 return;
@@ -142,6 +151,53 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         else
             m_uiPoisonNovaTimer -= uiDiff;
 
+        if (m_uiToxicWasteTimer < uiDiff)
+        {
+            if (Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
+            {
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    pKrick->CastSpell(pTarget, SPELL_TOXIC_WASTE, false);
+                    m_uiToxicWasteTimer = urand(9000, 11000);
+                }
+            }
+        }
+        else
+            m_uiToxicWasteTimer -= uiDiff;
+
+        if (m_uiShadowboltTimer < uiDiff)
+        {
+            if (Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
+            {
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    pKrick->CastSpell(pTarget, SPELL_SHADOW_BOLT, false);
+                    m_uiShadowboltTimer = urand(14000, 16000);
+                }
+            }
+        }
+        else
+            m_uiShadowboltTimer -= uiDiff;
+
+        if (m_uiExplosivBarrageTimer < uiDiff)
+        {
+            if (Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
+            {
+                m_creature->GetMotionMaster()->Clear();
+                m_creature->GetMotionMaster()->MoveIdle();
+                pKrick->CastSpell(pKrick, SPELL_EXPLOSIVE_BARRAGE, false);
+                DoScriptText(SAY_KRICK_BARRAGE, pKrick);
+                DoScriptText(SAY_KRICK_BARRAGE_EMOTE, pKrick);
+                m_uiExplosivBarrageTimer = urand(44000, 46000);
+                m_uiStopAutomaticMovement = 18000;
+                m_uiPursueTimer += 18000;
+                m_uiShadowboltTimer += 18000;
+                m_uiToxicWasteTimer += 18000;
+            }
+        }
+        else
+            m_uiExplosivBarrageTimer -= uiDiff;
+
         if (m_uiPursueTimer < uiDiff)
         {
             if (Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
@@ -156,7 +212,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
                         default:
                             break;
                     }
-                    m_uiPursueTimer = 13000;
+                    m_uiPursueTimer = 25000;
                 }
             }
         }
@@ -186,15 +242,8 @@ struct MANGOS_DLL_DECL boss_KrickAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
-    uint32 m_uiToxicWasteTimer;
-    uint32 m_uiShadowboltTimer;
-    uint32 m_uiExplosivBarrageTimer;
-
     void Reset()
     {
-        m_uiToxicWasteTimer      = 5000;
-        m_uiShadowboltTimer      = 15000;
-        m_uiExplosivBarrageTimer = 35000;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -202,43 +251,7 @@ struct MANGOS_DLL_DECL boss_KrickAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_uiToxicWasteTimer < uiDiff)
-        {
-            if(Creature* pIck = m_pInstance->GetSingleCreatureFromStorage(NPC_ICK))
-            {
-                if (Unit* pTarget = pIck->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                {
-                    if (DoCastSpellIfCan(pTarget, SPELL_TOXIC_WASTE) == CAST_OK)
-                        m_uiToxicWasteTimer = urand(9000, 11000);
-                }
-            }
-        }
-        else
-            m_uiToxicWasteTimer -= uiDiff;
 
-        if (m_uiShadowboltTimer < uiDiff)
-        {
-            if(Creature* pIck = m_pInstance->GetSingleCreatureFromStorage(NPC_ICK))
-            {
-                if (Unit* pTarget = pIck->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCast(pTarget, SPELL_SHADOW_BOLT);
-            }
-            m_uiShadowboltTimer = urand(14000, 16000);
-        }
-        else
-            m_uiShadowboltTimer -= uiDiff;
-
-        if (m_uiExplosivBarrageTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_EXPLOSIVE_BARRAGE) == CAST_OK)
-            {
-                DoScriptText(SAY_KRICK_BARRAGE, m_creature);
-                DoScriptText(SAY_KRICK_BARRAGE_EMOTE, m_creature);
-                m_uiExplosivBarrageTimer = urand(44000, 46000);
-            }
-        }
-        else
-            m_uiExplosivBarrageTimer -= uiDiff;
     }
 };
 

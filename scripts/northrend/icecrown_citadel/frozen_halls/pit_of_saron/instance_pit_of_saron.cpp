@@ -647,10 +647,9 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
         }
         case SAY_GAUNTLET_PREFIGHT_2:
         {
-            if (Creature* pRimefang = GetSingleCreatureFromStorage(NPC_RIMEFANG))
+            if (Creature* pTyrannus = GetSingleCreatureFromStorage(NPC_TYRANNUS))
             {
-                if (pRimefang->GetVehicleKit())
-                    pRimefang->GetVehicleKit()->RemoveAllPassengers();
+                pTyrannus->ExitVehicle();
                 // TODO: Maybe move Rimefang some meters into sky
             }
             break;
