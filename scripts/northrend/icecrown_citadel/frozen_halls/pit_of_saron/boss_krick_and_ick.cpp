@@ -72,7 +72,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
     void Reset()
     {
         if (m_creature->GetVehicleKit())
-            m_creature->GetVehicleKit()->InstallAllAccessories(m_creature->GetEntry());
+            m_creature->GetVehicleKit()->Reset();
         m_uiPoisonNovaTimer         = 30000;
         m_uiPursueTimer             = 10000;
         m_uiStopAutomaticMovement   = 0;

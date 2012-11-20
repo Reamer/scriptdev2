@@ -650,6 +650,7 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
             if (Creature* pTyrannus = GetSingleCreatureFromStorage(NPC_TYRANNUS))
             {
                 pTyrannus->ExitVehicle();
+                pTyrannus->GetMotionMaster()->MoveFall(); // should do automatic
                 // TODO: Maybe move Rimefang some meters into sky
             }
             break;

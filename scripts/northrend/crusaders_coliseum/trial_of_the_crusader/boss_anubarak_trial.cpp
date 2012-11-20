@@ -508,7 +508,7 @@ struct MANGOS_DLL_DECL npc_anubarak_trial_frostsphereAI : public ScriptedAI
 
             float fx ,fy, fz;
             m_creature->GetPosition(fx, fy, fz);  
-            fz = m_creature->GetMap()->GetHeight(m_creature->GetPhaseMask(), fx, fy, fz, true, MAX_FALL_DISTANCE);
+            fz = m_creature->GetMap()->GetHeight(m_creature->GetPhaseMask(), fx, fy, fz);
             if (fz <= INVALID_HEIGHT)
                 return;
             m_creature->GetMotionMaster()->MovePoint(POINT_GROUND, fx ,fy, fz);

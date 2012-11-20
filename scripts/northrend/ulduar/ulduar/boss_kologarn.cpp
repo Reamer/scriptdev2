@@ -191,7 +191,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         m_bOpenArms         = true;
         m_uiDisarmedTimer   = 0;
         if (m_creature->GetVehicleKit())
-            m_creature->GetVehicleKit()->InstallAllAccessories(m_creature->GetEntry());
+            m_creature->GetVehicleKit()->Reset();
     }
 
     void JustDied(Unit* pKiller)

@@ -81,6 +81,8 @@ bool GossipSelect_npcs_ashyen_and_keleth(Player* pPlayer, Creature* pCreature, u
                 case REP_EXALTED:
                     pCreature->CastSpell(pPlayer, 31815, true);
                     break;
+                default:
+                    break;
             }
         }
 
@@ -99,6 +101,8 @@ bool GossipSelect_npcs_ashyen_and_keleth(Player* pPlayer, Creature* pCreature, u
                     break;
                 case REP_EXALTED:
                     pCreature->CastSpell(pPlayer, 31814, true);
+                    break;
+                default:
                     break;
             }
         }

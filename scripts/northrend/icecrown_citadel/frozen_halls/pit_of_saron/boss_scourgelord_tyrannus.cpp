@@ -89,9 +89,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         SetCombatMovement(false);
         m_creature->SetLevitate(true);
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
-        if (m_creature->GetVehicleKit())
-            m_creature->GetVehicleKit()->InstallAllAccessories(m_creature->GetEntry());
-
+        m_creature->MonsterSay("RESET", LANG_UNIVERSAL);
         m_bStartIntro           = false;
         m_uiIcyBlastTimer       = 35000;
         m_uiIcyBlastSlowTimer   = 30000;
@@ -134,6 +132,9 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         //if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             //  return;
 
+        if (!m_pInstance)
+            return;
+
         if (m_uiIcyBlastTimer < uiDiff)
         {
             if (Creature* pTyrannus = m_pInstance->GetSingleCreatureFromStorage(NPC_TYRANNUS))
@@ -154,7 +155,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
             {
                 if (Unit* pTarget = pTyrannus->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
-                    if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST_SLOW))
+                    if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST_SLOW) == CAST_OK)
                         m_uiIcyBlastSlowTimer = 40000;
                 }
             }
@@ -191,8 +192,14 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_TYRANNUS, FAIL);
-        m_creature->ForcedDespawn();
+            if (Creature* pRimefang = m_pInstance->GetSingleCreatureFromStorage(NPC_RIMEFANG))
+            {
+                m_creature->EnterVehicle(pRimefang, -1);
+            }
+        }
+
     }
 
     void Aggro(Unit* pWho)
@@ -257,11 +264,14 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                if (Creature* pRimefang = m_pInstance->GetSingleCreatureFromStorage(NPC_RIMEFANG))
+                if (m_pInstance)
                 {
-                    pRimefang->CastSpell(pTarget, SPELL_MARK_OF_RIMEFANG, false);
-                    DoScriptText(SAY_MARK, m_creature);
-                    m_uiMarkOfRimefangTimer = urand(30000, 40000);
+                    if (Creature* pRimefang = m_pInstance->GetSingleCreatureFromStorage(NPC_RIMEFANG))
+                    {
+                        pRimefang->CastSpell(pTarget, SPELL_MARK_OF_RIMEFANG, false);
+                        DoScriptText(SAY_MARK, m_creature);
+                        m_uiMarkOfRimefangTimer = urand(30000, 40000);
+                    }
                 }
             }
         }
