@@ -751,7 +751,7 @@ void instance_ulduar::SetGlobalPhase(GlobalPhase uiType, uint32 uiData)
             switch(uiData)
             {
                 case PHASE_MIMIRON_IDLE:
-                case PHASE_INTRO:
+                case PHASE_MIMIRON_INTRO:
                 case PHASE_MIMIRON_LEVIATHAN:
                     StartNextDialogueText(SAY_TANK_ACTIVE);
                     break;
