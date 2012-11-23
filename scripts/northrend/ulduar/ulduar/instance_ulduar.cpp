@@ -24,7 +24,36 @@ EndScriptData */
 #include "precompiled.h"
 #include "ulduar.h"
 
-instance_ulduar::instance_ulduar(Map* pMap) : ScriptedInstance(pMap)
+enum
+{
+    SAY_HARD_MODE       = -1603221,
+    SAY_TANK_ACTIVE     = -1603223,
+    SAY_TANK_DEATH      = -1603226, // 12000
+    SAY_TORSO_ACTIVE    = -1603227,
+    SAY_TORSO_DEATH     = -1603230,
+    SAY_HEAD_ACTIVE     = -1603231,
+    SAY_HEAD_DEATH      = -1603234,
+    SAY_ROBOT_ACTIVE    = -1603235,
+    SAY_ROBOT_DEATH     = -1603238,
+};
+
+static const DialogueEntry aUlduarDialogues[] =
+{
+    // Beasts related, summons in between not handled here
+    {TYPE_MIMIRON, 0              , 10000},
+    {SAY_HARD_MODE,    NPC_MIMIRON, 15000},
+    {SAY_TANK_ACTIVE,  NPC_MIMIRON, 0},
+    {SAY_TANK_DEATH,   NPC_MIMIRON, 0},
+    {SAY_TORSO_ACTIVE, NPC_MIMIRON, 0},
+    {SAY_TORSO_DEATH,  NPC_MIMIRON, 0},
+    {SAY_HEAD_ACTIVE,  NPC_MIMIRON, 0},
+    {SAY_HEAD_DEATH,   NPC_MIMIRON, 0},
+    {SAY_ROBOT_ACTIVE, NPC_MIMIRON, 0},
+    {SAY_ROBOT_DEATH,  NPC_MIMIRON, 0},
+    {0, 0, 0},
+};
+
+instance_ulduar::instance_ulduar(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aUlduarDialogues)
 {
     Initialize();
 }
@@ -34,21 +63,14 @@ void instance_ulduar::Initialize()
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     memset(&m_auiHardBoss, 0, sizeof(m_auiHardBoss));
     memset(&m_auiUlduarKeepers, 0, sizeof(m_auiUlduarKeepers));
-    memset(&m_auiUlduarTeleporters, 0, sizeof(m_auiUlduarTeleporters));
-
-    for(uint8 i = 0; i < 6; i++)
-        m_auiMiniBoss[i] = NOT_STARTED;
+    memset(&m_auiMiniBoss, 0, sizeof(m_auiMiniBoss));
+    memset(&m_auiGlobalPhase, 0, sizeof(m_auiGlobalPhase));
 
     for (uint8 i = 0; i < MAX_SPECIAL_ACHIEV_CRITS; ++i)
         m_abAchievCriteria[i] = false;
 
-    m_uiMimironPhase        = 0;
-    m_uiYoggPhase           = 0;
-    m_uiVisionPhase         = 0;
-
     // Leviathan not implemented, so set it as DONE
     SetData(TYPE_LEVIATHAN, DONE);
-    SetData(TYPE_LEVIATHAN_TP, DONE);
 }
 
 bool instance_ulduar::IsEncounterInProgress() const
@@ -668,148 +690,6 @@ void instance_ulduar::SetData(uint32 uiType, uint32 uiData)
         if (uiData == DONE)
             DoRespawnGameObject(GO_GIFT_OF_OBSERVER, 30*MINUTE);
         break;
-
-        // Hard modes
-    case TYPE_LEVIATHAN_HARD:
-        m_auiHardBoss[0] = uiData;
-        break;
-    case TYPE_XT002_HARD:
-        m_auiHardBoss[1] = uiData;
-        break;
-    case TYPE_ASSEMBLY_HARD:
-        m_auiHardBoss[2] = uiData;
-        break;
-    case TYPE_MIMIRON_HARD:
-        m_auiHardBoss[3] = uiData;
-        if(uiData == DONE)
-        {
-            if (instance->IsRegularDifficulty())
-            {
-                DoRespawnGameObject(GO_CACHE_OF_INOV_HARD, 30*MINUTE);
-            }
-            else
-            {
-                DoRespawnGameObject(GO_CACHE_OF_INOV_HARD_H, 30*MINUTE);
-            }
-        }
-        break;
-    case TYPE_HODIR_HARD:
-        m_auiHardBoss[4] = uiData;
-        if(uiData == DONE)
-        {
-            if (instance->IsRegularDifficulty())
-            {
-                DoRespawnGameObject(GO_CACHE_OF_RARE_WINTER, 30*MINUTE);
-            }
-            else
-            {
-                DoRespawnGameObject(GO_CACHE_OF_RARE_WINTER_H, 30*MINUTE);
-            }
-        }
-        break;
-    case TYPE_THORIM_HARD:
-        m_auiHardBoss[5] = uiData;
-        if(uiData == DONE)
-        {
-            if (instance->IsRegularDifficulty())
-            {
-                DoRespawnGameObject(GO_CACHE_OF_RARE_STORMS, 30*MINUTE);
-            }
-            else
-            {
-                DoRespawnGameObject(GO_CACHE_OF_RARE_STORMS_H, 30*MINUTE);
-            }            
-        }
-        break;
-    case TYPE_FREYA_HARD:
-        m_auiHardBoss[6] = uiData;
-        if(uiData == DONE)
-        {
-            if (instance->IsRegularDifficulty())
-            {
-                DoRespawnGameObject(GO_FREYA_GIFT_HARD, 30*MINUTE);
-            }
-            else
-            {
-                DoRespawnGameObject(GO_FREYA_GIFT_HARD_H, 30*MINUTE);
-            }
-        }
-        break;
-    case TYPE_VEZAX_HARD:
-        m_auiHardBoss[7] = uiData;
-        break;
-    case TYPE_YOGGSARON_HARD:
-        m_auiHardBoss[8] = uiData;
-        break;
-
-        // Ulduar keepers
-    case TYPE_KEEPER_HODIR:
-        m_auiUlduarKeepers[0] = uiData;
-        break;
-    case TYPE_KEEPER_THORIM:
-        m_auiUlduarKeepers[1] = uiData;
-        break;
-    case TYPE_KEEPER_FREYA:
-        m_auiUlduarKeepers[2] = uiData;
-        break;
-    case TYPE_KEEPER_MIMIRON:
-        m_auiUlduarKeepers[3] = uiData;
-        break;
-
-        // teleporters
-    case TYPE_LEVIATHAN_TP:
-        m_auiUlduarTeleporters[0] = uiData;
-        break;
-    case TYPE_XT002_TP:
-        m_auiUlduarTeleporters[1] = uiData;
-        break;
-    case TYPE_MIMIRON_TP:
-        m_auiUlduarTeleporters[2] = uiData;
-        break;
-
-        // mini boss
-    case TYPE_RUNIC_COLOSSUS:
-        m_auiMiniBoss[0] = uiData;
-        if (uiData == DONE)
-            OpenDoor(GO_RUNED_STONE_DOOR);
-        else
-            CloseDoor(GO_RUNED_STONE_DOOR);
-        break;
-    case TYPE_RUNE_GIANT:
-        m_auiMiniBoss[1] = uiData;
-        if (uiData == DONE)
-            OpenDoor(GO_THORIM_STONE_DOOR);
-        else
-            CloseDoor(GO_THORIM_STONE_DOOR);
-        break;
-    case TYPE_LEVIATHAN_MK:
-        m_auiMiniBoss[2] = uiData;
-        break;
-    case TYPE_VX001:
-        m_auiMiniBoss[3] = uiData;
-        /*if (uiData == DONE)     // just for animation :)
-        {
-            for(uint8 i = 0; i < 9; i++)
-                DoUseDoorOrButton(m_uiMimironTelGUID[i]);
-        }*/ 
-        break;
-    case TYPE_AERIAL_UNIT:
-        m_auiMiniBoss[4] = uiData;
-        break;
-    case TYPE_YOGG_BRAIN:
-        m_auiMiniBoss[5] = uiData;
-        break;
-
-        //phases
-    case TYPE_MIMIRON_PHASE:
-        m_uiMimironPhase = uiData;
-        break;
-    case TYPE_YOGG_PHASE:
-        m_uiYoggPhase = uiData;
-        break;
-    case TYPE_VISION_PHASE:
-        m_uiVisionPhase = uiData;
-        break;
     }
 
     if (uiData == DONE || uiData == FAIL)
@@ -826,8 +706,7 @@ void instance_ulduar::SetData(uint32 uiType, uint32 uiData)
             << m_auiHardBoss[1] << " " << m_auiHardBoss[2] << " " << m_auiHardBoss[2] << " "
             << m_auiHardBoss[4] << " " << m_auiHardBoss[5] << " " << m_auiHardBoss[6] << " "
             << m_auiHardBoss[7] << " " << m_auiHardBoss[8] << " " << m_auiUlduarKeepers[0] << " "
-            << m_auiUlduarKeepers[1] << " " << m_auiUlduarKeepers[2] << " " << m_auiUlduarKeepers[3] << " "
-            << m_auiUlduarTeleporters[0] << " " << m_auiUlduarTeleporters[1] << " " << m_auiUlduarTeleporters[2];
+            << m_auiUlduarKeepers[1] << " " << m_auiUlduarKeepers[2] << " " << m_auiUlduarKeepers[3] << " ";
 
         m_strInstData = saveStream.str();
 
@@ -835,6 +714,118 @@ void instance_ulduar::SetData(uint32 uiType, uint32 uiData)
         OUT_SAVE_INST_DATA_COMPLETE;
     }
 }
+
+void instance_ulduar::SetDataMiniboss(TypeMiniboss uiType, uint32 uiData)
+{
+    if (uiType < MAX_ULDUAR_MINIBOSS)
+    {
+        m_auiMiniBoss[uiType] = uiData;
+        switch (uiType)
+        {
+            case TYPE_RUNIC_COLOSSUS:
+                if (uiData == DONE)
+                    OpenDoor(GO_RUNED_STONE_DOOR);
+                else
+                    CloseDoor(GO_RUNED_STONE_DOOR);
+                break;
+            case TYPE_RUNE_GIANT:
+                if (uiData == DONE)
+                    OpenDoor(GO_THORIM_STONE_DOOR);
+                else
+                    CloseDoor(GO_THORIM_STONE_DOOR);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void instance_ulduar::SetGlobalPhase(GlobalPhase uiType, uint32 uiData)
+{
+    if (uiType < MAX_ULDUAR_GLOBAL_PHASE)
+        m_auiGlobalPhase[uiType] = uiData;
+    switch(uiType)
+    {
+        case TYPE_MIMIRON_PHASE:
+        {
+            switch(uiData)
+            {
+                case PHASE_IDLE:
+                case PHASE_INTRO:
+                case PHASE_LEVIATHAN:
+                    StartNextDialogueText(SAY_TANK_ACTIVE);
+                    break;
+                case PHASE_TRANS_1:
+                    StartNextDialogueText(SAY_TANK_DEATH);
+                    DoUseDoorOrButton(GO_MIMIRON_ELEVATOR); // open
+                    break;
+                case PHASE_VX001:
+                    StartNextDialogueText(SAY_TORSO_ACTIVE);
+                    DoUseDoorOrButton(GO_MIMIRON_ELEVATOR); // close
+                    break;
+                case PHASE_TRANS_2:
+                    StartNextDialogueText(SAY_TORSO_DEATH);
+                    break;
+                case PHASE_AERIAL:
+                    StartNextDialogueText(SAY_HEAD_ACTIVE);
+                    break;
+                case PHASE_TRANS_3:
+                    StartNextDialogueText(SAY_HEAD_DEATH);
+                    break;
+                case PHASE_ROBOT:
+                    StartNextDialogueText(SAY_ROBOT_ACTIVE);
+                    break;
+                case PHASE_OUTRO:
+                    StartNextDialogueText(SAY_ROBOT_DEATH);
+                    break;
+                default:
+                    break;
+
+            }
+
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void instance_ulduar::SetHardmode(UlduarHardmodeBoss uiType, uint32 uiData)
+{
+    if (uiType < MAX_ULDUAR_HARDMODE_BOSS)
+    {
+        m_auiHardBoss[uiType] = uiData;
+        switch(uiType)
+        {
+            case TYPE_MIMIRON_HARD:
+                if(uiData == DONE)
+                    DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_CACHE_OF_INOV_HARD : GO_CACHE_OF_INOV_HARD_H, 30*MINUTE);
+                break;
+            case TYPE_HODIR_HARD:
+                if(uiData == DONE)
+                    DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_CACHE_OF_RARE_WINTER : GO_CACHE_OF_RARE_WINTER_H, 30*MINUTE);
+                break;
+            case TYPE_THORIM_HARD:
+                if(uiData == DONE)
+                    DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_CACHE_OF_RARE_STORMS : GO_CACHE_OF_RARE_STORMS_H, 30*MINUTE);
+                break;
+            case TYPE_FREYA_HARD:
+                if(uiData == DONE)
+                    DoRespawnGameObject(instance->IsRegularDifficulty() ? GO_FREYA_GIFT_HARD : GO_FREYA_GIFT_HARD_H, 30*MINUTE);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void instance_ulduar::SetKeeperHelp(UlduarKeeperHelp uiType, uint32 uiData)
+{
+    if (uiType < MAX_ULDUAR_KEEPER_HELP)
+        m_auiUlduarKeepers[uiType] = uiData;
+
+}
+
 void instance_ulduar::SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet)
 {
     if (uiType < MAX_SPECIAL_ACHIEV_CRITS)
@@ -1008,6 +999,8 @@ void instance_ulduar::SortHandTrigger(Creature* pCreature)
 
 void instance_ulduar::Update(uint32 const uiDiff)
 {
+    DialogueUpdate(uiDiff);
+
     if (m_bOneIsDeath)
     {
         if (m_uiShatterTimer < uiDiff)
@@ -1049,97 +1042,34 @@ void instance_ulduar::Update(uint32 const uiDiff)
 
 uint32 instance_ulduar::GetData(uint32 uiType)
 {
-    switch(uiType)
-    {
-    case TYPE_LEVIATHAN:
-        return m_auiEncounter[0];
-    case TYPE_IGNIS:
-        return m_auiEncounter[1];
-    case TYPE_RAZORSCALE:
-        return m_auiEncounter[2];
-    case TYPE_XT002:
-        return m_auiEncounter[3];
-    case TYPE_ASSEMBLY:
-        return m_auiEncounter[4];
-    case TYPE_KOLOGARN:
-        return m_auiEncounter[5];
-    case TYPE_AURIAYA:
-        return m_auiEncounter[6];
-    case TYPE_MIMIRON:
-        return m_auiEncounter[7];
-    case TYPE_HODIR:
-        return m_auiEncounter[8];
-    case TYPE_THORIM:
-        return m_auiEncounter[9];
-    case TYPE_FREYA:
-        return m_auiEncounter[10];
-    case TYPE_VEZAX:
-        return m_auiEncounter[11];
-    case TYPE_YOGGSARON:
-        return m_auiEncounter[12];
-    case TYPE_ALGALON:
-        return m_auiEncounter[13];
+    if (uiType < MAX_ENCOUNTER)
+        return m_auiEncounter[uiType];
+    return 0;
+}
 
-    // hard modes
-    case TYPE_LEVIATHAN_HARD:
-        return m_auiHardBoss[0];
-    case TYPE_XT002_HARD:
-        return m_auiHardBoss[1];
-    case TYPE_ASSEMBLY_HARD:
-        return m_auiHardBoss[2];
-    case TYPE_MIMIRON_HARD:
-        return m_auiHardBoss[3];
-    case TYPE_HODIR_HARD:
-        return m_auiHardBoss[4];
-    case TYPE_THORIM_HARD:
-        return m_auiHardBoss[5];
-    case TYPE_FREYA_HARD:
-        return m_auiHardBoss[6];
-    case TYPE_VEZAX_HARD:
-        return m_auiHardBoss[7];
-    case TYPE_YOGGSARON_HARD:
-        return m_auiHardBoss[8];
+uint32 instance_ulduar::GetDataMiniboss(TypeMiniboss uiType)
+{
+    if (uiType < MAX_ULDUAR_MINIBOSS)
+        return m_auiMiniBoss[uiType];
+    return 0;
+}
+uint32 instance_ulduar::GetGlobalPhase(GlobalPhase uiType)
+{
+    if (uiType < MAX_ULDUAR_GLOBAL_PHASE)
+        m_auiGlobalPhase[uiType];
+    return 0;
+}
+uint32 instance_ulduar::GetHardmode(UlduarHardmodeBoss uiType)
+{
+    if (uiType < MAX_ULDUAR_HARDMODE_BOSS)
+        return m_auiHardBoss[uiType];
+    return 0;
+}
 
-        // ulduar keepers
-    case TYPE_KEEPER_HODIR:
-        return m_auiUlduarKeepers[0];
-    case TYPE_KEEPER_THORIM:
-        return m_auiUlduarKeepers[1];
-    case TYPE_KEEPER_FREYA:
-        return m_auiUlduarKeepers[2];
-    case TYPE_KEEPER_MIMIRON:
-        return m_auiUlduarKeepers[3];
-
-        // teleporters
-    case TYPE_LEVIATHAN_TP:
-        return m_auiUlduarTeleporters[0];
-    case TYPE_XT002_TP:
-        return m_auiUlduarTeleporters[1];
-    case TYPE_MIMIRON_TP:
-        return m_auiUlduarTeleporters[2];
-
-        // mini boss
-    case TYPE_RUNE_GIANT:
-        return m_auiMiniBoss[1];
-    case TYPE_RUNIC_COLOSSUS:
-        return m_auiMiniBoss[0];
-    case TYPE_LEVIATHAN_MK:
-        return m_auiMiniBoss[2];
-    case TYPE_VX001:
-        return m_auiMiniBoss[3];
-    case TYPE_AERIAL_UNIT:
-        return m_auiMiniBoss[4];
-    case TYPE_YOGG_BRAIN:
-        return m_auiMiniBoss[5];
-
-    case TYPE_MIMIRON_PHASE:
-        return m_uiMimironPhase;
-    case TYPE_YOGG_PHASE:
-        return m_uiYoggPhase;
-    case TYPE_VISION_PHASE:
-        return m_uiVisionPhase;
-    }
-
+uint32 instance_ulduar::GetKeeperHelp(UlduarKeeperHelp uiType)
+{
+    if (uiType < MAX_ULDUAR_KEEPER_HELP)
+        return m_auiUlduarKeepers[uiType];
     return 0;
 }
 
@@ -1159,14 +1089,13 @@ void instance_ulduar::Load(const char* strIn)
     OUT_LOAD_INST_DATA(strIn);
 
     std::istringstream loadStream(strIn);
-    loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
-    >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
-    >> m_auiEncounter[8] >> m_auiEncounter[9] >> m_auiEncounter[10] >> m_auiEncounter[11]
-    >> m_auiEncounter[12] >> m_auiEncounter[13] >> m_auiHardBoss[0] >> m_auiHardBoss[1]
-    >> m_auiHardBoss[2] >> m_auiHardBoss[3] >> m_auiHardBoss[4] >> m_auiHardBoss[5]
-    >> m_auiHardBoss[6] >> m_auiHardBoss[7] >> m_auiHardBoss[8] >> m_auiUlduarKeepers[0]
-    >> m_auiUlduarKeepers[1] >> m_auiUlduarKeepers[2] >> m_auiUlduarKeepers[3] >> m_auiUlduarTeleporters[0]
-    >> m_auiUlduarTeleporters[1] >> m_auiUlduarTeleporters[2];
+    loadStream >> m_auiEncounter[TYPE_LEVIATHAN] >> m_auiEncounter[TYPE_IGNIS] >> m_auiEncounter[TYPE_RAZORSCALE] >> m_auiEncounter[TYPE_XT002]
+    >> m_auiEncounter[TYPE_ASSEMBLY] >> m_auiEncounter[TYPE_KOLOGARN] >> m_auiEncounter[TYPE_AURIAYA] >> m_auiEncounter[TYPE_MIMIRON]
+    >> m_auiEncounter[TYPE_HODIR] >> m_auiEncounter[TYPE_THORIM] >> m_auiEncounter[TYPE_FREYA] >> m_auiEncounter[TYPE_VEZAX]
+    >> m_auiEncounter[TYPE_YOGGSARON] >> m_auiEncounter[TYPE_ALGALON] >> m_auiHardBoss[TYPE_LEVIATHAN_HARD] >> m_auiHardBoss[TYPE_XT002_HARD]
+    >> m_auiHardBoss[TYPE_ASSEMBLY_HARD] >> m_auiHardBoss[TYPE_MIMIRON_HARD] >> m_auiHardBoss[TYPE_HODIR_HARD] >> m_auiHardBoss[TYPE_THORIM_HARD]
+    >> m_auiHardBoss[TYPE_FREYA_HARD] >> m_auiHardBoss[TYPE_VEZAX_HARD] >> m_auiHardBoss[TYPE_YOGGSARON_HARD] >> m_auiUlduarKeepers[TYPE_KEEPER_HODIR]
+    >> m_auiUlduarKeepers[TYPE_KEEPER_FREYA] >> m_auiUlduarKeepers[TYPE_KEEPER_THORIM] >> m_auiUlduarKeepers[TYPE_KEEPER_MIMIRON];
 
     for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
     {

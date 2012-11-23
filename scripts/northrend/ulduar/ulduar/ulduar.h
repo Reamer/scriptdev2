@@ -9,10 +9,7 @@ enum
 {
     // encounters
     MAX_ENCOUNTER               = 14,
-    HARD_MODE_ENCOUNTER         = 9,
-    KEEPER_ENCOUNTER            = 4,
     FREYA_ELDERS_ENCOUNTER      = 3,
-    TELEPORTER_ENCOUNTER        = 3,
 
     // boss types
     TYPE_LEVIATHAN              = 0,
@@ -29,40 +26,6 @@ enum
     TYPE_VEZAX                  = 11,
     TYPE_YOGGSARON              = 12,
     TYPE_ALGALON                = 13,
-
-    // hard mode bosses
-    TYPE_LEVIATHAN_HARD         = 37,
-    TYPE_XT002_HARD             = 38,
-    TYPE_ASSEMBLY_HARD          = 39,
-    TYPE_MIMIRON_HARD           = 40,
-    TYPE_HODIR_HARD             = 41,
-    TYPE_THORIM_HARD            = 42,
-    TYPE_FREYA_HARD             = 43, // this means 3 elders up
-    TYPE_VEZAX_HARD             = 44,
-    TYPE_YOGGSARON_HARD         = 45,
-    TYPE_YOGGSARON_HARD_4       = 46,
-
-    // keepers help at Yogg
-    TYPE_KEEPER_HODIR           = 47,
-    TYPE_KEEPER_FREYA           = 48,
-    TYPE_KEEPER_THORIM          = 49,
-    TYPE_KEEPER_MIMIRON         = 50,
-
-    // teleporters
-    TYPE_LEVIATHAN_TP           = 51,
-    TYPE_XT002_TP               = 52,
-    TYPE_MIMIRON_TP             = 53,
-
-    //other-> these won't be saved to db
-    TYPE_RUNE_GIANT             = 14,
-    TYPE_RUNIC_COLOSSUS         = 15,
-    TYPE_LEVIATHAN_MK           = 16,
-    TYPE_VX001                  = 17,
-    TYPE_AERIAL_UNIT            = 18,
-    TYPE_YOGG_BRAIN             = 22,
-    TYPE_MIMIRON_PHASE          = 23,
-    TYPE_YOGG_PHASE             = 24,
-    TYPE_VISION_PHASE           = 25,
 
     // siege
     NPC_LEVIATHAN               = 33113,
@@ -354,14 +317,73 @@ enum
 
 };
 
-enum ExplosionSide
+enum TypeMiniboss
 {
-    LEFT_EXPLOSION  = 0,
-    RIGHT_EXPLOSION = 1,
-    NO_EXPLOSION    = 2,
+    TYPE_RUNE_GIANT = 0,
+    TYPE_RUNIC_COLOSSUS,
+    TYPE_LEVIATHAN_MK,
+    TYPE_VX001,
+    TYPE_AERIAL_UNIT,
+    TYPE_YOGG_BRAIN,
+    MAX_ULDUAR_MINIBOSS
 };
 
-class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
+enum GlobalPhase
+{
+    TYPE_MIMIRON_PHASE = 0,
+    TYPE_YOGG_PHASE,
+    TYPE_VISION_PHASE,
+    MAX_ULDUAR_GLOBAL_PHASE
+};
+
+enum MimironPhase
+{
+    PHASE_IDLE      = 0,
+    PHASE_INTRO     = 1,
+    PHASE_LEVIATHAN = 2,
+    PHASE_TRANS_1   = 3,
+    PHASE_VX001     = 4,
+    PHASE_TRANS_2   = 5,
+    PHASE_AERIAL    = 6,
+    PHASE_TRANS_3   = 7,
+    PHASE_ROBOT     = 8,
+    PHASE_OUTRO     = 9,
+};
+
+enum UlduarHardmodeBoss
+{
+    // hard mode bosses
+    TYPE_LEVIATHAN_HARD = 0,
+    TYPE_XT002_HARD,
+    TYPE_ASSEMBLY_HARD,
+    TYPE_MIMIRON_HARD,
+    TYPE_HODIR_HARD,
+    TYPE_THORIM_HARD,
+    TYPE_FREYA_HARD, // this means 3 elders up
+    TYPE_VEZAX_HARD,
+    TYPE_YOGGSARON_HARD,
+    TYPE_YOGGSARON_HARD_4,
+    MAX_ULDUAR_HARDMODE_BOSS
+};
+
+enum UlduarKeeperHelp
+{
+    // keepers help at Yogg
+    TYPE_KEEPER_HODIR   = 0,
+    TYPE_KEEPER_FREYA,
+    TYPE_KEEPER_THORIM,
+    TYPE_KEEPER_MIMIRON,
+    MAX_ULDUAR_KEEPER_HELP
+};
+
+enum ExplosionSide
+{
+    LEFT_EXPLOSION,
+    RIGHT_EXPLOSION,
+    NO_EXPLOSION
+};
+
+class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance , private DialogueHelper
 {
     public:
         instance_ulduar(Map* pMap);
@@ -375,7 +397,15 @@ class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         void OnObjectCreate(GameObject* pGo);
 
         void SetData(uint32 uiType, uint32 uiData);
+        void SetDataMiniboss(TypeMiniboss uiType, uint32 uiData);
+        void SetGlobalPhase(GlobalPhase uiType, uint32 uiData);
+        void SetHardmode(UlduarHardmodeBoss uiType, uint32 uiData);
+        void SetKeeperHelp(UlduarKeeperHelp uiType, uint32 uiData);
         uint32 GetData(uint32 uiType);
+        uint32 GetDataMiniboss(TypeMiniboss uiType);
+        uint32 GetGlobalPhase(GlobalPhase uiType);
+        uint32 GetHardmode(UlduarHardmodeBoss uiType);
+        uint32 GetKeeperHelp(UlduarKeeperHelp uiType);
 
         const char* Save();
         void Load(const char* chrIn);
@@ -413,15 +443,10 @@ class MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     // initialize the encouter variables
     std::string m_strInstData;
     uint32 m_auiEncounter[MAX_ENCOUNTER];
-    uint32 m_auiHardBoss[HARD_MODE_ENCOUNTER];
-    uint32 m_auiUlduarKeepers[KEEPER_ENCOUNTER];
-    uint32 m_auiUlduarTeleporters[3];
-    uint32 m_auiMiniBoss[6];
-
-    // boss phases which need to be used inside the instance script
-    uint32 m_uiMimironPhase;
-    uint32 m_uiYoggPhase;
-    uint32 m_uiVisionPhase;
+    uint32 m_auiHardBoss[MAX_ULDUAR_HARDMODE_BOSS];
+    uint32 m_auiUlduarKeepers[MAX_ULDUAR_KEEPER_HELP];
+    uint32 m_auiMiniBoss[MAX_ULDUAR_MINIBOSS];
+    uint32 m_auiGlobalPhase[MAX_ULDUAR_GLOBAL_PHASE];
 
     bool m_abAchievCriteria[MAX_SPECIAL_ACHIEV_CRITS];
 

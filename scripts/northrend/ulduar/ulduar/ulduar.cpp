@@ -221,7 +221,7 @@ bool GossipHello_go_ulduar_teleporter(Player* pPlayer, GameObject* pGo)
         pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_TELE_COLOSSAL_FORGE, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
 
     // Scrapyard
-    if ((pInstance->GetData(TYPE_IGNIS) == DONE && pInstance->GetData(TYPE_RAZORSCALE) == DONE && pInstance->GetData(TYPE_XT002) != NOT_STARTED) || pPlayer->isGameMaster())
+    if (pInstance->GetData(TYPE_XT002) != NOT_STARTED || pPlayer->isGameMaster())
         pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_TELE_SCRAPYARD, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
 
     // Antechamber

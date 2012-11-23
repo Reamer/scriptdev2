@@ -914,7 +914,7 @@ struct MANGOS_DLL_DECL boss_brain_of_yogg_saronAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
         if(m_pInstance) 
-            m_pInstance->SetData(TYPE_YOGG_BRAIN, NOT_STARTED);
+            m_pInstance->SetDataMiniboss(TYPE_YOGG_BRAIN, NOT_STARTED);
 
         if (m_pInstance)
         {
@@ -1278,7 +1278,7 @@ struct MANGOS_DLL_DECL boss_brain_of_yogg_saronAI : public ScriptedAI
         {
             if(m_pInstance) 
             {
-                m_pInstance->SetData(TYPE_YOGG_BRAIN, DONE);
+                m_pInstance->SetDataMiniboss(TYPE_YOGG_BRAIN, DONE);
                 m_pInstance->SetData(TYPE_YOGG_PHASE, PHASE_OLD_GOD);
                 if(Creature* pYogg = m_pInstance->GetSingleCreatureFromStorage(NPC_YOGGSARON))
                     ((boss_yogg_saronAI*)pYogg->AI())->StartThirdPhase();

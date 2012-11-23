@@ -562,7 +562,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 // phase 2
                 if(!m_bIsPhaseOneEnd)
                 {
-                    if(m_pInstance->GetData(TYPE_RUNIC_COLOSSUS) == DONE && m_pInstance->GetData(TYPE_RUNE_GIANT) == DONE)
+                    if(m_pInstance->GetDataMiniboss(TYPE_RUNIC_COLOSSUS) == DONE && m_pInstance->GetDataMiniboss(TYPE_RUNE_GIANT) == DONE)
                     {
                         if (GetPlayerAtMinimumRange(15.0f))
                         {                           
@@ -939,13 +939,13 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
         m_bIsLeft = false;
 
         if(m_pInstance) 
-            m_pInstance->SetData(TYPE_RUNIC_COLOSSUS, NOT_STARTED);
+            m_pInstance->SetDataMiniboss(TYPE_RUNIC_COLOSSUS, NOT_STARTED);
     }
 
     void JustDied(Unit *killer)
     {
         if(m_pInstance) 
-            m_pInstance->SetData(TYPE_RUNIC_COLOSSUS, DONE);
+            m_pInstance->SetDataMiniboss(TYPE_RUNIC_COLOSSUS, DONE);
     }
 
     void AttackedBy(Unit* pWho)
@@ -1051,13 +1051,13 @@ struct MANGOS_DLL_DECL boss_ancient_rune_giantAI : public ScriptedAI
         m_bIsSummoning = true;
 
         if(m_pInstance) 
-            m_pInstance->SetData(TYPE_RUNE_GIANT, NOT_STARTED);
+            m_pInstance->SetDataMiniboss(TYPE_RUNE_GIANT, NOT_STARTED);
     }
 
     void JustDied(Unit *killer)
     {
         if(m_pInstance) 
-            m_pInstance->SetData(TYPE_RUNE_GIANT, DONE);
+            m_pInstance->SetDataMiniboss(TYPE_RUNE_GIANT, DONE);
     }
 
     void AttackedBy(Unit* pWho)
@@ -1072,7 +1072,7 @@ struct MANGOS_DLL_DECL boss_ancient_rune_giantAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if ((m_pInstance->GetData(TYPE_RUNIC_COLOSSUS) == DONE) && m_bIsSummoning)
+        if ((m_pInstance->GetDataMiniboss(TYPE_RUNIC_COLOSSUS) == DONE) && m_bIsSummoning)
         {
             // summon adds before aggro and after the runic colossus has died
             if(m_uiSummonTimer < uiDiff)

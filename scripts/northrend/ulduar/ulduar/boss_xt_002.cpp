@@ -80,6 +80,8 @@ enum
     SPELL_TRAMPLE           = 5568,
     SPELL_UPPERCUT          = 10966,
 
+    //summon Robots
+    SPELL_SUMMON_BOMBBOT    = 62835,
     //NPC ids
     NPC_HEART               = 33329,
     NPC_SCRAPBOT            = 33343,
@@ -126,7 +128,7 @@ struct MANGOS_DLL_DECL mob_voidzoneAI : public ScriptedAI
 
     uint32 Spell_Timer;
     bool m_bIsRegularMode;
-    SpellEntry const *spellInfo;
+    SpellEntry const* spellInfo;
 
     void Reset()
     {
@@ -458,11 +460,7 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
     void Aggro(Unit* pWho)
     {
         if (m_pInstance)
-        {
             m_pInstance->SetData(TYPE_XT002, IN_PROGRESS);
-            if(m_pInstance->GetData(TYPE_XT002_TP) != DONE)
-                m_pInstance->SetData(TYPE_XT002_TP, DONE);
-        }
 
         DoScriptText(SAY_AGGRO, m_creature);
     }
@@ -627,7 +625,6 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                             m_uiGravityBombTimer = urand(25000, 30000); 
                         }
                     }
-                    
                 }
                 else
                     m_uiGravityBombTimer -= uiDiff;
@@ -647,15 +644,14 @@ struct MANGOS_DLL_DECL boss_xt_002AI : public ScriptedAI
                 {
                     m_fHealthPercent = m_fHealthPercent - 25;
                     m_uiHeartTimer = 30000;
-                    m_creature->CastStop();                    
+                    m_creature->CastStop();
                     m_Phase = PHASE_ADDS;
 
                     DoScriptText(SAY_HEART_OPEN, m_creature);
                     DoCast(m_creature, SPELL_STUN);
                     DoScriptText(EMOTE_HEART, m_creature);
                     m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
-                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
 
                     // timers
                     m_uiSummonTimer         = 5000;
