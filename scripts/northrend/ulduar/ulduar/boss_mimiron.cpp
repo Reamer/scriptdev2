@@ -163,19 +163,6 @@ struct LocationsXY
     uint32 id;
 };
 
-static LocationsXY SummonLoc[]=
-{
-    {2753.665f, 2584.712f},
-    {2754.150f, 2554.445f},
-    {2726.966f, 2569.032f},
-    {2759.085f, 2594.249f},
-    {2759.977f, 2544.345f},
-    {2715.542f, 2569.160f},
-    {2765.070f, 2604.337f},
-    {2765.676f, 2534.558f},
-    {2703.810f, 2569.132f},
-};
-
 struct MANGOS_DLL_DECL boss_miniboss_mimironAI : public ScriptedAI
 {
     boss_miniboss_mimironAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -799,7 +786,9 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
     uint32 m_uiAttackStartTimer;
 
     uint32 m_uiPlasmaBallTimer;
-    uint32 m_uiSummonWavesTimer;
+    uint32 m_uiSummonAssaultBotTimer;
+    uint32 m_uiSummonScrapBotTimer;
+    uint32 m_uiSummonFireBotTimer;
     uint32 m_uiBombBotTimer;
     uint32 m_uiGroundTimer;
     bool m_bIsGrounded;
@@ -816,7 +805,9 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
         m_uiSpreadFiresTimer    = urand(40000, 50000);
 
         m_uiPlasmaBallTimer     = 3000;
-        m_uiSummonWavesTimer    = 10000;
+        m_uiSummonAssaultBotTimer = urand(20000, 30000);
+        m_uiSummonScrapBotTimer = urand(10000, 15000);
+        m_uiSummonFireBotTimer  = urand(30000,45000);
         m_uiBombBotTimer        = urand(14000, 17000);
         m_bIsGrounded           = false;
 
@@ -940,14 +931,6 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
             MakeBossFly();
         }
         
-        if (m_uiBombBotTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_BOMB_BOT_SUMMON) == CAST_OK)
-                m_uiBombBotTimer = urand(14000, 17000);
-        }
-        else
-            m_uiBombBotTimer -= uiDiff;
-
         if(m_uiPlasmaBallTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
@@ -973,57 +956,40 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
             if (m_creature->GetPositionZ() < 372.0f)
                 m_creature->MonsterMoveWithSpeed(m_creature->GetPositionX(), m_creature->GetPositionY(), 372.0f, 24.0f, false, true);
 
-            if(m_uiSummonWavesTimer < uiDiff)
+            if (m_uiSummonAssaultBotTimer < uiDiff)
             {
-                uint32 m_uiCreatureEntry;
-                // summon emergency boots
-                if(m_pInstance->GetHardmode(TYPE_MIMIRON_HARD) == IN_PROGRESS)
-                {
-                    switch(urand(0, 4))
-                    {
-                    case 0:
-                    case 1:
-                        m_uiCreatureEntry = NPC_JUNK_BOT;
-                        break;
-                    case 2:
-                    case 3:
-                        m_uiCreatureEntry = MOB_EMERGENCY_FIRE_BOT;
-                        break;
-                    case 4:
-                        m_uiCreatureEntry = NPC_ASSALT_BOT;
-                        break;
-                    default:
-                        m_uiCreatureEntry = NPC_JUNK_BOT;
-                        break;
-                    }
-                }
-                else
-                {
-                    switch(urand(0, 2))
-                    {
-                    case 0:
-                    case 1:
-                        m_uiCreatureEntry = NPC_JUNK_BOT;
-                        break;
-                    case 2:
-                        m_uiCreatureEntry = NPC_ASSALT_BOT;
-                        break;
-                    default:
-                        m_uiCreatureEntry = NPC_JUNK_BOT;
-                        break;
-                    }
-                }
-                uint8 m_uiSummonLoc = urand(0, 8);
-                if(m_uiCreatureEntry != 0)
-                    m_creature->SummonCreature(m_uiCreatureEntry, SummonLoc[m_uiSummonLoc].x, SummonLoc[m_uiSummonLoc].y, CENTER_Z, 0, TEMPSUMMON_DEAD_DESPAWN, 10000);
-
-                m_uiSummonWavesTimer = urand (10000, 15000);
+                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SCRAP_BOT_TRIGGER_FOR_ASSAULT_BOT) == CAST_OK)
+                    m_uiSummonAssaultBotTimer = urand(20000, 30000);
             }
             else
-                m_uiSummonWavesTimer -= uiDiff;
+                m_uiSummonAssaultBotTimer -= uiDiff;
+
+            if (m_uiSummonScrapBotTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SCRAP_BOT_TRIGGER_FOR_SCRAP_BOT) == CAST_OK)
+                    m_uiSummonScrapBotTimer = urand(10000, 15000);
+            }
+            else
+                m_uiSummonScrapBotTimer -= uiDiff;
+
+            if (m_uiBombBotTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_BOMB_BOT_SUMMON) == CAST_OK)
+                    m_uiBombBotTimer = urand(14000, 17000);
+            }
+            else
+                m_uiBombBotTimer -= uiDiff;
 
             if(m_pInstance->GetHardmode(TYPE_MIMIRON_HARD) == IN_PROGRESS)
             {
+                if (m_uiSummonFireBotTimer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_FIRE_BOT_TRIGGER) == CAST_OK)
+                        m_uiSummonFireBotTimer = urand(30000,45000);
+                }
+                else
+                    m_uiSummonFireBotTimer -= uiDiff;
+
                 if(m_uiSpreadFiresTimer < uiDiff)
                 {
                     StartThreeFireInHardmode();
