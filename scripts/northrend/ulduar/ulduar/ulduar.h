@@ -338,16 +338,16 @@ enum GlobalPhase
 
 enum MimironPhase
 {
-    PHASE_IDLE      = 0,
-    PHASE_INTRO     = 1,
-    PHASE_LEVIATHAN = 2,
-    PHASE_TRANS_1   = 3,
-    PHASE_VX001     = 4,
-    PHASE_TRANS_2   = 5,
-    PHASE_AERIAL    = 6,
-    PHASE_TRANS_3   = 7,
-    PHASE_ROBOT     = 8,
-    PHASE_OUTRO     = 9,
+    PHASE_MIMIRON_IDLE      = 0,
+    PHASE_MIMIRON_INTRO     = 1,
+    PHASE_MIMIRON_LEVIATHAN = 2,
+    PHASE_MIMIRON_TRANS_1   = 3,
+    PHASE_MIMIRON_VX001     = 4,
+    PHASE_MIMIRON_TRANS_2   = 5,
+    PHASE_MIMIRON_AERIAL    = 6,
+    PHASE_MIMIRON_TRANS_3   = 7,
+    PHASE_MIMIRON_ROBOT     = 8,
+    PHASE_MIMIRON_OUTRO     = 9,
 };
 
 enum UlduarHardmodeBoss

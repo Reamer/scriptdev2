@@ -189,16 +189,16 @@ struct MANGOS_DLL_DECL boss_miniboss_mimironAI : public ScriptedAI
         {
             switch (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE))
             {
-                case PHASE_LEVIATHAN:
+                case PHASE_MIMIRON_LEVIATHAN:
                     DoScriptText(urand(0,1) ? SAY_TANK_SLAY1 : SAY_TANK_SLAY2, pMimiron);
                     break;
-                case PHASE_VX001:
+                case PHASE_MIMIRON_VX001:
                     DoScriptText(urand(0,1) ? SAY_TORSO_SLAY1 : SAY_TORSO_SLAY2, pMimiron);
                     break;
-                case PHASE_AERIAL:
+                case PHASE_MIMIRON_AERIAL:
                     DoScriptText(urand(0,1) ? SAY_HEAD_SLAY1 : SAY_HEAD_SLAY2, pMimiron);
                     break;
-                case PHASE_ROBOT:
+                case PHASE_MIMIRON_ROBOT:
                     DoScriptText(urand(0,1) ? SAY_ROBOT_SLAY1 : SAY_ROBOT_SLAY2, pMimiron);
                     break;
                 default: // should never appear
@@ -279,9 +279,9 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public boss_miniboss_mimironAI
             if(m_creature->GetHealth() <= uiDamage)
             {
                 uiDamage = 0;
-                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
+                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_LEVIATHAN)
                 {
-                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_TRANS_1);
+                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_TRANS_1);
                     m_pInstance->SetDataMiniboss(TYPE_LEVIATHAN_MK, DONE);
 
                     m_bStartAttack = false;
@@ -295,7 +295,7 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public boss_miniboss_mimironAI
                 }
 
                 // for feign death
-                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_ROBOT)
                 {
                     if (m_pInstance->GetDataMiniboss(TYPE_LEVIATHAN_MK) != SPECIAL)
                         m_creature->InterruptNonMeleeSpells(true);
@@ -329,17 +329,17 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public boss_miniboss_mimironAI
 
     void MovementInform(uint32 uiMovementType, uint32 uiData)
     {
-        if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_INTRO)
+        if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_INTRO)
         {
-            m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_LEVIATHAN);
+            m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_LEVIATHAN);
 
             m_bStartAttack = true;
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->SetInCombatWithZone();
         }
-        else if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_TRANS_3)
+        else if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_TRANS_3)
         {
-            m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_ROBOT);
+            m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_ROBOT);
 
             m_bStartAttack = true;
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -419,7 +419,7 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public boss_miniboss_mimironAI
         {
             DoCastSpellIfCan(m_creature, SPELL_EMERGENCY_MODE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
 
-            if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
+            if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_LEVIATHAN)
             {
                 if(m_creature->GetHealthPercent() < 50.0f && !m_bHasSuppresed)
                 {
@@ -501,7 +501,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_miniboss_mimironAI
 
     void AttackStart(Unit* pWho)
     {
-        if(!m_bStartAttack && m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) != PHASE_ROBOT)
+        if(!m_bStartAttack && m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) != PHASE_MIMIRON_ROBOT)
             return;
 
         ScriptedAI::AttackStart(pWho);
@@ -520,12 +520,12 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_miniboss_mimironAI
                     m_creature->InterruptNonMeleeSpells(true);
                 m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
-                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_VX001)
+                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_VX001)
                 {
-                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_TRANS_2);
+                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_TRANS_2);
                     m_pInstance->SetDataMiniboss(TYPE_VX001, DONE);
                 }
-                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_ROBOT)
                 {
                     DoCast(m_creature, SPELL_SELF_REPAIR);
                     m_pInstance->SetDataMiniboss(TYPE_VX001, SPECIAL);
@@ -639,7 +639,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_miniboss_mimironAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_VX001)
+        if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_VX001)
         {
             if(m_uiHeatWaveTimer < uiDiff)
             {
@@ -683,7 +683,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_miniboss_mimironAI
             DoCastSpellIfCan(m_creature, SPELL_EMERGENCY_MODE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
 
             // only in VX001 phase
-            if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_VX001)
+            if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_VX001)
             {
                 if(m_uiFlameSuppressTimer < uiDiff)
                 {
@@ -720,7 +720,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_miniboss_mimironAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_VX001)
+                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_VX001)
                 {
                     if (m_bFireLeft)
                     {
@@ -742,7 +742,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_miniboss_mimironAI
                     }
                     m_uiStandardAttack = 500;
                 }
-                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_ROBOT)
                 {
                     if (m_bFireLeft)
                     {
@@ -823,7 +823,7 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
 
     void AttackStart(Unit* pWho)
     {
-        if(!m_bStartAttack && m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) != PHASE_ROBOT)
+        if(!m_bStartAttack && m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) != PHASE_MIMIRON_ROBOT)
             return;
 
         boss_miniboss_mimironAI::AttackStart(pWho);
@@ -832,7 +832,7 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
 
     void Aggro(Unit *who) 
     {
-        if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
+        if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_AERIAL)
             MakeBossFly();
     }
 
@@ -860,14 +860,14 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
                     m_creature->InterruptNonMeleeSpells(true);
                 m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
-                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_ROBOT)
+                if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_ROBOT)
                 {
                     DoCast(m_creature, SPELL_SELF_REPAIR);
                     m_pInstance->SetDataMiniboss(TYPE_AERIAL_UNIT, SPECIAL);
                 }
-                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
+                else if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_AERIAL)
                 {
-                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_TRANS_3);
+                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_TRANS_3);
                     m_pInstance->SetDataMiniboss(TYPE_AERIAL_UNIT, DONE);
                 }
             }
@@ -950,7 +950,7 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_miniboss_mimiron
         }
 
         // spawn adds in arena, only in phase 3
-        if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
+        if(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_AERIAL)
         {
             // mobs at a specific height, maybe someother work; i think best is hoverheight, but doesn't work
             if (m_creature->GetPositionZ() < 372.0f)
@@ -1066,7 +1066,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
         }
 
         if(m_pInstance)
-            m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_IDLE);
+            m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_IDLE);
 
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
@@ -1089,7 +1089,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
             m_pInstance->SetData(TYPE_MIMIRON, IN_PROGRESS);
             // start intro
             if(m_pInstance->GetData(TYPE_MIMIRON) != DONE)
-                m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_INTRO);
+                m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_INTRO);
         }
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
@@ -1123,10 +1123,10 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 
         switch(m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE))
         {
-            case PHASE_INTRO:
-            case PHASE_LEVIATHAN:
+            case PHASE_MIMIRON_INTRO:
+            case PHASE_MIMIRON_LEVIATHAN:
                 break;
-            case PHASE_TRANS_1:
+            case PHASE_MIMIRON_TRANS_1:
             {
                 if(m_uiPhaseDelayTimer < uiDiff)
                 {
@@ -1143,7 +1143,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                                 }
                             }
                         }                        
-                        m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_VX001);
+                        m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_VX001);
                         m_uiPhaseDelayTimer = 10000;
                     }
                 }
@@ -1152,9 +1152,9 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 
                 break;
             }
-            case PHASE_VX001:
+            case PHASE_MIMIRON_VX001:
                 break;
-            case PHASE_TRANS_2:
+            case PHASE_MIMIRON_TRANS_2:
             {
                 if(m_uiPhaseDelayTimer < uiDiff)
                 {
@@ -1173,7 +1173,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                             }
 
                         }
-                        m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_AERIAL);
+                        m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_AERIAL);
                         m_uiPhaseDelayTimer = 15000;
                     }
                 }
@@ -1182,10 +1182,10 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 
                 break;
             }
-        case PHASE_AERIAL:
+        case PHASE_MIMIRON_AERIAL:
             // Aerial Unit phase: see above script
             break;
-        case PHASE_TRANS_3:
+        case PHASE_MIMIRON_TRANS_3:
             {
                 if(m_uiPhaseDelayTimer < uiDiff && !m_bIsRobotReady)
                 {
@@ -1224,7 +1224,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 
                 break;
             }
-            case PHASE_ROBOT:
+            case PHASE_MIMIRON_ROBOT:
             {
                 if(m_pInstance->GetDataMiniboss(TYPE_LEVIATHAN_MK) == SPECIAL && m_pInstance->GetDataMiniboss(TYPE_VX001) == SPECIAL && m_pInstance->GetDataMiniboss(TYPE_AERIAL_UNIT) == SPECIAL)
                 {
@@ -1235,11 +1235,11 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                     if(Creature* pTorso = m_pInstance->GetSingleCreatureFromStorage(NPC_VX001))
                         m_creature->DealDamage(pTorso, pTorso->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                     m_uiOutroTimer = 15000;
-                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_OUTRO);
+                    m_pInstance->SetGlobalPhase(TYPE_MIMIRON_PHASE, PHASE_MIMIRON_OUTRO);
                 }
                 break;
             }
-            case PHASE_OUTRO:
+            case PHASE_MIMIRON_OUTRO:
             {
                 if(m_uiOutroTimer < uiDiff)
                 {
@@ -1323,7 +1323,7 @@ struct MANGOS_DLL_DECL leviathan_turretAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
+        if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_LEVIATHAN)
         {
             if(m_uiPlasmaBlastTimer < uiDiff)
             {
@@ -1709,7 +1709,7 @@ struct MANGOS_DLL_DECL mob_magnetic_coreAI : public ScriptedAI
     {
         if(m_uiSpellTimer < uiDiff)
         {
-            if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_AERIAL)
+            if (m_pInstance->GetGlobalPhase(TYPE_MIMIRON_PHASE) == PHASE_MIMIRON_AERIAL)
             {
                 if(Creature* pAerial = m_pInstance->GetSingleCreatureFromStorage(NPC_AERIAL_UNIT))
                 {

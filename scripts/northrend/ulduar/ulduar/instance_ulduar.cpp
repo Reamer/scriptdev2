@@ -750,32 +750,32 @@ void instance_ulduar::SetGlobalPhase(GlobalPhase uiType, uint32 uiData)
         {
             switch(uiData)
             {
-                case PHASE_IDLE:
+                case PHASE_MIMIRON_IDLE:
                 case PHASE_INTRO:
-                case PHASE_LEVIATHAN:
+                case PHASE_MIMIRON_LEVIATHAN:
                     StartNextDialogueText(SAY_TANK_ACTIVE);
                     break;
-                case PHASE_TRANS_1:
+                case PHASE_MIMIRON_TRANS_1:
                     StartNextDialogueText(SAY_TANK_DEATH);
                     DoUseDoorOrButton(GO_MIMIRON_ELEVATOR); // open
                     break;
-                case PHASE_VX001:
+                case PHASE_MIMIRON_VX001:
                     StartNextDialogueText(SAY_TORSO_ACTIVE);
                     DoUseDoorOrButton(GO_MIMIRON_ELEVATOR); // close
                     break;
-                case PHASE_TRANS_2:
+                case PHASE_MIMIRON_TRANS_2:
                     StartNextDialogueText(SAY_TORSO_DEATH);
                     break;
-                case PHASE_AERIAL:
+                case PHASE_MIMIRON_AERIAL:
                     StartNextDialogueText(SAY_HEAD_ACTIVE);
                     break;
-                case PHASE_TRANS_3:
+                case PHASE_MIMIRON_TRANS_3:
                     StartNextDialogueText(SAY_HEAD_DEATH);
                     break;
-                case PHASE_ROBOT:
+                case PHASE_MIMIRON_ROBOT:
                     StartNextDialogueText(SAY_ROBOT_ACTIVE);
                     break;
-                case PHASE_OUTRO:
+                case PHASE_MIMIRON_OUTRO:
                     StartNextDialogueText(SAY_ROBOT_DEATH);
                     break;
                 default:
