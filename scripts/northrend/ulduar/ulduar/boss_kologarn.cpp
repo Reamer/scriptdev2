@@ -293,7 +293,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     void InstallRightArm()
     {
         if (m_creature->GetVehicleKit())
-            m_creature->GetVehicleKit()->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_RIGHT_ARM);
+            m_creature->GetVehicleKit()->InstallSpecificAccessory(m_creature->GetEntry(), NPC_RIGHT_ARM);
         DoScriptText(EMOTE_RIGHT_ARM, m_creature);
         m_uiRespawnRightTimer = 0;
     }
@@ -301,7 +301,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
     void InstallLeftArm()
     {
         if (m_creature->GetVehicleKit())
-            m_creature->GetVehicleKit()->InstallAccessoryWithSpecificEntry(m_creature->GetEntry(), NPC_LEFT_ARM);
+            m_creature->GetVehicleKit()->InstallSpecificAccessory(m_creature->GetEntry(), NPC_LEFT_ARM);
         DoScriptText(EMOTE_LEFT_ARM, m_creature);
         m_uiRespawnLeftTimer = 0;
     }
