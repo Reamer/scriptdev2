@@ -62,11 +62,7 @@ enum
 
     //spells
     //leviathan
-    SPELL_PROXIMITY_MINES   = 63016, // also in phase 4
     SPELL_MINE_SUMMON_10    = 63027,
-    MOB_PROXIMITY_MINE      = 34362,
-    SPELL_EXPLOSION         = 66351,
-    SPELL_EXPLOSION_H       = 63009,
     SPELL_NAPALM_SHELL      = 63666,
     SPELL_NAPALM_SHELL_H    = 65026,
     SPELL_PLASMA_BLAST      = 62997,
@@ -97,10 +93,11 @@ enum
     SPELL_FLAME_SUPRESS     = 65192,    // used by robot in melee range
 
     // frostbomb
+    SPELL_FORST_BOMB        = 64623,
     SPELL_FROST_BOMB_EXPL   = 64626,
     SPELL_FROST_BOMB_AURA   = 64624,    // before explode
     SPELL_FROST_BOMB_VISUAL = 64625,    // bomb grows
-    SPELL_FROST_BOMB_SUMMON = 64627,    // summon the frostbomb
+    //SPELL_FROST_BOMB_SUMMON = 64627,    // summon the frostbomb
 
     /*aerial unit */
     SPELL_PLASMA_BALL_FLY   = 63689, // in phase 2
@@ -113,16 +110,16 @@ enum
     SPELL_SUMMON_SCRAP_BOT_TRIGGER_FOR_ASSAULT_BOT = 64425, // m_creature hits one 33856
     SPELL_SUMMON_FIRE_BOT_TRIGGER    = 64620,               // m_creature hits three 33856
     SPELL_BOMB_BOT_SUMMON   = 63811,
-    // dummy aura
-    Dummy1 = 64398, // schrottbot
-    dummy2 = 64621, // firebot
-    dummy3 = 64426, // Assault Bot
 
-    SPELL_ASSALT_BOT_SUMMON = 64427,
+    // Bots
     NPC_ASSALT_BOT          = 34057,
-
-    SPELL_JUNK_BOT_SUMMON   = 63819,
     NPC_JUNK_BOT            = 33855,
+    NPC_BOMB_BOT            = 33836,
+    // hardmode
+    MOB_FROST_BOMB          = 34149,
+    MOB_EMERGENCY_FIRE_BOT  = 34147,
+
+
     SPELL_MAGNETIC_FIELD    = 64668,
     SPELL_MAGNETIC_CORE     = 64436, // increase dmg taken by 50%, used by magnetic core
     SPELL_MAGNETIC_CORE_SUMMON = 64444,
@@ -135,9 +132,6 @@ enum
     // hard mode
     // summons fires
     SPELL_EMERGENCY_MODE    = 64582,
-    MOB_FROST_BOMB          = 34149,
-    SPELL_FIRE_BOT_SUMMON   = 64622,
-    MOB_EMERGENCY_FIRE_BOT  = 34147,
     SPELL_DEAFENING_SIREN   = 64616,
     SPELL_WATER_SPRAY       = 64619,
 
@@ -699,10 +693,11 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_miniboss_mimironAI
 
             if(m_uiFrostBombTimer < uiDiff)
             {
-                if(Creature* pFire = SelectRandomFire())
-                    m_creature->SummonCreature(MOB_FROST_BOMB, pFire->GetPositionX(), pFire->GetPositionY(), pFire->GetPositionZ(), 0, TEMPSUMMON_CORPSE_DESPAWN, 10000);
-                m_uiFrostBombTimer = urand(50000, 60000);
-                m_uiSpreadFiresTimer = urand(15000, 20000);
+                if (DoCastSpellIfCan(m_creature, SPELL_FORST_BOMB) == CAST_OK)
+                {
+                    m_uiFrostBombTimer = urand(50000, 60000);
+                    m_uiSpreadFiresTimer = urand(15000, 20000);
+                }
             }
             else
                 m_uiFrostBombTimer -= uiDiff;
@@ -1356,66 +1351,6 @@ struct MANGOS_DLL_DECL leviathan_turretAI : public ScriptedAI
     }
 };
 
-struct MANGOS_DLL_DECL mob_proximity_mineAI : public ScriptedAI
-{
-    mob_proximity_mineAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        SetCombatMovement(false);
-        Reset();
-    }
-
-    instance_ulduar* m_pInstance;
-    bool m_bIsRegularMode;
-
-    uint32 m_uiExplosionTimer;
-    uint32 m_uiRangeCheckTimer;
-
-    void Reset()
-    {
-        m_uiExplosionTimer  = 60000;
-        m_uiRangeCheckTimer = 1000;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_pInstance && m_pInstance->GetData(TYPE_MIMIRON) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if(m_uiExplosionTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H) == CAST_OK)
-            {
-                m_creature->ForcedDespawn(500);
-                m_uiExplosionTimer = 20000;
-            }
-        }
-        else
-            m_uiExplosionTimer -= uiDiff;
-
-        if (m_uiRangeCheckTimer < uiDiff)
-        {
-            if (GetPlayerAtMinimumRange(2.0f))
-            {
-                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_EXPLOSION : SPELL_EXPLOSION_H) == CAST_OK)
-                {
-                    m_creature->ForcedDespawn(500);
-                    m_uiRangeCheckTimer = 5000;
-                }
-            }
-            else
-                m_uiRangeCheckTimer = 500;
-        }
-        else
-            m_uiRangeCheckTimer -= uiDiff;
-    }
-};
-
 struct MANGOS_DLL_DECL mob_bomb_botAI : public ScriptedAI
 {
     mob_bomb_botAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -1470,37 +1405,6 @@ struct MANGOS_DLL_DECL mob_bomb_botAI : public ScriptedAI
     }
 };
 
-struct MANGOS_DLL_DECL mob_assault_botAI : public ScriptedAI
-{
-    mob_assault_botAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        Reset();
-    }
-
-    uint32 m_uiMagneticFieldTimer;
-
-    void Reset()
-    {
-        m_uiMagneticFieldTimer = 5000;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_uiMagneticFieldTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCast(pTarget, SPELL_MAGNETIC_FIELD);
-            m_uiMagneticFieldTimer = urand(10000, 15000);
-        }
-        else m_uiMagneticFieldTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
-    }
-};
-
 struct MANGOS_DLL_DECL mob_emergency_botAI : public ScriptedAI
 {
     mob_emergency_botAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -1548,64 +1452,6 @@ struct MANGOS_DLL_DECL mob_emergency_botAI : public ScriptedAI
         else m_uiWaterSprayTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
-    }
-};
-
-struct MANGOS_DLL_DECL mob_frost_bomb_ulduarAI : public ScriptedAI
-{
-    mob_frost_bomb_ulduarAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        pInstance = (instance_ulduar*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        pCreature->setFaction(14);
-        SetCombatMovement(false);
-        Reset();
-    }
-
-    instance_ulduar *pInstance;
-    bool m_bIsRegularMode;
-
-    uint32 m_uiExplosionTimer;
-    uint32 m_uiDieTimer;
-
-    void Reset()
-    {
-        m_uiExplosionTimer  = 10000;
-        m_uiDieTimer        = 15000;
-        DoCast(m_creature, SPELL_FROST_BOMB_VISUAL);
-    }
-
-    void SuppressFires()
-    {
-        std::list<Creature*> lFires;
-        GetCreatureListWithEntryInGrid(lFires, m_creature, 34363, 30.0f);
-        GetCreatureListWithEntryInGrid(lFires, m_creature, 34121, 30.0f);
-        if (!lFires.empty())
-        {
-            for(std::list<Creature*>::iterator iter = lFires.begin(); iter != lFires.end(); ++iter)
-            {
-                if ((*iter) && (*iter)->isAlive())
-                    (*iter)->ForcedDespawn();
-            }
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_uiDieTimer < uiDiff)
-            m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        else
-            m_uiDieTimer -= uiDiff;
-
-        if (m_uiExplosionTimer < uiDiff)
-        {
-            DoCast(m_creature, SPELL_FROST_BOMB_EXPL);
-            SuppressFires();
-            m_uiExplosionTimer = 100000;
-            m_uiDieTimer = 500;
-        }
-        else m_uiExplosionTimer -= uiDiff;
     }
 };
 
@@ -1773,29 +1619,14 @@ CreatureAI* GetAI_leviathan_turret(Creature* pCreature)
     return new leviathan_turretAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_proximity_mine(Creature* pCreature)
-{
-    return new mob_proximity_mineAI(pCreature);
-}
-
 CreatureAI* GetAI_mob_bomb_bot(Creature* pCreature)
 {
     return new mob_bomb_botAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_assault_bot(Creature* pCreature)
-{
-    return new mob_assault_botAI(pCreature);
-}
-
 CreatureAI* GetAI_mob_emergency_bot(Creature* pCreature)
 {
     return new mob_emergency_botAI(pCreature);
-}
-
-CreatureAI* GetAI_mob_frost_bomb_ulduar(Creature* pCreature)
-{
-    return new mob_frost_bomb_ulduarAI(pCreature);
 }
 
 CreatureAI* GetAI_mob_mimiron_flames(Creature* pCreature)
@@ -1842,28 +1673,13 @@ void AddSC_boss_mimiron()
     newscript->RegisterSelf();
 
     newscript = new Script;
-    newscript->Name = "mob_proximity_mine";
-    newscript->GetAI = &GetAI_mob_proximity_mine;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
     newscript->Name = "mob_bomb_bot";
     newscript->GetAI = &GetAI_mob_bomb_bot;
     newscript->RegisterSelf();
 
     newscript = new Script;
-    newscript->Name = "mob_assault_bot";
-    newscript->GetAI = &GetAI_mob_assault_bot;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
     newscript->Name = "mob_emergency_bot";
     newscript->GetAI = &GetAI_mob_emergency_bot;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_frost_bomb_ulduar";
-    newscript->GetAI = &GetAI_mob_frost_bomb_ulduar;
     newscript->RegisterSelf();
 
     newscript = new Script;
