@@ -10,6 +10,7 @@ UPDATE `creature_template` SET `ScriptName`='npc_icicle_pit_of_saron' WHERE `ent
 -- DB Correction
 DELETE FROM creature_template_addon WHERE entry = 36477; -- delete Krick auras
 
+-- Add auras for Exploding Orb
 DELETE FROM creature_template_addon WHERE entry = 36610;
 INSERT INTO creature_template_addon (entry, auras) VALUES 
 (36610, '69017 69020');
@@ -51,6 +52,14 @@ DELETE FROM creature_ai_scripts WHERE creature_id=36610;
 INSERT INTO creature_ai_scripts VALUES 
 ('3661001','36610','11','0','100','7','0','0','0','0','21','0','1','0','20','0','0','0','11','69017','0','0','Disable CombatMovement, Autohits'),
 ('3661002','36610','29','0','100','6','5000','6000','0','0','11','69019','0','0','41','1000','0','0','0','0','0','0','Cast Explosive Barrage');
+
+-- Quest for slaves
+DELETE FROM dbscripts_on_go_template_use WHERE dbscripts_on_go_template_use.id = 202168;
+INSERT INTO dbscripts_on_go_template_use (id, delay, command, datalong, datalong2, comments) VALUES
+(202168, 1, 8, 36764, 1, 'killcredit alliance'),
+(202168, 1, 8, 36770, 1, 'killcredit horde');
+UPDATE gameobject_template SET data2 = 202168 WHERE entry IN (202168);
+
 
 -- mixed data
 -- add vehicleid for rimefang (h)
