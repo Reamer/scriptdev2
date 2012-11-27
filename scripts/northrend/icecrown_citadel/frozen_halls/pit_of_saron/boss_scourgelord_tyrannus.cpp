@@ -119,7 +119,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         {
             case SPELL_MARK_OF_RIMEFANG:
                 DoCast(pTarget, SPELL_HOARFROST);
-                DoScriptText(EMOTE_RIMEFANG_ICEBOLT, m_creature);
+                DoScriptText(EMOTE_RIMEFANG_ICEBOLT, m_creature, pTarget);
                 break;
             default:
                 break;
@@ -189,8 +189,10 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         m_uiMarkOfRimefangTimer = 30000;
     }
 
-    void JustReachedHome()
+    void EnterEvadeMode()
     {
+        // because Rimefang is flying Tyrannus never reached Home
+        ScriptedAI::EnterEvadeMode();
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_TYRANNUS, FAIL);
@@ -199,7 +201,6 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                 m_creature->EnterVehicle(pRimefang, -1);
             }
         }
-
     }
 
     void Aggro(Unit* pWho)
