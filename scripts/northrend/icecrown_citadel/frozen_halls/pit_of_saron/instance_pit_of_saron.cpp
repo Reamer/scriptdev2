@@ -36,6 +36,7 @@ static LocationsXYZ GeneralLoc[]=
     {520.755f, 221.055f,528.708f},      // MovePoint for Soldiers
     {695.46f, -156.31f, 546.061f},      // MovePoint for Tyrannus at Garfrost
     {860.649f, 124.863f, 536.019f},     // MovePoint for Tyrannus at Krick
+    {943.093f, 176.309f, 668.647f}      // MovePoint for Sindragosa at Tyrannus End Event
 };
 
 struct sIntoEventNpcSpawnLocations
@@ -196,8 +197,8 @@ static const DialogueEntryTwoSide aPoSDialogues[] =
     {SAY_GAUNTLET_GENERAL_TRASH, NPC_MARTIN_VICTUS_END, SAY_GAUNTLET_GENERAL_TRASH, NPC_GORKUN_IRONSKULL_END, 4000},
     {SAY_GAUNTLET_PREFIGHT_2, NPC_TYRANNUS, 0, 0, 0},
     {EVENT_TYRANNUS_END, 0, 0, 0, 2000},
-    {SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 18000},
-    {SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_MARTIN_VICTUS_SLAVE, SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_GORKUN_IRONSKULL_SLAVE, 13000},
+    {SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_MARTIN_VICTUS_END, SAY_OUTRO_TYRANNUS_1_SLAVE, NPC_MARTIN_VICTUS_END, 18000},
+    {SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_MARTIN_VICTUS_END, SAY_OUTRO_TYRANNUS_2_SLAVE, NPC_MARTIN_VICTUS_END, 13000},
     {SAY_OUTRO_TYRANNUS_3_ALLY, NPC_JAINA_END, SAY_OUTRO_TYRANNUS_3_HORDE, NPC_SILVANA_END, 5000},
     {SAY_OUTRO_TYRANNUS_4_ALLY, NPC_JAINA_END, SAY_OUTRO_TYRANNUS_4_HORDE, NPC_SILVANA_END, 7000},
     {SAY_OUTRO_TYRANNUS_5_ALLY, NPC_JAINA_END, 0, 0, 0},
@@ -221,8 +222,10 @@ void instance_pit_of_saron::OnCreatureCreate(Creature* pCreature)
 {
     switch(pCreature->GetEntry())
     {
-        case NPC_TYRANNUS_INTRO:
         case NPC_SINDRAGOSA:
+            pCreature->GetMotionMaster()->MoveRandomAroundPoint(804.0f, 314.0f, 618.0f, 40.0f, 30.0f);
+            /* no break */
+        case NPC_TYRANNUS_INTRO:
             pCreature->SetActiveObjectState(true);
             /* no break */
         case NPC_GARFROST:
@@ -255,6 +258,8 @@ void instance_pit_of_saron::OnCreatureCreate(Creature* pCreature)
         case NPC_MARTIN_VICTUS_END:
         case NPC_GORKUN_IRONSKULL_SLAVE:
         case NPC_GORKUN_IRONSKULL_END:
+            m_lSlaveGuids.push_back(pCreature->GetObjectGuid());
+            break;
         case NPC_SLAVE_HORDE_1:
         case NPC_SLAVE_HORDE_2:
         case NPC_SLAVE_HORDE_3:
@@ -668,7 +673,11 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
                 pRimefang->RemoveAllAuras();
                 pRimefang->ForcedDespawn(10000);
             }
-            //TODO: Move Sindragosa
+            if (Creature* pSindragosa = GetSingleCreatureFromStorage(NPC_SINDRAGOSA))
+            {
+                pSindragosa->GetMotionMaster()->Clear();
+                pSindragosa->GetMotionMaster()->MovePoint(0, GeneralLoc[5].x, GeneralLoc[5].y, GeneralLoc[5].z, false);
+            }
             break;
         }
         case SAY_OUTRO_TYRANNUS_3_ALLY:
