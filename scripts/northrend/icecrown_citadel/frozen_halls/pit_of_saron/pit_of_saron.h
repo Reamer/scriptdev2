@@ -11,8 +11,7 @@ enum
     TYPE_KRICK                      = 1,
     TYPE_TYRANNUS                   = 2,
     TYPE_GAUNTLET                   = 3,
-    TYPE_INTRO                      = 4,
-    MAX_ENCOUNTER                   = 5,
+    MAX_ENCOUNTER                   = 4,
 
     NPC_TYRANNUS_INTRO              = 36794,
     NPC_GARFROST                    = 36494,
@@ -85,6 +84,8 @@ class MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance, private D
         void OnObjectCreate(GameObject* pGo);
 
         void OnPlayerEnter(Player* pPlayer);
+
+        bool IsEncounterInProgress() const;
 
         void SetData(uint32 uiType, uint32 uiData);
         uint32 GetData(uint32 uiType);
