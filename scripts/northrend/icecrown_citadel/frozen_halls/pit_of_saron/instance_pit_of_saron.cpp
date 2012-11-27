@@ -389,7 +389,7 @@ void instance_pit_of_saron::SetData(uint32 uiType, uint32 uiData)
         OUT_SAVE_INST_DATA;
 
         std::ostringstream saveStream;
-        saveStream << m_auiEncounter[TYPE_GARFROST] << " " << m_auiEncounter[TYPE_KRICK] << " " << m_auiEncounter[TYPE_TYRANNUS] << " " << m_auiEncounter[TYPE_GAUNTLET];
+        saveStream << m_auiEncounter[TYPE_GARFROST] << " " << m_auiEncounter[TYPE_KRICK] << " " << m_auiEncounter[TYPE_TYRANNUS];
 
         strInstData = saveStream.str();
 
@@ -409,7 +409,7 @@ void instance_pit_of_saron::Load(const char* chrIn)
     OUT_LOAD_INST_DATA(chrIn);
 
     std::istringstream loadStream(chrIn);
-    loadStream >> m_auiEncounter[TYPE_GARFROST] >> m_auiEncounter[TYPE_KRICK] >> m_auiEncounter[TYPE_TYRANNUS] >> m_auiEncounter[TYPE_GAUNTLET];
+    loadStream >> m_auiEncounter[TYPE_GARFROST] >> m_auiEncounter[TYPE_KRICK] >> m_auiEncounter[TYPE_TYRANNUS];
 
     for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
     {

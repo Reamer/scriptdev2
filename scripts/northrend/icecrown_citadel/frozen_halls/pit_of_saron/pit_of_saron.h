@@ -10,8 +10,9 @@ enum
     TYPE_GARFROST                   = 0,
     TYPE_KRICK                      = 1,
     TYPE_TYRANNUS                   = 2,
-    TYPE_GAUNTLET                   = 3,
-    MAX_ENCOUNTER                   = 4,
+    TYPE_GAUNTLET                   = 3, // not saved
+    TYPE_INTRO                      = 4, // not saved
+    MAX_ENCOUNTER                   = 5,
 
     NPC_TYRANNUS_INTRO              = 36794,
     NPC_GARFROST                    = 36494,
