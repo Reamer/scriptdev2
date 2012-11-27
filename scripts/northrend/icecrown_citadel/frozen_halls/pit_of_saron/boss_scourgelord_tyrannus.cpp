@@ -86,6 +86,8 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
 
     void Reset()
     {
+        if (m_creature->GetVehicleKit())
+            m_creature->GetVehicleKit()->Reset();
         SetCombatMovement(false);
         m_creature->SetLevitate(true);
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);

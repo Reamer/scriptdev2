@@ -629,15 +629,11 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
         {
             if (Creature* pKrick = GetSingleCreatureFromStorage(NPC_KRICK))
             {
-                if (Creature* pTyrannus = GetSingleCreatureFromStorage(NPC_TYRANNUS_INTRO))
-                {
-                    pTyrannus->CastSpell(pKrick, SPELL_STRANGULATING, false);
-                }
+                pKrick->CastSpell(pKrick, SPELL_STRANGULATING, false);
             }
             break;
         }
-        case SAY_OUTRO_KRICK_9_ALLY:
-        case SAY_OUTRO_KRICK_9_HORDE:
+        case SAY_OUTRO_KRICK_7:
         {
             if (Creature* pKrick = GetSingleCreatureFromStorage(NPC_KRICK))
             {
