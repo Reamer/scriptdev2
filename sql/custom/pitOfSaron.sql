@@ -32,7 +32,18 @@ INSERT INTO spell_script_target VALUES
 (69753, 1, 37497),
 (69753, 1, 37498);
 
-
+DELETE FROM spell_script_target WHERE entry = 70521;
+INSERT INTO spell_script_target VALUES
+(70521, 1 , 37578),
+(70521, 1 , 37577),
+(70521, 1 , 37579),
+(70521, 1 , 37572),
+(70521, 1 , 37575),
+(70521, 1 , 37576),
+(70521, 1 , 37591),
+(70521, 1 , 37580),
+(70521, 1 , 37592),
+(70521, 1 , 37581);
 -- ACID:
 -- Exploding Orb
 UPDATE creature_template SET Scriptname = '', AIName ='EventAI' WHERE entry=36610;
@@ -40,3 +51,8 @@ DELETE FROM creature_ai_scripts WHERE creature_id=36610;
 INSERT INTO creature_ai_scripts VALUES 
 ('3661001','36610','11','0','100','7','0','0','0','0','21','0','1','0','20','0','0','0','11','69017','0','0','Disable CombatMovement, Autohits'),
 ('3661002','36610','29','0','100','6','5000','6000','0','0','11','69019','0','0','41','1000','0','0','0','0','0','0','Cast Explosive Barrage');
+
+
+-- DELETE at begin (Jaina and soldiers)
+DELETE FROM creature WHERE map = 658 AND id IN
+(36993, 37774, 37582, 37498, 37496 , 37497);
