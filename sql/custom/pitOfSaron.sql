@@ -52,6 +52,9 @@ INSERT INTO creature_ai_scripts VALUES
 ('3661001','36610','11','0','100','7','0','0','0','0','21','0','1','0','20','0','0','0','11','69017','0','0','Disable CombatMovement, Autohits'),
 ('3661002','36610','29','0','100','6','5000','6000','0','0','11','69019','0','0','41','1000','0','0','0','0','0','0','Cast Explosive Barrage');
 
+-- mixed data
+-- add vehicleid for rimefang (h)
+UPDATE creature_template SET vehicle_id = 535 WHERE entry = 38220;
 
 -- DELETE at begin (Jaina and soldiers)
 DELETE FROM creature WHERE map = 658 AND id IN
