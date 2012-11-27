@@ -126,8 +126,8 @@ void ScriptedAI::UpdateAI(const uint32 uiDiff)
 void ScriptedAI::EnterEvadeMode()
 {
     // need removeAll Passengers before RemoveAllAuras, because ride aura also deleted
- //   if (m_creature->GetVehicleKit())
-        //m_creature->GetVehicleKit()->RemoveAllPassengers();
+   if (m_creature->GetVehicleKit())
+       m_creature->GetVehicleKit()->RemoveAllPassengers();
     m_creature->RemoveAllAuras();
     m_creature->DeleteThreatList();
     m_creature->CombatStop(true);
