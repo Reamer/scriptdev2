@@ -529,7 +529,7 @@ void instance_pit_of_saron::Update(uint32 const uiDiff)
                         Unit* pTarget = itr->getSource();
                         if (pTarget && pTarget->isAlive())
                         {
-                            if (roll_chance_i(50))
+                            if (roll_chance_i(35))
                             {
                                 pTarget->CastSpell(pTarget, SPELL_SUMMON_ICICLE, true, NULL, NULL, pRimefang->GetObjectGuid());
                             }
@@ -648,6 +648,11 @@ void instance_pit_of_saron::JustDidDialogueStep(int32 iEntry)
             {
                 pKrick->DealDamage(pKrick, pKrick->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
             }
+            break;
+        }
+        case SAY_OUTRO_KRICK_8_TYRANNUS:
+        {
+            SendTyrannusToMiddle();
             break;
         }
         case EVENT_TYRANNUS_START:
