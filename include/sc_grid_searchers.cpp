@@ -3,7 +3,6 @@
  * Please see the included DOCS/LICENSE.TXT for more information */
 
 #include "precompiled.h"
-
 #include "Cell.h"
 #include "CellImpl.h"
 #include "GridNotifiers.h"
@@ -13,7 +12,7 @@
 Unit* GetClosestAttackableUnit(Unit* pSource, float fMaxSearchRange) 
 { 
     Unit* pTarget = NULL; 
-    MaNGOS::NearestAttackableUnitInObjectRangeCheck unit_check(pSource, pSource, fMaxSearchRange); 
+    MaNGOS::NearestAttackableUnitInObjectRangeCheck unit_check(pSource, fMaxSearchRange); 
     MaNGOS::UnitLastSearcher<MaNGOS::NearestAttackableUnitInObjectRangeCheck> searcher(pTarget, unit_check); 
     Cell::VisitAllObjects(pSource, searcher, fMaxSearchRange); 
     return pTarget; 

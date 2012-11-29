@@ -18,7 +18,7 @@ void ScriptedInstance::DoUseDoorOrButton(ObjectGuid guid, uint32 uiWithRestoreTi
 
     if (GameObject* pGo = instance->GetGameObject(guid))
     {
-        if (pGo->GetGoType() == GAMEOBJECT_TYPE_DOOR || pGo->GetGoType() == GAMEOBJECT_TYPE_BUTTON)
+        if (pGo->GetGoType() == GAMEOBJECT_TYPE_DOOR || pGo->GetGoType() == GAMEOBJECT_TYPE_BUTTON || pGo->GetGoType() == GAMEOBJECT_TYPE_TRAPDOOR)
         {
             if (pGo->getLootState() == GO_READY)
                 pGo->UseDoorOrButton(uiWithRestoreTime, bUseAlternativeState);
@@ -26,7 +26,7 @@ void ScriptedInstance::DoUseDoorOrButton(ObjectGuid guid, uint32 uiWithRestoreTi
                 pGo->ResetDoorOrButton();
         }
         else
-            error_log("SD2: Script call DoUseDoorOrButton, but gameobject entry %u is type %u.", pGo->GetEntry(), pGo->GetGoType());
+            script_error_log("Script call DoUseDoorOrButton, but gameobject entry %u is type %u.", pGo->GetEntry(), pGo->GetGoType());
     }
 }
 
@@ -39,6 +39,56 @@ void ScriptedInstance::DoUseDoorOrButton(uint32 uiEntry, uint32 uiWithRestoreTim
     else
         // Output log, possible reason is not added GO to storage, or not yet loaded
         debug_log("SD2: Script call DoUseDoorOrButton(by Entry), but no gameobject of entry %u was created yet, or it was not stored by script for map %u.", uiEntry, instance->GetId());
+}
+
+void ScriptedInstance::DoOpenDoor(ObjectGuid guid)
+{
+    if (guid.IsEmpty())
+        return;
+
+    GameObject* pGo = instance->GetGameObject(guid);
+
+    if (pGo)
+        pGo->SetGoState(GO_STATE_ACTIVE);
+    else
+        debug_log("SD2: DoOpenDoor attempt set data to object %u, but no this object", guid.GetCounter());
+}
+
+void ScriptedInstance::DoCloseDoor(ObjectGuid guid)
+{
+    if (guid.IsEmpty())
+        return;
+
+    GameObject* pGo = instance->GetGameObject(guid);
+
+    if (pGo)
+        pGo->SetGoState(GO_STATE_READY);
+    else
+        debug_log("SD2: DoCloseDoor attempt set data to object %u, but no this object", guid.GetCounter());
+}
+
+void ScriptedInstance::DoOpenDoor(uint32 entry)
+{
+    EntryGuidMap::iterator find = m_mGoEntryGuidStore.find(entry);
+    if (find != m_mGoEntryGuidStore.end())
+    {
+        ObjectGuid guid = find->second;
+        DoOpenDoor(guid);
+    }
+    else
+        debug_log("SD2: Script call DoOpenDoor (by Entry), but no gameobject of entry %u was created yet, or it was not stored by script for map %u.", entry, instance->GetId());
+}
+
+void ScriptedInstance::DoCloseDoor(uint32 entry)
+{
+    EntryGuidMap::iterator find = m_mGoEntryGuidStore.find(entry);
+    if (find != m_mGoEntryGuidStore.end())
+    {
+        ObjectGuid guid = find->second;
+        DoCloseDoor(guid);
+    }
+    else
+        debug_log("SD2: Script call DoCloseDoor (by Entry), but no gameobject of entry %u was created yet, or it was not stored by script for map %u.", entry, instance->GetId());
 }
 
 /**
@@ -56,7 +106,7 @@ void ScriptedInstance::DoRespawnGameObject(ObjectGuid guid, uint32 uiTimeToDespa
     {
         //not expect any of these should ever be handled
         if (pGo->GetGoType() == GAMEOBJECT_TYPE_FISHINGNODE || pGo->GetGoType() == GAMEOBJECT_TYPE_DOOR ||
-            pGo->GetGoType() == GAMEOBJECT_TYPE_BUTTON || pGo->GetGoType() == GAMEOBJECT_TYPE_TRAP)
+            pGo->GetGoType() == GAMEOBJECT_TYPE_BUTTON)
             return;
 
         if (pGo->isSpawned())
@@ -148,6 +198,21 @@ void ScriptedInstance::DoCompleteAchievement(uint32 uiAchievmentId)
     else
         debug_log("SD2: DoCompleteAchievement attempt set data but no players in map.");
 }
+void ScriptedInstance::DoUpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1 /*=0*/, uint32 miscvalue2 /*=0*/)
+{
+    Map::PlayerList const& lPlayers = instance->GetPlayers();
+
+    if (!lPlayers.isEmpty())
+    {
+        for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+        {
+            if (Player* pPlayer = itr->getSource())
+                pPlayer->UpdateAchievementCriteria(type, miscvalue1, miscvalue2);
+        }
+    }
+    else
+        debug_log("SD2: DoUpdateAchievementCriteria attempt set data but no players in map.");
+}
 
 /// Get the first found Player* (with requested properties) in the map. Can return NULL.
 Player* ScriptedInstance::GetPlayerInMap(bool bOnlyAlive /*=false*/, bool bCanBeGamemaster /*=true*/)
@@ -172,7 +237,7 @@ GameObject* ScriptedInstance::GetSingleGameObjectFromStorage(uint32 uiEntry)
         return instance->GetGameObject(find->second);
 
     // Output log, possible reason is not added GO to map, or not yet loaded;
-    debug_log("SD2: Script requested gameobject with entry %u, but no gameobject of this entry was created yet, or it was not stored by script for map %u.", uiEntry, instance->GetId());
+    script_error_log("Script requested gameobject with entry %u, but no gameobject of this entry was created yet, or it was not stored by script for map %u.", uiEntry, instance->GetId());
 
     return NULL;
 }
@@ -186,7 +251,7 @@ Creature* ScriptedInstance::GetSingleCreatureFromStorage(uint32 uiEntry, bool bS
 
     // Output log, possible reason is not added GO to map, or not yet loaded;
     if (!bSkipDebugLog)
-        debug_log("SD2: Script requested creature with entry %u, but no npc of this entry was created yet, or it was not stored by script for map %u.", uiEntry, instance->GetId());
+        script_error_log("Script requested creature with entry %u, but no npc of this entry was created yet, or it was not stored by script for map %u.", uiEntry, instance->GetId());
 
     return NULL;
 }
@@ -219,10 +284,10 @@ void ScriptedInstance::DoStartTimedAchievement(AchievementCriteriaTypes criteria
    @param   pDialogueArray The static const array of DialogueEntry holding the information about the dialogue. This array MUST be terminated by {0,0,0}
  */
 DialogueHelper::DialogueHelper(DialogueEntry const* pDialogueArray) :
-    m_pDialogueArray(pDialogueArray),
-    m_pDialogueTwoSideArray(NULL),
     m_pInstance(NULL),
+    m_pDialogueArray(pDialogueArray),
     m_pCurrentEntry(NULL),
+    m_pDialogueTwoSideArray(NULL),
     m_pCurrentEntryTwoSide(NULL),
     m_uiTimer(0),
     m_bCanSimulate(false),
@@ -241,8 +306,8 @@ DialogueHelper::DialogueHelper(DialogueEntryTwoSide const* pDialogueTwoSideArray
     m_pCurrentEntry(NULL),
     m_pCurrentEntryTwoSide(NULL),
     m_uiTimer(0),
-    m_bCanSimulate(false),
-    m_bIsFirstSide(true)
+    m_bIsFirstSide(true),
+    m_bCanSimulate(false)
 {}
 
 /**
@@ -282,7 +347,7 @@ void DialogueHelper::StartNextDialogueText(int32 iTextEntry)
 
     if (!bFound)
     {
-        error_log("SD2: Script call DialogueHelper::StartNextDialogueText, but textEntry %i is not in provided dialogue (on map id %u)", iTextEntry, m_pInstance ? m_pInstance->instance->GetId() : 0);
+        script_error_log("Script call DialogueHelper::StartNextDialogueText, but textEntry %i is not in provided dialogue (on map id %u)", iTextEntry, m_pInstance ? m_pInstance->instance->GetId() : 0);
         return;
     }
 

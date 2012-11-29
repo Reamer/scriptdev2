@@ -21,7 +21,7 @@ enum EncounterState
 #define OUT_SAVE_INST_DATA_COMPLETE    debug_log("SD2: Saving Instance Data for Instance %s (Map %d, Instance Id %d) completed.", instance->GetMapName(), instance->GetId(), instance->GetInstanceId())
 #define OUT_LOAD_INST_DATA(a)          debug_log("SD2: Loading Instance Data for Instance %s (Map %d, Instance Id %d). Input is '%s'", instance->GetMapName(), instance->GetId(), instance->GetInstanceId(), a)
 #define OUT_LOAD_INST_DATA_COMPLETE    debug_log("SD2: Instance Data Load for Instance %s (Map %d, Instance Id: %d) is complete.", instance->GetMapName(), instance->GetId(), instance->GetInstanceId())
-#define OUT_LOAD_INST_DATA_FAIL        error_log("SD2: Unable to load Instance Data for Instance %s (Map %d, Instance Id: %d).", instance->GetMapName(), instance->GetId(), instance->GetInstanceId())
+#define OUT_LOAD_INST_DATA_FAIL        script_error_log("Unable to load Instance Data for Instance %s (Map %d, Instance Id: %d).", instance->GetMapName(), instance->GetId(), instance->GetInstanceId())
 
 class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
 {
@@ -36,6 +36,10 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
         // Change active state of doors or buttons
         void DoUseDoorOrButton(ObjectGuid guid, uint32 uiWithRestoreTime = 0, bool bUseAlternativeState = false);
         void DoUseDoorOrButton(uint32 uiEntry, uint32 uiWithRestoreTime = 0, bool bUseAlternativeState = false);
+        void DoOpenDoor(ObjectGuid guid);
+        void DoCloseDoor(ObjectGuid guid);
+        void DoOpenDoor(uint32 uiEntry);
+        void DoCloseDoor(uint32 uiEntry);
 
         // Respawns a GO having negative spawntimesecs in gameobject-table
         void DoRespawnGameObject(ObjectGuid guid, uint32 uiTimeToDespawn = MINUTE);
@@ -50,6 +54,9 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
 
         //sends completed achievments to all players in instance
         void DoCompleteAchievement(uint32 uiAchievmentId);
+
+        //sends achievment criteria update to all players in instance
+        void DoUpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1 = 0, uint32 miscvalue2 = 0);
 
         // Get a Player from map
         Player* GetPlayerInMap(bool bOnlyAlive = false, bool bCanBeGamemaster = true);
@@ -103,7 +110,6 @@ struct DialogueEntryTwoSide
 class DialogueHelper
 {
     public:
-        virtual ~DialogueHelper(){}
         // The array MUST be terminated by {0,0,0}
         DialogueHelper(DialogueEntry const* pDialogueArray);
         // The array MUST be terminated by {0,0,0,0,0}
