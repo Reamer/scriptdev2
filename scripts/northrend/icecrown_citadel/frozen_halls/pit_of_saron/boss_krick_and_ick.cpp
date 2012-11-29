@@ -121,13 +121,16 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
 
+        DoMeleeAttackIfReady();
+
         if (m_uiStopAutomaticMovement)
         {
             if (m_uiStopAutomaticMovement <= uiDiff)
             {
                 m_uiStopAutomaticMovement = 0;
                 SetCombatMovement(true);
-                m_creature->AI()->AttackStart(m_creature->getVictim());
+                if (m_creature->getVictim())
+                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
             }
             else
                 m_uiStopAutomaticMovement -= uiDiff;
@@ -227,7 +230,6 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         else
             m_uiMightKickTimer -= uiDiff;
 
-        DoMeleeAttackIfReady();
     }
 };
 
