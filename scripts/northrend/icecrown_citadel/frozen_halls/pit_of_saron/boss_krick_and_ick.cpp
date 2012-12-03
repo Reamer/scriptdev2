@@ -107,7 +107,6 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
 
         if(Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
         {
-     //       pKrick->AI()->AttackStart(pWho);
             DoScriptText(SAY_AGGRO, pKrick);
         }
     }
@@ -184,7 +183,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         else
             m_uiShadowboltTimer -= uiDiff;
 
-        if (m_uiExplosivBarrageTimer < uiDiff)
+        /*if (m_uiExplosivBarrageTimer < uiDiff)
         {
             if (Creature* pKrick = m_pInstance->GetSingleCreatureFromStorage(NPC_KRICK))
             {
@@ -198,7 +197,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
             }
         }
         else
-            m_uiExplosivBarrageTimer -= uiDiff;
+            m_uiExplosivBarrageTimer -= uiDiff;*/
 
         if (m_uiPursueTimer < uiDiff)
         {

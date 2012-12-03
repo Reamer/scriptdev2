@@ -93,8 +93,8 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
         m_creature->MonsterSay("RESET", LANG_UNIVERSAL);
         m_bStartIntro           = false;
-        m_uiIcyBlastTimer       = 35000;
-        m_uiIcyBlastSlowTimer   = 30000;
+        m_uiIcyBlastTimer       = 15000;
+        m_uiIcyBlastSlowTimer   = 10000;
     }
 
     void MoveInLineOfSight(Unit* pWho)
@@ -131,9 +131,6 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        //if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            //  return;
-
         if (!m_pInstance)
             return;
 
@@ -144,7 +141,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
                 if (Unit* pTarget = pTyrannus->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST) == CAST_OK)
-                        m_uiIcyBlastTimer = 35000;
+                        m_uiIcyBlastTimer = 15000;
                 }
             }
         }
@@ -158,7 +155,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
                 if (Unit* pTarget = pTyrannus->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST_SLOW) == CAST_OK)
-                        m_uiIcyBlastSlowTimer = 40000;
+                        m_uiIcyBlastSlowTimer = 10000;
                 }
             }
         }
