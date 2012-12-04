@@ -102,7 +102,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
             m_bStartIntro = true;
             m_pInstance->SetData(TYPE_TYRANNUS, SPECIAL);
         }
-        if (m_pInstance->GetData(TYPE_TYRANNUS) == IN_PROGRESS && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, DEFAULT_VISIBILITY_INSTANCE))
+        if (m_pInstance->GetData(TYPE_TYRANNUS) == IN_PROGRESS && pWho->GetTypeId() == TYPEID_PLAYER && !m_creature->IsWithinDistInMap(pWho, DEFAULT_VISIBILITY_INSTANCE))
         {
             DoCast(pWho, SPELL_KILLING_ICE);
         }

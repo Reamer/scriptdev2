@@ -90,27 +90,13 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         }
     }
 
-    void AttackStart(Unit* pWho)
-    {
-        m_creature->MonsterSay("AttackStart", LANG_UNIVERSAL);
-        if (pWho && m_creature->Attack(pWho, true))             // The Attack function also uses basic checks if pWho can be attacked
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-
-            if (IsCombatMovement())
-                m_creature->GetMotionMaster()->MoveChase(pWho);
-        }
-    }
-
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
     {
         if (pSpell->Id == SPELL_PURSUED)
         {
+            m_uiStopAutomaticMovement = 12000;
             m_creature->AI()->AttackStart(pTarget);
             SetCombatMovement(false);
-            m_uiStopAutomaticMovement = 12000;
         }
     }
 
