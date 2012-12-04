@@ -42,14 +42,14 @@ enum
     SPELL_FORCEFUL_SMASH                = 69155,
     SPELL_OVERLORDS_BRAND               = 69172,
     SPELL_DARK_MIGHT                    = 69167,
+    //Rimefang
     SPELL_HOARFROST                     = 69246,
     SPELL_MARK_OF_RIMEFANG              = 69275,
-    SPELL_ICY_BLAST                     = 69233,
-    SPELL_ICY_BLAST_SLOW                = 69238,
+    SPELL_ICY_BLAST                     = 69232,
+    SPELL_KILLING_ICE                   = 72531,
 
     NPC_ICY_BLAST                       = 36731,
     SPELL_ICY_BLAST_AURA                = 69238,
-    SPELL_ICY_BLAST_AURA_H              = 69628,
 
     EQUIP_ID                            = 51796,
 
@@ -81,7 +81,6 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
     instance_pit_of_saron* m_pInstance;
 
     uint32 m_uiIcyBlastTimer;
-    uint32 m_uiIcyBlastSlowTimer;
     bool  m_bStartIntro;
 
     void Reset()
@@ -94,7 +93,6 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         m_creature->MonsterSay("RESET", LANG_UNIVERSAL);
         m_bStartIntro           = false;
         m_uiIcyBlastTimer       = 15000;
-        m_uiIcyBlastSlowTimer   = 10000;
     }
 
     void MoveInLineOfSight(Unit* pWho)
@@ -103,6 +101,10 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         {
             m_bStartIntro = true;
             m_pInstance->SetData(TYPE_TYRANNUS, SPECIAL);
+        }
+        if (m_pInstance->GetData(TYPE_TYRANNUS) == IN_PROGRESS && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, DEFAULT_VISIBILITY_INSTANCE))
+        {
+            DoCast(pWho, SPELL_KILLING_ICE);
         }
         ScriptedAI::MoveInLineOfSight(pWho);
     }
@@ -120,7 +122,7 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         switch (pSpell->Id)
         {
             case SPELL_MARK_OF_RIMEFANG:
-                DoCast(pTarget, SPELL_HOARFROST);
+                DoCast(pTarget, SPELL_HOARFROST, true);
                 DoScriptText(EMOTE_RIMEFANG_ICEBOLT, m_creature, pTarget);
                 break;
             default:
@@ -147,20 +149,6 @@ struct MANGOS_DLL_DECL boss_rimefangAI : public ScriptedAI
         }
         else
             m_uiIcyBlastTimer -= uiDiff;
-
-        if (m_uiIcyBlastSlowTimer < uiDiff)
-        {
-            if (Creature* pTyrannus = m_pInstance->GetSingleCreatureFromStorage(NPC_TYRANNUS))
-            {
-                if (Unit* pTarget = pTyrannus->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                {
-                    if (DoCastSpellIfCan(pTarget, SPELL_ICY_BLAST_SLOW) == CAST_OK)
-                        m_uiIcyBlastSlowTimer = 10000;
-                }
-            }
-        }
-        else
-            m_uiIcyBlastSlowTimer -= uiDiff;
     }
 };
 

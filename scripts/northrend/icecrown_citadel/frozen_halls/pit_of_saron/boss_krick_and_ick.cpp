@@ -90,6 +90,20 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         }
     }
 
+    void AttackStart(Unit* pWho)
+    {
+        m_creature->MonsterSay("AttackStart", LANG_UNIVERSAL);
+        if (pWho && m_creature->Attack(pWho, true))             // The Attack function also uses basic checks if pWho can be attacked
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+
+            if (IsCombatMovement())
+                m_creature->GetMotionMaster()->MoveChase(pWho);
+        }
+    }
+
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
     {
         if (pSpell->Id == SPELL_PURSUED)
@@ -245,11 +259,13 @@ struct MANGOS_DLL_DECL boss_KrickAI : public ScriptedAI
     void Reset()
     {
     }
-
+    void AttackStart(Unit* pWho)
+    {
+    }
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
+//        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+  //          return;
 
 
     }
