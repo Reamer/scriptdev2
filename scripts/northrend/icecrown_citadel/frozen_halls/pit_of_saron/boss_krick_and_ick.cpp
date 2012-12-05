@@ -137,7 +137,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
 
             return;
         }
-
+        m_creature->MonsterSay("Im Skript", LANG_UNIVERSAL);
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
