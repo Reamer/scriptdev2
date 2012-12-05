@@ -67,6 +67,7 @@ void ScriptedAI::MoveInLineOfSight(Unit* pWho)
         {
             if (!m_creature->getVictim())
             {
+                m_creature->MonsterSay("Attack Start - MoveInLineOfSight", LANG_UNIVERSAL);
                 pWho->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
                 AttackStart(pWho);
             }

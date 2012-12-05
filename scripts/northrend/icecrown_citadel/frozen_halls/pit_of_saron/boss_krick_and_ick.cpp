@@ -95,6 +95,7 @@ struct MANGOS_DLL_DECL boss_IckAI : public ScriptedAI
         if (pSpell->Id == SPELL_PURSUED)
         {
             m_uiStopAutomaticMovement = 12000;
+            m_creature->MonsterSay("attack start - script with spell", LANG_UNIVERSAL);
             m_creature->AI()->AttackStart(pTarget);
             SetCombatMovement(false);
         }
