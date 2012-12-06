@@ -157,8 +157,9 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 }
                 else
                     m_uiCorruptSoulTimer -= uiDiff;
-                /* no break*/
+
             }
+            /* no break*/
             case BronjahmPhaseTwo:
             {
 
