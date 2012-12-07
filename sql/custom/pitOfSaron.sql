@@ -65,6 +65,10 @@ UPDATE gameobject_template SET data2 = 202168 WHERE entry IN (202168);
 -- add vehicleid for rimefang (h)
 UPDATE creature_template SET vehicle_id = 535 WHERE entry = 38220;
 
+-- Dmg modification of Crusader Champions
+UPDATE creature_template SET mindmg = 417, maxdmg = 582, dmg_multiplier = 7.5 WHERE entry IN (37584, 37587, 37588);
+UPDATE creature_template SET mindmg = 417, maxdmg = 582, dmg_multiplier = 13 WHERE entry  IN (37624, 37625, 37623);
+
 -- DELETE at begin (Jaina and soldiers)
 DELETE FROM creature WHERE map = 658 AND id IN
 (36993, 37774, 37582, 37498, 37496 , 37497);
