@@ -155,7 +155,6 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 {
     boss_tyrannusAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
-        m_creature->SetRespawnDelay(30*MINUTE*IN_MILLISECONDS);
         m_pInstance = (instance_pit_of_saron*)pCreature->GetInstanceData();
         SetEquipmentSlots(false, EQUIP_ID, -1, -1);
         Reset();
