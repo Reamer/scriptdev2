@@ -49,6 +49,7 @@ enum
     SPELL_BLOOD_LINK                        = 72202, // cast on Saurfang to give 1 Blood Power
 
     // Mark of the Fallen Champion
+    SPELL_MARK_OF_FALLEN_CHAMPION_SEARCH    = 72254,
     SPELL_MARK_OF_FALLEN_CHAMPION           = 72256, // proc on melee hit, dmg to marked targets
     SPELL_MARK_OF_FALLEN_CHAMPION_DEBUFF    = 72293, // proc on death - heal Saurfang
     SPELL_REMOVE_MARKS                      = 72257,
@@ -234,48 +235,6 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         }
     }
 
-    Player* SelectRandomPlayerForMark()
-    {
-        Player *pResult = NULL;
-        GuidList lPlayers;
-        ThreatList const &threatlist = m_creature->getThreatManager().getThreatList();
-
-        if (!threatlist.empty())
-        {
-            for (ThreatList::const_iterator itr = threatlist.begin();itr != threatlist.end(); ++itr)
-            {
-                ObjectGuid const &guid = (*itr)->getUnitGuid();
-                if (guid.IsPlayer() && guid != m_creature->getVictim()->GetObjectGuid()) // exclude current target
-                {
-                    // check if player already has the mark
-                    if (Player *pPlayer = m_creature->GetMap()->GetPlayer(guid))
-                    {
-                        if (!pPlayer->HasAura(SPELL_MARK_OF_FALLEN_CHAMPION_DEBUFF))
-                            lPlayers.push_back(guid);
-                    }
-                }
-            }
-        }
-
-        if (!lPlayers.empty())
-        {
-            GuidList::iterator i = lPlayers.begin();
-            std::advance(i, urand(0, lPlayers.size() - 1));
-
-            pResult = m_creature->GetMap()->GetPlayer(*i);
-        }
-
-        // last option - current target
-        if (!pResult)
-        {
-            Unit *pVictim = m_creature->getVictim();
-            if (pVictim && pVictim->GetTypeId() == TYPEID_PLAYER && !pVictim->HasAura(SPELL_MARK_OF_FALLEN_CHAMPION_DEBUFF))
-                pResult = (Player*)pVictim;
-        }
-
-        return pResult;
-    }
-
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -284,17 +243,14 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         // Mark of the Fallen Champion
         if (m_creature->GetPower(m_powerBloodPower) >= 100)
         {
-            if (Player *pTarget = SelectRandomPlayerForMark())
+            if (DoCastSpellIfCan(m_creature, SPELL_MARK_OF_FALLEN_CHAMPION_SEARCH) == CAST_OK)
             {
-                if (DoCastSpellIfCan(pTarget, SPELL_MARK_OF_FALLEN_CHAMPION_DEBUFF) == CAST_OK)
-                {
-                    m_creature->SetPower(m_powerBloodPower, 0); // reset Blood Power
-                    // decrease the buff
-                    m_creature->RemoveAurasDueToSpell(72371);
-                    int32 power = m_creature->GetPower(m_powerBloodPower);
-                    m_creature->CastCustomSpell(m_creature, 72371, &power, &power, NULL, true);
-                    DoScriptText(SAY_FALLENCHAMPION, m_creature);
-                }
+                m_creature->SetPower(m_powerBloodPower, 0); // reset Blood Power
+                // decrease the buff
+                m_creature->RemoveAurasDueToSpell(SPELL_BLOOD_POWER);
+                int32 power = m_creature->GetPower(m_powerBloodPower);
+                m_creature->CastCustomSpell(m_creature, SPELL_BLOOD_POWER, &power, &power, NULL, true);
+                DoScriptText(SAY_FALLENCHAMPION, m_creature);
             }
         }
 
