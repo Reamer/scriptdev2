@@ -41,13 +41,13 @@ struct t_Locations
 
 static t_Locations PortalLoc[]=
 {
-{-3631600,MAP_NUM,-17.1928f, 2211.44f, 30.1158f,3.14f,70856,true,true,TYPE_TELEPORT}, //
+//{-3631600,MAP_NUM,-17.1928f, 2211.44f, 30.1158f,3.14f,70856,true,true,TYPE_TELEPORT}, //
 {-3631601,MAP_NUM,-503.62f, 2211.47f, 62.8235f,3.14f,70856,false,true,TYPE_MARROWGAR},  //
-{-3631602,MAP_NUM,-615.145f, 2211.47f, 199.972f,0,70857,false,true,TYPE_DEATHWHISPER}, //
-{-3631603,MAP_NUM,-549.131f, 2211.29f, 539.291f,0,70858,false,true,TYPE_DEATHWHISPER /*TYPE_FLIGHT_WAR*/}, //
-{-3631604,MAP_NUM,4198.42f, 2769.22f, 351.065f,0,70859,false,true,TYPE_SAURFANG}, //
+{-3631602,MAP_NUM,-615.145f, 2211.47f, 199.972f,0,70857,false,true,TYPE_LADY_DEATHWHISPER}, //
+{-3631603,MAP_NUM,-549.131f, 2211.29f, 539.291f,0,70858,false,true,TYPE_LADY_DEATHWHISPER /*TYPE_FLIGHT_WAR*/}, //
+{-3631604,MAP_NUM,4198.42f, 2769.22f, 351.065f,0,70859,false,true,TYPE_DEATHBRINGER_SAURFANG}, //
 {-3631606,MAP_NUM,4356.580078f, 2565.75f, 220.401993f,4.90f,70861,false,true,TYPE_VALITHRIA}, //
-{-3631607,MAP_NUM,528.767273f, -2124.845947f, 1043.1f,3.14f, 70860,false,true,TYPE_KINGS_OF_ICC}, //
+//{-3631607,MAP_NUM,528.767273f, -2124.845947f, 1043.1f,3.14f, 70860,false,true,TYPE_KINGS_OF_ICC}, //
 };
 
 
@@ -110,7 +110,7 @@ bool GOHello_go_bloodwing_sigil(Player *player, GameObject* pGo)
     if(!pInstance)
         return false;
 
-    if (pInstance->GetData(TYPE_SAURFANG) == DONE)
+    if (pInstance->GetData(TYPE_DEATHBRINGER_SAURFANG) == DONE)
         pInstance->DoUseDoorOrButton(GO_BLOODWING_DOOR);
 
     return true;
@@ -121,7 +121,7 @@ bool GOHello_go_frostwing_sigil(Player *player, GameObject* pGo)
     instance_icecrown_citadel* pInstance = (instance_icecrown_citadel*)pGo->GetInstanceData();
     if(!pInstance) return false;
 
-    if (pInstance->GetData(TYPE_SAURFANG) == DONE)
+    if (pInstance->GetData(TYPE_DEATHBRINGER_SAURFANG) == DONE)
         pInstance->DoUseDoorOrButton(GO_FROSTWING_DOOR);
 
     return true;

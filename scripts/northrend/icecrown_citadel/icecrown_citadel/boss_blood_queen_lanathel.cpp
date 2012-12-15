@@ -76,6 +76,11 @@ enum
     SAY_DEATH                   = -1631129,
 };
 
+struct Locations
+{
+    float x,y,z;
+};
+
 static Locations QueenLocs[]=
 {
     {4595.640137f, 2769.195557f, 400.137054f},  // 0 Phased
@@ -93,12 +98,15 @@ static Locations QueenLocs[]=
 /**
  * Queen Lana'thel
  */
-struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public ScriptedAI
 {
-    boss_blood_queen_lanathelAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    boss_blood_queen_lanathelAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiPhase;
 
@@ -133,7 +141,7 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
     {
         if(m_pInstance)
         {
-            m_pInstance->SetData(TYPE_LANATHEL, FAIL);
+            m_pInstance->SetData(TYPE_QUEEN_LANATHEL, FAIL);
             RemoveAurasFromAllPlayers();
         }
     }
@@ -148,7 +156,7 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
     void Aggro(Unit* pWho)
     {
         if (m_pInstance) 
-            m_pInstance->SetData(TYPE_LANATHEL, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_QUEEN_LANATHEL, IN_PROGRESS);
 
         DoScriptText(SAY_AGGRO, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_SHROUD_OF_SORROW, CAST_TRIGGERED);
@@ -159,7 +167,7 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
     {
         if(m_pInstance)
 	{
-            m_pInstance->SetData(TYPE_LANATHEL, DONE);
+            m_pInstance->SetData(TYPE_QUEEN_LANATHEL, DONE);
 	    RemoveAurasFromAllPlayers();
 	}
 
@@ -340,7 +348,7 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
                     m_uiBloodMirrorTimer -= uiDiff;
 
                 // Delirious Slash
-                if (m_bIsHeroic)
+                if (m_pInstance->IsHeroicDifficulty())
                 {
                     if (m_uiDeliriousSlashTimer <= uiDiff)
                     {
@@ -415,7 +423,7 @@ struct MANGOS_DLL_DECL boss_blood_queen_lanathelAI : public base_icc_bossAI
                      * but we can use SelectAttackingTarget() here
                      * if (DoCastSpellIfCan(m_creature, SPELL_SWARMING_SHADOWS) == CAST_OK)
                      */
-                    if (Unit *pTarget = SelectRandomRangedTarget(m_creature))
+                    if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_SWARMING_SHADOWS_TRIGGERED, SELECT_FLAG_NOT_IN_MELEE_RANGE))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_SWARMING_SHADOWS_TRIGGERED) == CAST_OK)
                         {

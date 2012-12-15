@@ -232,6 +232,11 @@ enum Point
     POINT_SPIRIT_BOMB           = 7, // Spirit Bomb moving down
 };
 
+struct Locations
+{
+    float x,y,z;
+};
+
 static Locations SpawnLoc[] =
 {
     {458.58889f, -2122.710284f, 1040.860107f},    // 0 Lich King Intro
@@ -252,14 +257,17 @@ static Locations SpawnLoc[] =
 /**
  * Tirion
  */
-struct MANGOS_DLL_DECL boss_tirion_iccAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL boss_tirion_iccAI : public ScriptedAI
 {
-    boss_tirion_iccAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    boss_tirion_iccAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         m_bIsEventStarted   = false;
         m_guidTerenas.Clear();
         m_guidFrostmourne.Clear();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     bool m_bIsEventStarted;
     uint32 m_uiEventStep;
@@ -274,7 +282,7 @@ struct MANGOS_DLL_DECL boss_tirion_iccAI : public base_icc_bossAI
         if (m_pInstance)
         {
             if (m_pInstance->GetData(TYPE_LICH_KING) == DONE)
-                base_icc_bossAI::EnterEvadeMode();
+                ScriptedAI::EnterEvadeMode();
         }
     }
 
@@ -707,15 +715,18 @@ bool GossipSelect_boss_tirion_icc(Player* pPlayer, Creature* pCreature, uint32 u
 /**
  * The Lich King
  */
-struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public ScriptedAI
 {
-    boss_the_lich_king_iccAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    boss_the_lich_king_iccAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
         m_uiPlatformOriginalFlag = 0;
         m_bPillarsDestroyed = false;
         m_bIsFirstAttempt = true;
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiPhase;
     uint32 m_uiPhaseTimer;
@@ -814,7 +825,7 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public base_icc_bossAI
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_LICH_KING, FAIL);
-            m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
+            //m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
         }
 
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
@@ -863,7 +874,7 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public base_icc_bossAI
                     m_uiIceSphereTimer      = 6000;
 
                     // on heroic despawn Shadow Traps
-                    if (m_bIsHeroic)
+                    if (m_pInstance->IsHeroicDifficulty())
                         DoDespawnShadowTraps();
                 }
                 else if (m_uiPhase == PHASE_RUNNING_WINTER_TWO)
@@ -1037,7 +1048,7 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public base_icc_bossAI
     void DoPrepareFrostmourneRoom()
     {
         // Terenas + Spirit Warden
-        if (!m_bIsHeroic)
+        if (!m_pInstance->IsHeroicDifficulty())
         {
             m_creature->SummonCreature(NPC_TERENAS_FM_NORMAL, SpawnLoc[10].x - 5.0f, SpawnLoc[10].y, SpawnLoc[10].z, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 0);
             m_creature->SummonCreature(NPC_SPIRIT_WARDEN, SpawnLoc[10].x + 5.0f, SpawnLoc[10].y, SpawnLoc[10].z, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 0);
@@ -1048,8 +1059,8 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public base_icc_bossAI
             m_creature->SummonCreature(NPC_TERENAS_FM_HEROIC, SpawnLoc[10].x, SpawnLoc[10].y, SpawnLoc[10].z, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 0);
         }
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, IN_PROGRESS);
+        //if (m_pInstance)
+          //  m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, IN_PROGRESS);
     }
 
     void SpellHit(Unit *pCaster, const SpellEntry *pSpell)
@@ -1144,7 +1155,7 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public base_icc_bossAI
                     m_uiHorrorTimer -= uiDiff;
 
                 // Shadow Trap (heroic)
-                if (m_bIsHeroic)
+                if (m_pInstance->IsHeroicDifficulty())
                 {
                     if (m_uiShadowTrapTimer < uiDiff)
                     {
@@ -1374,20 +1385,20 @@ struct MANGOS_DLL_DECL boss_the_lich_king_iccAI : public base_icc_bossAI
                 if (m_uiHarvestSoulTimer < uiDiff)
                 {
                     Unit *pTarget = NULL;
-                    if (m_bIsHeroic)
+                    if (m_pInstance->IsHeroicDifficulty())
                         pTarget = m_creature;
                     else
                         pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_HARVEST_SOUL, SELECT_FLAG_PLAYER);
 
                     if (pTarget)
                     {
-                        if (DoCastSpellIfCan(pTarget, m_bIsHeroic ? SPELL_HARVEST_SOULS : SPELL_HARVEST_SOUL) == CAST_OK)
+                        if (DoCastSpellIfCan(pTarget, m_pInstance->IsHeroicDifficulty() ? SPELL_HARVEST_SOULS : SPELL_HARVEST_SOUL) == CAST_OK)
                         {
                             DoScriptText(SAY_HARVEST_SOUL, m_creature);
-                            m_uiHarvestSoulTimer = m_bIsHeroic ? 120000 : 70000;
+                            m_uiHarvestSoulTimer = m_pInstance->IsHeroicDifficulty() ? 120000 : 70000;
                             DoPrepareFrostmourneRoom();
 
-                            if (m_bIsHeroic)
+                            if (m_pInstance->IsHeroicDifficulty())
                             {
                                 m_uiPhase = PHASE_IN_FROSTMOURNE;
                                 SetCombatMovement(false);
@@ -1447,12 +1458,15 @@ CreatureAI* GetAI_boss_the_lich_king_icc(Creature* pCreature)
 /**
  * Drudge Ghoul
  */
-struct MANGOS_DLL_DECL mob_drudge_ghoulAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_drudge_ghoulAI : public ScriptedAI
 {
-    mob_drudge_ghoulAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_drudge_ghoulAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiReadyTimer;
     bool m_bIsReady;
@@ -1475,7 +1489,7 @@ struct MANGOS_DLL_DECL mob_drudge_ghoulAI : public base_icc_bossAI
         if (!m_bIsReady)
             return;
         else
-            base_icc_bossAI::AttackStart(pWho);
+            ScriptedAI::AttackStart(pWho);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1520,12 +1534,15 @@ CreatureAI* GetAI_mob_drudge_ghoul(Creature* pCreature)
 /**
  * Shambling Horror
  */
-struct MANGOS_DLL_DECL mob_shambling_horrorAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_shambling_horrorAI : public ScriptedAI
 {
-    mob_shambling_horrorAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_shambling_horrorAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiShockwaveTimer;
     uint32 m_uiEnrageTimer;
@@ -1555,7 +1572,7 @@ struct MANGOS_DLL_DECL mob_shambling_horrorAI : public base_icc_bossAI
         if (!m_bIsReady)
             return;
         else
-            base_icc_bossAI::AttackStart(pWho);
+            ScriptedAI::AttackStart(pWho);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1589,7 +1606,7 @@ struct MANGOS_DLL_DECL mob_shambling_horrorAI : public base_icc_bossAI
             return;
 
         // Frenzy on heroic
-        if (m_bIsHeroic)
+        if (m_pInstance->IsHeroicDifficulty())
         {
             if (!m_bHasCastFrenzy)
             {
@@ -1634,15 +1651,18 @@ CreatureAI* GetAI_mob_shambling_horror(Creature* pCreature)
 /**
  * Shadow Trap
  */
-struct MANGOS_DLL_DECL mob_shadow_trapAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_shadow_trapAI : public ScriptedAI
 {
-    mob_shadow_trapAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_shadow_trapAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         SetCombatMovement(false);
         DoCastSpellIfCan(m_creature, SPELL_SHADOW_TRAP_VISUAL, CAST_TRIGGERED);
         m_uiShadowTrapTimer = 5000;
         m_bHasCastAura = false;
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiShadowTrapTimer;
     bool m_bHasCastAura;
@@ -1684,13 +1704,16 @@ CreatureAI* GetAI_mob_shadow_trap(Creature* pCreature)
 /**
  * Ice Sphere
  */
-struct MANGOS_DLL_DECL mob_ice_sphere_iccAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_ice_sphere_iccAI : public ScriptedAI
 {
-    mob_ice_sphere_iccAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_ice_sphere_iccAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         m_creature->SetWalk(true);
         m_creature->SetSpeedRate(MOVE_WALK, 1.1f);
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     void Reset(){}
 
@@ -1714,12 +1737,15 @@ CreatureAI* GetAI_mob_ice_sphere_icc(Creature* pCreature)
 /**
  * Raging Spirit
  */
-struct MANGOS_DLL_DECL mob_raging_spiritAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_raging_spiritAI : public ScriptedAI
 {
-    mob_raging_spiritAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_raging_spiritAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiSoulShriekTimer;
     bool m_bHasCloned;
@@ -1768,10 +1794,11 @@ CreatureAI* GetAI_mob_raging_spirit(Creature* pCreature)
 /**
  * Val'kyr Shadowguard
  */
-struct MANGOS_DLL_DECL mob_valkyr_shadowguardAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_valkyr_shadowguardAI : public ScriptedAI
 {
-    mob_valkyr_shadowguardAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_valkyr_shadowguardAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
         DoCastSpellIfCan(m_creature, SPELL_WINGS_OF_THE_DAMNED, CAST_TRIGGERED);
         SetCombatMovement(false);
@@ -1779,6 +1806,8 @@ struct MANGOS_DLL_DECL mob_valkyr_shadowguardAI : public base_icc_bossAI
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
         m_creature->NearTeleportTo(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 15.0f, 0.0f);
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiCatchTimer;
     uint32 m_uiLifeSiphonTimer;
@@ -1798,7 +1827,7 @@ struct MANGOS_DLL_DECL mob_valkyr_shadowguardAI : public base_icc_bossAI
     void AttackStart(Unit *pWho)
     {
         if (m_bIsCastingLifeSiphon)
-            base_icc_bossAI::AttackStart(pWho);
+            ScriptedAI::AttackStart(pWho);
     }
 
     Unit* DoCatchTarget()
@@ -1910,7 +1939,7 @@ struct MANGOS_DLL_DECL mob_valkyr_shadowguardAI : public base_icc_bossAI
         }
         else if (uiData == POINT_VALKYR_CENTER)
         {
-            if (m_bIsHeroic)
+            if (m_pInstance->IsHeroicDifficulty())
             {
                 // start casting Life Siphon
                 if (m_creature->GetHealthPercent() <= 50.0f)
@@ -1929,7 +1958,7 @@ struct MANGOS_DLL_DECL mob_valkyr_shadowguardAI : public base_icc_bossAI
     void UpdateAI(const uint32 uiDiff)
     {
         // on heroic start casting Life Siphon at 50% HP
-        if (m_bIsHeroic && !m_bIsCastingLifeSiphon)
+        if (m_pInstance->IsHeroicDifficulty() && !m_bIsCastingLifeSiphon)
         {
             if (m_creature->GetHealthPercent() <= 50.0f)
             {
@@ -1962,7 +1991,7 @@ struct MANGOS_DLL_DECL mob_valkyr_shadowguardAI : public base_icc_bossAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_bIsHeroic && !m_bIsCarrying)
+        if (m_pInstance->IsHeroicDifficulty() && !m_bIsCarrying)
         {
             // Life Siphon
             if (m_uiLifeSiphonTimer < uiDiff)
@@ -1984,9 +2013,9 @@ CreatureAI* GetAI_mob_valkyr_shadowguard(Creature* pCreature)
 /**
  * Defile
  */
-struct MANGOS_DLL_DECL mob_defiler_iccAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_defiler_iccAI : public ScriptedAI
 {
-    mob_defiler_iccAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_defiler_iccAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
         SetCombatMovement(false);
         DoCastSpellIfCan(m_creature, SPELL_DEFILE_AURA, CAST_TRIGGERED);
@@ -2008,10 +2037,11 @@ CreatureAI* GetAI_mob_defiler_icc(Creature* pCreature)
 /**
  * Vile Spirit
  */
-struct MANGOS_DLL_DECL  mob_vile_spiritAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL  mob_vile_spiritAI : public ScriptedAI
 {
-    mob_vile_spiritAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_vile_spiritAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         SetCombatMovement(false);
         m_creature->SetLevitate(true);
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
@@ -2028,6 +2058,8 @@ struct MANGOS_DLL_DECL  mob_vile_spiritAI : public base_icc_bossAI
 
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     bool m_bIsReady;
     bool m_bIsWickedSpirit;
@@ -2156,10 +2188,11 @@ CreatureAI* GetAI_mob_vile_spirit(Creature* pCreature)
 }
 
 
-struct MANGOS_DLL_DECL mob_strangulate_vehicleAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_strangulate_vehicleAI : public ScriptedAI
 {
-    mob_strangulate_vehicleAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_strangulate_vehicleAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         SetCombatMovement(false);
         m_creature->SetWalk(true);
         m_bIsSetUp = false;
@@ -2168,6 +2201,8 @@ struct MANGOS_DLL_DECL mob_strangulate_vehicleAI : public base_icc_bossAI
         m_uiMoveTimer = 2000;
         m_uiTeleportTimer = 6000;
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     bool m_bIsSetUp;
     bool m_bHasMoved;
@@ -2184,7 +2219,7 @@ struct MANGOS_DLL_DECL mob_strangulate_vehicleAI : public base_icc_bossAI
             m_creature->ForcedDespawn();
         else
         {
-            if (m_pInstance->GetData(TYPE_FROSTMOURNE_ROOM) == DONE)
+            /*if (m_pInstance->GetData(TYPE_FROSTMOURNE_ROOM) == DONE)
             {
                 if (Unit *pCreator = m_creature->GetCreator())
                 {
@@ -2198,7 +2233,7 @@ struct MANGOS_DLL_DECL mob_strangulate_vehicleAI : public base_icc_bossAI
                     m_creature->ForcedDespawn();
                     return;
                 }
-            }
+            }*/
         }
 
         if (!m_bIsSetUp)
@@ -2241,7 +2276,7 @@ struct MANGOS_DLL_DECL mob_strangulate_vehicleAI : public base_icc_bossAI
                     {
                         pCreator->CastSpell(m_creature, SPELL_HARVEST_SOUL_CLONE, true);
                         pCreator->CastSpell(pCreator, SPELL_FROSTMOURNE_TP_VISUAL, true);
-                        pCreator->CastSpell(pCreator, m_bIsHeroic ? SPELL_HARVEST_SOUL_TP_FM_H : SPELL_HARVEST_SOUL_TP_FM_N, true);
+                        pCreator->CastSpell(pCreator, m_pInstance->IsHeroicDifficulty() ? SPELL_HARVEST_SOUL_TP_FM_H : SPELL_HARVEST_SOUL_TP_FM_N, true);
                     }
                     else
                     {
@@ -2270,10 +2305,11 @@ CreatureAI* GetAI_mob_strangulate_vehicle(Creature* pCreature)
 /**
  * Terenas Menethil in Frostmourne
  */
-struct MANGOS_DLL_DECL npc_terenas_fmAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL npc_terenas_fmAI : public ScriptedAI
 {
-    npc_terenas_fmAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    npc_terenas_fmAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         m_uiSayPhase = 0;
         m_uiSayTimer = 6000;
         m_uiReleaseTimer = 46000;
@@ -2281,8 +2317,10 @@ struct MANGOS_DLL_DECL npc_terenas_fmAI : public base_icc_bossAI
         m_uiSummonSpiritBombTimer = 7000;
         m_bHasReleasedPlayer = false;
 
-        m_creature->ForcedDespawn(m_bIsHeroic ? 48000 : 68000);
+        m_creature->ForcedDespawn(m_pInstance->IsHeroicDifficulty() ? 48000 : 68000);
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiSayTimer;
     uint32 m_uiSayPhase;
@@ -2316,8 +2354,8 @@ struct MANGOS_DLL_DECL npc_terenas_fmAI : public base_icc_bossAI
         {
             pKiller->CastSpell(pKiller, SPELL_DESTROY_SOUL, true);
 
-            if (m_pInstance)
-                m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
+            //if (m_pInstance)
+                //m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
 
             ((Creature*)pKiller)->ForcedDespawn();
         }
@@ -2340,7 +2378,7 @@ struct MANGOS_DLL_DECL npc_terenas_fmAI : public base_icc_bossAI
 
     void DamageTaken(Unit *pDealer, uint32 uiDamage)
     {
-        if (m_bIsHeroic)
+        if (m_pInstance->IsHeroicDifficulty())
             uiDamage = 0;
     }
 
@@ -2351,7 +2389,7 @@ struct MANGOS_DLL_DECL npc_terenas_fmAI : public base_icc_bossAI
             switch (m_uiSayPhase)
             {
                 case 0:
-                    if (!m_bIsHeroic)
+                    if (!m_pInstance->IsHeroicDifficulty())
                     {
                         if (Creature *pSpirit = GetClosestCreatureWithEntry(m_creature, NPC_SPIRIT_WARDEN, 20.0f))
                         {
@@ -2393,7 +2431,7 @@ struct MANGOS_DLL_DECL npc_terenas_fmAI : public base_icc_bossAI
                     // release soul
                     if (m_pInstance)
                     {
-                        m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
+                        //m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
 
                         if (Creature *pLichKing = m_pInstance->GetSingleCreatureFromStorage(NPC_LICH_KING))
                             DoScriptText(SAY_FM_PLAYER_ESCAPE, pLichKing);
@@ -2410,13 +2448,13 @@ struct MANGOS_DLL_DECL npc_terenas_fmAI : public base_icc_bossAI
         if (!m_pInstance || m_pInstance->GetData(TYPE_LICH_KING) != IN_PROGRESS)
             m_creature->ForcedDespawn();
 
-        if (m_bIsHeroic)
+        if (m_pInstance->IsHeroicDifficulty())
         {
             // Release Souls (heroic)
             if (m_uiReleaseTimer < uiDiff)
             {
-                if (m_pInstance)
-                    m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
+                //if (m_pInstance)
+                    //m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
 
                 m_uiReleaseTimer = 46000;
             }
@@ -2449,13 +2487,16 @@ CreatureAI* GetAI_npc_terenas_fm(Creature* pCreature)
 /**
  * Spirit Warden
  */
-struct MANGOS_DLL_DECL mob_spirit_wardenAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_spirit_wardenAI : public ScriptedAI
 {
-    mob_spirit_wardenAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_spirit_wardenAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         m_creature->ForcedDespawn(68000);
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiSoulRipTimer;
     uint32 m_uiHarvestedSoulTimer;
@@ -2487,8 +2528,8 @@ struct MANGOS_DLL_DECL mob_spirit_wardenAI : public base_icc_bossAI
         // Harvest Soul 60sec aura wears off
         if (m_uiHarvestedSoulTimer < uiDiff)
         {
-            if (m_pInstance)
-                m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
+            //if (m_pInstance)
+                //m_pInstance->SetData(TYPE_FROSTMOURNE_ROOM, DONE);
 
             m_uiHarvestedSoulTimer = 60000;
         }
@@ -2507,10 +2548,11 @@ CreatureAI* GetAI_mob_spirit_warden(Creature* pCreature)
 /**
  * Spirit Bomb
  */
-struct MANGOS_DLL_DECL mob_spirit_bombAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_spirit_bombAI : public ScriptedAI
 {
-    mob_spirit_bombAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_spirit_bombAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         m_creature->ForcedDespawn(41000);
         SetCombatMovement(false);
         m_creature->SetLevitate(true);
@@ -2525,6 +2567,8 @@ struct MANGOS_DLL_DECL mob_spirit_bombAI : public base_icc_bossAI
         m_creature->GetMotionMaster()->MovePoint(POINT_SPIRIT_BOMB, x, y, z, false);
         DoCastSpellIfCan(m_creature, SPELL_SPIRIT_BOMB_VISUAL, CAST_TRIGGERED);
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     void Reset(){}
 

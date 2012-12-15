@@ -131,6 +131,11 @@ enum
     SAY_ROTFACE_DEATH           = -1631080,
 };
 
+struct Locations
+{
+    float x,y,z,o;
+};
+
 static Locations SpawnLoc[]=
 {
     {4356.779785f, 3263.510010f, 389.398010f, 1.586f},  // 0 Putricide start point o=1.586
@@ -157,12 +162,15 @@ enum Phases
 /**
  * boss_professor_putricide
  */
-struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
 {
-    boss_professor_putricideAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    boss_professor_putricideAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiPhase;
 
@@ -223,14 +231,14 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
             return;
         }
 
-        m_pInstance->SetData(TYPE_PUTRICIDE, IN_PROGRESS);
+        m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, IN_PROGRESS);
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
     void JustDied(Unit *pKiller)
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_PUTRICIDE, DONE);
+            m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, DONE);
 
         DoScriptText(SAY_DEATH, m_creature);
     }
@@ -238,7 +246,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_PUTRICIDE, FAIL);
+            m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, FAIL);
 
         if (VehicleKitPtr pKit = m_creature->GetVehicleKit())
         {
@@ -259,7 +267,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
         {
             if (m_uiPhase == PHASE_RUNNING_ONE)
             {
-                if (m_bIsHeroic)
+                if (m_pInstance->IsHeroicDifficulty())
                 {
                     DoScriptText(SAY_PHASE_CHANGE, m_creature);
                     m_uiTransitionTimer = 30000;
@@ -274,7 +282,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
             }
             else if (m_uiPhase == PHASE_RUNNING_TWO)
             {
-                if (m_bIsHeroic)
+                if (m_pInstance->IsHeroicDifficulty())
                 {
                     DoScriptText(SAY_PHASE_CHANGE, m_creature);
                     m_uiTransitionTimer = 30000;
@@ -304,7 +312,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
         }
 
         // variable
-        if (both && m_bIs25Man)
+        if (both && m_pInstance->IsHeroicDifficulty())
             DoVariable();
     }
 
@@ -397,7 +405,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                 {
                     if (m_creature->GetHealthPercent() <= 80.0f)
                     {
-                        if (m_bIsHeroic)
+                        if (m_pInstance->IsHeroicDifficulty())
                         {
                             DoCastSpellIfCan(m_creature, SPELL_VOLATILE_EXPERIMENT);
                             DoExperiment(true, true);
@@ -410,7 +418,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                         }
 
                         if (m_pInstance)
-                            m_pInstance->SetData(TYPE_PUTRICIDE, SPECIAL);
+                            m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, SPECIAL);
 
                         m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
                         m_uiPhase = PHASE_RUNNING_ONE;
@@ -422,7 +430,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                     m_uiHealthCheckTimer -= uiDiff;
 
                 // Unbound Plague
-                if (m_bIsHeroic)
+                if (m_pInstance->IsHeroicDifficulty())
                 {
                     if (m_uiUnboundPlagueTimer <= uiDiff)
                     {
@@ -475,9 +483,9 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                     m_uiPhase = PHASE_TWO;
 
                     if (m_pInstance)
-                            m_pInstance->SetData(TYPE_PUTRICIDE, IN_PROGRESS);
+                            m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, IN_PROGRESS);
 
-                    if (m_bIsHeroic)
+                    if (m_pInstance->IsHeroicDifficulty())
                     {
                         DoCastSpellIfCan(m_creature, SPELL_CREATE_CONCOCTION);
                         DoScriptText(SAY_TRANSFORM_1, m_creature);
@@ -497,7 +505,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                 {
                     if (m_creature->GetHealthPercent() <= 35.0f)
                     {
-                        if (m_bIsHeroic)
+                        if (m_pInstance->IsHeroicDifficulty())
                         {
                             DoCastSpellIfCan(m_creature, SPELL_VOLATILE_EXPERIMENT);
                             DoExperiment(true, true);
@@ -510,7 +518,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                         }
 
                         if (m_pInstance)
-                            m_pInstance->SetData(TYPE_PUTRICIDE, SPECIAL);
+                            m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, SPECIAL);
 
                         m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
                         m_uiPhase = PHASE_RUNNING_TWO;
@@ -522,7 +530,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                     m_uiHealthCheckTimer -= uiDiff;
 
                 // Unbound Plague
-                if (m_bIsHeroic)
+                if (m_pInstance->IsHeroicDifficulty())
                 {
                     if (m_uiUnboundPlagueTimer <= uiDiff)
                     {
@@ -566,9 +574,9 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                 // Malleable Goo
                 if (m_uiMalleableGooTimer <= uiDiff)
                 {
-                    for (int i = 0; i < (m_bIs25Man ? 2 : 1); ++i)
+                    for (int i = 0; i < (m_pInstance->Is25ManDifficulty() ? 2 : 1); ++i)
                     {
-                        if (Unit *pTarget = SelectRandomRangedTarget(m_creature))
+                        if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
                         {
                             float x, y, z;
                             pTarget->GetPosition(x, y, z);
@@ -604,9 +612,9 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                     m_uiPhase = PHASE_THREE;
 
                     if (m_pInstance)
-                            m_pInstance->SetData(TYPE_PUTRICIDE, IN_PROGRESS);
+                            m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, IN_PROGRESS);
 
-                    if (m_bIsHeroic)
+                    if (m_pInstance->IsHeroicDifficulty())
                     {
                         DoCastSpellIfCan(m_creature, SPELL_GUZZLE_POTIONS);
                         DoScriptText(SAY_TRANSFORM_2, m_creature);
@@ -622,7 +630,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
             case PHASE_THREE:
             {
                 // Unbound Plague
-                if (m_bIsHeroic)
+                if (m_pInstance->IsHeroicDifficulty())
                 {
                     if (m_uiUnboundPlagueTimer <= uiDiff)
                     {
@@ -662,9 +670,9 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public base_icc_bossAI
                 // Malleable Goo
                 if (m_uiMalleableGooTimer <= uiDiff)
                 {
-                    for (int i = 0; i < (m_bIs25Man ? 2 : 1); ++i)
+                    for (int i = 0; i < (m_pInstance->Is25ManDifficulty() ? 2 : 1); ++i)
                     {
-                        if (Unit *pTarget = SelectRandomRangedTarget(m_creature))
+                        if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
                         {
                             float x, y, z;
                             pTarget->GetPosition(x, y, z);
@@ -716,7 +724,7 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
         m_bIsVariable = false;
         if (m_pInstance)
         {
-            if (m_pInstance->GetData(TYPE_PUTRICIDE) == SPECIAL)
+            if (m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE) == SPECIAL)
             {
                 DoCastSpellIfCan(m_creature, SPELL_GAS_VARIABLE_GAS, CAST_TRIGGERED);
                 m_bIsVariable = true;
@@ -776,7 +784,7 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            uint32 data = m_pInstance->GetData(TYPE_PUTRICIDE);
+            uint32 data = m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE);
             if (data != IN_PROGRESS && data != SPECIAL)
                 m_creature->ForcedDespawn();
         }
@@ -854,15 +862,16 @@ CreatureAI* GetAI_mob_icc_gas_cloud(Creature* pCreature)
 /**
  * mob_icc_volatile_ooze
  */
-struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public ScriptedAI
 {
-    mob_icc_volatile_oozeAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    mob_icc_volatile_oozeAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         m_creature->SetInCombatWithZone();
         m_bIsVariable = false;
         if (m_pInstance)
         {
-            if (m_pInstance->GetData(TYPE_PUTRICIDE) == SPECIAL)
+            if (m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE) == SPECIAL)
             {
                 DoCastSpellIfCan(m_creature, SPELL_OOZE_VARIABLE_OOZE, CAST_TRIGGERED);
                 m_bIsVariable = true;
@@ -871,6 +880,8 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public base_icc_bossAI
         m_creature->SetSpeedRate(MOVE_RUN, 1.0f);
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiWaitTimer;
     uint32 m_uiMoveTimer;
@@ -919,7 +930,7 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public base_icc_bossAI
     {
         if (m_pInstance)
         {
-            uint32 data = m_pInstance->GetData(TYPE_PUTRICIDE);
+            uint32 data = m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE);
             if (data != IN_PROGRESS && data != SPECIAL)
                 m_creature->ForcedDespawn();
         }
@@ -1043,7 +1054,7 @@ struct MANGOS_DLL_DECL mob_ooze_puddleAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            uint32 data = m_pInstance->GetData(TYPE_PUTRICIDE);
+            uint32 data = m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE);
             if (data == SPECIAL)
             {
                 // don't grow while Putricide is mutating between phases

@@ -315,12 +315,6 @@ struct MANGOS_DLL_DECL npc_bone_spikeAI : public ScriptedAI
     }
     void AttackStart(Unit *pWho){}
 
-    void JustDied(Unit *Killer)
-    {
-        if (m_pInstance && m_uiEmpaledTime > 8000)
-            m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_BONED, false);
-    }
-
     void PassengerBoarded(Unit * pWho, int8 seatId, bool apply)
     {
         if (pWho->GetTypeId() == TYPEID_PLAYER)
@@ -335,6 +329,8 @@ struct MANGOS_DLL_DECL npc_bone_spikeAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
         m_uiEmpaledTime += uiDiff;
+        if (m_pInstance && m_uiEmpaledTime > 8 * IN_MILLISECONDS)
+            m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_BONED, false);
     }
 };
 

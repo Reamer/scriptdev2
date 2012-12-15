@@ -247,7 +247,7 @@ struct MANGOS_DLL_DECL npc_blood_orb_controlAI : public ScriptedAI
             {
                 if (m_pInstance)
                 {
-                    if (m_pInstance->GetData(TYPE_BLOOD_COUNCIL) == IN_PROGRESS)
+                    if (m_pInstance->GetData(TYPE_BLOOD_PRINCE_COUNCIL) == IN_PROGRESS)
                     {
                         m_bIsInProgress = true;
                         DoCastSpellIfCan(m_creature, SPELL_INVOCATION_VALANAR, CAST_TRIGGERED);
@@ -268,7 +268,7 @@ struct MANGOS_DLL_DECL npc_blood_orb_controlAI : public ScriptedAI
             {
                 if (m_pInstance)
                 {
-                    if (m_pInstance->GetData(TYPE_BLOOD_COUNCIL) == FAIL)
+                    if (m_pInstance->GetData(TYPE_BLOOD_PRINCE_COUNCIL) == FAIL)
                     {
                         Reset();
                         return;
@@ -318,14 +318,17 @@ CreatureAI* GetAI_npc_blood_orb_control(Creature* pCreature)
 }
 
 // base struct for Blood Prince Council
-struct MANGOS_DLL_DECL base_blood_prince_council_bossAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL base_blood_prince_council_bossAI : public ScriptedAI
 {
-    base_blood_prince_council_bossAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    base_blood_prince_council_bossAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
         DoCastSpellIfCan(m_creature, SPELL_FEIGN_DEATH, CAST_TRIGGERED);
     }
     
+    instance_icecrown_citadel* m_pInstance;
+
     bool m_bIsEmpowered;
     bool m_bIsSaidSpecial; // 1st spell cast after being empowered is followed by special say
     uint32 m_uiEmpowermentFadeTimer;
@@ -407,8 +410,8 @@ struct MANGOS_DLL_DECL base_blood_prince_council_bossAI : public base_icc_bossAI
     {
         if (m_pInstance)
         {
-            if (m_pInstance->GetData(TYPE_BLOOD_COUNCIL) != FAIL)
-                m_pInstance->SetData(TYPE_BLOOD_COUNCIL, FAIL);
+            if (m_pInstance->GetData(TYPE_BLOOD_PRINCE_COUNCIL) != FAIL)
+                m_pInstance->SetData(TYPE_BLOOD_PRINCE_COUNCIL, FAIL);
         }
     }
     
@@ -479,7 +482,7 @@ struct MANGOS_DLL_DECL boss_valanar_iccAI : public base_blood_prince_council_bos
 
         if (m_pInstance)
         {
-            m_pInstance->SetData(TYPE_BLOOD_COUNCIL, IN_PROGRESS);
+            m_pInstance->SetData(TYPE_BLOOD_PRINCE_COUNCIL, IN_PROGRESS);
 
             if (Creature *pOrb = m_pInstance->GetSingleCreatureFromStorage(NPC_BLOOD_ORB_CONTROL))
             {
@@ -502,7 +505,7 @@ struct MANGOS_DLL_DECL boss_valanar_iccAI : public base_blood_prince_council_bos
         base_blood_prince_council_bossAI::JustDied(pKiller);
 
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_BLOOD_COUNCIL, DONE);
+            m_pInstance->SetData(TYPE_BLOOD_PRINCE_COUNCIL, DONE);
 
         DoScriptText(SAY_VALANAR_DEATH, m_creature);
     }
@@ -600,7 +603,7 @@ struct MANGOS_DLL_DECL boss_keleseth_iccAI : public base_blood_prince_council_bo
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_bIsHeroic)
+        if (m_pInstance->IsHeroicDifficulty())
         {
             if (!m_bHasCastShadowPrison)
             {
@@ -770,12 +773,15 @@ CreatureAI* GetAI_mob_shock_vortex(Creature* pCreature)
 };
 
 // Dark Nucleus
-struct MANGOS_DLL_DECL mob_dark_nucleusAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL mob_dark_nucleusAI : public ScriptedAI
 {
-    mob_dark_nucleusAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    mob_dark_nucleusAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     void Reset(){}
 
@@ -789,7 +795,7 @@ struct MANGOS_DLL_DECL mob_dark_nucleusAI : public base_icc_bossAI
     {
         if (m_pInstance)
         {
-            if (m_pInstance->GetData(TYPE_BLOOD_COUNCIL) != IN_PROGRESS)
+            if (m_pInstance->GetData(TYPE_BLOOD_PRINCE_COUNCIL) != IN_PROGRESS)
             {
                 m_creature->ForcedDespawn();
                 return;

@@ -36,7 +36,7 @@ enum
 
 };
 
-struct MANGOS_DLL_DECL mob_spire_frostwyrmAI : public BSWScriptedAI
+/*struct MANGOS_DLL_DECL mob_spire_frostwyrmAI : public ScriptedAI
 {
     mob_spire_frostwyrmAI(Creature* pCreature) : BSWScriptedAI(pCreature)
     {
@@ -103,19 +103,19 @@ struct MANGOS_DLL_DECL mob_frost_giantAI : public BSWScriptedAI
 
     void Aggro(Unit *who)
     {
-        if(pInstance) pInstance->SetData(TYPE_FLIGHT_WAR, IN_PROGRESS);
+        if(pInstance) pInstance->SetData(TYPE_GUNSHIP_BATTLE, IN_PROGRESS);
     }
 
     void JustDied(Unit *killer)
     {
         if(!pInstance) return;
         if (killer->GetTypeId() == TYPEID_PLAYER || killer->GetCharmerOrOwnerOrSelf()->GetTypeId() == TYPEID_PLAYER )
-              pInstance->SetData(TYPE_FLIGHT_WAR, DONE);
+              pInstance->SetData(TYPE_GUNSHIP_BATTLE, DONE);
     }
 
     void JustReachedHome()
     {
-        if (pInstance) pInstance->SetData(TYPE_FLIGHT_WAR, FAIL);
+        if (pInstance) pInstance->SetData(TYPE_GUNSHIP_BATTLE, FAIL);
     }
 
     void Reset()
@@ -172,4 +172,4 @@ void AddSC_icecrown_spire()
     newscript->Name = "mob_frost_giant";
     newscript->GetAI = &GetAI_mob_frost_giant;
     newscript->RegisterSelf();
-}
+}*/

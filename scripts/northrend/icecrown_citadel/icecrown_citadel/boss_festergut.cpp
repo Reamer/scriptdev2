@@ -75,7 +75,6 @@ enum
 
     // other
     NPC_ORANGE_GAS_STALKER      = 36659, // has dummy auras of the orange gas
-    NPC_PUDDLE_STALKER          = 37013, // dummy npc for initial gas flowing from pipes animation
     NPC_MALLEABLE_GOO           = 38556,
 };
 
@@ -94,6 +93,11 @@ enum
     SAY_DEATH                   = -1631090,
 };
 
+struct Locations
+{
+    float x,y,z,o;
+};
+
 static Locations SpawnLoc[]=
 {
     {4322.85f, 3164.17f, 389.40f, 3.76f},               // festergut side
@@ -101,12 +105,15 @@ static Locations SpawnLoc[]=
     {4391.38f, 3163.71f, 389.40f, 5.8f}                 // rotface side
 };
 
-struct MANGOS_DLL_DECL boss_festergutAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
 {
-    boss_festergutAI(Creature *pCreature) : base_icc_bossAI(pCreature)
+    boss_festergutAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiBerserkTimer;
     uint32 m_uiGastricBloatTimer;
@@ -263,7 +270,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public base_icc_bossAI
             // DoCastSpellIfCan(m_creature, SPELL_VILE_GAS_SUMMON, CAST_TRIGGERED);
             // DoCastSpellIfCan(m_creature, SPELL_VILE_GAS, CAST_TRIGGERED);
 
-            if (Unit *pTarget = SelectRandomRangedTarget(m_creature))
+            if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
             {
                 pTarget->CastSpell(pTarget, SPELL_VILE_GAS_SUMMON_TRIG, true);
                 DoCastSpellIfCan(m_creature, SPELL_VILE_GAS, CAST_TRIGGERED);
@@ -274,13 +281,13 @@ struct MANGOS_DLL_DECL boss_festergutAI : public base_icc_bossAI
             m_uiVileGasTimer -= uiDiff;
 
         // Malleable Goo
-        if (m_bIsHeroic)
+        if (m_pInstance->IsHeroicDifficulty())
         {
             if (m_uiMalleableGooTimer <= uiDiff)
             {
                 if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
                 {
-                    if (Unit *pTarget = SelectRandomRangedTarget(m_creature))
+                    if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
                     {
                         // pProfessor->CastSpell(m_creature, SPELL_MALLEABLE_GOO_SUMMON, true);
                         // pProfessor->CastSpell(m_creature, SPELL_MALLEABLE_GOO, true);

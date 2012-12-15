@@ -94,6 +94,11 @@ enum
     SAY_DEATH                   = -1631157,
 };
 
+struct Locations
+{
+    float x,y,z;
+};
+
 static Locations SindragosaLoc[]=
 {
     {4408.052734f, 2484.825439f, 203.374207f},  // 0 Sindragosa spawn
@@ -114,13 +119,16 @@ static Locations SindragosaLoc[]=
 #define FROST_BOMB_MIN_Y 2437.0f
 #define FROST_BOMB_MAX_Y 2527.0f
 
-struct MANGOS_DLL_DECL boss_sindragosaAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL boss_sindragosaAI : public ScriptedAI
 {
-    boss_sindragosaAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    boss_sindragosaAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         pCreature->SetSpeedRate(MOVE_RUN, 1.2f);
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiPhase;
     uint32 m_uiPhaseTimer;
@@ -193,8 +201,8 @@ struct MANGOS_DLL_DECL boss_sindragosaAI : public base_icc_bossAI
         {
             m_uiPhase = PHASE_AIR;
 
-            int max = m_bIs25Man ? 5 : 2;
-            if (m_bIs25Man && m_bIsHeroic)
+            int max = m_pInstance->Is25ManDifficulty() ? 5 : 2;
+            if (m_pInstance->Is25ManDifficulty() && m_pInstance->IsHeroicDifficulty())
                 max = 6;
 
             DoMark(max);
@@ -588,9 +596,9 @@ CreatureAI* GetAI_mob_frost_bomb(Creature* pCreature)
     return new mob_frost_bombAI(pCreature);
 }
 
-struct MANGOS_DLL_DECL mob_rimefangAI : public BSWScriptedAI
+/*struct MANGOS_DLL_DECL mob_rimefangAI : public ScriptedAI
 {
-    mob_rimefangAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    mob_rimefangAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
@@ -761,7 +769,7 @@ struct MANGOS_DLL_DECL mob_spinestalkerAI : public BSWScriptedAI
 CreatureAI* GetAI_mob_spinestalker(Creature* pCreature)
 {
     return new mob_spinestalkerAI(pCreature);
-}
+}*/
 
 void AddSC_boss_sindragosa()
 {
@@ -772,7 +780,7 @@ void AddSC_boss_sindragosa()
     newscript->GetAI = &GetAI_boss_sindragosa;
     newscript->RegisterSelf();
 
-    newscript = new Script;
+   /* newscript = new Script;
     newscript->Name = "mob_rimefang";
     newscript->GetAI = &GetAI_mob_rimefang;
     newscript->RegisterSelf();
@@ -780,7 +788,7 @@ void AddSC_boss_sindragosa()
     newscript = new Script;
     newscript->Name = "mob_spinestalker";
     newscript->GetAI = &GetAI_mob_spinestalker;
-    newscript->RegisterSelf();
+    newscript->RegisterSelf();*/
 
     newscript = new Script;
     newscript->Name = "mob_ice_tomb";

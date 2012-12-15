@@ -67,7 +67,6 @@ enum BossSpells
     SPELL_VILE_GAS_TRIGGERED    = 72272,
 
     // others
-    NPC_PUDDLE_STALKER          = 37013,
     NPC_LITTLE_OOZE             = 36897,
     NPC_BIG_OOZE                = 36899,
 };
@@ -96,6 +95,11 @@ enum
     SAY_DEATH                   = -1631079,
 };
 
+struct Locations
+{
+    float x,y,z,o;
+};
+
 static Locations SpawnLoc[]=
 {
     {4322.85f, 3164.17f, 389.40f, 3.76f},               // festergut side
@@ -104,12 +108,15 @@ static Locations SpawnLoc[]=
 };
 
 // Rotface
-struct MANGOS_DLL_DECL boss_rotfaceAI : public base_icc_bossAI
+struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
 {
-    boss_rotfaceAI(Creature* pCreature) : base_icc_bossAI(pCreature)
+    boss_rotfaceAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
+
+    instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiSlimeSprayTimer;
     uint32 m_uiMutatedInfectionTimer;
@@ -217,13 +224,13 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public base_icc_bossAI
         }
 
         // Vile Gas
-        if (m_bIsHeroic)
+        if (m_pInstance->IsHeroicDifficulty())
         {
             if (m_uiVileGasTimer <= uiDiff)
             {
                 if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
                 {
-                    if (Unit *pTarget = SelectRandomRangedTarget(m_creature))
+                    if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_VILE_GAS_SUMMON_TRIG, CAST_TRIGGERED) == CAST_OK)
                         {

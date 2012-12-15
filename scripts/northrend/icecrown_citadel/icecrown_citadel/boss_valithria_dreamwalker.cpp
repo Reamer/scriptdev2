@@ -28,6 +28,11 @@ EndScriptData */
 #include "precompiled.h"
 #include "icecrown_citadel.h"
 
+struct Locations
+{
+    float x,y,z;
+};
+
 static Locations SpawnLoc[]=
 {
     {4203.470215f, 2484.500000f, 364.872009f},  // 0 Valithria
@@ -229,7 +234,7 @@ struct MANGOS_DLL_DECL boss_valithria_dreamwalkerAI : public ScriptedAI
             {
                 m_pInstance->SetData(TYPE_VALITHRIA, IN_PROGRESS);
 
-                if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_COMBAT_TRIGGER))
+                if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_VALITHRIA_COMBAT_TRIGGER))
                 {
                     pTmp->SetInCombatWithZone();
                     m_bCombatStarted = true;
@@ -258,7 +263,7 @@ struct MANGOS_DLL_DECL boss_valithria_dreamwalkerAI : public ScriptedAI
         {
             m_pInstance->SetData(TYPE_VALITHRIA, FAIL);
 
-            if (Creature *pTrigger = m_pInstance->GetSingleCreatureFromStorage(NPC_COMBAT_TRIGGER))
+            if (Creature *pTrigger = m_pInstance->GetSingleCreatureFromStorage(NPC_VALITHRIA_COMBAT_TRIGGER))
                 pTrigger->AI()->EnterEvadeMode();
         }
 
@@ -310,7 +315,7 @@ struct MANGOS_DLL_DECL boss_valithria_dreamwalkerAI : public ScriptedAI
                 {
                     m_pInstance->SetData(TYPE_VALITHRIA, DONE);
 
-                    if (Creature *pDummy = m_pInstance->GetSingleCreatureFromStorage(NPC_COMBAT_TRIGGER))
+                    if (Creature *pDummy = m_pInstance->GetSingleCreatureFromStorage(NPC_VALITHRIA_COMBAT_TRIGGER))
                         m_creature->DealDamage(pDummy, pDummy->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
                 }
 
