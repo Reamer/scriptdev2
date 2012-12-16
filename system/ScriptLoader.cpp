@@ -344,7 +344,7 @@ extern void AddSC_boss_lich_king_icc();
 extern void AddSC_boss_valithria_dreamwalker();
 extern void AddSC_gunship_battle();
 extern void AddSC_instance_icecrown_spire();
-extern void AddSC_icecrown_spire();
+//extern void AddSC_icecrown_spire();
 extern void AddSC_icecrown_teleporter();
 extern void AddSC_boss_anubrekhan();                        // naxxramas
 extern void AddSC_boss_four_horsemen();
@@ -863,7 +863,7 @@ void AddScripts()
     AddSC_boss_valithria_dreamwalker();
     AddSC_gunship_battle();
     AddSC_instance_icecrown_spire();
-    AddSC_icecrown_spire();
+    //AddSC_icecrown_spire();
     AddSC_icecrown_teleporter();
     AddSC_boss_anubrekhan();                                // naxxramas
     AddSC_boss_four_horsemen();
