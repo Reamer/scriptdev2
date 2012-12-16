@@ -536,6 +536,8 @@ void instance_pit_of_saron::Update(uint32 const uiDiff)
                         }
                     }
                 }
+                else                                // No players in instance, disalbe Gauntlet Event
+                    SetData(TYPE_GAUNTLET, FAIL);
             }
             m_uiIcicleTimer = 3000;
         }

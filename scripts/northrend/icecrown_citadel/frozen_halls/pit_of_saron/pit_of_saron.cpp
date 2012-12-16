@@ -83,7 +83,7 @@ bool AreaTrigger_at_pit_of_Saron_gaunlet(Player* pPlayer, AreaTriggerEntry const
                     pInstance->SetData(TYPE_GAUNTLET, DONE);            // stop Ice Falling
                 break;
             case 5580:                                                  // gaunlet begin
-                if (pInstance->GetData(TYPE_GAUNTLET) == NOT_STARTED)
+                if (pInstance->GetData(TYPE_GAUNTLET) == NOT_STARTED || pInstance->GetData(TYPE_GAUNTLET) == FAIL)
                 {
                     pInstance->SetData(TYPE_GAUNTLET, IN_PROGRESS);     // start Ice Falling
                 }
