@@ -148,7 +148,9 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         m_uiBloodNovaTimer      = urand(16000, 35000);
         m_uiBloodBeastsTimer    = 40000;
         m_uiScentOfBloodTimer   = 47000; // 5 seconds after beasts engage in combat
-        m_uiBerserkTimer        = (m_pInstance->IsHeroicDifficulty() ? 6 : 8) * MINUTE * IN_MILLISECONDS;
+        m_uiBerserkTimer        = 8 * MINUTE * IN_MILLISECONDS;
+        if (m_pInstance && m_pInstance->IsHeroicDifficulty())
+            m_uiBerserkTimer = 6 * MINUTE * IN_MILLISECONDS;
 
         m_creature->SetPower(m_powerBloodPower, 0);
     }
@@ -180,7 +182,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         }
 
         // Intro ends with "SetData(TYPE_DEATHBRINGER_SAURFANG, NOT_STARTED);"
-        if (m_pInstance->GetData(TYPE_DEATHBRINGER_SAURFANG) != SPECIAL)
+        if (!m_pInstance || m_pInstance->GetData(TYPE_DEATHBRINGER_SAURFANG) != SPECIAL)
             ScriptedAI::MoveInLineOfSight(pWho);
     }
 
