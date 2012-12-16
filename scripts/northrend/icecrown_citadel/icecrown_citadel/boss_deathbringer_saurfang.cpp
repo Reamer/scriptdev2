@@ -94,8 +94,6 @@ enum Equipment
 enum SaurfangEvent
 {
     NPC_ALLIANCE_MASON          = 37902,
-
-    SPELL_VEHICLE_HARDCODED     = 46598, // Deathbringer enters Overlord
 };
 
 struct Locations

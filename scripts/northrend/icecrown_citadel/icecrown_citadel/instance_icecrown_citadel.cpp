@@ -137,15 +137,6 @@ static const DialogueEntry aCitadelDialogue[] =
     {SAY_SAURFANG_OUTRO_HORDE_4, NPC_OVERLORD_SAURFANG, 10000},
     {EVENT_STOP_SAURFANG_OUTRO_HORDE, 0, 0},
     {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
 };
 
 struct Locations
@@ -192,7 +183,7 @@ void instance_icecrown_citadel::Initialize()
     InitializeDialogueHelper(this);
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     for (uint8 i = 0; i < MAX_ACHIEVEMENT; ++i)
-        m_abAchievement = false;
+        m_abAchievement[i] = false;
 }
 
 bool instance_icecrown_citadel::IsEncounterInProgress() const
