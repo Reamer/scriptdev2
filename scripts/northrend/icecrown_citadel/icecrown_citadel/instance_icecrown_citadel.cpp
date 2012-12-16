@@ -916,7 +916,7 @@ void AddSC_instance_icecrown_spire()
 {
     Script* pNewScript;
     pNewScript = new Script;
-    pNewScript->Name = "instance_icecrown_spire";
+    pNewScript->Name = "instance_icecrown_citadel";
     pNewScript->GetInstanceData = &GetInstanceData_instance_icecrown_spire;
     pNewScript->RegisterSelf();
 
