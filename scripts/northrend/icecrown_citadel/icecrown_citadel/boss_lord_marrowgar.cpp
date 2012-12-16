@@ -259,24 +259,21 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public ScriptedAI
         }
 
         // Bone spike - different spells for the normal phase or storm phase
-        if (m_pInstance && (m_pInstance->IsHeroicDifficulty() || m_Phase == PHASE_NORMAL))
+        if (m_uiBoneSpikeTimer < uiDiff)
         {
-            if (m_uiBoneSpikeTimer < uiDiff)
+            if (DoCastSpellIfCan(m_creature, m_Phase == PHASE_NORMAL ? SPELL_BONE_SPIKE : SPELL_BONE_SPIKE_STORM) == CAST_OK)
             {
-                if (DoCastSpellIfCan(m_creature, m_Phase == PHASE_NORMAL ? SPELL_BONE_SPIKE : SPELL_BONE_SPIKE_STORM) == CAST_OK)
+                switch (urand(0, 2))
                 {
-                    switch (urand(0, 2))
-                    {
-                        case 0: DoScriptText(SAY_BONE_SPIKE_1, m_creature); break;
-                        case 1: DoScriptText(SAY_BONE_SPIKE_2, m_creature); break;
-                        case 2: DoScriptText(SAY_BONE_SPIKE_3, m_creature); break;
-                    }
-                    m_uiBoneSpikeTimer = 18000;
+                    case 0: DoScriptText(SAY_BONE_SPIKE_1, m_creature); break;
+                    case 1: DoScriptText(SAY_BONE_SPIKE_2, m_creature); break;
+                    case 2: DoScriptText(SAY_BONE_SPIKE_3, m_creature); break;
                 }
+                m_uiBoneSpikeTimer = 18000;
             }
-            else
-                m_uiBoneSpikeTimer -= uiDiff;
         }
+        else
+            m_uiBoneSpikeTimer -= uiDiff;
 
         // Berserk
         if (m_uiBerserkTimer)
