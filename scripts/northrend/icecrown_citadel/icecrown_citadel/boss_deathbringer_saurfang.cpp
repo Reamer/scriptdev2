@@ -112,7 +112,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
     boss_deathbringer_saurfangAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
-        m_powerBloodPower = m_creature->getPowerType(); // don't call this function multiple times in script
+        pCreature->setPowerType(POWER_ENERGY);
         m_bIsIntroStarted = false;
         Reset();
     }
@@ -129,8 +129,6 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
     bool m_bIsIntroStarted;
     bool m_bIsAlliance;
 
-    Powers m_powerBloodPower;
-
     void Reset()
     {
         m_uiRuneOfBloodTimer    = 20000;
@@ -142,7 +140,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         if (m_pInstance && m_pInstance->IsHeroicDifficulty())
             m_uiBerserkTimer = 6 * MINUTE * IN_MILLISECONDS;
 
-        m_creature->SetPower(m_powerBloodPower, 0);
+        m_creature->SetPower(POWER_ENERGY, 0);
     }
 
     void EnterEvadeMode()
@@ -155,7 +153,10 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         m_creature->CombatStop(true);
 
         if (m_creature->isAlive())
+        {
+            m_creature->GetMotionMaster()->Clear();
             m_creature->GetMotionMaster()->MovePoint(1, fSaurfangPositions[0].x, fSaurfangPositions[0].y, fSaurfangPositions[0].z);
+        }
 
         m_creature->SetLootRecipient(NULL);
 
@@ -231,14 +232,14 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
             return;
 
         // Mark of the Fallen Champion
-        if (m_creature->GetPower(m_powerBloodPower) >= 100)
+        if (m_creature->GetPower(POWER_ENERGY) >= 100)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_MARK_OF_FALLEN_CHAMPION_SEARCH) == CAST_OK)
             {
-                m_creature->SetPower(m_powerBloodPower, 0); // reset Blood Power
+                m_creature->SetPower(POWER_ENERGY, 0); // reset Blood Power
                 // decrease the buff
                 m_creature->RemoveAurasDueToSpell(SPELL_BLOOD_POWER);
-                int32 power = m_creature->GetPower(m_powerBloodPower);
+                int32 power = m_creature->GetPower(POWER_ENERGY);
                 m_creature->CastCustomSpell(m_creature, SPELL_BLOOD_POWER, &power, &power, NULL, true);
                 DoScriptText(SAY_FALLENCHAMPION, m_creature);
             }

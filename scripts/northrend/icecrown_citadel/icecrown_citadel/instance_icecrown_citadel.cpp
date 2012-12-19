@@ -160,13 +160,13 @@ static Locations fSaurfangPositions[12]=
     {-535.17f, 2207.71f, 539.30f, 6.28f}, // guard npc3 first move
     {-536.87f, 2205.68f, 539.30f, 6.28f} // guard npc4 first move
 };
-
+/*
 static Locations SpawnLoc[]=
 {
     {-446.788971f, 2003.362915f, 191.233948f, 0.0f},  // 0 Horde ship enter
     {-428.140503f, 2421.336914f, 191.233078f, 0.0f},  // 1 Alliance ship enter
 };
-
+*/
 instance_icecrown_citadel::instance_icecrown_citadel(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aCitadelDialogue),
 m_uiTeam(0),
 m_uiPutricideValveTimer(0),
