@@ -453,8 +453,11 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public ScriptedAI
 
             if (m_uiVengefulShadeTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPIRIT) == CAST_OK)
-                    m_uiVengefulShadeTimer = 10000;
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    if (DoCastSpellIfCan(pTarget, SPELL_SUMMON_SPIRIT) == CAST_OK)
+                        m_uiVengefulShadeTimer = 10000;
+                }
             }
             else
                 m_uiVengefulShadeTimer -= uiDiff;

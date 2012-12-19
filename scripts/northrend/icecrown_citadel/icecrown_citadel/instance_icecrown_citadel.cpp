@@ -96,11 +96,11 @@ static const DialogueEntry aCitadelDialogue[] =
     {SAY_DEATHWHISPER_SPEECH_6, NPC_LADY_DEATHWHISPER, 10000},
     {SAY_DEATHWHISPER_SPEECH_7, NPC_LADY_DEATHWHISPER, 0},
     {EVENT_START_SAURFANG_INTRO_ALLY, 0, 4000},
-    {SAY_SAURFANG_INTRO_ALLY_0, NPC_MURADIN_BRONZEBEARD, 4000},
+    {SAY_SAURFANG_INTRO_ALLY_0, NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
     {SAY_SAURFANG_INTRO_ALLY_1, NPC_DEATHBRINGER_SAURFANG, 4000},
     {SAY_SAURFANG_INTRO_ALLY_2, NPC_DEATHBRINGER_SAURFANG, 4000},
-    {SAY_SAURFANG_INTRO_ALLY_3, NPC_MURADIN_BRONZEBEARD, 4000},
-    {SAY_SAURFANG_INTRO_ALLY_4, NPC_MURADIN_BRONZEBEARD, 4000},
+    {SAY_SAURFANG_INTRO_ALLY_3, NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
+    {SAY_SAURFANG_INTRO_ALLY_4, NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
     {SAY_SAURFANG_INTRO_ALLY_5, NPC_DEATHBRINGER_SAURFANG, 0},
     {EVENT_START_SAURFANG_INTRO_HORDE, 0, 1000},
     {SAY_SAURFANG_INTRO_HORDE_1, NPC_OVERLORD_SAURFANG      , 6000},
@@ -113,13 +113,13 @@ static const DialogueEntry aCitadelDialogue[] =
     {SAY_SAURFANG_INTRO_HORDE_8, NPC_OVERLORD_SAURFANG      , 1500},
     {SAY_SAURFANG_INTRO_HORDE_9, NPC_DEATHBRINGER_SAURFANG  , 10000},
     {EVENT_STOP_SAURFANG_INTRO_HORDE, 0, 0},
-    {SAY_SAURFANG_OUTRO_ALLY_1,  NPC_MURADIN_BRONZEBEARD, 4000},
-    {SAY_SAURFANG_OUTRO_ALLY_2,  NPC_MURADIN_BRONZEBEARD, 4000},
-    {SAY_SAURFANG_OUTRO_ALLY_3,  NPC_MURADIN_BRONZEBEARD, 4000},
-    {SAY_SAURFANG_OUTRO_ALLY_4,  NPC_MURADIN_BRONZEBEARD, 4000},
-    {SAY_SAURFANG_OUTRO_ALLY_5,  NPC_MURADIN_BRONZEBEARD, 4000},
+    {SAY_SAURFANG_OUTRO_ALLY_1,  NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
+    {SAY_SAURFANG_OUTRO_ALLY_2,  NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
+    {SAY_SAURFANG_OUTRO_ALLY_3,  NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
+    {SAY_SAURFANG_OUTRO_ALLY_4,  NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
+    {SAY_SAURFANG_OUTRO_ALLY_5,  NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
     {SAY_SAURFANG_OUTRO_ALLY_6,  NPC_OVERLORD_SAURFANG, 4000},
-    {SAY_SAURFANG_OUTRO_ALLY_7,  NPC_MURADIN_BRONZEBEARD, 4000},
+    {SAY_SAURFANG_OUTRO_ALLY_7,  NPC_MURADIN_BRONZEBEARD_SAURFANG, 4000},
     {SAY_SAURFANG_OUTRO_ALLY_8,  NPC_KING_VARIAN_WRYNN, 4000},
     {SAY_SAURFANG_OUTRO_ALLY_9,  NPC_OVERLORD_SAURFANG, 4000},
     {SAY_SAURFANG_OUTRO_ALLY_10, NPC_OVERLORD_SAURFANG, 4000},
@@ -128,7 +128,7 @@ static const DialogueEntry aCitadelDialogue[] =
     {SAY_SAURFANG_OUTRO_ALLY_13, NPC_KING_VARIAN_WRYNN, 4000},
     {SAY_SAURFANG_OUTRO_ALLY_14, NPC_LADY_JAINA_PROUDMOORE, 4000},
     {SAY_SAURFANG_OUTRO_ALLY_15, NPC_KING_VARIAN_WRYNN, 4000},
-    {SAY_SAURFANG_OUTRO_ALLY_16, NPC_MURADIN_BRONZEBEARD, 0},
+    {SAY_SAURFANG_OUTRO_ALLY_16, NPC_MURADIN_BRONZEBEARD_SAURFANG, 0},
     {EVENT_START_SAURFANG_OUTRO_HORDE, 0, 1000},
     {SAY_SAURFANG_OUTRO_HORDE_1, NPC_OVERLORD_SAURFANG, 2000},
     {EVENT_SAURFANG_OUTRO_HORDE_ONE, 0, 10000},
@@ -263,7 +263,7 @@ void instance_icecrown_citadel::OnCreatureCreate(Creature* pCreature)
         case NPC_LADY_DEATHWHISPER:
         // Sourfang encounter
         case NPC_DEATHBRINGER_SAURFANG:
-        case NPC_MURADIN_BRONZEBEARD:
+        case NPC_MURADIN_BRONZEBEARD_SAURFANG:
         case NPC_KING_VARIAN_WRYNN:
         case NPC_OVERLORD_SAURFANG:
         case NPC_LADY_JAINA_PROUDMOORE:
@@ -605,6 +605,12 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
 
 uint32 instance_icecrown_citadel::GetData(uint32 uiType)
 {
+    if (uiType == TYPE_KINGS_OF_ICC)
+    {
+        return GetData(TYPE_SINDRAGOSA) == DONE && GetData(TYPE_QUEEN_LANATHEL) == DONE && GetData(TYPE_PROFESSOR_PUTRICIDE) == DONE;
+    }
+    if (uiType == TYPE_TELEPORT_ALWAYS_ENABLE)
+        return DONE;
     if (uiType < MAX_ENCOUNTER)
         return m_auiEncounter[uiType];
 
@@ -676,26 +682,28 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
 {
     switch(iEntry)
     {
+        case EVENT_START_SAURFANG_INTRO_ALLY:
         case EVENT_START_SAURFANG_INTRO_HORDE:
         {
             if (Player* pPlayer = GetPlayerInMap())
             {
-                pPlayer->SummonCreature(NPC_OVERLORD_SAURFANG, fSaurfangPositions[2].x, fSaurfangPositions[2].y, fSaurfangPositions[2].z, fSaurfangPositions[2].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_KORKRON_REAVER, fSaurfangPositions[3].x, fSaurfangPositions[3].y, fSaurfangPositions[3].z, fSaurfangPositions[3].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_KORKRON_REAVER, fSaurfangPositions[4].x, fSaurfangPositions[4].y, fSaurfangPositions[4].z, fSaurfangPositions[4].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_KORKRON_REAVER, fSaurfangPositions[5].x, fSaurfangPositions[5].y, fSaurfangPositions[5].z, fSaurfangPositions[5].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_KORKRON_REAVER, fSaurfangPositions[6].x, fSaurfangPositions[6].y, fSaurfangPositions[6].z, fSaurfangPositions[6].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                pPlayer->SummonCreature(m_uiTeam == ALLIANCE ? NPC_MURADIN_BRONZEBEARD_SAURFANG : NPC_OVERLORD_SAURFANG, fSaurfangPositions[2].x, fSaurfangPositions[2].y, fSaurfangPositions[2].z, fSaurfangPositions[2].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                pPlayer->SummonCreature(m_uiTeam == ALLIANCE ? NPC_ALLIANCE_MARINE : NPC_KORKRON_REAVER, fSaurfangPositions[3].x, fSaurfangPositions[3].y, fSaurfangPositions[3].z, fSaurfangPositions[3].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                pPlayer->SummonCreature(m_uiTeam == ALLIANCE ? NPC_ALLIANCE_MARINE : NPC_KORKRON_REAVER, fSaurfangPositions[4].x, fSaurfangPositions[4].y, fSaurfangPositions[4].z, fSaurfangPositions[4].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                pPlayer->SummonCreature(m_uiTeam == ALLIANCE ? NPC_ALLIANCE_MARINE : NPC_KORKRON_REAVER, fSaurfangPositions[5].x, fSaurfangPositions[5].y, fSaurfangPositions[5].z, fSaurfangPositions[5].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                pPlayer->SummonCreature(m_uiTeam == ALLIANCE ? NPC_ALLIANCE_MARINE : NPC_KORKRON_REAVER, fSaurfangPositions[6].x, fSaurfangPositions[6].y, fSaurfangPositions[6].z, fSaurfangPositions[6].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
             }
             DoUseDoorOrButton(GO_SAURFANG_DOOR, 0, false); // Open Saurfang door and move to destination Point
             if (Creature *pSaurfang = GetSingleCreatureFromStorage(NPC_DEATHBRINGER_SAURFANG))
                 pSaurfang->GetMotionMaster()->MovePoint(0, fSaurfangPositions[1].x, fSaurfangPositions[1].y, fSaurfangPositions[1].z);
             break;
         }
+        case SAY_SAURFANG_INTRO_ALLY_0:
         case SAY_SAURFANG_INTRO_HORDE_1:
         {
             DoUseDoorOrButton(GO_SAURFANG_DOOR, 0, true); // close Door
-            if (Creature* pOverlordSaurfang = GetSingleCreatureFromStorage(NPC_OVERLORD_SAURFANG))
-                pOverlordSaurfang->GetMotionMaster()->MovePoint(0, fSaurfangPositions[7].x, fSaurfangPositions[7].y, fSaurfangPositions[7].z);
+            if (Creature* pOverlordSaurfangOrMuradin = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_MURADIN_BRONZEBEARD_SAURFANG : NPC_OVERLORD_SAURFANG))
+                pOverlordSaurfangOrMuradin->GetMotionMaster()->MovePoint(0, fSaurfangPositions[7].x, fSaurfangPositions[7].y, fSaurfangPositions[7].z);
 
             // move guards
             int8 n = 8;
@@ -706,6 +714,7 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
             }
             break;
         }
+        case SAY_SAURFANG_INTRO_ALLY_4:
         case SAY_SAURFANG_INTRO_HORDE_8:
         {
             float x, y, z;
@@ -715,11 +724,11 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
                 pSaurfang->CastSpell(pSaurfang, SPELL_GRIP_OF_AGONY, true);
             }
 
-            if (Creature* pOverlordSaurfang = GetSingleCreatureFromStorage(NPC_OVERLORD_SAURFANG))
+            if (Creature* pOverlordSaurfangOrMuradin = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_MURADIN_BRONZEBEARD_SAURFANG : NPC_OVERLORD_SAURFANG))
             {
-                pOverlordSaurfang->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
-                pOverlordSaurfang->SetWalk(false);
-                pOverlordSaurfang->GetMotionMaster()->MovePoint(0, x, y, z);
+                pOverlordSaurfangOrMuradin->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
+                pOverlordSaurfangOrMuradin->SetWalk(false);
+                pOverlordSaurfangOrMuradin->GetMotionMaster()->MovePoint(0, x, y, z);
             }
 
             // move guards
@@ -734,17 +743,18 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
             }
             break;
         }
+        case SAY_SAURFANG_INTRO_ALLY_5:
         case SAY_SAURFANG_INTRO_HORDE_9:
         {
-            if (Creature* pOverlordSaurfang = GetSingleCreatureFromStorage(NPC_OVERLORD_SAURFANG))
+            if (Creature* pOverlordSaurfangOrMuradin = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_MURADIN_BRONZEBEARD_SAURFANG : NPC_OVERLORD_SAURFANG))
             {
                 float x, y, z;
                 // npcs float in air
-                pOverlordSaurfang->SetWalk(true);
-                pOverlordSaurfang->SetSpeedRate(MOVE_WALK, 3.0f);
-                pOverlordSaurfang->SetLevitate(true);
-                pOverlordSaurfang->GetPosition(x, y, z);
-                pOverlordSaurfang->GetMotionMaster()->MovePoint(0, x, y, z + frand(5.0f, 7.0f));
+                pOverlordSaurfangOrMuradin->SetWalk(true);
+                pOverlordSaurfangOrMuradin->SetSpeedRate(MOVE_WALK, 3.0f);
+                pOverlordSaurfangOrMuradin->SetLevitate(true);
+                pOverlordSaurfangOrMuradin->GetPosition(x, y, z);
+                pOverlordSaurfangOrMuradin->GetMotionMaster()->MovePoint(0, x, y, z + frand(5.0f, 7.0f));
             }
 
             // move guards
@@ -762,6 +772,7 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
             }
             break;
         }
+        case EVENT_STOP_SAURFANG_INTRO_ALLY:
         case EVENT_STOP_SAURFANG_INTRO_HORDE:
         {
             if (Creature *pSaurfang = GetSingleCreatureFromStorage(NPC_DEATHBRINGER_SAURFANG))
@@ -829,7 +840,6 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
                     pSaurfang->CastSpell(pOverlordSaurfang, SPELL_VEHICLE_HARDCODED, true);
                 }
             }
-
             break;
         }
         case SAY_SAURFANG_OUTRO_HORDE_4:
@@ -849,28 +859,7 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
             }
             break;
         }
-        case EVENT_START_SAURFANG_INTRO_ALLY:
-        {
-            if (Player* pPlayer = GetPlayerInMap())
-            {
-                pPlayer->SummonCreature(NPC_MURADIN_BRONZEBEARD, fSaurfangPositions[2].x, fSaurfangPositions[2].y, fSaurfangPositions[2].z, fSaurfangPositions[2].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_ALLIANCE_MARINE, fSaurfangPositions[3].x, fSaurfangPositions[3].y, fSaurfangPositions[3].z, fSaurfangPositions[3].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_ALLIANCE_MARINE, fSaurfangPositions[4].x, fSaurfangPositions[4].y, fSaurfangPositions[4].z, fSaurfangPositions[4].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_ALLIANCE_MARINE, fSaurfangPositions[5].x, fSaurfangPositions[5].y, fSaurfangPositions[5].z, fSaurfangPositions[5].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                pPlayer->SummonCreature(NPC_ALLIANCE_MARINE, fSaurfangPositions[6].x, fSaurfangPositions[6].y, fSaurfangPositions[6].z, fSaurfangPositions[6].o, TEMPSUMMON_MANUAL_DESPAWN, 0);
-            }
-
-            break;
-        }
-        case EVENT_STOP_SAURFANG_INTRO_ALLY:
-        {
-            if (Creature *pSaurfang = GetSingleCreatureFromStorage(NPC_DEATHBRINGER_SAURFANG))
-            {
-                pSaurfang->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
-                SetData(TYPE_DEATHBRINGER_SAURFANG, NOT_STARTED);
-            }
-            break;
-        }
+        // TODO: alliance outro
         default:
             break;
     }

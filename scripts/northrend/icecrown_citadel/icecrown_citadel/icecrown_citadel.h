@@ -22,6 +22,9 @@ enum
     TYPE_SINDRAGOSA             = 10,
     TYPE_LICH_KING              = 11,
 
+    // other TYPE
+    TYPE_KINGS_OF_ICC           = 12,
+
     // NPC entries
     NPC_LORD_MARROWGAR          = 36612,
     NPC_LADY_DEATHWHISPER       = 36855,
@@ -37,12 +40,16 @@ enum
     NPC_SINDRAGOSA              = 36853,
     NPC_LICH_KING               = 36597,
 
+    // some misc NPC
+    NPC_MURADIN_BRONZEBEARD_GUNSHIP = 36948,
+    NPC_MURADIN_BRONZEBEARD_ENTRANCE= 38607,
+
     // boss-related and other NPCs
     NPC_DEATHWHISPER_SPAWN_STALKER  = 37947,
     NPC_DEATHWHISPER_CONTROLLER     = 37948,
     NPC_OVERLORD_SAURFANG           = 37187,
     NPC_KORKRON_REAVER              = 37920,
-    NPC_MURADIN_BRONZEBEARD         = 37200, // Saurfang's encounter and at the instance entrance
+    NPC_MURADIN_BRONZEBEARD_SAURFANG= 37200, // Saurfang's encounter and at the instance entrance
     NPC_KING_VARIAN_WRYNN           = 37879, // the king after Saurfang's encounter
     NPC_LADY_JAINA_PROUDMOORE       = 37188, // after Saurfang's encounter
     NPC_ALLIANCE_MARINE             = 37830,
@@ -153,6 +160,7 @@ enum
     GO_TELEPORT_GOSSIP_MESSAGE      = 99323,
     TELEPORT_GOSSIP_MESSAGE         = 99322,
 
+    TYPE_TELEPORT_ALWAYS_ENABLE = 110,
     TYPE_EVENT_TIMER            = 99,
     TYPE_EVENT                  = 100,
     TYPE_EVENT_NPC              = 101,

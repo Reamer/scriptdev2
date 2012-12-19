@@ -107,16 +107,6 @@ static Locations fSaurfangPositions[]=
     {-491.30f, 2211.35f, 541.11f, 3.16f}, // Deathbringer dest point
 };
 
-// passive guards AI
-struct MANGOS_DLL_DECL npc_deathbringer_event_guards_iccAI : public ScriptedAI
-{
-    npc_deathbringer_event_guards_iccAI(Creature* pCreature) : ScriptedAI(pCreature){}
-
-    void Reset(){}
-    void UpdateAI(const uint32 uiDiff){}
-    void AttackStart(Unit *pWho){}
-};
-
 struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
 {
     boss_deathbringer_saurfangAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -352,82 +342,11 @@ CreatureAI* GetAI_boss_deathbringer_saurfang(Creature* pCreature)
     return new boss_deathbringer_saurfangAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_deathbringer_event_guards_iccAI(Creature* pCreature)
-{
-    return new npc_deathbringer_event_guards_iccAI(pCreature);
-}
-
-struct MANGOS_DLL_DECL  mob_blood_beastAI : public ScriptedAI
-{
-    mob_blood_beastAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        Reset();
-    }
-
-    uint32 m_uiScentOfBloodTimer;
-    uint32 m_uiReadyTimer;
-
-    bool m_bIsReady;
-
-    void Reset()
-    {
-        m_uiScentOfBloodTimer = 5000;
-
-        m_uiReadyTimer = 2000;
-        m_bIsReady = false;
-
-        SetCombatMovement(false);
-        m_creature->SetWalk(true);
-    }
-
-    void JustReachedHome()
-    {
-        m_creature->ForcedDespawn();
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (!m_bIsReady)
-        {
-            if (m_uiReadyTimer <= uiDiff)
-            {
-                m_bIsReady = true;
-                SetCombatMovement(true);
-                m_creature->SetInCombatWithZone();
-                if (m_creature->getVictim())
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-            }
-            else
-                m_uiReadyTimer -= uiDiff;
-        }
-
-        DoMeleeAttackIfReady();
-    }
-};
-
-CreatureAI* GetAI_mob_blood_beast(Creature* pCreature)
-{
-    return new mob_blood_beastAI(pCreature);
-}
-
 void AddSC_boss_deathbringer_saurfang()
 {
     Script* pNewscript;
     pNewscript = new Script;
     pNewscript->Name = "boss_deathbringer_saurfang";
     pNewscript->GetAI = &GetAI_boss_deathbringer_saurfang;
-    pNewscript->RegisterSelf();
-
-    pNewscript = new Script;
-    pNewscript->Name = "npc_deathbringer_event_guards_iccAI";
-    pNewscript->GetAI = &GetAI_npc_deathbringer_event_guards_iccAI;
-    pNewscript->RegisterSelf();
-
-    pNewscript = new Script;
-    pNewscript->Name = "mob_blood_beast";
-    pNewscript->GetAI = &GetAI_mob_blood_beast;
     pNewscript->RegisterSelf();
 }
