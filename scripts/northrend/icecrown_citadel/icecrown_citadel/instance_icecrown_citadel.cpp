@@ -710,7 +710,7 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
 
             // move guards
             int8 n = 8;
-            for (GuidList::const_iterator itr = m_lSaurfangGuardGuids.begin(); itr != m_lSaurfangGuardGuids.end() && n < 11; ++itr, ++n)
+            for (GuidList::const_iterator itr = m_lSaurfangGuardGuids.begin(); itr != m_lSaurfangGuardGuids.end() && n < 12; ++itr, ++n)
             {
                 if (Creature *pGuard = instance->GetCreature(*itr))
                     pGuard->GetMotionMaster()->MovePoint(0, fSaurfangPositions[n].x, fSaurfangPositions[n].y, fSaurfangPositions[n].z);
