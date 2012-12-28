@@ -169,7 +169,7 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public ScriptedAI
         switch (m_Phase)
         {
             case PHASE_NORMAL:
-
+            {
                 // Coldflame
                 if (m_uiColdflameTimer < uiDiff)
                 {
@@ -207,8 +207,9 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public ScriptedAI
                 DoMeleeAttackIfReady();
 
                 break;
+            }
             case PHASE_BONE_STORM_CHARGE:
-
+            {
                 // next charge to random enemy
                 if (m_uiBoneStormChargeTimer < uiDiff)
                 {
@@ -226,11 +227,14 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public ScriptedAI
                     m_uiBoneStormChargeTimer -= uiDiff;
 
                 break;
+            }
             case PHASE_BONE_STORM_CHARGING:
+            {
                 // waiting to arrive at target position
                 break;
+            }
             case PHASE_BONE_STORM_COLDFLAME:
-
+            {
                 if (m_uiBoneStormColdflameTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_COLDFLAME_STORM) == CAST_OK)
@@ -255,6 +259,10 @@ struct MANGOS_DLL_DECL boss_lord_marrowgarAI : public ScriptedAI
                 else
                     m_uiBoneStormColdflameTimer -= uiDiff;
 
+                break;
+            }
+            default:
+                m_creature->MonsterSay("Unknown Phase", LANG_UNIVERSAL);
                 break;
         }
 

@@ -18,9 +18,6 @@ INSERT INTO scripted_areatrigger VALUES
 -- TODO: implement "discovering" teleports
 UPDATE `gameobject_template` SET `flags` = 0, `ScriptName` = 'go_icecrown_teleporter' WHERE `entry`  IN (202242,202243,202244,202245,202235,202223,202246);
 
--- Spawn all NPC, gameobjects in every difficult phase
-UPDATE creature SET spawnMask = 15 WHERE map = 631;
-UPDATE gameobject SET spawnMask = 15 WHERE map = 631;
 
 -- ---------
 -- Marrowgar

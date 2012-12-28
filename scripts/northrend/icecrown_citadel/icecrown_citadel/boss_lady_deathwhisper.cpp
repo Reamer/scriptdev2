@@ -363,6 +363,9 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public ScriptedAI
             else
                 m_uiSummonWaveTimer -= uiDiff;
 
+            /*
+             disable because transformed NPC has no creature data in creature_template
+
             if (m_uiCultistBuffTimer)
             {
                 if (m_uiCultistBuffTimer <= uiDiff)
@@ -384,7 +387,7 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public ScriptedAI
                 }
                 else
                     m_uiCultistBuffTimer -= uiDiff;
-            }
+            }*/
 
             if (m_uiDarkMartyrdomTimer)
             {
@@ -437,7 +440,7 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_FROSTBOLT) == CAST_OK)
-                        m_uiFrostboltTimer = urand(2000, 4000);
+                        m_uiFrostboltTimer = urand(7000, 9000);
                 }
             }
             else
