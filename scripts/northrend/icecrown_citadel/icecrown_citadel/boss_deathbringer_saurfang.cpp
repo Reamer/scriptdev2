@@ -129,7 +129,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
     bool m_bIsIntroStarted;
     bool m_bIsAlliance;
 
-    void Reset()
+    void Reset() override
     {
         m_uiRuneOfBloodTimer    = 20000;
         m_uiBoilingBloodTimer   = urand(10000, 35000);
@@ -143,7 +143,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         m_creature->SetPower(POWER_ENERGY, 0);
     }
 
-    void EnterEvadeMode()
+    void EnterEvadeMode() override
     {
         // need removeAll Passengers before RemoveAllAuras, because ride aura also deleted
        if (m_creature->GetVehicleKit())
@@ -163,7 +163,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         Reset();
     }
 
-    void MoveInLineOfSight(Unit *pWho)
+    void MoveInLineOfSight(Unit *pWho) override
     {
         if (!m_bIsIntroStarted && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->GetDistance2d(pWho) < 50.0f)
         {
@@ -177,7 +177,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
             ScriptedAI::MoveInLineOfSight(pWho);
     }
 
-    void Aggro(Unit *pWho)
+    void Aggro(Unit *pWho) override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_DEATHBRINGER_SAURFANG, IN_PROGRESS);
@@ -191,7 +191,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_MARK_OF_FALLEN_CHAMPION, CAST_TRIGGERED);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_DEATHBRINGER_SAURFANG, FAIL);
@@ -201,7 +201,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
     }
 
     // used for unlocking bugged encounter
-    void JustDied(Unit *pKiller)
+    void JustDied(Unit *pKiller) override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_DEATHBRINGER_SAURFANG, DONE);
@@ -210,13 +210,13 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_MARKS, CAST_TRIGGERED);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* pVictim) override
     {
         if (pVictim->GetTypeId() == TYPEID_PLAYER)
             DoScriptText(SAY_SLAY_1 - urand(0,1), m_creature, pVictim);
     }
 
-    void JustSummoned(Creature *pSummoned)
+    void JustSummoned(Creature *pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_BLOOD_BEAST)
         {
@@ -226,7 +226,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
