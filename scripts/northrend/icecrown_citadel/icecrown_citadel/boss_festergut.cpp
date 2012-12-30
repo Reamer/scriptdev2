@@ -88,7 +88,6 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
     instance_icecrown_citadel* m_pInstance;
 
     uint32 m_uiBerserkTimer;
-    uint32 m_uiGastricBloatTimer;
     uint32 m_uiInhaleBlightTimer;
     uint32 m_uiGasSporeTimer;
     uint32 m_uiVileGasTimer;
@@ -99,7 +98,6 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
     void Reset() override
     {
         m_uiBerserkTimer = 5 * MINUTE * IN_MILLISECONDS;
-        m_uiGastricBloatTimer = 10000;
         m_uiInhaleBlightTimer = 30000;
         m_uiGasSporeTimer = 20000;
         m_uiVileGasTimer = 10000;
