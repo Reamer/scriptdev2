@@ -313,8 +313,10 @@ void instance_icecrown_citadel::OnObjectCreate(GameObject* pGo)
         case GO_DEATHWHISPER_ELEVATOR:
             if (m_auiEncounter[TYPE_LADY_DEATHWHISPER] == DONE)
             {
+                /* Disable till Battleship Encounter works
                 pGo->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
                 pGo->SetGoState(GO_STATE_READY);
+                */
             }
             break;
         case GO_SAURFANG_DOOR:
@@ -459,11 +461,12 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
             DoUseDoorOrButton(GO_ORATORY_DOOR);
             if (uiData == DONE)
             {
+                /* Disable till Battleship Encounter works
                 if (GameObject* pGO = GetSingleGameObjectFromStorage(GO_DEATHWHISPER_ELEVATOR))
                 {
                       pGO->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
                       pGO->SetGoState(GO_STATE_READY);
-                }
+                }*/
             }
             break;
         case TYPE_GUNSHIP_BATTLE:

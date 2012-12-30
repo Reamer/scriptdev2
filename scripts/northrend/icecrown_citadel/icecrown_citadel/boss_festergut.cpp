@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: boss_festergut
 SD%Complete: 90%
-SDComment:
+SDComment: Vile Gas spellhandling unknown
 SDCategory: Icecrown Citadel
 EndScriptData */
 
@@ -51,6 +51,7 @@ enum
     SPELL_GASEOUS_BLIGHT_DUMMY1 = 69126,
     SPELL_GASEOUS_BLIGHT_DUMMY2 = 69152,
     SPELL_GASEOUS_BLIGHT_DUMMY3 = 69154,
+    SPELL_LOW_PLAGUE_BLIGHT_VISUAL_CANCEL = 69171,
 
     // Inoculent
     SPELL_REMOVE_INOCULENT      = 69298,
@@ -128,6 +129,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FESTERGUT, FAIL);
 
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_INOCULENT, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, SPELL_LOW_PLAGUE_BLIGHT_VISUAL_CANCEL, CAST_TRIGGERED);
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -137,6 +139,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
 
         DoScriptText(SAY_DEATH, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_INOCULENT, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, SPELL_LOW_PLAGUE_BLIGHT_VISUAL_CANCEL, CAST_TRIGGERED);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -199,7 +202,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
         else
             m_uiGasSporeTimer -= uiDiff;
 
-        // Vile Gas
+        /*// Vile Gas
         if (m_uiVileGasTimer <= uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS_SUMMON, CAST_TRIGGERED) == CAST_OK)
@@ -209,7 +212,7 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
             }
         }
         else
-            m_uiVileGasTimer -= uiDiff;
+            m_uiVileGasTimer -= uiDiff;*/
 
         if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
         {
