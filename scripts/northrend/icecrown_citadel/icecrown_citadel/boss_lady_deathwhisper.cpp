@@ -59,10 +59,7 @@ enum
     // SPELL_SUMMON_ADHERENT     = 70820,            // cast by the stalkers - only server side
     // SPELL_SUMMON_FANATIC      = 70819,            // cast by the stalkers - only server side
 
-    // npcs
-    NPC_CULT_ADHERENT           = 37949,
-    NPC_CULT_FANATIC            = 37890,
-    NPC_VENGEFUL_SHADE          = 38222,            // has aura 71494
+    SPELL_ACHIEVEMENT_CREDIT    = 72827,
 };
 
 static const uint32 aLeftSummonedCultists[3] = {NPC_CULT_ADHERENT, NPC_CULT_FANATIC, NPC_CULT_ADHERENT};
@@ -160,7 +157,11 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
 
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_LADY_DEATHWHISPER, DONE);
+            m_pInstance->CheckSpecialAchievements(TYPE_ACHIEVE_FULL_HOUSE);
+            m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_ACHIEVEMENT_CREDIT);
+        }
     }
 
     void JustReachedHome() override

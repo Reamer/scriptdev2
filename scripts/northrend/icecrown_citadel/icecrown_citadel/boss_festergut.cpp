@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "icecrown_citadel.h"
+#include "SpellMgr.h"
 
 enum
 {
@@ -55,6 +56,7 @@ enum
 
     // Inoculent
     SPELL_REMOVE_INOCULENT      = 69298,
+    SPELL_INOCULENT             = 69291,
 
     // Gas Spore
     SPELL_GAS_SPORE             = 69278,
@@ -140,6 +142,19 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_INOCULENT, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, SPELL_LOW_PLAGUE_BLIGHT_VISUAL_CANCEL, CAST_TRIGGERED);
+    }
+
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    {
+        if (m_pInstance && pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->SpellDifficultyId == 1988)
+        {
+            SpellEntry const* pSpell = GetSpellEntryByDifficulty(SPELL_INOCULENT, m_creature->GetMap()->GetDifficulty(), true);
+            if (SpellAuraHolderPtr pHolder = pTarget->GetSpellAuraHolder(pSpell->Id))
+            {
+                if (pHolder->GetStackAmount() > 2)
+                    m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_FLU_SHOT_SHORTAGE, false);
+            }
+        }
     }
 
     void UpdateAI(const uint32 uiDiff) override

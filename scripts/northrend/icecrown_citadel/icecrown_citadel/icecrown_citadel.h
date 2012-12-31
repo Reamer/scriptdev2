@@ -45,8 +45,19 @@ enum
     NPC_MURADIN_BRONZEBEARD_ENTRANCE= 38607,
 
     // boss-related and other NPCs
+    // Lady Deathwhisper
     NPC_DEATHWHISPER_SPAWN_STALKER  = 37947,
     NPC_DEATHWHISPER_CONTROLLER     = 37948,
+
+    NPC_CULT_ADHERENT               = 37949,
+    NPC_CULT_FANATIC                = 37890,
+    NPC_REANIMATED_FANATIC          = 38009,
+    NPC_REANIMATED_ADHERENT         = 38010,
+    NPC_DEFORMED_FANATIC            = 38135,
+
+    NPC_VENGEFUL_SHADE              = 38222, // has aura 71494
+
+    // Deathbringer Saurfang
     NPC_OVERLORD_SAURFANG           = 37187,
     NPC_KORKRON_REAVER              = 37920,
     NPC_MURADIN_BRONZEBEARD_SAURFANG= 37200, // Saurfang's encounter and at the instance entrance
@@ -155,6 +166,7 @@ enum
     // instance spells
     SPELL_GRIP_OF_AGONY                     = 70572,    // Saurfang Intro
     SPELL_VEHICLE_HARDCODED                 = 46598, // Deathbringer enters Overlord
+    SPELL_ESSENCE_OF_THE_BLOOD_QUEEN        = 70867,
 
 
     GO_TELEPORT_GOSSIP_MESSAGE      = 99323,
@@ -180,11 +192,22 @@ enum
     EVENT_STOP_SAURFANG_INTRO_ALLY      = 7,
     EVENT_START_SAURFANG_OUTRO_ALLY     = 8,
     EVENT_STOP_SAURFANG_OUTRO_ALLY      = 9,
+};
 
-
-    MAX_ACHIEVEMENT         = 1,
-    TYPE_ACHIEVE_BONED      = 0,
-
+enum IcecrownAchievments
+{
+    TYPE_ACHIEVE_BONED                      = 0,
+    TYPE_ACHIEVE_FULL_HOUSE                 = 1,
+    TYPE_ACHIEVE_IM_ON_A_BOAT               = 2,
+    TYPE_ACHIEVE_IVE_GONE_AND_MADE_A_MESS   = 3,
+    TYPE_ACHIEVE_FLU_SHOT_SHORTAGE          = 4,
+    TYPE_ACHIEVE_DANCES_WITH_OOZES          = 5,
+    TYPE_ACHIEVE_NAUSEA                     = 6,
+    TYPE_ACHIEVE_ORB_WHISPERER              = 7,
+    TYPE_ACHIEVE_PORTAL_JOCKEY              = 8,
+    TYPE_ACHIEVE_ALL_YOU_CAN_EAT            = 9,
+    TYPE_ACHIEVE_BEEN_WAITING_A_LONG_TIME   = 10,
+    MAX_ACHIEVEMENT                         = 11,
 };
 
 enum AchievementCriteriaIds
@@ -194,6 +217,30 @@ enum AchievementCriteriaIds
     CRITERIA_BONED_25N                  = 12962,
     CRITERIA_BONED_10H                  = 13393,
     CRITERIA_BONED_25H                  = 13394,
+
+    // Lady Deathwhisper
+    CRITERIA_FULL_HOUSE_10N             = 12776,
+    CRITERIA_FULL_HOUSE_25N             = 12997,
+    CRITERIA_FULL_HOUSE_10H             = 12995,
+    CRITERIA_FULL_HOUSE_25H             = 12998,
+
+    // Gunship Battle
+    CRITERIA_IM_ON_A_BOAT_10N           = 12777,
+    CRITERIA_IM_ON_A_BOAT_25N           = 13080,
+    CRITERIA_IM_ON_A_BOAT_10H           = 13079,
+    CRITERIA_IM_ON_A_BOAT_25H           = 13081,
+
+    // Deathbringer Saurfang
+    CRITERIA_IVE_GONE_AND_MADE_A_MESS_10N = 12778,
+    CRITERIA_IVE_GONE_AND_MADE_A_MESS_25N = 13036,
+    CRITERIA_IVE_GONE_AND_MADE_A_MESS_10H = 13035,
+    CRITERIA_IVE_GONE_AND_MADE_A_MESS_25H = 13037,
+
+    // Festergut
+    CRITERIA_FLU_SHOT_SHORTAGE_10N      = 12977,
+    CRITERIA_FLU_SHOT_SHORTAGE_25N      = 12982,
+    CRITERIA_FLU_SHOT_SHORTAGE_10H      = 12986,
+    CRITERIA_FLU_SHOT_SHORTAGE_25H      = 12967,
 
     // Rotface
     CRITERIA_DANCES_WITH_OOZES_10N      = 12984,
@@ -214,12 +261,30 @@ enum AchievementCriteriaIds
     CRITERIA_ORB_WHISPERER_25H          = 13032,
 
     // Blood-Queen Lana'thel
-    CRITERIA_KILL_LANA_THEL_10M         = 13340,
-    CRITERIA_KILL_LANA_THEL_25M         = 13360,
+    //CRITERIA_KILL_LANA_THEL_10M         = 13340,
+    //CRITERIA_KILL_LANA_THEL_25M         = 13360,
     CRITERIA_ONCE_BITTEN_TWICE_SHY_10N  = 12780,
     CRITERIA_ONCE_BITTEN_TWICE_SHY_25N  = 13012,
     CRITERIA_ONCE_BITTEN_TWICE_SHY_10V  = 13011,
     CRITERIA_ONCE_BITTEN_TWICE_SHY_25V  = 13013,
+
+    // Valithria Dreamwalker
+    CRITERIA_PORTAL_JOCKEY_10N          = 12978,
+    CRITERIA_PORTAL_JOCKEY_25N          = 12971,
+    CRITERIA_PORTAL_JOCKEY_10H          = 12979,
+    CRITERIA_PORTAL_JOCKEY_25H          = 12980,
+
+    // Sindragosa
+    CRITERIA_ALL_YOU_CAN_EAT_10N        = 12822,
+    CRITERIA_ALL_YOU_CAN_EAT_25N        = 12972,
+    CRITERIA_ALL_YOU_CAN_EAT_10V        = 12996,
+    CRITERIA_ALL_YOU_CAN_EAT_25V        = 12989,
+
+    // Lich King - Been Waiting a Long Time For This
+    CRITERIA_BEEN_WAITING_A_LONG_TIME_10N = 13246,
+    CRITERIA_BEEN_WAITING_A_LONG_TIME_25N = 13244,
+    CRITERIA_BEEN_WAITING_A_LONG_TIME_10H = 13247,
+    CRITERIA_BEEN_WAITING_A_LONG_TIME_25H = 13245,
 };
 
 class MANGOS_DLL_DECL instance_icecrown_citadel : public ScriptedInstance, private DialogueHelper
@@ -244,7 +309,6 @@ class MANGOS_DLL_DECL instance_icecrown_citadel : public ScriptedInstance, priva
         void Load(const char* strIn) override;
 
         void DoHandleCitadelAreaTrigger(uint32 uiTriggerId, Player* pPlayer);
-        void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);
 
         // Difficulty wrappers
         bool IsHeroicDifficulty() { return instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
@@ -256,6 +320,8 @@ class MANGOS_DLL_DECL instance_icecrown_citadel : public ScriptedInstance, priva
         void DoPreparePutricideDoor() { m_uiPutricideValveTimer = 15000; }
 
         bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget = NULL, uint32 uiMiscvalue1 = 0) override;
+        void SetSpecialAchievementCriteria(IcecrownAchievments uiType, bool bIsMet);
+        void CheckSpecialAchievements(IcecrownAchievments uiType);
 
         void Update(uint32 uiDiff) override;
 

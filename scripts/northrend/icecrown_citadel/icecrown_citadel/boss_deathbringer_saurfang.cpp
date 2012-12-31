@@ -80,7 +80,9 @@ enum
     SPELL_FRENZY                            = 72737,
 
     //summons
-    NPC_BLOOD_BEAST                         = 38508
+    NPC_BLOOD_BEAST                         = 38508,
+
+    SPELL_ACHIEVEMENT_CHECK                 = 72928,
 };
 
 enum Equipment
@@ -127,7 +129,8 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
     uint32 m_uiBerserkTimer;
 
     bool m_bIsIntroStarted;
-    bool m_bIsAlliance;
+
+    uint8 m_uiCastAmountMarkOfTheFallenChampion;
 
     void Reset() override
     {
@@ -139,7 +142,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         m_uiBerserkTimer        = 8 * MINUTE * IN_MILLISECONDS;
         if (m_pInstance && m_pInstance->IsHeroicDifficulty())
             m_uiBerserkTimer = 6 * MINUTE * IN_MILLISECONDS;
-
+        m_uiCastAmountMarkOfTheFallenChampion = 0;
         m_creature->SetPower(POWER_ENERGY, 0);
     }
 
@@ -204,7 +207,10 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
     void JustDied(Unit *pKiller) override
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_DEATHBRINGER_SAURFANG, DONE);
+            m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_ACHIEVEMENT_CHECK);
+        }
 
         DoScriptText(SAY_DEATH, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_MARKS, CAST_TRIGGERED);
@@ -236,6 +242,12 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature, SPELL_MARK_OF_FALLEN_CHAMPION_SEARCH) == CAST_OK)
             {
+                ++m_uiCastAmountMarkOfTheFallenChampion;
+                if (m_uiCastAmountMarkOfTheFallenChampion > 2)
+                {
+                    if (m_pInstance)
+                        m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_IVE_GONE_AND_MADE_A_MESS, false);
+                }
                 m_creature->SetPower(POWER_ENERGY, 0); // reset Blood Power
                 // decrease the buff
                 m_creature->RemoveAurasDueToSpell(SPELL_BLOOD_POWER);

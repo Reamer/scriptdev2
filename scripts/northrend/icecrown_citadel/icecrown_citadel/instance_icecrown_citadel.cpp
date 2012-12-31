@@ -245,7 +245,7 @@ void instance_icecrown_citadel::DoHandleCitadelAreaTrigger(uint32 uiTriggerId, P
     }
 }
 
-void instance_icecrown_citadel::SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet)
+void instance_icecrown_citadel::SetSpecialAchievementCriteria(IcecrownAchievments uiType, bool bIsMet)
 {
     if (uiType < MAX_ACHIEVEMENT)
         m_abAchievement[uiType] = bIsMet;
@@ -447,6 +447,8 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
             DoUseDoorOrButton(GO_MARROWGAR_DOOR);
             if (uiData == IN_PROGRESS)
                 SetSpecialAchievementCriteria(TYPE_ACHIEVE_BONED, true);
+            if (uiData == FAIL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_BONED, false);
             if (uiData == DONE)
             {
                 DoUseDoorOrButton(GO_ICEWALL_1);
@@ -462,10 +464,10 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
             if (uiData == DONE)
             {
                 /* Disable till Battleship Encounter works
-                if (GameObject* pGO = GetSingleGameObjectFromStorage(GO_DEATHWHISPER_ELEVATOR))
+                if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_DEATHWHISPER_ELEVATOR))
                 {
-                      pGO->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
-                      pGO->SetGoState(GO_STATE_READY);
+                      pGo->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
+                      pGo->SetGoState(GO_STATE_READY);
                 }*/
             }
             break;
@@ -476,19 +478,36 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
             break;
         case TYPE_DEATHBRINGER_SAURFANG:
             m_auiEncounter[uiType] = uiData;
-            if (uiData == SPECIAL)
+            switch(uiData)
             {
-                StartNextDialogueText(m_uiTeam == ALLIANCE ? EVENT_START_SAURFANG_INTRO_ALLY : EVENT_START_SAURFANG_INTRO_HORDE);
-            }
-            if (uiData == DONE)
-            {
-                StartNextDialogueText(m_uiTeam == ALLIANCE ? EVENT_START_SAURFANG_OUTRO_ALLY : EVENT_START_SAURFANG_OUTRO_HORDE);
-                DoUseDoorOrButton(GO_SAURFANG_DOOR);
-                DoRespawnGameObject(GO_SAURFANG_CACHE, 60 * MINUTE);
-                 // Note: these doors may not be correct. In theory the doors should be already opened
-                DoUseDoorOrButton(GO_SCIENTIST_DOOR);
-                DoUseDoorOrButton(GO_CRIMSON_HALL_DOOR);
-                DoUseDoorOrButton(GO_GREEN_DRAGON_ENTRANCE);
+                case SPECIAL:
+                {
+                    StartNextDialogueText(m_uiTeam == ALLIANCE ? EVENT_START_SAURFANG_INTRO_ALLY : EVENT_START_SAURFANG_INTRO_HORDE);
+                    break;
+                }
+                case DONE:
+                {
+                    StartNextDialogueText(m_uiTeam == ALLIANCE ? EVENT_START_SAURFANG_OUTRO_ALLY : EVENT_START_SAURFANG_OUTRO_HORDE);
+                    DoUseDoorOrButton(GO_SAURFANG_DOOR);
+                    DoRespawnGameObject(GO_SAURFANG_CACHE, 60 * MINUTE);
+                     // Note: these doors may not be correct. In theory the doors should be already opened
+                    DoUseDoorOrButton(GO_SCIENTIST_DOOR);
+                    DoUseDoorOrButton(GO_CRIMSON_HALL_DOOR);
+                    DoUseDoorOrButton(GO_GREEN_DRAGON_ENTRANCE);
+                    break;
+                }
+                case IN_PROGRESS:
+                {
+                    SetSpecialAchievementCriteria(TYPE_ACHIEVE_IVE_GONE_AND_MADE_A_MESS, true);
+                    break;
+                }
+                case FAIL:
+                {
+                    SetSpecialAchievementCriteria(TYPE_ACHIEVE_IVE_GONE_AND_MADE_A_MESS, false);
+                    break;
+                }
+                default:
+                    break;
             }
             break;
         case TYPE_FESTERGUT:
@@ -496,19 +515,29 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
             DoUseDoorOrButton(GO_ORANGE_PLAGUE);
             if (uiData == DONE)
                 DoToggleGameObjectFlags(GO_ORANGE_VALVE, GO_FLAG_NO_INTERACT, false);
+            else if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_FLU_SHOT_SHORTAGE, true);
+            else if (uiData == FAIL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_FLU_SHOT_SHORTAGE, false);
             break;
         case TYPE_ROTFACE:
             m_auiEncounter[uiType] = uiData;
             DoUseDoorOrButton(GO_GREEN_PLAGUE);
             if (uiData == DONE)
                 DoToggleGameObjectFlags(GO_GREEN_VALVE, GO_FLAG_NO_INTERACT, false);
+            else if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_DANCES_WITH_OOZES, true);
+            else if (uiData == FAIL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_DANCES_WITH_OOZES, false);
             break;
         case TYPE_PROFESSOR_PUTRICIDE:
         {
             m_auiEncounter[uiType] = uiData;
             //DoUseDoorOrButton(GO_SCIENTIST_DOOR);
-            break;
-
+            if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, true);
+            else if (uiData == FAIL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
             // Proff sometimes does't trigger door, so let's check it explicitly
            GameObject* pDoor = GetSingleGameObjectFromStorage(GO_SCIENTIST_DOOR);
            if (pDoor)
@@ -545,6 +574,10 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
                 DoUseDoorOrButton(GO_COUNCIL_DOOR_1);
                 DoUseDoorOrButton(GO_COUNCIL_DOOR_2);
             }
+            else if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_ORB_WHISPERER, true);
+            else if (uiData == FAIL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_ORB_WHISPERER, false);
             break;
         case TYPE_QUEEN_LANATHEL:
             m_auiEncounter[uiType] = uiData;
@@ -571,13 +604,29 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
                 DoUseDoorOrButton(GO_SINDRAGOSA_SHORTCUT_EXIT);
                 DoRespawnGameObject(GO_DREAMWALKER_CACHE, 60 * MINUTE);
             }
+            else if (uiData == IN_PROGRESS)
+            {
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_PORTAL_JOCKEY, false);
+            }
+            else if (uiData == FAIL)
+            {
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_PORTAL_JOCKEY, false);
+            }
             break;
         case TYPE_SINDRAGOSA:
              m_auiEncounter[uiType] = uiData;
              DoUseDoorOrButton(GO_SINDRAGOSA_ENTRANCE);
+             if (uiData == IN_PROGRESS)
+                 SetSpecialAchievementCriteria(TYPE_ACHIEVE_ALL_YOU_CAN_EAT, true);
+             else if (uiData == FAIL)
+                 SetSpecialAchievementCriteria(TYPE_ACHIEVE_ALL_YOU_CAN_EAT, false);
             break;
         case TYPE_LICH_KING:
             m_auiEncounter[TYPE_LICH_KING] = uiData;
+            if (uiData == IN_PROGRESS)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_BEEN_WAITING_A_LONG_TIME, false);
+            else if (uiData == FAIL)
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_BEEN_WAITING_A_LONG_TIME, false);
             break;
             /*
          case TYPE_FROSTMOURNE_ROOM:
@@ -627,15 +676,127 @@ bool instance_icecrown_citadel::CheckAchievementCriteriaMeet(uint32 uiCriteriaId
 {
     switch (uiCriteriaId)
     {
+            // Lord Marrowgar
         case CRITERIA_BONED_10N:
         case CRITERIA_BONED_25N:
         case CRITERIA_BONED_10H:
         case CRITERIA_BONED_25H:
             return m_abAchievement[TYPE_ACHIEVE_BONED];
+            // Lady Deathwhispher
+        case CRITERIA_FULL_HOUSE_10N:
+        case CRITERIA_FULL_HOUSE_25N:
+        case CRITERIA_FULL_HOUSE_10H:
+        case CRITERIA_FULL_HOUSE_25H:
+            return m_abAchievement[TYPE_ACHIEVE_FULL_HOUSE];
+            // Gunship Battle
+        case CRITERIA_IM_ON_A_BOAT_10N:
+        case CRITERIA_IM_ON_A_BOAT_25N:
+        case CRITERIA_IM_ON_A_BOAT_10H:
+        case CRITERIA_IM_ON_A_BOAT_25H:
+            return m_abAchievement[TYPE_ACHIEVE_IM_ON_A_BOAT];
+            // Deathbringer Saurfang
+        case CRITERIA_IVE_GONE_AND_MADE_A_MESS_10N:
+        case CRITERIA_IVE_GONE_AND_MADE_A_MESS_25N:
+        case CRITERIA_IVE_GONE_AND_MADE_A_MESS_10H:
+        case CRITERIA_IVE_GONE_AND_MADE_A_MESS_25H:
+            return m_abAchievement[TYPE_ACHIEVE_IVE_GONE_AND_MADE_A_MESS];
+            // Festergut
+        case CRITERIA_FLU_SHOT_SHORTAGE_10N:
+        case CRITERIA_FLU_SHOT_SHORTAGE_25N:
+        case CRITERIA_FLU_SHOT_SHORTAGE_10H:
+        case CRITERIA_FLU_SHOT_SHORTAGE_25H:
+            return m_abAchievement[TYPE_ACHIEVE_FLU_SHOT_SHORTAGE];
+            // Rotface
+        case CRITERIA_DANCES_WITH_OOZES_10N:
+        case CRITERIA_DANCES_WITH_OOZES_25N:
+        case CRITERIA_DANCES_WITH_OOZES_10H:
+        case CRITERIA_DANCES_WITH_OOZES_25H:
+            return m_abAchievement[TYPE_ACHIEVE_DANCES_WITH_OOZES];
+            // Professor Putricide
+        case CRITERIA_NAUSEA_10N:
+        case CRITERIA_NAUSEA_25N:
+        case CRITERIA_NAUSEA_10H:
+        case CRITERIA_NAUSEA_25H:
+            return m_abAchievement[TYPE_ACHIEVE_NAUSEA];
+            // Blood Prince Council
+        case CRITERIA_ORB_WHISPERER_10N:
+        case CRITERIA_ORB_WHISPERER_25N:
+        case CRITERIA_ORB_WHISPERER_10H:
+        case CRITERIA_ORB_WHISPERER_25H:
+            return m_abAchievement[TYPE_ACHIEVE_ORB_WHISPERER];
+        case CRITERIA_ONCE_BITTEN_TWICE_SHY_10N:
+            return !Is25ManDifficulty() && !pSource->HasAuraOfDifficulty(SPELL_ESSENCE_OF_THE_BLOOD_QUEEN);
+        case CRITERIA_ONCE_BITTEN_TWICE_SHY_25N:
+            return Is25ManDifficulty() && pSource->HasAuraOfDifficulty(SPELL_ESSENCE_OF_THE_BLOOD_QUEEN);
+        case CRITERIA_ONCE_BITTEN_TWICE_SHY_10V:
+            return !Is25ManDifficulty() && pSource->HasAuraOfDifficulty(SPELL_ESSENCE_OF_THE_BLOOD_QUEEN);
+        case CRITERIA_ONCE_BITTEN_TWICE_SHY_25V:
+            return Is25ManDifficulty() && pSource->HasAuraOfDifficulty(SPELL_ESSENCE_OF_THE_BLOOD_QUEEN);
+            // Valithria Dreamwalker
+        case CRITERIA_PORTAL_JOCKEY_10N:
+        case CRITERIA_PORTAL_JOCKEY_25N:
+        case CRITERIA_PORTAL_JOCKEY_10H:
+        case CRITERIA_PORTAL_JOCKEY_25H:
+            return m_abAchievement[TYPE_ACHIEVE_PORTAL_JOCKEY];
+            // Sindragosa
+        case CRITERIA_ALL_YOU_CAN_EAT_10N:
+        case CRITERIA_ALL_YOU_CAN_EAT_25N:
+        case CRITERIA_ALL_YOU_CAN_EAT_10V:
+        case CRITERIA_ALL_YOU_CAN_EAT_25V:
+            return m_abAchievement[TYPE_ACHIEVE_ALL_YOU_CAN_EAT];
+            // Lich King
+        case CRITERIA_BEEN_WAITING_A_LONG_TIME_10N:
+        case CRITERIA_BEEN_WAITING_A_LONG_TIME_25N:
+        case CRITERIA_BEEN_WAITING_A_LONG_TIME_10H:
+        case CRITERIA_BEEN_WAITING_A_LONG_TIME_25H:
+            return m_abAchievement[TYPE_ACHIEVE_BEEN_WAITING_A_LONG_TIME];
         default:
             break;
     }
     return false;
+}
+
+void instance_icecrown_citadel::CheckSpecialAchievements(IcecrownAchievments uiType)
+{
+    switch(uiType)
+    {
+        case TYPE_ACHIEVE_FULL_HOUSE:
+        {
+            if (Creature* pLadyDeathWhispher = GetSingleCreatureFromStorage(NPC_LADY_DEATHWHISPER))
+            {
+                std::list<Creature*> summonEntryList;
+                summonEntryList.clear();
+                GetCreatureListWithEntryInGrid(summonEntryList, pLadyDeathWhispher, NPC_CULT_ADHERENT, 250.0f);
+                if (summonEntryList.empty())
+                    SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, false);
+                summonEntryList.clear();
+
+                GetCreatureListWithEntryInGrid(summonEntryList, pLadyDeathWhispher, NPC_CULT_FANATIC, 250.0f);
+                if (summonEntryList.empty())
+                    SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, false);
+                summonEntryList.clear();
+
+                GetCreatureListWithEntryInGrid(summonEntryList, pLadyDeathWhispher, NPC_REANIMATED_FANATIC, 250.0f);
+                if (summonEntryList.empty())
+                    SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, false);
+
+                summonEntryList.clear();
+                GetCreatureListWithEntryInGrid(summonEntryList, pLadyDeathWhispher, NPC_REANIMATED_ADHERENT, 250.0f);
+                if (summonEntryList.empty())
+                   SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, false);
+
+                summonEntryList.clear();
+                GetCreatureListWithEntryInGrid(summonEntryList, pLadyDeathWhispher, NPC_DEFORMED_FANATIC, 250.0f);
+                if (summonEntryList.empty())
+                    SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, false);
+
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, true);
+            }
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 void instance_icecrown_citadel::Load(const char* strIn)
