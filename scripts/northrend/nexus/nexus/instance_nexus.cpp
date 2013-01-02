@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -31,7 +31,7 @@ bool GOUse_go_containment_sphere(Player* pPlayer, GameObject* pGo)
     if (!pInstance)
         return false;
 
-    switch(pGo->GetEntry())
+    switch (pGo->GetEntry())
     {
         case GO_CONTAINMENT_SPHERE_TELESTRA: pInstance->SetData(TYPE_TELESTRA, SPECIAL); break;
         case GO_CONTAINMENT_SPHERE_ANOMALUS: pInstance->SetData(TYPE_ANOMALUS, SPECIAL); break;
@@ -84,7 +84,7 @@ void instance_nexus::OnCreatureCreate(Creature* pCreature)
         m_mNpcEntryGuidStore[NPC_KERISTRASZA] = pCreature->GetObjectGuid();
 }
 
-uint32 instance_nexus::GetData(uint32 uiType)
+uint32 instance_nexus::GetData(uint32 uiType) const
 {
     if (uiType < MAX_ENCOUNTER)
         return m_auiEncounter[uiType];
@@ -126,7 +126,7 @@ void instance_nexus::SetData(uint32 uiType, uint32 uiData)
                 m_sIntenseColdFailPlayers.insert(uiData);
             break;
         default:
-            error_log("SD2: Instance Nexus: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
+            script_error_log("Instance Nexus: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
             return;
     }
 
@@ -163,7 +163,7 @@ void instance_nexus::SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet)
         m_abAchievCriteria[uiType] = bIsMet;
 }
 
-bool instance_nexus::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+bool instance_nexus::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/) const
 {
     switch (uiCriteriaId)
     {
@@ -193,7 +193,7 @@ void instance_nexus::Load(const char* chrIn)
     std::istringstream loadStream(chrIn);
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3];
 
-    for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
     {
         if (m_auiEncounter[i] == IN_PROGRESS)
             m_auiEncounter[i] = NOT_STARTED;

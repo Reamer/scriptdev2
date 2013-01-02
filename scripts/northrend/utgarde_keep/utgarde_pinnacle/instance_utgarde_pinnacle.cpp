@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -41,7 +41,7 @@ void instance_pinnacle::Initialize()
 
 void instance_pinnacle::OnCreatureCreate(Creature* pCreature)
 {
-    switch(pCreature->GetEntry())
+    switch (pCreature->GetEntry())
     {
         case NPC_GRAUF:
         case NPC_SKADI:
@@ -76,7 +76,7 @@ void instance_pinnacle::OnCreatureCreate(Creature* pCreature)
 
 void instance_pinnacle::OnObjectCreate(GameObject* pGo)
 {
-    switch(pGo->GetEntry())
+    switch (pGo->GetEntry())
     {
         case GO_DOOR_SKADI:
             if (m_auiEncounter[TYPE_SKADI] == DONE)
@@ -162,7 +162,7 @@ void instance_pinnacle::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             break;
         default:
-            error_log("SD2: Instance Pinnacle: SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
+            script_error_log("Instance Pinnacle: SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
             return;
     }
 
@@ -181,7 +181,7 @@ void instance_pinnacle::SetData(uint32 uiType, uint32 uiData)
     }
 }
 
-uint32 instance_pinnacle::GetData(uint32 uiType)
+uint32 instance_pinnacle::GetData(uint32 uiType) const
 {
     if (uiType < MAX_ENCOUNTER)
         return m_auiEncounter[uiType];
@@ -202,7 +202,7 @@ void instance_pinnacle::Load(const char* chrIn)
     std::istringstream loadStream(chrIn);
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3];
 
-    for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
     {
         if (m_auiEncounter[i] == IN_PROGRESS)
             m_auiEncounter[i] = NOT_STARTED;
@@ -217,7 +217,7 @@ void instance_pinnacle::SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet
         m_abAchievCriteria[uiType] = bIsMet;
 }
 
-bool instance_pinnacle::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+bool instance_pinnacle::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/) const
 {
     switch (uiCriteriaId)
     {
@@ -264,7 +264,7 @@ void instance_pinnacle::DoMakeFreezingCloud()
 
 void instance_pinnacle::OnCreatureEvade(Creature* pCreature)
 {
-    switch(pCreature->GetEntry())
+    switch (pCreature->GetEntry())
     {
         case NPC_FURBOLG:
         case NPC_WORGEN:
@@ -277,7 +277,7 @@ void instance_pinnacle::OnCreatureEvade(Creature* pCreature)
 
 void instance_pinnacle::OnCreatureDeath(Creature* pCreature)
 {
-    switch(pCreature->GetEntry())
+    switch (pCreature->GetEntry())
     {
         case NPC_FURBOLG:
         case NPC_WORGEN:

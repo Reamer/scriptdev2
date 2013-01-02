@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -62,7 +62,7 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
     uint32 m_uiImpaleTimer;
     uint32 m_uiArcingSmashTimer;
 
-    void Reset()
+    void Reset() override
     {
         m_uiRoarTimer        = 10000;
         m_uiImpaleTimer      = 15000;
@@ -72,17 +72,17 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/) override
     {
         DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_DEATH, m_creature);
 
@@ -90,13 +90,13 @@ struct MANGOS_DLL_DECL boss_gortokAI : public ScriptedAI
             m_pInstance->SetData(TYPE_GORTOK, DONE);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_GORTOK, FAIL);
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -139,7 +139,7 @@ CreatureAI* GetAI_boss_gortok(Creature* pCreature)
 
 bool EffectDummyCreature_spell_awaken_gortok(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, Creature* pCreatureTarget)
 {
-    //always check spellid and effectindex
+    // always check spellid and effectindex
     if (uiSpellId == SPELL_AWAKEN_GORTOK && uiEffIndex == EFFECT_INDEX_0)
     {
         pCreatureTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -152,7 +152,7 @@ bool EffectDummyCreature_spell_awaken_gortok(Unit* pCaster, uint32 uiSpellId, Sp
                 pCreatureTarget->AI()->AttackStart(pStarter);
         }
 
-        //always return true when we are handling this spell and effect
+        // always return true when we are handling this spell and effect
         return true;
     }
 
@@ -205,7 +205,7 @@ void AddSC_boss_gortok()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
-    pNewScript->Name="npc_gortok_subboss";
+    pNewScript->Name = "npc_gortok_subboss";
     pNewScript->pEffectAuraDummy = &EffectAuraDummy_spell_aura_dummy_awaken_subboss;
     pNewScript->RegisterSelf();
 

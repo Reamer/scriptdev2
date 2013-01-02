@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,28 +15,27 @@
  */
 
 /* ScriptData
- SDName: Boss_Ymiron
- SD%Complete: 20%
- SDComment:
- SDCategory: Utgarde Pinnacle
- EndScriptData */
+SDName: Boss_Ymiron
+SD%Complete: 90%
+SDComment: Timers
+SDCategory: Utgarde Pinnacle
+EndScriptData */
 
 #include "precompiled.h"
 #include "utgarde_pinnacle.h"
-#include "MotionMaster.h"
 
 enum
 {
-    SAY_AGGRO                       = -1575031,
-    SAY_SUMMON_BJORN                = -1575032,
-    SAY_SUMMON_HALDOR               = -1575033,
-    SAY_SUMMON_RANULF               = -1575034,
-    SAY_SUMMON_TORGYN               = -1575035,
-    SAY_SLAY_1                      = -1575036,
-    SAY_SLAY_2                      = -1575037,
-    SAY_SLAY_3                      = -1575038,
-    SAY_SLAY_4                      = -1575039,
-    SAY_DEATH                       = -1575040,
+    SAY_AGGRO                   = -1575031,
+    SAY_SUMMON_BJORN            = -1575032,
+    SAY_SUMMON_HALDOR           = -1575033,
+    SAY_SUMMON_RANULF           = -1575034,
+    SAY_SUMMON_TORGYN           = -1575035,
+    SAY_SLAY_1                  = -1575036,
+    SAY_SLAY_2                  = -1575037,
+    SAY_SLAY_3                  = -1575038,
+    SAY_SLAY_4                  = -1575039,
+    SAY_DEATH                   = -1575040,
 
     SPELL_BANE                      = 48294,
     SPELL_BANE_H                    = 59301,

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -42,20 +42,20 @@ class MANGOS_DLL_DECL instance_utgarde_keep : public ScriptedInstance
         instance_utgarde_keep(Map* pMap);
         ~instance_utgarde_keep() {}
 
-        void Initialize();
+        void Initialize() override;
 
-        void OnCreatureCreate(Creature* pCreature);
-        void OnObjectCreate(GameObject* pGo);
+        void OnCreatureCreate(Creature* pCreature) override;
+        void OnObjectCreate(GameObject* pGo) override;
 
-        void OnCreatureDeath(Creature* pCreature);
+        void OnCreatureDeath(Creature* pCreature) override;
 
-        void SetData(uint32 uiType, uint32 uiData);
-        uint32 GetData(uint32 uiType);
+        void SetData(uint32 uiType, uint32 uiData) override;
+        uint32 GetData(uint32 uiType) const override;
 
-        const char* Save() { return m_strInstData.c_str(); }
-        void Load(const char* chrIn);
+        const char* Save() const override { return m_strInstData.c_str(); }
+        void Load(const char* chrIn) override;
 
-        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/) const override;
 
     protected:
         uint32 m_auiEncounter[MAX_ENCOUNTER];

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -112,12 +112,12 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         }
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         DoMoveToPosition();
     }
 
-    void MoveInLineOfSight(Unit* pWho)
+    void MoveInLineOfSight(Unit* pWho) override
     {
         if (!m_bIsIntroDone)
         {
@@ -138,13 +138,13 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         ScriptedAI::MoveInLineOfSight(pWho);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         //m_creature->SetLevitate(false);
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void JustSummoned(Creature* pSummoned)
+    void JustSummoned(Creature* pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_ARTHAS_IMAGE)
         {
@@ -165,7 +165,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         }
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* pVictim) override
     {
         switch(urand(0, 2))
         {
@@ -175,7 +175,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_DEATH, m_creature);
 
@@ -192,7 +192,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
         m_creature->GetMotionMaster()->MovePoint(0, fX, fY, fZ + 5.0f);
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
         {
