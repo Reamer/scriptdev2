@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -38,7 +38,7 @@ enum
     SAY_STAL_SLAY                   = -1533024,
     SAY_STAL_DEATH                  = -1533025,
 
-    //Feugen
+    // Feugen
     SAY_FEUG_AGGRO                  = -1533026,
     SAY_FEUG_SLAY                   = -1533027,
     SAY_FEUG_DEATH                  = -1533028,
@@ -47,7 +47,7 @@ enum
     EMOTE_LOSING_LINK               = -1533149,
     EMOTE_TESLA_OVERLOAD            = -1533150,
 
-    //Thaddus
+    // Thaddus
     SAY_AGGRO_1                     = -1533030,
     SAY_AGGRO_2                     = -1533031,
     SAY_AGGRO_3                     = -1533032,
@@ -74,7 +74,7 @@ enum
     SPELL_CLEAR_CHARGES             = 63133,                // TODO NYI, cast on death, most likely to remove remaining buffs
 
     // Stalagg & Feugen Spells
-    //SPELL_WARSTOMP                  = 28125,              // Not used in Wotlk Version
+    // SPELL_WARSTOMP                  = 28125,             // Not used in Wotlk Version
     SPELL_MAGNETIC_PULL_A           = 28338,
     SPELL_MAGNETIC_PULL_B           = 54517,                // used by Feugen (wotlk)
     SPELL_STATIC_FIELD              = 28135,
@@ -129,7 +129,7 @@ struct MANGOS_DLL_DECL npc_tesla_coilAI : public Scripted_NoMovementAI
     npc_tesla_coilAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
     {
         m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
-        m_uiSetupTimer = 1*IN_MILLISECONDS;
+        m_uiSetupTimer = 1 * IN_MILLISECONDS;
         m_uiOverloadTimer = 0;
         m_bReapply = false;
         Reset();
@@ -142,10 +142,10 @@ struct MANGOS_DLL_DECL npc_tesla_coilAI : public Scripted_NoMovementAI
     uint32 m_uiSetupTimer;
     uint32 m_uiOverloadTimer;
 
-    void Reset() {}
-    void MoveInLineOfSight(Unit* pWho) {}
+    void Reset() override {}
+    void MoveInLineOfSight(Unit* pWho) override {}
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         DoScriptText(EMOTE_LOSING_LINK, m_creature);
     }
@@ -153,7 +153,7 @@ struct MANGOS_DLL_DECL npc_tesla_coilAI : public Scripted_NoMovementAI
     // Overwrite this function here to
     // * Keep Chain spells casted when evading after useless EnterCombat caused by 'buffing' the add
     // * To not remove the Passive spells when evading after ie killed a player
-    void EnterEvadeMode()
+    void EnterEvadeMode() override
     {
         m_creature->DeleteThreatList();
         m_creature->CombatStop();
@@ -205,10 +205,10 @@ struct MANGOS_DLL_DECL npc_tesla_coilAI : public Scripted_NoMovementAI
 
     void SetOverloading()
     {
-        m_uiOverloadTimer = 14*IN_MILLISECONDS;             // it takes some time to overload and activate Thaddius
+        m_uiOverloadTimer = 14 * IN_MILLISECONDS;           // it takes some time to overload and activate Thaddius
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         m_creature->SelectHostileTarget();
 
@@ -222,7 +222,7 @@ struct MANGOS_DLL_DECL npc_tesla_coilAI : public Scripted_NoMovementAI
                 if (SetupChain())
                     m_uiSetupTimer = 0;
                 else
-                    m_uiSetupTimer = 5*IN_MILLISECONDS;
+                    m_uiSetupTimer = 5 * IN_MILLISECONDS;
             }
             else
                 m_uiSetupTimer -= uiDiff;
@@ -279,7 +279,7 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public Scripted_NoMovementAI
     uint32  m_uiBallLightningTimer;
     uint32  m_uiBerserkTimer;
 
-    void Reset()
+    void Reset() override
     {
         m_uiPreBossTimer = 5000;
         m_uiPolarityShiftTimer = 15*IN_MILLISECONDS;
@@ -288,7 +288,7 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public Scripted_NoMovementAI
         m_uiBerserkTimer = 6*MINUTE*IN_MILLISECONDS;
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         switch (urand(0,2))
         {

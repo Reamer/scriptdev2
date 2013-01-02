@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -30,9 +30,9 @@ EndScriptData */
 
 enum
 {
-    SAY_SUMMON_MINIONS                  = -1533105,         //start of phase 1
+    SAY_SUMMON_MINIONS                  = -1533105,         // start of phase 1
 
-    EMOTE_PHASE2                        = -1533135,         //start of phase 2
+    EMOTE_PHASE2                        = -1533135,         // start of phase 2
     SAY_AGGRO1                          = -1533094,
     SAY_AGGRO2                          = -1533095,
     SAY_AGGRO3                          = -1533096,
@@ -46,8 +46,8 @@ enum
     SAY_CHAIN2                          = -1533101,
     SAY_FROST_BLAST                     = -1533102,
 
-    SAY_REQUEST_AID                     = -1533103,         //start of phase 3
-    SAY_ANSWER_REQUEST                  = -1533104,         //lich king answer
+    SAY_REQUEST_AID                     = -1533103,         // start of phase 3
+    SAY_ANSWER_REQUEST                  = -1533104,         // lich king answer
 
     SAY_SPECIAL1_MANA_DET               = -1533106,
     SAY_SPECIAL3_MANA_DET               = -1533107,
@@ -55,7 +55,7 @@ enum
 
     EMOTE_GUARDIAN                      = -1533134,         // at each guardian summon
 
-    //spells to be casted
+    // spells to be casted
     SPELL_FROST_BOLT                    = 28478,
     SPELL_FROST_BOLT_H                  = 55802,
     SPELL_FROST_BOLT_NOVA               = 28479,
@@ -131,21 +131,21 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     GuidSet m_lIntroMobsSet;
     GuidSet m_lAddsSet;
 
-    void Reset()
+    void Reset() override
     {
-        m_uiFrostBoltTimer      = urand(1000, 60000);       //It won't be more than a minute without cast it
-        m_uiFrostBoltNovaTimer  = 15000;                    //Cast every 15 seconds
-        m_uiChainsTimer         = urand(30000, 60000);      //Cast no sooner than once every 30 seconds
-        m_uiManaDetonationTimer = 20000;                    //Seems to cast about every 20 seconds
-        m_uiShadowFissureTimer  = 25000;                    //25 seconds
-        m_uiFrostBlastTimer     = urand(30000, 60000);      //Random time between 30-60 seconds
-        m_uiGuardiansTimer      = 5000;                     //5 seconds for summoning each Guardian of Icecrown in phase 3
+        m_uiFrostBoltTimer      = urand(1000, 60000);       // It won't be more than a minute without cast it
+        m_uiFrostBoltNovaTimer  = 15000;                    // Cast every 15 seconds
+        m_uiChainsTimer         = urand(30000, 60000);      // Cast no sooner than once every 30 seconds
+        m_uiManaDetonationTimer = 20000;                    // Seems to cast about every 20 seconds
+        m_uiShadowFissureTimer  = 25000;                    // 25 seconds
+        m_uiFrostBlastTimer     = urand(30000, 60000);      // Random time between 30-60 seconds
+        m_uiGuardiansTimer      = 5000;                     // 5 seconds for summoning each Guardian of Icecrown in phase 3
         m_uiLichKingAnswerTimer = 4000;
         m_uiGuardiansCount      = 0;
         m_uiSummonIntroTimer    = 0;
         m_uiIntroPackCount      = 0;
 
-        m_uiPhase1Timer         = 228000;                   //Phase 1 lasts "3 minutes and 48 seconds"
+        m_uiPhase1Timer         = 228000;                   // Phase 1 lasts "3 minutes and 48 seconds"
         m_uiSoldierTimer        = 5000;
         m_uiBansheeTimer        = 5000;
         m_uiAbominationTimer    = 5000;
@@ -160,7 +160,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         SetCombatMovement(false);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* pVictim) override
     {
         if (pVictim->GetTypeId() != TYPEID_PLAYER)
             return;
@@ -169,7 +169,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_DEATH, m_creature);
         DespawnAdds();
@@ -178,7 +178,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             m_pInstance->SetData(TYPE_KELTHUZAD, DONE);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         DespawnIntroCreatures();
         DespawnAdds();
@@ -187,7 +187,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             m_pInstance->SetData(TYPE_KELTHUZAD, NOT_STARTED);
     }
 
-    void MoveInLineOfSight(Unit* pWho)
+    void MoveInLineOfSight(Unit* pWho) override
     {
         if (m_pInstance && m_pInstance->GetData(TYPE_KELTHUZAD) != IN_PROGRESS)
             return;
@@ -210,7 +210,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            for(GuidSet::const_iterator itr = m_lIntroMobsSet.begin(); itr != m_lIntroMobsSet.end(); ++itr)
+            for (GuidSet::const_iterator itr = m_lIntroMobsSet.begin(); itr != m_lIntroMobsSet.end(); ++itr)
             {
                 if (Creature* pCreature = m_pInstance->instance->GetCreature(*itr))
                     pCreature->ForcedDespawn();
@@ -224,7 +224,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            for(GuidSet::const_iterator itr = m_lAddsSet.begin(); itr != m_lAddsSet.end(); ++itr)
+            for (GuidSet::const_iterator itr = m_lAddsSet.begin(); itr != m_lAddsSet.end(); ++itr)
             {
                 if (Creature* pCreature = m_pInstance->instance->GetCreature(*itr))
                 {
@@ -242,7 +242,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
     float GetLocationAngle(uint32 uiId)
     {
-        switch(uiId)
+        switch (uiId)
         {
             case 1: return M_PI_F - M_F_ANGLE;              // south
             case 2: return M_PI_F / 2 * 3 - M_F_ANGLE;      // east
@@ -261,7 +261,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         if (!m_pInstance)
             return;
 
-        float fAngle = GetLocationAngle(packId+1);
+        float fAngle = GetLocationAngle(packId + 1);
 
         float fX, fY, fZ;
         m_pInstance->GetChamberCenterCoords(fX, fY, fZ);
@@ -275,7 +275,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
         uint32 uiNpcEntry = NPC_SOUL_WEAVER;
 
-        for(uint8 uiI = 0; uiI < 14; ++uiI)
+        for (uint8 uiI = 0; uiI < 14; ++uiI)
         {
             if (uiI > 0)
             {
@@ -312,9 +312,9 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         m_creature->SummonCreature(uiType, fX, fY, fZ, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 5000);
     }
 
-    void JustSummoned(Creature* pSummoned)
+    void JustSummoned(Creature* pSummoned) override
     {
-        switch(pSummoned->GetEntry())
+        switch (pSummoned->GetEntry())
         {
             case NPC_GUARDIAN:
             {
@@ -349,9 +349,9 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         }
     }
 
-    void SummonedCreatureJustDied(Creature* pSummoned)
+    void SummonedCreatureJustDied(Creature* pSummoned) override
     {
-        switch(pSummoned->GetEntry())
+        switch (pSummoned->GetEntry())
         {
             case NPC_GUARDIAN:
             case NPC_SOLDIER_FROZEN:
@@ -369,13 +369,13 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         }
     }
 
-    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiPointId)
+    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiPointId) override
     {
         if (uiMotionType == POINT_MOTION_TYPE && uiPointId == 0)
             pSummoned->SetInCombatWithZone();
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -412,7 +412,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
                     DoScriptText(EMOTE_PHASE2, m_creature);
 
-                    switch(urand(0, 2))
+                    switch (urand(0, 2))
                     {
                         case 0: DoScriptText(SAY_AGGRO1, m_creature); break;
                         case 1: DoScriptText(SAY_AGGRO2, m_creature); break;
@@ -479,9 +479,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
             if (m_uiManaDetonationTimer < uiDiff)
             {
-                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-
-                if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER && pTarget->getPowerType() == POWER_MANA)
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MANA_DETONATION, SELECT_FLAG_PLAYER | SELECT_FLAG_POWER_MANA))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_DETONATE_MANA) == CAST_OK)
                     {
@@ -583,10 +581,10 @@ CreatureAI* GetAI_boss_kelthuzad(Creature* pCreature)
 
 void AddSC_boss_kelthuzad()
 {
-    Script* NewScript;
+    Script* pNewScript;
 
-    NewScript = new Script;
-    NewScript->Name = "boss_kelthuzad";
-    NewScript->GetAI = &GetAI_boss_kelthuzad;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_kelthuzad";
+    pNewScript->GetAI = &GetAI_boss_kelthuzad;
+    pNewScript->RegisterSelf();
 }

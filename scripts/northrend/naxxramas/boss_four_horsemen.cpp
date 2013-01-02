@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -58,7 +58,7 @@ enum
 
     // ***** Spells *****
     // all horsemen
-    //SPELL_SHIELDWALL      = 29061,            // not used in 3.x.x
+    // SPELL_SHIELDWALL      = 29061,            // not used in 3.x.x
     SPELL_BESERK            = 26662,
     // Note: Berserk should be applied once 100 marks are casted.
     // Also spell 59450, which is missing from DBC, is required for the achiev
@@ -90,10 +90,10 @@ enum
     SPELL_CONDEMNATION      = 57377,
 
     // horseman spirits (not used in 3.x.x)
-    //NPC_SPIRIT_OF_BLAUMEUX = 16776,
-    //NPC_SPIRIT_OF_MOGRAINE = 16775,
-    //NPC_SPIRIT_OF_KORTHAZZ = 16778,
-    //NPC_SPIRIT_OF_ZELIREK  = 16777
+    // NPC_SPIRIT_OF_BLAUMEUX = 16776,
+    // NPC_SPIRIT_OF_MOGRAINE = 16775,
+    // NPC_SPIRIT_OF_KORTHAZZ = 16778,
+    // NPC_SPIRIT_OF_ZELIREK  = 16777
 
     // Achievements Hacks
     THE_MILITARY_QUARTER    = 568,
@@ -125,7 +125,7 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
     uint32 m_uiVoidZoneTimer;
     uint32 m_uiShadowBoltTimer;
 
-    void Reset()
+    void Reset() override
     {
         m_uiMarkTimer       = 20000;
         m_uiVoidZoneTimer   = 15000;
@@ -133,7 +133,7 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
         m_bIsCornerMovement = true;
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         DoScriptText(SAY_BLAU_AGGRO, m_creature);
 
@@ -145,12 +145,12 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, IN_PROGRESS);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/) override
     {
         DoScriptText(SAY_BLAU_SLAY, m_creature);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_BLAU_DEATH, m_creature);
 
@@ -158,13 +158,13 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, SPECIAL);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
     }
 
-    void MovementInform(uint32 uiMotionType, uint32 uiPointId)
+    void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
     {
         if (uiMotionType != POINT_MOTION_TYPE || !uiPointId)
             return;
@@ -175,7 +175,7 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
         m_creature->GetMotionMaster()->MoveIdle();
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -240,16 +240,16 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
     uint32 m_uiMarkTimer;
     uint32 m_uiUnholyShadowTimer;
 
-    void Reset()
+    void Reset() override
     {
         m_uiMarkTimer         = 20000;
         m_uiUnholyShadowTimer = 15000;
         m_bIsCornerMovement   = true;
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
-        switch(urand(0, 2))
+        switch (urand(0, 2))
         {
             case 0: DoScriptText(SAY_RIVE_AGGRO1, m_creature); break;
             case 1: DoScriptText(SAY_RIVE_AGGRO2, m_creature); break;
@@ -264,12 +264,12 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, IN_PROGRESS);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/) override
     {
         DoScriptText(urand(0, 1) ? SAY_RIVE_SLAY1 : SAY_RIVE_SLAY2, m_creature);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_RIVE_DEATH, m_creature);
 
@@ -277,13 +277,13 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, SPECIAL);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
     }
 
-    void MovementInform(uint32 uiMotionType, uint32 uiPointId)
+    void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
     {
         if (uiMotionType != POINT_MOTION_TYPE || !uiPointId)
             return;
@@ -296,7 +296,7 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
             m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -346,14 +346,14 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
     uint32 m_uiMarkTimer;
     uint32 m_uiMeteorTimer;
 
-    void Reset()
+    void Reset() override
     {
         m_uiMarkTimer       = 20000;
         m_uiMeteorTimer     = 30000;
         m_bIsCornerMovement = true;
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         DoScriptText(SAY_KORT_AGGRO, m_creature);
 
@@ -365,12 +365,12 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, IN_PROGRESS);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/) override
     {
         DoScriptText(SAY_KORT_SLAY, m_creature);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_KORT_DEATH, m_creature);
 
@@ -378,13 +378,13 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, SPECIAL);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
     }
 
-    void MovementInform(uint32 uiMotionType, uint32 uiPointId)
+    void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
     {
         if (uiMotionType != POINT_MOTION_TYPE || !uiPointId)
             return;
@@ -397,7 +397,7 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
             m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -448,7 +448,7 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
     uint32 m_uiHolyWrathTimer;
     uint32 m_uiHolyBoltTimer;
 
-    void Reset()
+    void Reset() override
     {
         m_uiMarkTimer       = 20000;
         m_uiHolyWrathTimer  = 12000;
@@ -456,7 +456,7 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
         m_bIsCornerMovement = true;
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         DoScriptText(SAY_ZELI_AGGRO, m_creature);
 
@@ -468,12 +468,12 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, IN_PROGRESS);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/) override
     {
         DoScriptText(SAY_ZELI_SLAY, m_creature);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_ZELI_DEATH, m_creature);
 
@@ -481,13 +481,13 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, SPECIAL);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
     }
 
-    void MovementInform(uint32 uiMotionType, uint32 uiPointId)
+    void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
     {
         if (uiMotionType != POINT_MOTION_TYPE || !uiPointId)
             return;
@@ -498,7 +498,7 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
         m_creature->GetMotionMaster()->MoveIdle();
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;

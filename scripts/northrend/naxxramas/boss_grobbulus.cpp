@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -68,7 +68,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
     uint32 m_uiBerserkTimer;
     uint32 m_uiSlimeStreamTimer;
 
-    void Reset()
+    void Reset() override
     {
         Despawnall();
         m_uiInjectionTimer = 12*IN_MILLISECONDS;
@@ -79,20 +79,20 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
         m_uiSlimeStreamTimer = 5*IN_MILLISECONDS;           // The first few secs it is ok to be out of range
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_GROBBULUS, IN_PROGRESS);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         Despawnall();
         if (m_pInstance)
             m_pInstance->SetData(TYPE_GROBBULUS, DONE);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_GROBBULUS, FAIL);
@@ -171,7 +171,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -183,7 +183,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SLIME_STREAM) == CAST_OK)
                     // Give some time, to re-reach grobbulus
-                    m_uiSlimeStreamTimer = 3*IN_MILLISECONDS;
+                    m_uiSlimeStreamTimer = 3 * IN_MILLISECONDS;
             }
         }
         else
@@ -211,7 +211,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SLIME_SPRAY : SPELL_SLIME_SPRAY_H) == CAST_OK)
             {
-                m_uiSlimeSprayTimer = urand(30*IN_MILLISECONDS, 60*IN_MILLISECONDS);
+                m_uiSlimeSprayTimer = urand(30 * IN_MILLISECONDS, 60 * IN_MILLISECONDS);
                 DoScriptText(EMOTE_SPRAY_SLIME, m_creature);
             }
         }
@@ -225,9 +225,9 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
             {
                 // Timer dependend on time of encounter  - on enrage time between 5-8s, heroic 2-5s (TODO no reliable source for heroic)
                 if (m_bIsRegularMode)
-                    m_uiInjectionTimer = urand(10*IN_MILLISECONDS, 13*IN_MILLISECONDS) -  5 * (m_uiBerserkTimeSecs*IN_MILLISECONDS - m_uiBerserkTimer) / m_uiBerserkTimeSecs;
+                    m_uiInjectionTimer = urand(10 * IN_MILLISECONDS, 13 * IN_MILLISECONDS) -  5 * (m_uiBerserkTimeSecs * IN_MILLISECONDS - m_uiBerserkTimer) / m_uiBerserkTimeSecs;
                 else
-                    m_uiInjectionTimer = urand(10*IN_MILLISECONDS, 13*IN_MILLISECONDS) -  8 * (m_uiBerserkTimeSecs*IN_MILLISECONDS - m_uiBerserkTimer) / m_uiBerserkTimeSecs;
+                    m_uiInjectionTimer = urand(10 * IN_MILLISECONDS, 13 * IN_MILLISECONDS) -  8 * (m_uiBerserkTimeSecs * IN_MILLISECONDS - m_uiBerserkTimer) / m_uiBerserkTimeSecs;
             }
         }
         else
@@ -237,7 +237,7 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
         if (m_uiPoisonCloudTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_POISON_CLOUD) == CAST_OK)
-                m_uiPoisonCloudTimer = 15*IN_MILLISECONDS;
+                m_uiPoisonCloudTimer = 15 * IN_MILLISECONDS;
         }
         else
             m_uiPoisonCloudTimer -= uiDiff;

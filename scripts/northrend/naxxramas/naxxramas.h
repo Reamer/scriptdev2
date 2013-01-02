@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2011 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -110,7 +110,7 @@ enum
 
     // Gothik
     NPC_GOTHIK                  = 16060,
-    NPC_SUB_BOSS_TRIGGER        = 16137,                    //summon locations
+    NPC_SUB_BOSS_TRIGGER        = 16137,                    // summon locations
     NPC_UNREL_TRAINEE           = 16124,
     NPC_UNREL_DEATH_KNIGHT      = 16125,
     NPC_UNREL_RIDER             = 16126,
@@ -126,18 +126,18 @@ enum
     NPC_GUARDIAN                = 16441,
 
     // Arachnid Quarter
-    GO_ARAC_ANUB_DOOR           = 181126,                   //encounter door
-    GO_ARAC_ANUB_GATE           = 181195,                   //open after boss is dead
-    GO_ARAC_FAER_WEB            = 181235,                   //encounter door
-    GO_ARAC_FAER_DOOR           = 194022,                   //after faerlina, to outer ring
-    GO_ARAC_MAEX_INNER_DOOR     = 181197,                   //encounter door
-    GO_ARAC_MAEX_OUTER_DOOR     = 181209,                   //right before maex
+    GO_ARAC_ANUB_DOOR           = 181126,                   // encounter door
+    GO_ARAC_ANUB_GATE           = 181195,                   // open after boss is dead
+    GO_ARAC_FAER_WEB            = 181235,                   // encounter door
+    GO_ARAC_FAER_DOOR           = 194022,                   // after faerlina, to outer ring
+    GO_ARAC_MAEX_INNER_DOOR     = 181197,                   // encounter door
+    GO_ARAC_MAEX_OUTER_DOOR     = 181209,                   // right before maex
 
     // Plague Quarter
-    GO_PLAG_SLIME01_DOOR        = 181198,                   //not used
-    GO_PLAG_SLIME02_DOOR        = 181199,                   //not used
-    GO_PLAG_NOTH_ENTRY_DOOR     = 181200,                   //encounter door
-    GO_PLAG_NOTH_EXIT_DOOR      = 181201,                   //exit, open when boss dead
+    GO_PLAG_SLIME01_DOOR        = 181198,                   // not used
+    GO_PLAG_SLIME02_DOOR        = 181199,                   // not used
+    GO_PLAG_NOTH_ENTRY_DOOR     = 181200,                   // encounter door
+    GO_PLAG_NOTH_EXIT_DOOR      = 181201,                   // exit, open when boss dead
     GO_PLAG_HEIG_ENTRY_DOOR     = 181202,
     GO_PLAG_HEIG_EXIT_DOOR      = 181203,                   //exit, open when boss dead
     GO_PLAG_LOAT_DOOR           = 181241,                   //encounter door
@@ -147,12 +147,12 @@ enum
     GO_ERUPTION_FOUR_OBJECT     = 181695,
 
     // Military Quarter
-    GO_MILI_GOTH_ENTRY_GATE     = 181124,                   //used while encounter is in progress
-    GO_MILI_GOTH_EXIT_GATE      = 181125,                   //exit, open at boss dead
-    GO_MILI_GOTH_COMBAT_GATE    = 181170,                   //used while encounter is in progress
-    GO_MILI_HORSEMEN_DOOR       = 181119,                   //encounter door
+    GO_MILI_GOTH_ENTRY_GATE     = 181124,                   // used while encounter is in progress
+    GO_MILI_GOTH_EXIT_GATE      = 181125,                   // exit, open at boss dead
+    GO_MILI_GOTH_COMBAT_GATE    = 181170,                   // used while encounter is in progress
+    GO_MILI_HORSEMEN_DOOR       = 181119,                   // encounter door
 
-    GO_CHEST_HORSEMEN_NORM      = 181366,                   //four horsemen event, DoRespawnGameObject() when event == DONE
+    GO_CHEST_HORSEMEN_NORM      = 181366,                   // four horsemen event, DoRespawnGameObject() when event == DONE
     GO_CHEST_HORSEMEN_HERO      = 193426,
 
     // Construct Quarter
@@ -231,27 +231,27 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         instance_naxxramas(Map* pMap);
         ~instance_naxxramas() {}
 
-        void Initialize();
+        void Initialize() override;
 
-        bool IsEncounterInProgress() const;
+        bool IsEncounterInProgress() const override;
 
-        void OnCreatureCreate(Creature* pCreature);
-        void OnObjectCreate(GameObject* pGo);
+        void OnCreatureCreate(Creature* pCreature) override;
+        void OnObjectCreate(GameObject* pGo) override;
 
         void SetAchiev(uint32 uiType, bool get);
-        void OnPlayerDeath(Player* pPlayer);
-        void OnCreatureDeath(Creature* pCreature);
+        void OnPlayerDeath(Player* pPlayer) override;
+        void OnCreatureDeath(Creature* pCreature) override;
 
-        void SetData(uint32 uiType, uint32 uiData);
-        uint32 GetData(uint32 uiType);
+        void SetData(uint32 uiType, uint32 uiData) override;
+        uint32 GetData(uint32 uiType) const override;
 
         void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);
-        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/) const override;
 
-        const char* Save() { return m_strInstData.c_str(); }
-        void Load(const char* chrIn);
+        const char* Save() const override { return m_strInstData.c_str(); }
+        void Load(const char* chrIn) override;
 
-        void Update(uint32 uiDiff);
+        void Update(uint32 uiDiff) override;
 
         // Heigan
         void DoTriggerHeiganTraps(Creature* pHeigan, uint32 uiAreaIndex);
@@ -259,15 +259,15 @@ class MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         // goth
         void SetGothTriggers();
         Creature* GetClosestAnchorForGoth(Creature* pSource, bool bRightSide);
-        void GetGothSummonPointCreatures(std::list<Creature*> &lList, bool bRightSide);
+        void GetGothSummonPointCreatures(std::list<Creature*>& lList, bool bRightSide);
         bool IsInRightSideGothArea(Unit* pUnit);
 
         // thaddius
-        void GetThadTeslaCreatures(GuidList &lList){ lList = m_lThadTeslaCoilList; };
+        void GetThadTeslaCreatures(GuidList& lList) { lList = m_lThadTeslaCoilList; };
 
         // kel
         void SetChamberCenterCoords(float fX, float fY, float fZ);
-        void GetChamberCenterCoords(float &fX, float &fY, float &fZ) { fX = m_fChamberCenterX; fY = m_fChamberCenterY; fZ = m_fChamberCenterZ; }
+        void GetChamberCenterCoords(float& fX, float& fY, float& fZ) { fX = m_fChamberCenterX; fY = m_fChamberCenterY; fZ = m_fChamberCenterZ; }
         void DoTaunt();
 
         GuidList m_lDeathKnightUnderstudyGuids;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -111,7 +111,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
     uint32 m_uiIceboltCount;
     Phases m_Phase;
 
-    void Reset()
+    void Reset() override
     {
         m_uiCleaveTimer = 5000;
         m_uiTailSweepTimer = 12000;
@@ -130,10 +130,10 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
 
         SetCombatMovement(true);
         m_creature->SetLevitate(false);
-        //m_creature->ApplySpellMod(SPELL_FROST_AURA, SPELLMOD_DURATION, -1);
+        // m_creature->ApplySpellMod(SPELL_FROST_AURA, SPELLMOD_DURATION, -1);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
         DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_FROST_AURA : SPELL_FROST_AURA_H);
 
@@ -163,20 +163,20 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/) override
     {
         RemoveAuraAndIce();
         if (m_pInstance)
             m_pInstance->SetData(TYPE_SAPPHIRON, DONE);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_SAPPHIRON, FAIL);
     }
 
-    void JustSummoned(Creature* pSummoned)
+    void JustSummoned(Creature* pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_YOU_KNOW_WHO)
         {
@@ -185,7 +185,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
         }
     }
 
-    void MovementInform(uint32 uiType, uint32 uiPointId)
+    void MovementInform(uint32 uiType, uint32 uiPointId) override
     {
         if (uiType == POINT_MOTION_TYPE && m_Phase == PHASE_LIFT_OFF)
         {
@@ -200,7 +200,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -289,7 +289,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
                 break;
             case PHASE_AIR_BOLTS:
                 // WOTLK Changed, originally was 5
-                if (m_uiIceboltCount == (m_bIsRegularMode ? 2 : 3))
+                if (m_uiIceboltCount == (uint32)(m_bIsRegularMode ? 2 : 3))
                 {
                     if (m_uiFrostBreathTimer < uiDiff)
                     {
