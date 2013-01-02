@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software licensed under GPL version 2
  * Please see the included DOCS/LICENSE.TXT for more information */
 
@@ -76,7 +76,7 @@ enum
     // used for intro
     NPC_AZURE_BINDER_INTRO      = 31007,
     NPC_AZURE_INVADER_INTRO     = 31008,
-    NPC_AZURE_SPELLBREAKER_INTRO= 31009,
+    NPC_AZURE_SPELLBREAKER_INTRO = 31009,
     NPC_AZURE_MAGE_SLAYER_INTRO = 31010,
 
     NPC_AZURE_SABOTEUR          = 31079,
@@ -152,17 +152,17 @@ struct PortalData
     float fX, fY, fZ, fOrient;
 };
 
-static const PortalData afPortalLocation[]=
+static const PortalData afPortalLocation[] =
 {
-    {PORTAL_TYPE_NORM, 1936.07f, 803.198f, 53.3749f, 3.1241f},  //balcony
-    {PORTAL_TYPE_NORM, 1877.51f, 850.104f, 44.6599f, 4.7822f},  //erekem
-    {PORTAL_TYPE_NORM, 1890.64f, 753.471f, 48.7224f, 1.7104f},  //moragg
-    {PORTAL_TYPE_SQUAD, 1911.06f, 802.103f, 38.6465f, 2.8908f}, //below balcony
-    {PORTAL_TYPE_SQUAD, 1928.06f, 763.256f, 51.3167f, 2.3905f}, //bridge
-    {PORTAL_TYPE_SQUAD, 1924.26f, 847.661f, 47.1591f, 4.0202f}, //zuramat
-    {PORTAL_TYPE_NORM, 1914.16f, 832.527f, 38.6441f, 3.5160f},  //xevozz
-    {PORTAL_TYPE_NORM, 1857.30f, 764.145f, 38.6543f, 0.8339f},  //lavanthor
-    {PORTAL_TYPE_BOSS, 1890.73f, 803.309f, 38.4001f, 2.4139f},  //center
+    {PORTAL_TYPE_NORM, 1936.07f, 803.198f, 53.3749f, 3.1241f},  // balcony
+    {PORTAL_TYPE_NORM, 1877.51f, 850.104f, 44.6599f, 4.7822f},  // erekem
+    {PORTAL_TYPE_NORM, 1890.64f, 753.471f, 48.7224f, 1.7104f},  // moragg
+    {PORTAL_TYPE_SQUAD, 1911.06f, 802.103f, 38.6465f, 2.8908f}, // below balcony
+    {PORTAL_TYPE_SQUAD, 1928.06f, 763.256f, 51.3167f, 2.3905f}, // bridge
+    {PORTAL_TYPE_SQUAD, 1924.26f, 847.661f, 47.1591f, 4.0202f}, // zuramat
+    {PORTAL_TYPE_NORM, 1914.16f, 832.527f, 38.6441f, 3.5160f},  // xevozz
+    {PORTAL_TYPE_NORM, 1857.30f, 764.145f, 38.6543f, 0.8339f},  // lavanthor
+    {PORTAL_TYPE_BOSS, 1890.73f, 803.309f, 38.4001f, 2.4139f},  // center
 };
 
 struct BossInformation
@@ -194,10 +194,10 @@ class MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
         instance_violet_hold(Map* pMap);
         ~instance_violet_hold();                            // Destructor used to free m_vRandomBosses
 
-        void Initialize();
+        void Initialize() override;
 
-        void OnCreatureCreate(Creature* pCreature);
-        void OnObjectCreate(GameObject* pGo);
+        void OnCreatureCreate(Creature* pCreature) override;
+        void OnObjectCreate(GameObject* pGo) override;
 
         void UpdateCellForBoss(uint32 uiBossEntry, bool bForceClosing = false);
 
@@ -226,21 +226,21 @@ class MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
         void GetErekemGuardList(GuidList& lList) { lList = m_lErekemGuardList; }
         void GetIchoronTriggerList(GuidList& lList) { lList = m_lIchoronTargetsList; }
 
-        void OnPlayerEnter(Player* pPlayer);
+        void OnPlayerEnter(Player* pPlayer) override;
 
-        void OnCreatureEnterCombat(Creature* pCreature);
+        void OnCreatureEnterCombat(Creature* pCreature) override;
         void OnCreatureEvade(Creature* pCreature);
-        void OnCreatureDeath(Creature* pCreature);
+        void OnCreatureDeath(Creature* pCreature) override;
 
-        void SetData(uint32 uiType, uint32 uiData);
-        uint32 GetData(uint32 uiType);
+        void SetData(uint32 uiType, uint32 uiData) override;
+        uint32 GetData(uint32 uiType) const override;
 
-        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/) const override;
 
-        const char* Save() { return m_strInstData.c_str(); }
-        void Load(const char* chrIn);
+        const char* Save() const override { return m_strInstData.c_str(); }
+        void Load(const char* chrIn) override;
 
-        void Update(uint32 uiDiff);
+        void Update(uint32 uiDiff) override;
 
         typedef std::multimap<uint32, ObjectGuid> BossToCellMap;
 
@@ -259,7 +259,7 @@ class MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
 
         bool IsNextPortalForTrash()
         {
-            if ((m_uiWorldStatePortalCount+1) % MAX_MINIBOSSES)
+            if ((m_uiWorldStatePortalCount + 1) % MAX_MINIBOSSES)
                 return true;
 
             return false;
@@ -281,8 +281,8 @@ class MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
         uint32 m_uiEventResetTimer;
 
         bool m_bIsVoidDance;
-        bool m_bIsDehydratation;
         bool m_bIsDefenseless;
+        bool m_bIsDehydratation;
 
         BossToCellMap m_mBossToCellMap;
 
@@ -290,7 +290,7 @@ class MANGOS_DLL_DECL instance_violet_hold : public ScriptedInstance
         GuidList m_lGuardsList;
         GuidList m_lErekemGuardList;
         GuidList m_lIchoronTargetsList;
-        std::list<uint32> m_lRandomBossList;
+        std::vector<uint32> m_vRandomBossList;
 
         std::vector<BossSpawn*> m_vRandomBosses;
 };

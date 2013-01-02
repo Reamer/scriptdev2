@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2012 ScriptDev2 <http://www.scriptdev2.com/>
+/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -29,16 +29,16 @@ instance_violet_hold::instance_violet_hold(Map* pMap) : ScriptedInstance(pMap),
     m_uiWorldStateSealCount(100),
     m_uiWorldStatePortalCount(0),
 
-    m_bIsVoidDance(false),
-    m_bIsDefenseless(false),
-    m_bIsDehydratation(false),
-
-    m_uiSealYellCount(1),
-    m_uiEventResetTimer(0),
-
     m_uiPortalId(0),
     m_uiPortalTimer(0),
-    m_uiMaxCountPortalLoc(0)
+    m_uiMaxCountPortalLoc(0),
+
+    m_uiSealYellCount(0),
+    m_uiEventResetTimer(0),
+
+    m_bIsVoidDance(false),
+    m_bIsDefenseless(false),
+    m_bIsDehydratation(false)
 {
     Initialize();
 }
@@ -53,7 +53,7 @@ void instance_violet_hold::ResetVariables()
 {
     m_uiWorldStateSealCount = 100;
     m_uiWorldStatePortalCount = 0;
-    m_uiSealYellCount = 1;
+    m_uiSealYellCount = 0;
 }
 
 void instance_violet_hold::ResetAll()
@@ -63,9 +63,6 @@ void instance_violet_hold::ResetAll()
     CallGuards(true);
     SetIntroPortals(false);
     // ToDo: reset the activation crystals when implemented
-
-    // open instance door
-    DoUseDoorOrButton(GO_PRISON_SEAL_DOOR);
 
     for (std::vector<BossSpawn*>::const_iterator itr = m_vRandomBosses.begin(); itr != m_vRandomBosses.end(); ++itr)
     {
@@ -81,7 +78,7 @@ void instance_violet_hold::ResetAll()
                 pGhostBoss->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
             }
             else if (Creature* pSummoner = GetSingleCreatureFromStorage(NPC_SINCLARI_ALT))
-                pSummoner->SummonCreature(pData->uiGhostEntry, (*itr)->fX, (*itr)->fY, (*itr)->fZ, (*itr)->fO, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 600*IN_MILLISECONDS);
+                pSummoner->SummonCreature(pData->uiGhostEntry, (*itr)->fX, (*itr)->fY, (*itr)->fZ, (*itr)->fO, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 600 * IN_MILLISECONDS);
 
             // Respawn Erekem guards
             if (pData->uiType == TYPE_EREKEM)
@@ -105,7 +102,7 @@ void instance_violet_hold::ResetAll()
 
 void instance_violet_hold::OnCreatureCreate(Creature* pCreature)
 {
-    switch(pCreature->GetEntry())
+    switch (pCreature->GetEntry())
     {
         case NPC_SINCLARI:
         case NPC_SINCLARI_ALT:
@@ -119,7 +116,7 @@ void instance_violet_hold::OnCreatureCreate(Creature* pCreature)
         case NPC_XEVOZZ:
         case NPC_LAVANTHOR:
         case NPC_ZURAMAT:
-            m_lRandomBossList.push_back(pCreature->GetEntry());
+            m_vRandomBossList.push_back(pCreature->GetEntry());
             break;
 
         case NPC_PORTAL_INTRO:
@@ -151,7 +148,7 @@ void instance_violet_hold::OnCreatureCreate(Creature* pCreature)
 
 void instance_violet_hold::OnObjectCreate(GameObject* pGo)
 {
-    switch(pGo->GetEntry())
+    switch (pGo->GetEntry())
     {
         case GO_CELL_LAVANTHOR:
             m_mBossToCellMap.insert(BossToCellMap::value_type(NPC_LAVANTHOR, pGo->GetObjectGuid()));
@@ -193,7 +190,7 @@ void instance_violet_hold::UpdateCellForBoss(uint32 uiBossEntry, bool bForceClos
     if (itrCellLower == itrCellUpper)
         return;
 
-    for(BossToCellMap::const_iterator itr = itrCellLower; itr != itrCellUpper; ++itr)
+    for (BossToCellMap::const_iterator itr = itrCellLower; itr != itrCellUpper; ++itr)
     {
         if (!bForceClosing)
             DoUseDoorOrButton(itr->second);
@@ -228,7 +225,7 @@ void instance_violet_hold::OnPlayerEnter(Player* pPlayer)
 
 void instance_violet_hold::SetData(uint32 uiType, uint32 uiData)
 {
-    debug_log("SD2: instance_violet_hold: SetData got type % u, data %u.", uiType, uiData);
+    debug_log("SD2: instance_violet_hold: SetData got type %u, data %u.", uiType, uiData);
 
     switch (uiType)
     {
@@ -239,7 +236,7 @@ void instance_violet_hold::SetData(uint32 uiType, uint32 uiData)
             if (m_auiEncounter[uiType] == DONE)
                 return;
 
-            switch(uiData)
+            switch (uiData)
             {
                 case IN_PROGRESS:
                     // ToDo: enable the prison defense system when implemented
@@ -255,6 +252,7 @@ void instance_violet_hold::SetData(uint32 uiType, uint32 uiData)
                     if (Creature* pController = GetSingleCreatureFromStorage(NPC_EVENT_CONTROLLER))
                         pController->AI()->EnterEvadeMode();
                     // Reset the event (creature cleanup is handled in creature_linking)
+                    DoUseDoorOrButton(GO_PRISON_SEAL_DOOR); // open instance door
                     ResetAll();
                     m_uiEventResetTimer = 20000;            // Timer may not be correct - 20 sec is default reset timer for blizz
                     break;
@@ -276,13 +274,13 @@ void instance_violet_hold::SetData(uint32 uiType, uint32 uiData)
                 DoUpdateWorldState(WORLD_STATE_SEAL, m_uiWorldStateSealCount);
 
                 // Yell at 75%, 50% and 25% shield
-                if (m_uiWorldStateSealCount < 100-25*m_uiSealYellCount)
+                if (m_uiWorldStateSealCount < 100 - 25 * m_uiSealYellCount)
                 {
                     if (Creature* pSinclari = GetSingleCreatureFromStorage(NPC_SINCLARI_ALT))
                     {
                         // ToDo: I'm not sure if the last yell should be at 25% or at 5%. Needs research
-                        DoScriptText(aSealWeakYell[m_uiSealYellCount-1], pSinclari);
                         ++m_uiSealYellCount;
+                        DoScriptText(aSealWeakYell[m_uiSealYellCount - 1], pSinclari);
                     }
                 }
 
@@ -351,9 +349,9 @@ void instance_violet_hold::SetData(uint32 uiType, uint32 uiData)
 
         std::ostringstream saveStream;
         saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
-            << m_auiEncounter[3] << " " << m_auiEncounter[4] << " " << m_auiEncounter[5] << " "
-            << m_auiEncounter[6] << " " << m_auiEncounter[7] << " " << m_auiEncounter[8] << " "
-            << m_auiEncounter[9];
+                   << m_auiEncounter[3] << " " << m_auiEncounter[4] << " " << m_auiEncounter[5] << " "
+                   << m_auiEncounter[6] << " " << m_auiEncounter[7] << " " << m_auiEncounter[8] << " "
+                   << m_auiEncounter[9];
 
         m_strInstData = saveStream.str();
 
@@ -362,7 +360,7 @@ void instance_violet_hold::SetData(uint32 uiType, uint32 uiData)
     }
 }
 
-uint32 instance_violet_hold::GetData(uint32 uiType)
+uint32 instance_violet_hold::GetData(uint32 uiType) const
 {
     if (uiType < MAX_ENCOUNTER)
         return m_auiEncounter[uiType];
@@ -381,10 +379,10 @@ void instance_violet_hold::Load(const char* chrIn)
 
     std::istringstream loadStream(chrIn);
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
-        >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
-        >> m_auiEncounter[8] >> m_auiEncounter[9];
+               >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
+               >> m_auiEncounter[8] >> m_auiEncounter[9];
 
-    for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
     {
         if (m_auiEncounter[i] == IN_PROGRESS)
             m_auiEncounter[i] = NOT_STARTED;
@@ -395,7 +393,7 @@ void instance_violet_hold::Load(const char* chrIn)
 
 void instance_violet_hold::SetIntroPortals(bool bDeactivate)
 {
-    for(GuidList::const_iterator itr = m_lIntroPortalList.begin(); itr != m_lIntroPortalList.end(); ++itr)
+    for (GuidList::const_iterator itr = m_lIntroPortalList.begin(); itr != m_lIntroPortalList.end(); ++itr)
     {
         if (Creature* pPortal = instance->GetCreature(*itr))
         {
@@ -415,7 +413,7 @@ void instance_violet_hold::SpawnPortal()
         {
             uint32 uiPortalEntry = pData->pPortalType == PORTAL_TYPE_NORM ? NPC_PORTAL : NPC_PORTAL_ELITE;
 
-            pController->SummonCreature(uiPortalEntry, pData->fX, pData->fY, pData->fZ, pData->fOrient, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 1800*IN_MILLISECONDS);
+            pController->SummonCreature(uiPortalEntry, pData->fX, pData->fY, pData->fZ, pData->fOrient, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 1800 * IN_MILLISECONDS);
         }
     }
 }
@@ -458,54 +456,37 @@ BossSpawn* instance_violet_hold::CreateBossSpawnByEntry(uint32 uiEntry)
 
 void instance_violet_hold::SetRandomBosses()
 {
-    if (m_vRandomBosses.empty())
-        for (uint8 i = 0; i < MAX_MINIBOSSES; ++i)
-        {
-            if (m_auiEncounter[aBossInformation[i].uiType] == DONE)
-                m_vRandomBosses.push_back(CreateBossSpawnByEntry(aBossInformation[i].uiEntry));
-        }
-
-    if (m_vRandomBosses.size() >= 2)
-        return;
-
-    while (m_lRandomBossList.size() > 2)
+    // Store bosses that are already done
+    for (uint8 i = 0; i < MAX_MINIBOSSES; ++i)
     {
-        uint32 uiPosition = urand(0, m_lRandomBossList.size() - 1);
-
-        for(std::list<uint32>::iterator itr = m_lRandomBossList.begin(); itr != m_lRandomBossList.end(); ++itr, --uiPosition)
-        {
-            if (!*itr)
-                continue;
-
-            if (!uiPosition)
-            {
-                m_lRandomBossList.erase(itr);
-                break;
-            }
-        }
+        if (m_auiEncounter[aBossInformation[i].uiType] == DONE)
+            m_vRandomBosses.push_back(CreateBossSpawnByEntry(aBossInformation[i].uiEntry));
     }
 
-    if (!m_vRandomBosses.empty())
+    if (m_vRandomBosses.size() < 2)                         // Get some new random bosses
     {
-        for (std::list<uint32>::const_iterator itr = m_lRandomBossList.begin(); itr != m_lRandomBossList.end(); ++itr)
+        std::random_shuffle(m_vRandomBossList.begin(), m_vRandomBossList.end());
+        // two required, in case the first is already pushed to m_vRandomBosses
+        if (m_vRandomBossList.size() < 2)
+            script_error_log("instance_violet_hold, Mini Bosses are not properly spawned");
+        else
+            m_vRandomBossList.resize(2);
+
+        // Fill up some random bosses
+        for (std::vector<uint32>::const_iterator itr = m_vRandomBossList.begin(); itr != m_vRandomBossList.end(); ++itr)
         {
-            if (m_vRandomBosses.at(0)->uiEntry != *itr)
+            if (m_vRandomBosses.empty() || m_vRandomBosses[0]->uiEntry != *itr)
                 m_vRandomBosses.push_back(CreateBossSpawnByEntry(*itr));
         }
     }
-    else
-    {
-        for (std::list<uint32>::const_iterator itr = m_lRandomBossList.begin(); itr != m_lRandomBossList.end(); ++itr)
-            m_vRandomBosses.push_back(CreateBossSpawnByEntry(*itr));
-    }
 
-    for (std::vector<BossSpawn*>::const_iterator itr = m_vRandomBosses.begin(); itr != m_vRandomBosses.end(); ++itr)
-        debug_log("SD2: instance_violet_hold first random boss is entry %u", (*itr)->uiEntry);
+    for (uint8 i = 0; i < m_vRandomBosses.size(); ++i)
+        debug_log("SD2: instance_violet_hold random boss %u is entry %u", i, m_vRandomBosses[i]->uiEntry);
 }
 
 void instance_violet_hold::CallGuards(bool bRespawn)
 {
-    for(GuidList::const_iterator itr = m_lGuardsList.begin(); itr != m_lGuardsList.end(); ++itr)
+    for (GuidList::const_iterator itr = m_lGuardsList.begin(); itr != m_lGuardsList.end(); ++itr)
     {
         if (Creature* pGuard = instance->GetCreature(*itr))
         {
@@ -540,15 +521,15 @@ void instance_violet_hold::ProcessActivationCrystal(Unit* pUser, bool bIsIntro)
     // else, kill (and despawn?) certain trash mobs. Also boss affected, but not killed.
 }
 
-bool instance_violet_hold::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/)
+bool instance_violet_hold::CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/) const
 {
     switch (uiCriteriaId)
     {
-        // ToDo: uncomment these when they are implemented
-        //case ACHIEV_CRIT_DEFENSELES:
-        //    return m_bIsDefenseless;
-        //case ACHIEV_CRIT_DEHYDRATATION:
-        //    return m_bIsDehydratation;
+            // ToDo: uncomment these when they are implemented
+            // case ACHIEV_CRIT_DEFENSELES:
+            //    return m_bIsDefenseless;
+            // case ACHIEV_CRIT_DEHYDRATATION:
+            //    return m_bIsDehydratation;
         case ACHIEV_CRIT_VOID_DANCE:
             return m_bIsVoidDance;
 
@@ -760,7 +741,7 @@ instance_violet_hold::~instance_violet_hold()
     for (std::vector<BossSpawn*>::const_iterator itr = m_vRandomBosses.begin(); itr != m_vRandomBosses.end(); ++itr)
     {
         if (*itr)
-            delete (*itr);
+            delete(*itr);
     }
 }
 
