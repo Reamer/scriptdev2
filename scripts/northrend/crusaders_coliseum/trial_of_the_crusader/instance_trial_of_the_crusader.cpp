@@ -148,6 +148,38 @@ static const DialogueEntryTwoSide aTocDialogues[] =
     {0, 0, 0, 0 ,0}
 };
 
+static const uint32 aAllianceHordeChampions[][2] =
+{
+    {NPC_A_RE_DR_MELADOR_VALESTRIDER,   NPC_H_RE_DR_ERIN_MISTHOOF           },
+    {NPC_A_HO_PA_VELANAA,               NPC_H_HO_PA_LIANDRA_SUNCALLER       },
+    {NPC_A_DI_PR_ANTHAR_FORGEMENDER,    NPC_H_DI_PR_CAIPHUS_THE_STERN       },
+    {NPC_A_RE_SH_SAAMUL,                NPC_H_RE_SH_THRAKGAR                },
+    {NPC_A_FR_DE_TYRIUS_DUSKBLADE,      NPC_H_FR_DE_GORGRIM_SHADOWCLEAVE    },
+    {NPC_A_RE_PA_BAELNOR_LIGHTBEARER,   NPC_H_RE_PA_MALITHAS_BRIGHTBLADE    },
+    {NPC_A_SU_RO_IRIETH_SHADOWSTEP,     NPC_H_SU_RO_MAZ_DINAH               },
+    {NPC_A_EN_SH_SHAABAD,               NPC_H_EN_SH_BROLN_STOUTHORN         },
+    {NPC_A_AR_WA_SHOCUUL,               NPC_H_AR_WA_NARRHOK_STEELBREAKER    },
+    {NPC_A_BA_DU_KAVINA_GROVESONG,      NPC_H_BA_DU_BIRANA_STORMHOOF        },
+    {NPC_A_AR_MA_NOOZLE_WHIZZLESTICK,   NPC_H_AR_MA_GINSELLE_BLIGHTSLINGER  },
+    {NPC_A_SH_PR_BRIENNA_NIGHTFELL,     NPC_H_SH_PR_VIVIENNE_BLACKWHISPER   },
+    {NPC_A_AF_WA_SERISSA_GRIMDABBLER,   NPC_H_AF_WA_HARKZOG                 },
+    {NPC_A_SU_HU_ALYSSIA_MOONSTALKER,   NPC_H_SU_HU_RUJ_KAH                 }
+};
+
+static Locations aChampionSP[] =
+{
+    {612.0f, 127.0f, 395.139526f},
+    {610.0f, 133.0f, 395.139526f},
+    {610.0f, 124.0f, 395.139526f},
+    {608.0f, 130.0f, 395.139526f},
+    {608.0f, 121.0f, 395.139526f},
+    {606.0f, 127.0f, 395.139526f},
+    {606.0f, 118.0f, 395.139526f},
+    {604.0f, 124.0f, 395.139526f},
+    {604.0f, 115.0f, 395.139526f},
+    {602.0f, 121.0f, 395.139526f}
+};
+
 instance_trial_of_the_crusader::instance_trial_of_the_crusader(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aTocDialogues),
     m_uiTeam(TEAM_NONE)
 {
@@ -233,6 +265,13 @@ void instance_trial_of_the_crusader::OnCreatureDeath(Creature* pCreature)
         default:
             break;
     }
+    if (IsFactionChampion(pCreature->GetEntry()))
+    {
+        m_lFactionChampion.remove(pCreature->GetObjectGuid());
+        if (m_lFactionChampion.empty())
+            SetData(TYPE_FACTION_CHAMPIONS, DONE);
+    }
+
 }
 
 void instance_trial_of_the_crusader::OnObjectCreate(GameObject* pGo)
@@ -419,22 +458,6 @@ void instance_trial_of_the_crusader::SetData(uint32 uiType, uint32 uiData)
                 DoUseDoorOrButton(GO_WEB_DOOR);
             m_auiEncounter[uiType] = uiData;
             break;
-        case TYPE_CRUSADERS_COUNT:
-        {
-            if (uiData == SPECIAL)
-            {
-                for (GuidList::const_iterator itr = m_lFactionChampion.begin(); itr != m_lFactionChampion.end(); ++itr)
-                {
-                    if (Creature* pChampion = instance->GetCreature(*itr))
-                    {
-                        if (pChampion->isAlive())
-                            return;
-                    }
-                }
-                SetData(TYPE_FACTION_CHAMPIONS, DONE);
-            }
-            break;
-        }
         default:
             error_log("SD2: Instance Trial of The Crusader: ERROR SetData = %u for type %u does not exist/not implemented.", uiType, uiData);
             return;
@@ -484,68 +507,105 @@ void instance_trial_of_the_crusader::Load(const char* chrIn)
     OUT_LOAD_INST_DATA_COMPLETE;
 }
 
+void instance_trial_of_the_crusader::GenerateSetupIfNeed()
+{
+    // If we already have generated a setup use that one and return
+    if (m_uiSetup)
+        return;
+
+    bool bIs10Man = !Is25ManDifficulty();
+    uint32 aHealFill[] = {0, 1, 2, 3};
+    std::vector<uint32> vPossibleHealers(aHealFill, aHealFill + sizeof(aHealFill) / sizeof(uint32));
+    while (vPossibleHealers.size() > (bIs10Man ? FACTION_CHAMPIONS_HEALER_AMOUNT_10 : FACTION_CHAMPIONS_HEALER_AMOUNT_25))
+        vPossibleHealers.erase(vPossibleHealers.begin() + urand(0, vPossibleHealers.size()-1));
+
+    uint32 aMeleeFill[] = {4, 5, 6, 7, 8};
+    std::vector<uint32> vPossibleMelee(aMeleeFill, aMeleeFill + sizeof(aMeleeFill) / sizeof(uint32));
+    while (vPossibleMelee.size() > (bIs10Man ? FACTION_CHAMPIONS_MELEE_DD_AMOUNT_10 : FACTION_CHAMPIONS_MELEE_DD_AMOUNT_25))
+        vPossibleMelee.erase(vPossibleMelee.begin() + urand(0, vPossibleMelee.size()-1));
+
+    uint32 aCastersFill[] = {9, 10, 11, 12, 13};
+    std::vector<uint32> vPossibleCasters(aCastersFill, aCastersFill + sizeof(aCastersFill) / sizeof(uint32));
+    while (vPossibleCasters.size() > (bIs10Man ? FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10 : FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25))
+        vPossibleCasters.erase(vPossibleCasters.begin() + urand(0, vPossibleCasters.size()-1));
+
+    for (std::vector<uint32>::const_iterator itr = vPossibleHealers.begin(); itr < vPossibleHealers.end(); ++itr)
+        m_uiSetup |= 1 << *itr;
+    for (std::vector<uint32>::const_iterator itr = vPossibleMelee.begin(); itr < vPossibleMelee.end(); ++itr)
+        m_uiSetup |= 1 << *itr;
+    for (std::vector<uint32>::const_iterator itr = vPossibleCasters.begin(); itr < vPossibleCasters.end(); ++itr)
+        m_uiSetup |= 1 << *itr;
+}
+
 void instance_trial_of_the_crusader::SummonFactionChampion()
 {
-    bool bIs25Man = Is25ManDifficulty();
-    std::list<uint32> lSummonHealerList;
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DRUID_HEAL : NPC_CRUSADER_HORDE_DRUID_HEAL);
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHAMAN_HEAL : NPC_CRUSADER_HORDE_SHAMAN_HEAL);
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_PRIEST: NPC_CRUSADER_HORDE_PRIEST);
-    lSummonHealerList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_HOLY_PALA: NPC_CRUSADER_HORDE_HOLY_PALA);
-    do
-    {
-        std::list<uint32>::iterator itr = lSummonHealerList.begin();
-        advance(itr , urand(0, lSummonHealerList.size()-1));
-        lSummonHealerList.erase(itr);
-    }while (lSummonHealerList.size() > (bIs25Man ? FACTION_CHAMPIONS_HEALER_AMOUNT_25: FACTION_CHAMPIONS_HEALER_AMOUNT_10));
+     // Generate or get old setup if we don't have one in the script yet
+     if (!m_uiSetup)
+         GenerateSetupIfNeed();
 
-    std::list<uint32> lSummonMeleeDDList;
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DEATHKNIGHT : NPC_CRUSADER_HORDE_DEATHKNIGHT);
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_ROGUE : NPC_CRUSADER_HORDE_ROGUE);
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_WARRIOR : NPC_CRUSADER_HORDE_WARRIOR);
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_PALA_MELEE : NPC_CRUSADER_HORDE_RETRO_PALA);
-    lSummonMeleeDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHAMAN_MELEE : NPC_CRUSADER_HORDE_SHAMAN_MELEE);
-    do
-    {
-        std::list<uint32>::iterator itr = lSummonMeleeDDList.begin();
-        advance(itr , urand(0, lSummonMeleeDDList.size()-1));
-        lSummonMeleeDDList.erase(itr);
-    }while (lSummonMeleeDDList.size() > (bIs25Man ? FACTION_CHAMPIONS_MELEE_DD_AMOUNT_25: FACTION_CHAMPIONS_MELEE_DD_AMOUNT_10));
+     int iSP = 0;
+     int iFaction = m_uiTeam == ALLIANCE ? 1 : 0;
+     m_lFactionChampion.clear();
+     if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION_A))
+     {
+         for (int i = 0; i < AMOUNT_OF_POSSIBLE_CHAMPIONS; ++i)
+         {
+             if (m_uiSetup & (1 << i))
+             {
+                 if (Creature* pChampion = pTirion->SummonCreature(aAllianceHordeChampions[i][iFaction], aChampionSP[iSP].x, aChampionSP[iSP].y, aChampionSP[iSP].z, 5.0f, TEMPSUMMON_MANUAL_DESPAWN, 0))
+                 {
+                     m_lFactionChampion.push_back(pChampion->GetObjectGuid());
+                     ++iSP;
+                 }
+             }
+         }
+     }
+}
 
-    std::list<uint32> lSummonMagicDDList;
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_SHADOW_PRIEST : NPC_CRUSADER_HORDE_SHADOW_PRIEST);
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_MAGE : NPC_CRUSADER_HORDE_MAGE);
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_DRUID_MOONKIN : NPC_CRUSADER_HORDE_DRUID_MOONKIN);
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_HUNTER : NPC_CRUSADER_HORDE_HUNTER);
-    lSummonMagicDDList.push_back(m_uiTeam == HORDE ? NPC_CRUSADER_ALLY_WARLOCK : NPC_CRUSADER_HORDE_WARLOCK);
-    do
+bool instance_trial_of_the_crusader::IsFactionChampion(uint32 npcEntry)
+{
+    switch(npcEntry)
     {
-        std::list<uint32>::iterator itr = lSummonMagicDDList.begin();
-        advance(itr , urand(0, lSummonMagicDDList.size()-1));
-        lSummonMagicDDList.erase(itr);
-    }while (lSummonMagicDDList.size() > (bIs25Man ? FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25: FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10));
+        // Alliance healers
+        case NPC_A_RE_DR_MELADOR_VALESTRIDER:
+        case NPC_A_HO_PA_VELANAA:
+        case NPC_A_DI_PR_ANTHAR_FORGEMENDER:
+        case NPC_A_RE_SH_SAAMUL:
+        // Alliance melee dps
+        case NPC_A_FR_DE_TYRIUS_DUSKBLADE:
+        case NPC_A_RE_PA_BAELNOR_LIGHTBEARER:
+        case NPC_A_SU_RO_IRIETH_SHADOWSTEP:
+        case NPC_A_EN_SH_SHAABAD:
+        case NPC_A_AR_WA_SHOCUUL:
+        // Alliance caster dps
+        case NPC_A_BA_DU_KAVINA_GROVESONG:
+        case NPC_A_AR_MA_NOOZLE_WHIZZLESTICK:
+        case NPC_A_SH_PR_BRIENNA_NIGHTFELL:
+        case NPC_A_AF_WA_SERISSA_GRIMDABBLER:
+        case NPC_A_SU_HU_ALYSSIA_MOONSTALKER:
 
-    if (Creature* pTirion = GetSingleCreatureFromStorage(NPC_TIRION_A))
-    {
-        for(std::list<uint32>::const_iterator itr = lSummonHealerList.begin(); itr != lSummonHealerList.end(); ++itr)
-        {
-            uint8 position = 5 + urand(0,1);
-            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
-                m_lFactionChampion.push_back(pChampion->GetObjectGuid());
-        }
-        for(std::list<uint32>::const_iterator itr = lSummonMagicDDList.begin(); itr != lSummonMagicDDList.end(); ++itr)
-        {
-            uint8 position = 5 + urand(0,1);
-            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
-                m_lFactionChampion.push_back(pChampion->GetObjectGuid());
-        }
-        for(std::list<uint32>::const_iterator itr = lSummonMeleeDDList.begin(); itr != lSummonMeleeDDList.end(); ++itr)
-        {
-            uint8 position = 5 + urand(0,1);
-            if (Creature * pChampion = pTirion->SummonCreature(*itr, aMovePositions[position][0] + irand(-3,3), aMovePositions[position][1] + irand(-3,3), aMovePositions[position][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 2000))
-                m_lFactionChampion.push_back(pChampion->GetObjectGuid());
-        }
+        // Horde healers
+        case NPC_H_RE_DR_ERIN_MISTHOOF:
+        case NPC_H_HO_PA_LIANDRA_SUNCALLER:
+        case NPC_H_DI_PR_CAIPHUS_THE_STERN:
+        case NPC_H_RE_SH_THRAKGAR:
+        // Horde melee dps
+        case NPC_H_FR_DE_GORGRIM_SHADOWCLEAVE:
+        case NPC_H_RE_PA_MALITHAS_BRIGHTBLADE:
+        case NPC_H_SU_RO_MAZ_DINAH:
+        case NPC_H_EN_SH_BROLN_STOUTHORN:
+        case NPC_H_AR_WA_NARRHOK_STEELBREAKER:
+        // Horde caster dps
+        case NPC_H_BA_DU_BIRANA_STORMHOOF:
+        case NPC_H_AR_MA_GINSELLE_BLIGHTSLINGER:
+        case NPC_H_SH_PR_VIVIENNE_BLACKWHISPER:
+        case NPC_H_AF_WA_HARKZOG:
+        case NPC_H_SU_HU_RUJ_KAH:
+            return true;
+        default:
+            break;
     }
+    return false;
 }
 
 void instance_trial_of_the_crusader::DoHandleEventEpilogue()

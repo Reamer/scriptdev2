@@ -109,7 +109,6 @@ enum
     TYPE_NORTHREND_BEASTS       = 1,
     TYPE_JARAXXUS               = 2,
     TYPE_FACTION_CHAMPIONS      = 3,
-    TYPE_CRUSADERS_COUNT        = 31,
     TYPE_TWIN_VALKYR            = 4,
     TYPE_ANUBARAK               = 5,
 
@@ -132,6 +131,8 @@ enum
     FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_10= 2,
     FACTION_CHAMPIONS_MAGIC_DD_AMOUNT_25= 4,
 
+    AMOUNT_OF_POSSIBLE_CHAMPIONS        = 14,
+
     NPC_BEAST_COMBAT_STALKER    = 36549,
     NPC_GORMOK                  = 34796,
     NPC_SNOBOLD_VASSAL          = 34800,
@@ -144,35 +145,41 @@ enum
     NPC_DARK_EYDIS              = 34496,
     NPC_ANUBARAK                = 34564,
 
-    NPC_CRUSADER_ALLY_DRUID_HEAL    = 34469,
-    NPC_CRUSADER_ALLY_SHAMAN_HEAL   = 34470,
-    NPC_CRUSADER_ALLY_PRIEST        = 34466,
-    NPC_CRUSADER_ALLY_HOLY_PALA     = 34465,
-    NPC_CRUSADER_ALLY_DEATHKNIGHT   = 34461,
-    NPC_CRUSADER_ALLY_ROGUE         = 34472,
-    NPC_CRUSADER_ALLY_WARRIOR       = 34475,
-    NPC_CRUSADER_ALLY_PALA_MELEE    = 34471,
-    NPC_CRUSADER_ALLY_SHADOW_PRIEST = 34473,
-    NPC_CRUSADER_ALLY_MAGE          = 34468,
-    NPC_CRUSADER_ALLY_HUNTER        = 34467,
-    NPC_CRUSADER_ALLY_WARLOCK       = 34474,
-    NPC_CRUSADER_ALLY_SHAMAN_MELEE  = 34463,
-    NPC_CRUSADER_ALLY_DRUID_MOONKIN = 34460,
+    // Alliance healers
+    NPC_A_RE_DR_MELADOR_VALESTRIDER         = 34469,
+    NPC_A_HO_PA_VELANAA                     = 34465,
+    NPC_A_DI_PR_ANTHAR_FORGEMENDER          = 34466,
+    NPC_A_RE_SH_SAAMUL                      = 34470,
+    // Alliance melee dps
+    NPC_A_FR_DE_TYRIUS_DUSKBLADE            = 34461,
+    NPC_A_RE_PA_BAELNOR_LIGHTBEARER         = 34471,
+    NPC_A_SU_RO_IRIETH_SHADOWSTEP           = 34472,
+    NPC_A_EN_SH_SHAABAD                     = 34463,
+    NPC_A_AR_WA_SHOCUUL                     = 34475,
+    // Alliance caster dps
+    NPC_A_BA_DU_KAVINA_GROVESONG            = 34460,
+    NPC_A_AR_MA_NOOZLE_WHIZZLESTICK         = 34468,
+    NPC_A_SH_PR_BRIENNA_NIGHTFELL           = 34473,
+    NPC_A_AF_WA_SERISSA_GRIMDABBLER         = 34474,
+    NPC_A_SU_HU_ALYSSIA_MOONSTALKER         = 34467,
 
-    NPC_CRUSADER_HORDE_DRUID_HEAL   = 34459,
-    NPC_CRUSADER_HORDE_SHAMAN_HEAL  = 34444,
-    NPC_CRUSADER_HORDE_PRIEST       = 34447,
-    NPC_CRUSADER_HORDE_HOLY_PALA    = 34445,
-    NPC_CRUSADER_HORDE_DEATHKNIGHT  = 34458,
-    NPC_CRUSADER_HORDE_ROGUE        = 34454,
-    NPC_CRUSADER_HORDE_WARRIOR      = 34453,
-    NPC_CRUSADER_HORDE_RETRO_PALA   = 34456,
-    NPC_CRUSADER_HORDE_SHADOW_PRIEST= 34441,
-    NPC_CRUSADER_HORDE_MAGE         = 34449,
-    NPC_CRUSADER_HORDE_HUNTER       = 34448,
-    NPC_CRUSADER_HORDE_WARLOCK      = 34450,
-    NPC_CRUSADER_HORDE_SHAMAN_MELEE = 34455,
-    NPC_CRUSADER_HORDE_DRUID_MOONKIN= 34451,
+    // Horde healers
+    NPC_H_RE_DR_ERIN_MISTHOOF               = 34459,
+    NPC_H_HO_PA_LIANDRA_SUNCALLER           = 34445,
+    NPC_H_DI_PR_CAIPHUS_THE_STERN           = 34447,
+    NPC_H_RE_SH_THRAKGAR                    = 34444,
+    // Horde melee dps
+    NPC_H_FR_DE_GORGRIM_SHADOWCLEAVE        = 34458,
+    NPC_H_RE_PA_MALITHAS_BRIGHTBLADE        = 34456,
+    NPC_H_SU_RO_MAZ_DINAH                   = 34454,
+    NPC_H_EN_SH_BROLN_STOUTHORN             = 34455,
+    NPC_H_AR_WA_NARRHOK_STEELBREAKER        = 34453,
+    // Horde caster dps
+    NPC_H_BA_DU_BIRANA_STORMHOOF            = 34451,
+    NPC_H_AR_MA_GINSELLE_BLIGHTSLINGER      = 34449,
+    NPC_H_SH_PR_VIVIENNE_BLACKWHISPER       = 34441,
+    NPC_H_AF_WA_HARKZOG                     = 34450,
+    NPC_H_SU_HU_RUJ_KAH                     = 34448,
 
     NPC_THRALL                  = 34994,
     NPC_PROUDMOORE              = 34992,
@@ -302,32 +309,34 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
 
         void UpdateWorldState();
 
-        void OnCreatureCreate(Creature* pCreature);
-        void OnCreatureDeath(Creature * pCreature);
-        void OnObjectCreate(GameObject *pGo);
+        void OnCreatureCreate(Creature* pCreature) override;
+        void OnCreatureDeath(Creature * pCreature) override;
+        void OnObjectCreate(GameObject *pGo) override;
 
-        void OnPlayerEnter(Player *pPlayer);
-        void OnPlayerDeath(Player *pPlayer);
+        void OnPlayerEnter(Player *pPlayer) override;
+        void OnPlayerDeath(Player *pPlayer) override;
 
-        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/);
+        bool CheckAchievementCriteriaMeet(uint32 uiCriteriaId, Player const* pSource, Unit const* pTarget, uint32 uiMiscValue1 /* = 0*/) override;
         void SetSpecialAchievementCriteria(uint32 uiType, bool bIsMet);
 
-        void SetData(uint32 uiType, uint32 uiData);
-        uint32 GetData(uint32 uiType);
+        void SetData(uint32 uiType, uint32 uiData) override;
+        uint32 GetData(uint32 uiType) override;
 
         // Difficulty wrappers
         bool IsHeroicDifficulty() { return instance->GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
         bool Is25ManDifficulty() { return instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || instance->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
 
-        const char* Save() { return m_strInstData.c_str(); }
-        void Load(const char* chrIn);
+        const char* Save() override { return m_strInstData.c_str(); }
+        void Load(const char* chrIn) override;
 
-        void Update(uint32 uiDiff) { DialogueUpdate(uiDiff); }
+        void Update(uint32 uiDiff) override { DialogueUpdate(uiDiff); }
 
     private:
         void DoSummonRamsey(uint32 uiEntry);
         void JustDidDialogueStep(int32 iEntry);
         void SummonFactionChampion();
+        void GenerateSetupIfNeed();
+        bool IsFactionChampion(uint32 npcEntry);
         void DoHandleEventEpilogue();
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
@@ -342,6 +351,7 @@ class MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance, 
 
         uint8 m_uiSnoboldVassalLifeCounter;
         uint8 m_uiMistressLifeCounter;
+        uint32 m_uiSetup;
 };
 
 #endif
