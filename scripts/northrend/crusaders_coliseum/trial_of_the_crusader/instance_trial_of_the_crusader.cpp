@@ -552,7 +552,7 @@ void instance_trial_of_the_crusader::SummonFactionChampion()
          {
              if (m_uiSetup & (1 << i))
              {
-                 if (Creature* pChampion = pTirion->SummonCreature(aAllianceHordeChampions[i][iFaction], aChampionSP[iSP].x, aChampionSP[iSP].y, aChampionSP[iSP].z, 5.0f, TEMPSUMMON_MANUAL_DESPAWN, 0))
+                 if (Creature* pChampion = pTirion->SummonCreature(aAllianceHordeChampions[i][iFaction], aChampionSP[iSP].x, aChampionSP[iSP].y, aChampionSP[iSP].z, 5.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
                  {
                      m_lFactionChampion.push_back(pChampion->GetObjectGuid());
                      ++iSP;
