@@ -194,8 +194,13 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_MARK_OF_FALLEN_CHAMPION, CAST_TRIGGERED);
     }
 
-    void JustReachedHome() override
+    // workaround for MoveTargetHome, till we can change HomePoints
+    void MovementInform(uint32 uiMovementType, uint32 /*uiData*/) override
+    //void JustReachedHome() override
     {
+        if (uiMovementType != POINT_MOTION_TYPE)
+            return;
+
         if (m_pInstance)
             m_pInstance->SetData(TYPE_DEATHBRINGER_SAURFANG, FAIL);
 
