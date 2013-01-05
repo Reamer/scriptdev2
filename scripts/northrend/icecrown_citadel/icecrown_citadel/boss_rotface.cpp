@@ -114,6 +114,9 @@ static Locations SpawnLoc[]=
     {4391.38f, 3163.71f, 389.40f, 5.8f}                 // rotface side
 };
 
+#define middleX 4445.870
+#define middleY 3137.310
+
 // Rotface
 struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
 {
@@ -150,6 +153,18 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
 
         DoCastSpellIfCan(m_creature, SPELL_MUTATED_INFECTION_1, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, SPELL_OOZE_FLOOD_PERIODIC, CAST_TRIGGERED);
+    }
+
+    void UpdatePosition(Unit* pSlimeUnit)
+    {
+        float dx = pSlimeUnit->GetPositionX() - middleX;
+        float dy = pSlimeUnit->GetPositionY() - middleY;
+        float distanceToMiddle = sqrt((dx*dx) + (dy*dy));
+        float angle = pSlimeUnit->GetAngle(middleX, middleY);
+        angle += M_PI_F/4;
+        float newx = pSlimeUnit->GetPositionX() + distanceToMiddle * cos(angle);
+        float newy = pSlimeUnit->GetPositionY() + distanceToMiddle * sin(angle);
+        pSlimeUnit->Relocate(newx, newy, pSlimeUnit->GetPositionZ(), pSlimeUnit->GetAngle(middleX, middleY));
     }
 
     void JustReachedHome()
@@ -214,6 +229,13 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
         // Slime Flow
         if (m_uiSlimeFlowTimer <= uiDiff)
         {
+            std::list<Creature*> slimeTirgger;
+            GetCreatureListWithEntryInGrid(slimeTirgger, m_creature, 37013, 150.0f);
+            for (std::list<Creature*>::const_iterator itr = slimeTirgger.begin(); itr != slimeTirgger.end(); ++itr)
+            {
+                UpdatePosition(*itr);
+                (*itr)->CastSpell(*itr, 26547, true);
+            }
             if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
                 DoScriptText(SAY_SLIME_FLOW_1 - urand(0, 1), pProfessor);
 
