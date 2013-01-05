@@ -69,15 +69,22 @@ enum BossSpells
     // others
     NPC_LITTLE_OOZE             = 36897,
     NPC_BIG_OOZE                = 36899,
+
+    MAX_MUTATE_INFACTION_STEPS  = 5,
 };
 
-static uint32 uiMutatedInfections[5] =
+struct MutatedInfections{
+    uint32 spellid;
+    uint8 amountOfCast;
+    uint32 durationOfOneTick;
+};
+static MutatedInfections uiMutatedInfections[5] =
 {
-    SPELL_MUTATED_INFECTION_1,
-    SPELL_MUTATED_INFECTION_2,
-    SPELL_MUTATED_INFECTION_3,
-    SPELL_MUTATED_INFECTION_4,
-    SPELL_MUTATED_INFECTION_5
+    {SPELL_MUTATED_INFECTION_1, 4, 14*IN_MILLISECONDS},
+    {SPELL_MUTATED_INFECTION_2, 4, 12*IN_MILLISECONDS},
+    {SPELL_MUTATED_INFECTION_3, 4, 10*IN_MILLISECONDS},
+    {SPELL_MUTATED_INFECTION_4, 6,  8*IN_MILLISECONDS},
+    {SPELL_MUTATED_INFECTION_5, 99, 6*IN_MILLISECONDS}
 };
 
 //talks
@@ -120,7 +127,6 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
 
     uint32 m_uiSlimeSprayTimer;
     uint32 m_uiMutatedInfectionTimer;
-    uint32 m_uiMutatedInfectionBeforeTimer;
     uint32 m_uiInfectionsRate;
     uint32 m_uiVileGasTimer;
     uint32 m_uiSlimeFlowTimer;
@@ -129,23 +135,16 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
     {
         m_uiSlimeSprayTimer = urand(17000, 23000);
         m_uiVileGasTimer = 20000;
-        m_uiMutatedInfectionTimer = m_uiMutatedInfectionBeforeTimer = 60000;
-        m_uiInfectionsRate = 1;
+        m_uiInfectionsRate = 0;
+        m_uiMutatedInfectionTimer = uiMutatedInfections[m_uiInfectionsRate].durationOfOneTick * uiMutatedInfections[m_uiInfectionsRate].amountOfCast + 1000;
+        ++m_uiInfectionsRate;
         m_uiSlimeFlowTimer = 20000;
     }
 
     void Aggro(Unit *pWho)
     {
         if (m_pInstance)
-        {
             m_pInstance->SetData(TYPE_ROTFACE, IN_PROGRESS);
-
-            if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
-            {
-                pProfessor->NearTeleportTo(SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z, SpawnLoc[2].o);
-                pProfessor->SetInCombatWithZone();
-            }
-        }
 
         DoScriptText(SAY_AGGRO, m_creature);
 
@@ -156,12 +155,7 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-        {
             m_pInstance->SetData(TYPE_ROTFACE, FAIL);
-
-            if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
-                pProfessor->AI()->EnterEvadeMode();
-        }
 
         DoCastSpellIfCan(m_creature, SPELL_OOZE_FLOOD_REMOVE, CAST_TRIGGERED);
     }
@@ -169,18 +163,13 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
     void KilledUnit(Unit* pVictim)
     {
         if (pVictim->GetTypeId() == TYPEID_PLAYER)
-            DoScriptText(SAY_SLAY_1 - urand(0,1), m_creature, pVictim);
+            DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature, pVictim);
     }
 
     void JustDied(Unit *pKiller)
     {
         if (m_pInstance)
-        {
             m_pInstance->SetData(TYPE_ROTFACE, DONE);
-
-            if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
-                pProfessor->AI()->EnterEvadeMode();
-        }
 
         DoScriptText(SAY_DEATH, m_creature);
     }
@@ -207,41 +196,19 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
 
         // Mutated Infection - faster with time
         // implemented this instead of phases
-        if (m_uiInfectionsRate < 5)
+        if (m_uiInfectionsRate < MAX_MUTATE_INFACTION_STEPS)
         {
             if (m_uiMutatedInfectionTimer <= uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, uiMutatedInfections[m_uiInfectionsRate], CAST_TRIGGERED) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature, uiMutatedInfections[m_uiInfectionsRate].spellid, CAST_TRIGGERED) == CAST_OK)
                 {
-                    m_creature->RemoveAurasDueToSpell(uiMutatedInfections[m_uiInfectionsRate - 1]);
-                    m_uiMutatedInfectionBeforeTimer = m_uiMutatedInfectionBeforeTimer - 10000; // every next 15 seconds faster
-                    m_uiMutatedInfectionTimer = m_uiMutatedInfectionBeforeTimer;
+                    m_creature->RemoveAurasDueToSpell(uiMutatedInfections[m_uiInfectionsRate - 1].spellid);
+                    m_uiMutatedInfectionTimer = uiMutatedInfections[m_uiInfectionsRate].durationOfOneTick * uiMutatedInfections[m_uiInfectionsRate].amountOfCast + 1000;
                     ++m_uiInfectionsRate;
                 }
             }
             else
                 m_uiMutatedInfectionTimer -= uiDiff;
-        }
-
-        // Vile Gas
-        if (m_pInstance->IsHeroicDifficulty())
-        {
-            if (m_uiVileGasTimer <= uiDiff)
-            {
-                if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
-                {
-                    if (Unit *pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
-                    {
-                        if (DoCastSpellIfCan(pTarget, SPELL_VILE_GAS_SUMMON_TRIG, CAST_TRIGGERED) == CAST_OK)
-                        {
-                            pProfessor->CastSpell(pProfessor, SPELL_VILE_GAS, true);
-                            m_uiVileGasTimer = 20000;
-                        }
-                    }
-                }
-            }
-            else
-                m_uiVileGasTimer -= uiDiff;
         }
 
         // Slime Flow
