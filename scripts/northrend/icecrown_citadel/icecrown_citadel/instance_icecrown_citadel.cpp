@@ -764,6 +764,8 @@ void instance_icecrown_citadel::CheckSpecialAchievements(IcecrownAchievments uiT
         {
             if (Creature* pLadyDeathWhispher = GetSingleCreatureFromStorage(NPC_LADY_DEATHWHISPER))
             {
+                SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, true);
+
                 std::list<Creature*> summonEntryList;
                 summonEntryList.clear();
                 GetCreatureListWithEntryInGrid(summonEntryList, pLadyDeathWhispher, NPC_CULT_ADHERENT, 250.0f);
@@ -790,7 +792,6 @@ void instance_icecrown_citadel::CheckSpecialAchievements(IcecrownAchievments uiT
                 if (summonEntryList.empty())
                     SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, false);
 
-                SetSpecialAchievementCriteria(TYPE_ACHIEVE_FULL_HOUSE, true);
             }
             break;
         }
