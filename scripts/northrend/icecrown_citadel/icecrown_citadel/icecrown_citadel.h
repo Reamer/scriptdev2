@@ -323,10 +323,11 @@ class MANGOS_DLL_DECL instance_icecrown_citadel : public ScriptedInstance, priva
         void SetSpecialAchievementCriteria(IcecrownAchievments uiType, bool bIsMet);
         void CheckSpecialAchievements(IcecrownAchievments uiType);
 
+        void ChangeRotfacePuddleStalkerPosition();
+
         void Update(uint32 uiDiff) override;
 
     private:
-
         void JustDidDialogueStep(int32 iEntry) override;
 
         std::string m_strInstData;
@@ -343,5 +344,6 @@ class MANGOS_DLL_DECL instance_icecrown_citadel : public ScriptedInstance, priva
 
         GuidList m_lDeathwhisperStalkersGuids;
         GuidList m_lSaurfangGuardGuids;
+        GuidList m_lPuddleStalkerRotface;
 };
 #endif

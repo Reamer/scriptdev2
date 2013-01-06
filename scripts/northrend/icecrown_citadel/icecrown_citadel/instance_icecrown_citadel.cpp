@@ -295,6 +295,14 @@ void instance_icecrown_citadel::OnCreatureCreate(Creature* pCreature)
         case NPC_ALLIANCE_MARINE:
             m_lSaurfangGuardGuids.push_back(pCreature->GetObjectGuid());
             return;
+        case NPC_PUDDLE_STALKER:
+        {
+            // middle line between Rotface and Festergut
+            if (pCreature->GetPositionX() > 4357)
+                m_lPuddleStalkerRotface.push_back(pCreature->GetObjectGuid());
+            // else Puddlestalker is in Festergut Room, that's at the moment not needed
+            return;
+        }
         default:
             return;
     }
@@ -797,6 +805,26 @@ void instance_icecrown_citadel::CheckSpecialAchievements(IcecrownAchievments uiT
         }
         default:
             break;
+    }
+}
+
+void instance_icecrown_citadel::ChangeRotfacePuddleStalkerPosition()
+{
+    float middleX = 4445.870f;
+    float middleY = 3137.310f;
+    for (GuidList::const_iterator itr = m_lPuddleStalkerRotface.begin(); itr != m_lPuddleStalkerRotface.end(); ++itr)
+    {
+        if (Creature* pPuddleStalker = instance->GetCreature(*itr))
+        {
+            float dx = pPuddleStalker->GetPositionX() - middleX;
+            float dy = pPuddleStalker->GetPositionY() - middleY;
+            float distanceToMiddle = sqrt((dx*dx) + (dy*dy));
+            float angle = pPuddleStalker->GetAngle(middleX, middleY);
+            angle += M_PI_F/4;
+            float newx = pPuddleStalker->GetPositionX() + distanceToMiddle * cos(angle);
+            float newy = pPuddleStalker->GetPositionY() + distanceToMiddle * sin(angle);
+            instance->CreatureRelocation(pPuddleStalker,newx, newy, pPuddleStalker->GetPositionZ(), pPuddleStalker->GetAngle(middleX, middleY));
+        }
     }
 }
 
