@@ -80,6 +80,12 @@ enum
     SAY_FESTERGUT_DEATH         = -1631091,
 };
 
+struct Locations
+{
+    float x,y,z,o;
+};
+const static Locations PutricideFestergutPoint= {4295.081055f, 3188.883545f, 389.330261f, 4.270f};  // 1 Puticide Festergut say, o=4.27
+
 struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
 {
     boss_festergutAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -117,7 +123,11 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_GASEUS_BLIGHT_DUMMY, CAST_TRIGGERED); // visual cast on dummy npc
 
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_FESTERGUT, IN_PROGRESS);
+            if (Creature* pPutricide = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
+                pPutricide->GetMotionMaster()->MovePoint(0, PutricideFestergutPoint.x, PutricideFestergutPoint.y, PutricideFestergutPoint.z);
+        }
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -128,7 +138,11 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
     void JustReachedHome() override
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_FESTERGUT, FAIL);
+            if (Creature* pPutricide = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
+                pPutricide->AI()->EnterEvadeMode();
+        }
 
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_INOCULENT, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, SPELL_LOW_PLAGUE_BLIGHT_VISUAL_CANCEL, CAST_TRIGGERED);
@@ -137,7 +151,11 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
     void JustDied(Unit* /*pKiller*/) override
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_FESTERGUT, DONE);
+            if (Creature* pPutricide = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
+                pPutricide->AI()->EnterEvadeMode();
+        }
 
         DoScriptText(SAY_DEATH, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_INOCULENT, CAST_TRIGGERED);
@@ -216,18 +234,6 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
         }
         else
             m_uiGasSporeTimer -= uiDiff;
-
-        /*// Vile Gas
-        if (m_uiVileGasTimer <= uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS_SUMMON, CAST_TRIGGERED) == CAST_OK)
-            {
-                if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS) == CAST_OK)
-                    m_uiVileGasTimer = 30000;
-            }
-        }
-        else
-            m_uiVileGasTimer -= uiDiff;*/
 
         if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
         {

@@ -32,6 +32,15 @@ enum BossSpells
 {
     SPELL_BERSERK                   = 47008,
 
+    // Spells from other Encounter
+    SPELL_OOZE_FLOOD_TRIGGER        = 69795,
+    // Vile Gas (heroic)
+    SPELL_VILE_GAS_SUMMON       = 72288,
+    SPELL_VILE_GAS_SUMMON_TRIG  = 72287,
+    SPELL_VILE_GAS              = 71307,
+    SPELL_VILE_GAS_TRIGGERED    = 72272,
+
+
     // controlled abomination
     SPELL_MUTATED_TRANSFORMATION    = 70311,
     SPELL_EAT_OOZE                  = 72527,
@@ -147,7 +156,7 @@ static Locations SpawnLoc[]=
 
 #define POINT_PUTRICIDE_SPAWN 1
 
-enum Phases
+enum PutricidePhases
 {
     PHASE_ONE = 1,
     PHASE_RUNNING_ONE = 2,
@@ -172,7 +181,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
 
     instance_icecrown_citadel* m_pInstance;
 
-    uint32 m_uiPhase;
+    PutricidePhases m_Phase;
 
     uint32 m_uiHealthCheckTimer;
     uint32 m_uiTransitionTimer;
@@ -184,15 +193,13 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
     uint32 m_uiMutatedPlagueTimer;
     uint32 m_uiUnboundPlagueTimer;
 
-    // used to determine whether he is assisting one of his pupils or having his own encounter
-    bool m_bIsAssistingOnly;
-
     bool m_bIsGreenOoze; // green or orange ooze to summon
 
-    void Reset()
+    uint32 m_uiVileGasTimer;
+
+    void Reset() override
     {
-        m_uiPhase                   = PHASE_ONE;
-        m_bIsAssistingOnly          = false;
+        m_Phase                     = PHASE_ONE;
         SetCombatMovement(true);
 
         m_bIsGreenOoze              = true; // first ooze summoned is always green
@@ -206,36 +213,35 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         m_uiChokingGasBombTimer     = urand(10000, 15000);
         m_uiMutatedPlagueTimer      = 0;
         m_uiUnboundPlagueTimer      = 10000;
+
+        m_uiVileGasTimer = 10000;
     }
 
-    void DamageTaken(Unit *pDealer, uint32 &uiDamage)
+    void DamageTaken(Unit *pDealer, uint32 &uiDamage) override
     {
-        if (m_bIsAssistingOnly)
+        if (IsAssisting())
             uiDamage = 0;
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* pVictim) override
     {
-        DoScriptText(SAY_SLAY_1 - urand(0, 1), m_creature);
+        DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* pWho) override
     {
-        if (!m_pInstance)
-            return;
-
-        if (m_pInstance->GetData(TYPE_FESTERGUT) == IN_PROGRESS || m_pInstance->GetData(TYPE_ROTFACE) == IN_PROGRESS)
+        if (IsAssisting())
         {
             SetCombatMovement(false);
-            m_bIsAssistingOnly = true;
             return;
         }
 
-        m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, IN_PROGRESS);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, IN_PROGRESS);
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void JustDied(Unit *pKiller)
+    void JustDied(Unit *pKiller) override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, DONE);
@@ -243,9 +249,9 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
-        if (m_pInstance)
+        if (m_pInstance && m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE) == IN_PROGRESS)
             m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, FAIL);
 
         if (VehicleKitPtr pKit = m_creature->GetVehicleKit())
@@ -258,14 +264,14 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         m_creature->SetHealth(m_creature->GetMaxHealth());
     }
 
-    void MovementInform(uint32 uiMovementType, uint32 uiData)
+    void MovementInform(uint32 uiMovementType, uint32 uiData) override
     {
         if (uiMovementType != POINT_MOTION_TYPE)
             return;
 
         if (uiData == POINT_PUTRICIDE_SPAWN)
         {
-            if (m_uiPhase == PHASE_RUNNING_ONE)
+            if (m_Phase == PHASE_RUNNING_ONE)
             {
                 if (m_pInstance->IsHeroicDifficulty())
                 {
@@ -278,9 +284,9 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                     DoScriptText(SAY_TRANSFORM_1, m_creature);
                 }
 
-                m_uiPhase = PHASE_TRANSITION_ONE; // counter for entering phase 2
+                m_Phase = PHASE_TRANSITION_ONE; // counter for entering phase 2
             }
-            else if (m_uiPhase == PHASE_RUNNING_TWO)
+            else if (m_Phase == PHASE_RUNNING_TWO)
             {
                 if (m_pInstance->IsHeroicDifficulty())
                 {
@@ -291,10 +297,16 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                 {
                     DoCastSpellIfCan(m_creature, SPELL_GUZZLE_POTIONS);
                     DoScriptText(SAY_TRANSFORM_2, m_creature);
-                    m_uiPhase = PHASE_TRANSITION_TWO; // counter for entering phase 3
+                    m_Phase = PHASE_TRANSITION_TWO; // counter for entering phase 3
                 }
             }
         }
+    }
+
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
+    {
+        if (pSpell->Id == SPELL_OOZE_FLOOD_TRIGGER)
+            DoScriptText(urand(0, 1) ? SAY_SLIME_FLOW_1 : SAY_SLIME_FLOW_2, m_creature);
     }
 
     void DoExperiment(bool green, bool both = false)
@@ -352,7 +364,13 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             (*i)->CastSpell(*i, SPELL_OOZE_VARIABLE, true);
     }
 
-    void JustSummoned(Creature *pSummoned)
+    bool IsAssisting()
+    {
+        return m_pInstance &&
+                (m_pInstance->GetData(TYPE_FESTERGUT) == IN_PROGRESS || m_pInstance->GetData(TYPE_ROTFACE) == IN_PROGRESS);
+    }
+
+    void JustSummoned(Creature *pSummoned) override
     {
         if (pSummoned->GetEntry() != NPC_GREEN_ORANGE_OOZE_STALKER)
             pSummoned->SetInCombatWithZone();
@@ -376,10 +394,22 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
-        if (m_bIsAssistingOnly)
+        if (IsAssisting())
+        {
+            if (m_uiVileGasTimer <= uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS_SUMMON, CAST_TRIGGERED) == CAST_OK)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS) == CAST_OK)
+                        m_uiVileGasTimer = 30000;
+                }
+            }
+            else
+                m_uiVileGasTimer -= uiDiff;
             return;
+        }
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -396,7 +426,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         else
             m_uiEnrageTimer -= uiDiff;
 
-        switch(m_uiPhase)
+        switch(m_Phase)
         {
             case PHASE_ONE:
             {
@@ -421,7 +451,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                             m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, SPECIAL);
 
                         m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                        m_uiPhase = PHASE_RUNNING_ONE;
+                        m_Phase = PHASE_RUNNING_ONE;
                         return;
                     }
                     m_uiHealthCheckTimer = 1000;
@@ -480,7 +510,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                     m_creature->GetMotionMaster()->Clear();
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                     m_uiTransitionTimer = 15000;
-                    m_uiPhase = PHASE_TWO;
+                    m_Phase = PHASE_TWO;
 
                     if (m_pInstance)
                             m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, IN_PROGRESS);
@@ -521,7 +551,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                             m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, SPECIAL);
 
                         m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                        m_uiPhase = PHASE_RUNNING_TWO;
+                        m_Phase = PHASE_RUNNING_TWO;
                         return;
                     }
                     m_uiHealthCheckTimer = 1000;
@@ -609,7 +639,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                     m_creature->GetMotionMaster()->Clear();
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                     m_uiTransitionTimer = 15000;
-                    m_uiPhase = PHASE_THREE;
+                    m_Phase = PHASE_THREE;
 
                     if (m_pInstance)
                             m_pInstance->SetData(TYPE_PROFESSOR_PUTRICIDE, IN_PROGRESS);

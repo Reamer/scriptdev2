@@ -808,26 +808,6 @@ void instance_icecrown_citadel::CheckSpecialAchievements(IcecrownAchievments uiT
     }
 }
 
-void instance_icecrown_citadel::ChangeRotfacePuddleStalkerPosition()
-{
-    float middleX = 4445.870f;
-    float middleY = 3137.310f;
-    for (GuidList::const_iterator itr = m_lPuddleStalkerRotface.begin(); itr != m_lPuddleStalkerRotface.end(); ++itr)
-    {
-        if (Creature* pPuddleStalker = instance->GetCreature(*itr))
-        {
-            float dx = pPuddleStalker->GetPositionX() - middleX;
-            float dy = pPuddleStalker->GetPositionY() - middleY;
-            float distanceToMiddle = sqrt((dx*dx) + (dy*dy));
-            float angle = pPuddleStalker->GetAngle(middleX, middleY);
-            angle += M_PI_F/4;
-            float newx = pPuddleStalker->GetPositionX() + distanceToMiddle * cos(angle);
-            float newy = pPuddleStalker->GetPositionY() + distanceToMiddle * sin(angle);
-            instance->CreatureRelocation(pPuddleStalker,newx, newy, pPuddleStalker->GetPositionZ(), pPuddleStalker->GetAngle(middleX, middleY));
-        }
-    }
-}
-
 void instance_icecrown_citadel::Load(const char* strIn)
 {
     if (!strIn)

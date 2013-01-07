@@ -60,12 +60,6 @@ enum BossSpells
     SPELL_BIG_OOZE_COMBINE      = 69552, // periodic check
     SPELL_BIG_OOZE_BUFF_COMB    = 69611, // periodic check
 
-    // Vile Gas (heroic)
-    SPELL_VILE_GAS_SUMMON       = 72288,
-    SPELL_VILE_GAS_SUMMON_TRIG  = 72287,
-    SPELL_VILE_GAS              = 71307,
-    SPELL_VILE_GAS_TRIGGERED    = 72272,
-
     // others
     NPC_LITTLE_OOZE             = 36897,
     NPC_BIG_OOZE                = 36899,
@@ -73,7 +67,14 @@ enum BossSpells
     MAX_MUTATE_INFACTION_STEPS  = 5,
 };
 
-struct MutatedInfections{
+struct Locations
+{
+    float x,y,z,o;
+};
+const static Locations PutricideRotfacePoint = {4417.302246f, 3188.219971f, 389.332520f, 5.102f};  // 2 Putricide Rotface say o=5.102
+
+struct MutatedInfections
+{
     uint32 spellid;
     uint8 amountOfCast;
     uint32 durationOfOneTick;
@@ -102,18 +103,6 @@ enum
     SAY_DEATH                   = -1631079,
 };
 
-struct Locations
-{
-    float x,y,z,o;
-};
-
-static Locations SpawnLoc[]=
-{
-    {4322.85f, 3164.17f, 389.40f, 3.76f},               // festergut side
-    {4311.91f, 3157.42f, 389.00f, 3.62f},               // hacky (LoS problems?) festergut side
-    {4391.38f, 3163.71f, 389.40f, 5.8f}                 // rotface side
-};
-
 // Rotface
 struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
 {
@@ -128,53 +117,64 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
     uint32 m_uiSlimeSprayTimer;
     uint32 m_uiMutatedInfectionTimer;
     uint32 m_uiInfectionsRate;
-    uint32 m_uiVileGasTimer;
-    uint32 m_uiSlimeFlowTimer;
 
-    void Reset()
+    void Reset() override
     {
         m_uiSlimeSprayTimer = urand(17000, 23000);
-        m_uiVileGasTimer = 20000;
         m_uiInfectionsRate = 0;
         m_uiMutatedInfectionTimer = uiMutatedInfections[m_uiInfectionsRate].durationOfOneTick * uiMutatedInfections[m_uiInfectionsRate].amountOfCast + 1000;
         ++m_uiInfectionsRate;
-        m_uiSlimeFlowTimer = 20000;
     }
 
-    void Aggro(Unit *pWho)
+    void Aggro(Unit *pWho) override
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_ROTFACE, IN_PROGRESS);
+            if (Creature* pPutricide = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
+            {
+                pPutricide->CastSpell(pPutricide, SPELL_OOZE_FLOOD_PERIODIC, true);
+                pPutricide->GetMotionMaster()->MovePoint(0, PutricideRotfacePoint.x, PutricideRotfacePoint.y, PutricideRotfacePoint.z);
+            }
+        }
 
         DoScriptText(SAY_AGGRO, m_creature);
 
         DoCastSpellIfCan(m_creature, SPELL_MUTATED_INFECTION_1, CAST_TRIGGERED);
-        DoCastSpellIfCan(m_creature, SPELL_OOZE_FLOOD_PERIODIC, CAST_TRIGGERED);
     }
 
-    void JustReachedHome()
+    void JustReachedHome() override
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_ROTFACE, FAIL);
+            if (Creature* pPutricide = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
+                pPutricide->AI()->EnterEvadeMode();
+        }
 
         DoCastSpellIfCan(m_creature, SPELL_OOZE_FLOOD_REMOVE, CAST_TRIGGERED);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* pVictim) override
     {
         if (pVictim->GetTypeId() == TYPEID_PLAYER)
             DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature, pVictim);
     }
 
-    void JustDied(Unit *pKiller)
+    void JustDied(Unit *pKiller) override
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_ROTFACE, DONE);
+            if (Creature* pPutricide = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
+                pPutricide->AI()->EnterEvadeMode();
+        }
 
+        DoCastSpellIfCan(m_creature, SPELL_OOZE_FLOOD_REMOVE, CAST_TRIGGERED);
         DoScriptText(SAY_DEATH, m_creature);
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -210,20 +210,6 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
             else
                 m_uiMutatedInfectionTimer -= uiDiff;
         }
-
-        // Slime Flow
-        if (m_uiSlimeFlowTimer <= uiDiff)
-        {
-            if (m_pInstance)
-            {
-                if (Creature *pProfessor = m_pInstance->GetSingleCreatureFromStorage(NPC_PROFESSOR_PUTRICIDE))
-                    DoScriptText(SAY_SLIME_FLOW_1 - urand(0, 1), pProfessor);
-                m_pInstance->ChangeRotfacePuddleStalkerPosition();
-            }
-            m_uiSlimeFlowTimer = 20000;
-        }
-        else
-            m_uiSlimeFlowTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
