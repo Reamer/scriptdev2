@@ -295,14 +295,6 @@ void instance_icecrown_citadel::OnCreatureCreate(Creature* pCreature)
         case NPC_ALLIANCE_MARINE:
             m_lSaurfangGuardGuids.push_back(pCreature->GetObjectGuid());
             return;
-        case NPC_PUDDLE_STALKER:
-        {
-            // middle line between Rotface and Festergut
-            if (pCreature->GetPositionX() > 4357)
-                m_lPuddleStalkerRotface.push_back(pCreature->GetObjectGuid());
-            // else Puddlestalker is in Festergut Room, that's at the moment not needed
-            return;
-        }
         default:
             return;
     }
