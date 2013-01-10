@@ -220,27 +220,6 @@ CreatureAI* GetAI_boss_rotface(Creature* pCreature)
     return new boss_rotfaceAI(pCreature);
 }
 
-// all passive dummy NPCs
-struct MANGOS_DLL_DECL  mob_rotface_ooze_dummyAI : public ScriptedAI
-{
-    mob_rotface_ooze_dummyAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        SetCombatMovement(false);
-    }
-    void Reset(){}
-    void AttackStart(Unit *pWho){}
-    void DamageTaken(Unit* pDealer, uint32& uiDamage)
-    {
-        uiDamage = 0;
-    }
-    void UpdateAI(const uint32 uiDiff){}
-};
-
-CreatureAI* GetAI_mob_rotface_ooze_dummy(Creature* pCreature)
-{
-    return new mob_rotface_ooze_dummyAI(pCreature);
-}
-
 struct MANGOS_DLL_DECL mob_little_oozeAI : public ScriptedAI
 {
     mob_little_oozeAI(Creature *pCreature) : ScriptedAI(pCreature)
@@ -444,34 +423,19 @@ CreatureAI* GetAI_mob_sticky_ooze(Creature* pCreature)
 
 void AddSC_boss_rotface()
 {
-    Script *newscript;
-    newscript = new Script;
-    newscript->Name = "boss_rotface";
-    newscript->GetAI = &GetAI_boss_rotface;
-    newscript->RegisterSelf();
+    Script* pNewscript;
+    pNewscript = new Script;
+    pNewscript->Name = "boss_rotface";
+    pNewscript->GetAI = &GetAI_boss_rotface;
+    pNewscript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "mob_rotface_ooze_dummy";
-    newscript->GetAI = &GetAI_mob_rotface_ooze_dummy;
-    newscript->RegisterSelf();
+    pNewscript = new Script;
+    pNewscript->Name = "npc_little_ooze";
+    pNewscript->GetAI = &GetAI_mob_little_ooze;
+    pNewscript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "mob_little_ooze";
-    newscript->GetAI = &GetAI_mob_little_ooze;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_big_ooze";
-    newscript->GetAI = &GetAI_mob_big_ooze;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_sticky_ooze";
-    newscript->GetAI = &GetAI_mob_sticky_ooze;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_ooze_explosion_stalker";
-    newscript->GetAI = &GetAI_mob_ooze_explosion_stalker;
-    newscript->RegisterSelf();
+    pNewscript = new Script;
+    pNewscript->Name = "npc_big_ooze";
+    pNewscript->GetAI = &GetAI_mob_big_ooze;
+    pNewscript->RegisterSelf();
 }

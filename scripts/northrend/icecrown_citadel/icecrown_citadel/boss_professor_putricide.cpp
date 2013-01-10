@@ -158,13 +158,13 @@ static Locations SpawnLoc[]=
 
 enum PutricidePhases
 {
-    PHASE_ONE = 1,
-    PHASE_RUNNING_ONE = 2,
-    PHASE_TRANSITION_ONE = 3,
-    PHASE_TWO = 4,
-    PHASE_RUNNING_TWO = 5,
-    PHASE_TRANSITION_TWO = 6,
-    PHASE_THREE = 7
+    PHASE_ONE               = 1,
+    PHASE_RUNNING_ONE       = 2,
+    PHASE_TRANSITION_ONE    = 3,
+    PHASE_TWO               = 4,
+    PHASE_RUNNING_TWO       = 5,
+    PHASE_TRANSITION_TWO    = 6,
+    PHASE_THREE             = 7
 };
 
 
@@ -261,7 +261,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         }
 
         // some weird bug with not regenerating health after wipe ;/
-        m_creature->SetHealth(m_creature->GetMaxHealth());
+        // m_creature->SetHealth(m_creature->GetMaxHealth());
     }
 
     void MovementInform(uint32 uiMovementType, uint32 uiData) override
@@ -732,6 +732,10 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             case PHASE_RUNNING_TWO:
                 // wait for arriving at the table (during phase transition)
                 break;
+            default:
+                m_creature->MonsterSay("Unknown Phase", LANG_UNIVERSAL);
+                break;
+
         }
 
         DoMeleeAttackIfReady();
