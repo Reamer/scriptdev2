@@ -195,6 +195,9 @@ void instance_trial_of_the_crusader::Initialize()
         m_bAchievCriteria[i] = false;
 
     SetSpecialAchievementCriteria(TYPE_IMMORTALITY, true);
+    m_uiSetup = 0;
+    m_uiMistressLifeCounter = 0;
+    m_uiSnoboldVassalLifeCounter = 0;
 }
 
 bool instance_trial_of_the_crusader::IsEncounterInProgress() const
