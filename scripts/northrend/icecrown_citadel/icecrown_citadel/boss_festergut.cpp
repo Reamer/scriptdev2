@@ -40,6 +40,7 @@ enum
 
     // Pungent Blight
     SPELL_PUNGENT_BLIGHT        = 69195,
+    SPELL_DIFFICULT_ENTRY_PUNGENT_BLIGHT = 1988,
 
     // Gaseous Blight
     SPELL_GASEUS_BLIGHT_DUMMY   = 69125, // gas is spread into the room on aggro
@@ -57,6 +58,8 @@ enum
     // Inoculent
     SPELL_REMOVE_INOCULENT      = 69298,
     SPELL_INOCULENT             = 69291,
+    SPELL_DIFFICULT_ENTRY_INOCULENT = 2131,
+
 
     // Gas Spore
     SPELL_GAS_SPORE             = 69278,
@@ -164,13 +167,15 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
     {
-        if (m_pInstance && pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->SpellDifficultyId == 1988)
+        if (m_pInstance && pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->SpellDifficultyId == SPELL_DIFFICULT_ENTRY_PUNGENT_BLIGHT)
         {
-            SpellEntry const* pSpell = GetSpellEntryByDifficulty(SPELL_INOCULENT, m_creature->GetMap()->GetDifficulty(), true);
-            if (SpellAuraHolderPtr pHolder = pTarget->GetSpellAuraHolder(pSpell->Id))
+            if (SpellEntry const* pSpell = GetSpellEntryByDifficulty(SPELL_DIFFICULT_ENTRY_INOCULENT, m_creature->GetMap()->GetDifficulty(), true))
             {
-                if (pHolder->GetStackAmount() > 2)
-                    m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_FLU_SHOT_SHORTAGE, false);
+                if (SpellAuraHolderPtr pHolder = pTarget->GetSpellAuraHolder(pSpell->Id))
+                {
+                    if (pHolder->GetStackAmount() > 2)
+                        m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_FLU_SHOT_SHORTAGE, false);
+                }
             }
         }
     }
