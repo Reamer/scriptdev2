@@ -74,11 +74,6 @@ enum
     NPC_VOID_ZONE               = 16697
 };
 
-struct SpawnLocation
-{
-    float x, y, z;
-};
-
 enum NetherspitePortalColor{
     RED_PORTAL = 0, // Perseverence
     GREEN_PORTAL = 1, // Serenity
@@ -110,11 +105,11 @@ const static NetherspitePortal Portals[3] =
 };
 
 // at first spawn portals got fixed coords, should be shuffled in subsequent beam phases
-static SpawnLocation PortalCoordinates[] =
+static const LOCATION PortalCoordinates[] =
 {
-    {-11105.508789f, -1600.851685f, 279.950256f},
-    {-11195.353516f, -1613.237183f, 278.237258f},
-    {-11137.846680f, -1685.607422f, 278.239258f}
+    {-11105.508789f, -1600.851685f, 279.950256f, 0.0f},
+    {-11195.353516f, -1613.237183f, 278.237258f, 0.0f},
+    {-11137.846680f, -1685.607422f, 278.239258f, 0.0f}
 };
 
 enum NetherspitePhases
@@ -185,7 +180,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
 
         for (int i=0; i<3; ++i)
         {
-            if (Creature* pPortal = m_creature->SummonCreature(Portals[i].entry, PortalCoordinates[pos[i]].x, PortalCoordinates[pos[i]].y, PortalCoordinates[pos[i]].z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
+            if (Creature* pPortal = m_creature->SummonCreature(Portals[i].entry, PortalCoordinates[pos[i]].x, PortalCoordinates[pos[i]].y, PortalCoordinates[pos[i]].z, PortalCoordinates[pos[i]].o, TEMPSUMMON_TIMED_DESPAWN, 60000))
             {
                 NetherPortalWithLastTarget netherPortal;
                 netherPortal.guid = pPortal->GetObjectGuid();

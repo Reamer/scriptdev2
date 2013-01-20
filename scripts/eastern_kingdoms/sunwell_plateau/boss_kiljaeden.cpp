@@ -190,18 +190,13 @@ static const DialogueEntry aOutroDialogue[] =
     {0, 0, 0},
 };
 
-struct EventLocations
-{
-    float m_fX, m_fY, m_fZ, m_fO;
-};
-
-static const EventLocations aOutroLocations[] =
+static const LOCATION aOutroLocations[] =
 {
     {1727.854f, 656.060f, 28.31f, 3.86f},       // portal summon loc
     {1716.969f, 646.407f, 28.05f, 3.91f},       // velen summon loc
     {1718.862f, 644.528f, 28.05f, 3.87f},       // liadrin summon loc
-    {1712.110f, 641.044f, 27.80f},              // velen move forward
-    {1711.537f, 637.600f, 27.34f}               // liadrin move forward
+    {1712.110f, 641.044f, 27.80f, 0.0f},        // velen move forward
+    {1711.537f, 637.600f, 27.34f, 0.0f}         // liadrin move forward
 };
 
 struct MANGOS_DLL_DECL npc_kiljaeden_controllerAI : public Scripted_NoMovementAI, private DialogueHelper
@@ -248,16 +243,16 @@ struct MANGOS_DLL_DECL npc_kiljaeden_controllerAI : public Scripted_NoMovementAI
                 break;
             case NPC_BOSS_PORTAL:
                 // ToDo: summon soldiers to the right
-                m_creature->SummonCreature(NPC_BOSS_PORTAL, aOutroLocations[0].m_fX, aOutroLocations[0].m_fY, aOutroLocations[0].m_fZ, aOutroLocations[0].m_fO, TEMPSUMMON_CORPSE_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_BOSS_PORTAL, aOutroLocations[0].x, aOutroLocations[0].y, aOutroLocations[0].z, aOutroLocations[0].o, TEMPSUMMON_CORPSE_DESPAWN, 0);
                 break;
             case POINT_SUMMON_SOLDIERS:
                 // ToDo: summon soldiers to the left
                 break;
             case NPC_VELEN:
-                m_creature->SummonCreature(NPC_VELEN, aOutroLocations[1].m_fX, aOutroLocations[1].m_fY, aOutroLocations[1].m_fZ, aOutroLocations[1].m_fO, TEMPSUMMON_CORPSE_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_VELEN, aOutroLocations[1].x, aOutroLocations[1].y, aOutroLocations[1].z, aOutroLocations[1].o, TEMPSUMMON_CORPSE_DESPAWN, 0);
                 break;
             case NPC_LIADRIN:
-                m_creature->SummonCreature(NPC_LIADRIN, aOutroLocations[2].m_fX, aOutroLocations[2].m_fY, aOutroLocations[2].m_fZ, aOutroLocations[2].m_fO, TEMPSUMMON_TIMED_DESPAWN, 4*MINUTE*IN_MILLISECONDS);
+                m_creature->SummonCreature(NPC_LIADRIN, aOutroLocations[2].x, aOutroLocations[2].y, aOutroLocations[2].z, aOutroLocations[2].o, TEMPSUMMON_TIMED_DESPAWN, 4*MINUTE*IN_MILLISECONDS);
                 break;
             case SPELL_CALL_ENTROPIUS:
                 if (Creature* pVelen = m_pInstance->GetSingleCreatureFromStorage(NPC_VELEN))
@@ -271,7 +266,7 @@ struct MANGOS_DLL_DECL npc_kiljaeden_controllerAI : public Scripted_NoMovementAI
                 break;
             case POINT_MOVE_LIADRIN:
                 if (Creature* pLiadrin = m_pInstance->GetSingleCreatureFromStorage(NPC_LIADRIN))
-                    pLiadrin->GetMotionMaster()->MovePoint(0, aOutroLocations[4].m_fX, aOutroLocations[4].m_fY, aOutroLocations[4].m_fZ);
+                    pLiadrin->GetMotionMaster()->MovePoint(0, aOutroLocations[4].x, aOutroLocations[4].y, aOutroLocations[4].z);
                 break;
             case SPELL_BLAZE_TO_LIGHT:
                 if (Creature* pEntropius = m_creature->GetMap()->GetCreature(m_EntropiusGuid))
@@ -285,7 +280,7 @@ struct MANGOS_DLL_DECL npc_kiljaeden_controllerAI : public Scripted_NoMovementAI
             case POINT_EVENT_EXIT:
                 // Set point id = 1 for the despawn event
                 if (Creature* pVelen = m_pInstance->GetSingleCreatureFromStorage(NPC_VELEN))
-                    pVelen->GetMotionMaster()->MovePoint(1, aOutroLocations[1].m_fX, aOutroLocations[1].m_fY, aOutroLocations[1].m_fZ);
+                    pVelen->GetMotionMaster()->MovePoint(1, aOutroLocations[1].x, aOutroLocations[1].y, aOutroLocations[1].z);
                 break;
         }
     }
@@ -295,7 +290,7 @@ struct MANGOS_DLL_DECL npc_kiljaeden_controllerAI : public Scripted_NoMovementAI
         switch(pSummoned->GetEntry())
         {
             case NPC_VELEN:
-                pSummoned->GetMotionMaster()->MovePoint(0, aOutroLocations[3].m_fX, aOutroLocations[3].m_fY, aOutroLocations[3].m_fZ);
+                pSummoned->GetMotionMaster()->MovePoint(0, aOutroLocations[3].x, aOutroLocations[3].y, aOutroLocations[3].z);
                 // no break here
             case NPC_LIADRIN:
                 pSummoned->CastSpell(pSummoned, SPELL_TELEPORT_VISUAL, true);

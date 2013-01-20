@@ -81,11 +81,6 @@ static const float LOC_RAND_TO_CENTER_Z        = 112.783928f;
 static const float LOC_PLATFORM_Z              = 118.537f;
 static const float LOC_LOW_Z                   = 112.784f;
 
-struct Location
-{
-    float m_fX, m_fY, m_fZ, m_fO;
-};
-
 static const Location afSpawnLoc[]=
 {
     {498.652740f, 461.728119f, LOC_LOW_Z, 0.0f},
@@ -202,7 +197,7 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
         if (!urand(0, 2) && (m_uiDeathChannelerCount > 0) && (m_lSorcerersGUIDList.size() < 7))
         {
             if (Creature* pSorcerer = m_creature->SummonCreature(NPC_ASH_SORCERER,
-                afSpawnLoc[uiRand].m_fX, afSpawnLoc[uiRand].m_fY, afSpawnLoc[uiRand].m_fZ, afSpawnLoc[uiRand].m_fO,
+                afSpawnLoc[uiRand].x, afSpawnLoc[uiRand].y, afSpawnLoc[uiRand].z, afSpawnLoc[uiRand].o,
                 TEMPSUMMON_DEAD_DESPAWN, 0))
             {
                 pSorcerer->SetWalk(false);
@@ -220,7 +215,7 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
             for (uint8 i = 0; i < countof(auiRandSpawnEntry); ++i)
             {
                 if (Creature* pSpawn = m_creature->SummonCreature(auiRandSpawnEntry[i],
-                    afSpawnLoc[uiRand].m_fX, afSpawnLoc[uiRand].m_fY, afSpawnLoc[uiRand].m_fZ, afSpawnLoc[uiRand].m_fO,
+                    afSpawnLoc[uiRand].x, afSpawnLoc[uiRand].y, afSpawnLoc[uiRand].z, afSpawnLoc[uiRand].o,
                     TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 25000))
                 {
                     pSpawn->SetWalk(false);
@@ -305,7 +300,7 @@ struct MANGOS_DLL_DECL boss_shade_of_akamaAI : public ScriptedAI
                 uint32 uiRand = urand(0, countof(afSpawnLoc) - 1);
 
                 if (Creature* pDefender = m_creature->SummonCreature(NPC_ASH_DEFENDER,
-                    afSpawnLoc[uiRand].m_fX, afSpawnLoc[uiRand].m_fY, afSpawnLoc[uiRand].m_fZ, afSpawnLoc[uiRand].m_fO,
+                    afSpawnLoc[uiRand].x, afSpawnLoc[uiRand].y, afSpawnLoc[uiRand].z, afSpawnLoc[uiRand].o,
                     TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 25000))
                 {
                     if (Creature* pAkama = m_pInstance->GetSingleCreatureFromStorage(NPC_AKAMA_SHADE))
@@ -527,7 +522,7 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
 
         if (m_bIsShadeDead && (m_uiWayPointId == 1))
         {
-            m_creature->GetMotionMaster()->MovePoint(m_uiWayPointId, afAkamaWP[1].m_fX, afAkamaWP[1].m_fY, afAkamaWP[1].m_fZ);
+            m_creature->GetMotionMaster()->MovePoint(m_uiWayPointId, afAkamaWP[1].x, afAkamaWP[1].y, afAkamaWP[1].z);
             ++m_uiWayPointId;
         }
 
@@ -542,7 +537,7 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
                         m_bIsShadeDead = true;
                         m_uiWayPointId = 0;
                         m_creature->SetWalk(true);
-                        m_creature->GetMotionMaster()->MovePoint(m_uiWayPointId, afAkamaWP[0].m_fX, afAkamaWP[0].m_fY, afAkamaWP[0].m_fZ);
+                        m_creature->GetMotionMaster()->MovePoint(m_uiWayPointId, afAkamaWP[0].x, afAkamaWP[0].y, afAkamaWP[0].z);
                     }
                 }
                 m_uiCheckTimer = 5000;
@@ -557,16 +552,16 @@ struct MANGOS_DLL_DECL npc_akamaAI : public ScriptedAI
             {
                 for (uint8 i = 0; i < 4; ++i)
                 {
-                    float x = afBrokenSpawnLoc[m_uiBrokenSummonIndex].m_fX + (i*5);
-                    float y = afBrokenSpawnLoc[m_uiBrokenSummonIndex].m_fY + (1*5);
-                    float z = afBrokenSpawnLoc[m_uiBrokenSummonIndex].m_fZ;
-                    float o = afBrokenSpawnLoc[m_uiBrokenSummonIndex].m_fO;
+                    float x = afBrokenSpawnLoc[m_uiBrokenSummonIndex].x + (i*5);
+                    float y = afBrokenSpawnLoc[m_uiBrokenSummonIndex].y + (1*5);
+                    float z = afBrokenSpawnLoc[m_uiBrokenSummonIndex].z;
+                    float o = afBrokenSpawnLoc[m_uiBrokenSummonIndex].o;
 
                     if (Creature* pBroken = m_creature->SummonCreature(NPC_ASH_BROKEN, x, y, z, o, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 360000))
                     {
-                        float wx = afBrokenWP[m_uiBrokenSummonIndex].m_fX + (i*5);
-                        float wy = afBrokenWP[m_uiBrokenSummonIndex].m_fY + (i*5);
-                        float wz = afBrokenWP[m_uiBrokenSummonIndex].m_fZ;
+                        float wx = afBrokenWP[m_uiBrokenSummonIndex].x + (i*5);
+                        float wy = afBrokenWP[m_uiBrokenSummonIndex].y + (i*5);
+                        float wz = afBrokenWP[m_uiBrokenSummonIndex].z;
 
                         pBroken->GetMotionMaster()->MovePoint(0, wx, wy, wz);
                         pBroken->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);

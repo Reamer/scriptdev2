@@ -37,12 +37,12 @@ enum
     SAY_XERESTRASZA_SAY_7                 = -1666008,
 };
 
-static Locations SpawnLoc[]=
+static const LOCATION SpawnLoc[]=
 {
-    {3155.540039f, 342.391998f, 84.596802f},   // 0 - start point
-    {3152.329834f, 359.41757f, 85.301605f},    // 1 - second say
-    {3152.078369f, 383.939178f, 86.337875f},   // 2 - other says and staying
-    {3154.99f, 535.637f, 72.8887f},            // 3 - Halion spawn point
+    {3155.540039f, 342.391998f, 84.596802f, 0.0f},   // 0 - start point
+    {3152.329834f, 359.41757f, 85.301605f, 0.0f},    // 1 - second say
+    {3152.078369f, 383.939178f, 86.337875f, 0.0f},   // 2 - other says and staying
+    {3154.99f, 535.637f, 72.8887f, 0.0f},            // 3 - Halion spawn point
 };
 
 struct MANGOS_DLL_DECL mob_xerestraszaAI : public ScriptedAI

@@ -431,37 +431,32 @@ static const DialogueEntry aIntroDialogue[] =
     {0, 0, 0},
 };
 
-struct EventLocations
-{
-    float m_fX, m_fY, m_fZ, m_fO;
-};
-
-static EventLocations aEranikusLocations[] =
+static const LOCATION aEranikusLocations[] =
 {
     {7881.72f, -2651.23f, 493.29f, 0.40f},          // eranikus spawn loc
-    {7929.86f, -2574.88f, 505.35f},                 // eranikus flight move loc
-    {7912.98f, -2568.99f, 488.71f},                 // eranikus combat move loc
-    {7906.57f, -2565.63f, 488.39f},                 // eranikus redeemed loc
+    {7929.86f, -2574.88f, 505.35f, 0.0f},           // eranikus flight move loc
+    {7912.98f, -2568.99f, 488.71f, 0.0f},           // eranikus combat move loc
+    {7906.57f, -2565.63f, 488.39f, 0.0f},           // eranikus redeemed loc
 };
 
-static EventLocations aTyrandeLocations[] =
+static const LOCATION aTyrandeLocations[] =
 {
     // Tyrande should appear along the pathway, but because of the missing pathfinding we'll summon here closer to Eranikus
     {7948.89f, -2575.58f, 490.05f, 3.03f},          // tyrande spawn loc
-    {7888.32f, -2566.25f, 487.02f},                 // tyrande heal loc
-    {7901.83f, -2565.24f, 488.04f},                 // tyrande eranikus loc
+    {7888.32f, -2566.25f, 487.02f, 0.0f},           // tyrande heal loc
+    {7901.83f, -2565.24f, 488.04f, 0.0f},           // tyrande eranikus loc
 };
 
-static EventLocations aShadowsLocations[] =
+static const LOCATION aShadowsLocations[] =
 {
     // Inside the house shades - first wave only
-    {7832.78f, -2604.57f, 489.29f},
-    {7826.68f, -2538.46f, 489.30f},
-    {7811.48f, -2573.20f, 488.49f},
+    {7832.78f, -2604.57f, 489.29f, 0.0f},
+    {7826.68f, -2538.46f, 489.30f, 0.0f},
+    {7811.48f, -2573.20f, 488.49f, 0.0f},
     // Outside shade points - basically only the first set of coords is used for the summoning; there is no solid proof of using the other coords
-    {7888.32f, -2566.25f, 487.02f},
-    {7946.12f, -2577.10f, 489.97f},
-    {7963.00f, -2492.03f, 487.84f}
+    {7888.32f, -2566.25f, 487.02f, 0.0f},
+    {7946.12f, -2577.10f, 489.97f, 0.0f},
+    {7963.00f, -2492.03f, 487.84f, 0.0f}
 };
 
 struct MANGOS_DLL_DECL npc_keeper_remulosAI : public npc_escortAI, private DialogueHelper
@@ -607,7 +602,7 @@ struct MANGOS_DLL_DECL npc_keeper_remulosAI : public npc_escortAI, private Dialo
                 if (Player* pPlayer = GetPlayerForEscort())
                     DoScriptText(SAY_REMULOS_DEFEND_1, m_creature, pPlayer);
                 if (Creature* pEranikus = m_creature->GetMap()->GetCreature(m_eranikusGuid))
-                    pEranikus->GetMotionMaster()->MovePoint(POINT_ID_ERANIKUS_FLIGHT, aEranikusLocations[1].m_fX, aEranikusLocations[1].m_fY, aEranikusLocations[1].m_fZ);
+                    pEranikus->GetMotionMaster()->MovePoint(POINT_ID_ERANIKUS_FLIGHT, aEranikusLocations[1].x, aEranikusLocations[1].y, aEranikusLocations[1].z);
                 SetEscortPaused(false);
                 break;
             case SAY_REMULOS_DEFEND_2:
@@ -667,7 +662,7 @@ struct MANGOS_DLL_DECL npc_keeper_remulosAI : public npc_escortAI, private Dialo
                 {
                     // summon 3 shades inside the house
                     for (uint8 i = 0; i < MAX_SHADOWS; ++i)
-                        m_creature->SummonCreature(NPC_NIGHTMARE_PHANTASM, aShadowsLocations[i].m_fX, aShadowsLocations[i].m_fY, aShadowsLocations[i].m_fZ, 0,TEMPSUMMON_DEAD_DESPAWN, 0);
+                        m_creature->SummonCreature(NPC_NIGHTMARE_PHANTASM, aShadowsLocations[i].x, aShadowsLocations[i].y, aShadowsLocations[i].z, 0,TEMPSUMMON_DEAD_DESPAWN, 0);
 
                     if (Creature* pEranikus = m_creature->GetMap()->GetCreature(m_eranikusGuid))
                         DoScriptText(SAY_ERANIKUS_ATTACK_1, pEranikus);
@@ -686,7 +681,7 @@ struct MANGOS_DLL_DECL npc_keeper_remulosAI : public npc_escortAI, private Dialo
                 {
                     for (uint8 i = 0; i < MAX_SHADOWS; ++i)
                     {
-                        m_creature->GetRandomPoint(aShadowsLocations[uiSummonPoint].m_fX, aShadowsLocations[uiSummonPoint].m_fY, aShadowsLocations[uiSummonPoint].m_fZ, 10.0f, fX, fY, fZ);
+                        m_creature->GetRandomPoint(aShadowsLocations[uiSummonPoint].x, aShadowsLocations[uiSummonPoint].y, aShadowsLocations[uiSummonPoint].z, 10.0f, fX, fY, fZ);
                         m_creature->SummonCreature(NPC_NIGHTMARE_PHANTASM, fX, fY, fZ, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
                     }
 
@@ -703,7 +698,7 @@ struct MANGOS_DLL_DECL npc_keeper_remulosAI : public npc_escortAI, private Dialo
                     {
                         pEranikus->SetByteFlag(UNIT_FIELD_BYTES_1, 3, 0);
                         pEranikus->SetLevitate(false);
-                        pEranikus->GetMotionMaster()->MovePoint(POINT_ID_ERANIKUS_COMBAT, aEranikusLocations[2].m_fX, aEranikusLocations[2].m_fY, aEranikusLocations[2].m_fZ);
+                        pEranikus->GetMotionMaster()->MovePoint(POINT_ID_ERANIKUS_COMBAT, aEranikusLocations[2].x, aEranikusLocations[2].y, aEranikusLocations[2].z);
                     }
                 }
                 else
@@ -772,7 +767,7 @@ bool EffectDummyCreature_conjure_rift(Unit* pCaster, uint32 uiSpellId, SpellEffe
     //always check spellid and effectindex
     if (uiSpellId == SPELL_CONJURE_RIFT && uiEffIndex == EFFECT_INDEX_0)
     {
-        pCaster->SummonCreature(NPC_ERANIKUS_TYRANT, aEranikusLocations[0].m_fX, aEranikusLocations[0].m_fY, aEranikusLocations[0].m_fZ, aEranikusLocations[0].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+        pCaster->SummonCreature(NPC_ERANIKUS_TYRANT, aEranikusLocations[0].x, aEranikusLocations[0].y, aEranikusLocations[0].z, aEranikusLocations[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
 
         //always return true when we are handling this spell and effect
         return true;
@@ -887,7 +882,7 @@ struct MANGOS_DLL_DECL boss_eranikusAI : public ScriptedAI
         float fX, fY, fZ;
         for (uint8 j = 0; j < MAX_PRIESTESS; ++j)
         {
-            m_creature->GetRandomPoint(aTyrandeLocations[0].m_fX, aTyrandeLocations[0].m_fY, aTyrandeLocations[0].m_fZ, 10.0f, fX, fY, fZ);
+            m_creature->GetRandomPoint(aTyrandeLocations[0].x, aTyrandeLocations[0].y, aTyrandeLocations[0].z, 10.0f, fX, fY, fZ);
             m_creature->SummonCreature(NPC_ELUNE_PRIESTESS, fX, fY, fZ, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 0);
         }
     }
@@ -899,13 +894,13 @@ struct MANGOS_DLL_DECL boss_eranikusAI : public ScriptedAI
             case NPC_TYRANDE_WHISPERWIND:
                 m_tyrandeGuid = pSummoned->GetObjectGuid();
                 pSummoned->SetWalk(false);
-                pSummoned->GetMotionMaster()->MovePoint(POINT_ID_TYRANDE_HEAL, aTyrandeLocations[1].m_fX, aTyrandeLocations[1].m_fY, aTyrandeLocations[1].m_fZ);
+                pSummoned->GetMotionMaster()->MovePoint(POINT_ID_TYRANDE_HEAL, aTyrandeLocations[1].x, aTyrandeLocations[1].y, aTyrandeLocations[1].z);
                 break;
             case NPC_ELUNE_PRIESTESS:
                 m_lPriestessList.push_back(pSummoned->GetObjectGuid());
                 float fX, fY, fZ;
                 pSummoned->SetWalk(false);
-                m_creature->GetRandomPoint(aTyrandeLocations[1].m_fX, aTyrandeLocations[1].m_fY, aTyrandeLocations[1].m_fZ, 10.0f, fX, fY, fZ);
+                m_creature->GetRandomPoint(aTyrandeLocations[1].x, aTyrandeLocations[1].y, aTyrandeLocations[1].z, 10.0f, fX, fY, fZ);
                 pSummoned->GetMotionMaster()->MovePoint(POINT_ID_TYRANDE_HEAL, fX, fY, fZ);
                 break;
         }
@@ -996,7 +991,7 @@ struct MANGOS_DLL_DECL boss_eranikusAI : public ScriptedAI
                         // Move Eranikus in front of Tyrande
                         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                         m_creature->SetWalk(true);
-                        m_creature->GetMotionMaster()->MovePoint(POINT_ID_ERANIKUS_REDEEMED, aEranikusLocations[3].m_fX, aEranikusLocations[3].m_fY, aEranikusLocations[3].m_fZ);
+                        m_creature->GetMotionMaster()->MovePoint(POINT_ID_ERANIKUS_REDEEMED, aEranikusLocations[3].x, aEranikusLocations[3].y, aEranikusLocations[3].z);
                         m_uiEventTimer = 0;
                         break;
                     case 4:
@@ -1040,7 +1035,7 @@ struct MANGOS_DLL_DECL boss_eranikusAI : public ScriptedAI
             if (m_uiTyrandeMoveTimer <= uiDiff)
             {
                 if (Creature* pTyrande = m_creature->GetMap()->GetCreature(m_tyrandeGuid))
-                    pTyrande->GetMotionMaster()->MovePoint(POINT_ID_TYRANDE_ABSOLUTION, aTyrandeLocations[2].m_fX, aTyrandeLocations[2].m_fY, aTyrandeLocations[2].m_fZ);
+                    pTyrande->GetMotionMaster()->MovePoint(POINT_ID_TYRANDE_ABSOLUTION, aTyrandeLocations[2].x, aTyrandeLocations[2].y, aTyrandeLocations[2].z);
                 m_uiTyrandeMoveTimer = 0;
             }
             else
@@ -1055,7 +1050,7 @@ struct MANGOS_DLL_DECL boss_eranikusAI : public ScriptedAI
                 case 85:
                     DoScriptText(SAY_ERANIKUS_ATTACK_3, m_creature);
                     // Here Tyrande only yells but she doesn't appear anywhere - we summon here for 1 second just to handle the yell
-                    if (Creature* pTyrande = m_creature->SummonCreature(NPC_TYRANDE_WHISPERWIND, aTyrandeLocations[0].m_fX, aTyrandeLocations[0].m_fY, aTyrandeLocations[0].m_fZ, 0, TEMPSUMMON_TIMED_DESPAWN, 1000))
+                    if (Creature* pTyrande = m_creature->SummonCreature(NPC_TYRANDE_WHISPERWIND, aTyrandeLocations[0].x, aTyrandeLocations[0].y, aTyrandeLocations[0].z, 0, TEMPSUMMON_TIMED_DESPAWN, 1000))
                         DoScriptText(SAY_TYRANDE_APPEAR, pTyrande);
                     m_uiHealthCheck = 75;
                     break;
@@ -1066,7 +1061,7 @@ struct MANGOS_DLL_DECL boss_eranikusAI : public ScriptedAI
                     break;
                 case 50:
                     // Summon Tyrande - she enters the fight this time
-                    m_creature->SummonCreature(NPC_TYRANDE_WHISPERWIND, aTyrandeLocations[0].m_fX, aTyrandeLocations[0].m_fY, aTyrandeLocations[0].m_fZ, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
+                    m_creature->SummonCreature(NPC_TYRANDE_WHISPERWIND, aTyrandeLocations[0].x, aTyrandeLocations[0].y, aTyrandeLocations[0].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
                     m_uiHealthCheck = 35;
                     break;
                 case 35:

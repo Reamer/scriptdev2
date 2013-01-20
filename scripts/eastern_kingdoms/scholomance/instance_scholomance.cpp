@@ -171,7 +171,7 @@ void instance_scholomance::DoSpawnGandlingIfCan(bool bByPlayerEnter)
     if (m_auiEncounter[TYPE_MALICIA] == DONE && m_auiEncounter[TYPE_THEOLEN] == DONE && m_auiEncounter[TYPE_POLKELT] == DONE &&
         m_auiEncounter[TYPE_RAVENIAN] == DONE && m_auiEncounter[TYPE_ALEXEI_BAROV] == DONE && m_auiEncounter[TYPE_ILLUCIA_BAROV] == DONE)
     {
-        if (Creature* pGandling = pPlayer->SummonCreature(NPC_DARKMASTER_GANDLING, aGandlingSpawnLocs[0].m_fX, aGandlingSpawnLocs[0].m_fY, aGandlingSpawnLocs[0].m_fZ, aGandlingSpawnLocs[0].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0))
+        if (Creature* pGandling = pPlayer->SummonCreature(NPC_DARKMASTER_GANDLING, aGandlingSpawnLocs[0].x, aGandlingSpawnLocs[0].y, aGandlingSpawnLocs[0].z, aGandlingSpawnLocs[0].o, TEMPSUMMON_DEAD_DESPAWN, 0))
         {
             if (!bByPlayerEnter)
                 DoScriptText(SAY_GANDLING_SPAWN, pGandling);

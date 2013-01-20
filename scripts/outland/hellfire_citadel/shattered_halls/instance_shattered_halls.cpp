@@ -46,9 +46,9 @@ void instance_shattered_halls::OnPlayerEnter(Player* pPlayer)
      m_uiTeam = pPlayer->GetTeam();
 
      if (m_uiTeam == ALLIANCE)
-        pPlayer->SummonCreature(aSoldiersLocs[1].m_uiAllianceEntry, aSoldiersLocs[1].m_fX, aSoldiersLocs[1].m_fY, aSoldiersLocs[1].m_fZ, aSoldiersLocs[1].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+        pPlayer->SummonCreature(aSoldiersLocs[1].m_uiAllianceEntry, aSoldiersLocs[1].x, aSoldiersLocs[1].y, aSoldiersLocs[1].z, aSoldiersLocs[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
      else
-         pPlayer->SummonCreature(aSoldiersLocs[0].m_uiHordeEntry, aSoldiersLocs[0].m_fX, aSoldiersLocs[0].m_fY, aSoldiersLocs[0].m_fZ, aSoldiersLocs[0].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+         pPlayer->SummonCreature(aSoldiersLocs[0].m_uiHordeEntry, aSoldiersLocs[0].x, aSoldiersLocs[0].y, aSoldiersLocs[0].z, aSoldiersLocs[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
 }
 
 void instance_shattered_halls::OnObjectCreate(GameObject* pGo)
@@ -121,7 +121,7 @@ void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
                 {
                     // summon the 3 npcs for execution
                     for (uint8 i = 2; i < 5; ++i)
-                        pPlayer->SummonCreature(m_uiTeam == ALLIANCE ? aSoldiersLocs[i].m_uiAllianceEntry : aSoldiersLocs[i].m_uiHordeEntry, aSoldiersLocs[i].m_fX, aSoldiersLocs[i].m_fY, aSoldiersLocs[i].m_fZ, aSoldiersLocs[i].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+                        pPlayer->SummonCreature(m_uiTeam == ALLIANCE ? aSoldiersLocs[i].m_uiAllianceEntry : aSoldiersLocs[i].m_uiHordeEntry, aSoldiersLocs[i].x, aSoldiersLocs[i].y, aSoldiersLocs[i].z, aSoldiersLocs[i].o, TEMPSUMMON_DEAD_DESPAWN, 0);
 
                     // Summon the executioner for 80 min; ToDo: set the flags in DB
                     if (Creature* pExecutioner = pPlayer->SummonCreature(NPC_EXECUTIONER, afExecutionerLoc[0], afExecutionerLoc[1], afExecutionerLoc[2], afExecutionerLoc[3], TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 80*MINUTE*IN_MILLISECONDS, true))

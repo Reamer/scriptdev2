@@ -58,7 +58,7 @@ bool GOUse_go_barrel_old_hillsbrad(Player* pPlayer, GameObject* pGo)
 #define SPELL_MORTAL_STRIKE     31911
 #define SPELL_FRIGHTENING_SHOUT 33789
 
-struct Location
+struct DrakeLocation
 {
     uint32 wpId;
     float x;
@@ -66,7 +66,7 @@ struct Location
     float z;
 };
 
-static Location DrakeWP[]=
+static DrakeLocation DrakeWP[]=
 {
     {0, 2125.84f, 88.2535f, 54.8830f},
     {1, 2111.01f, 93.8022f, 52.6356f},

@@ -98,17 +98,6 @@ enum SaurfangEvent
     NPC_ALLIANCE_MASON          = 37902,
 };
 
-struct Locations
-{
-    float x,y,z,o;
-};
-
-// positions
-static Locations fSaurfangPositions[]=
-{
-    {-491.30f, 2211.35f, 541.11f, 3.16f}, // Deathbringer dest point
-};
-
 struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
 {
     boss_deathbringer_saurfangAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -146,26 +135,6 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         m_creature->SetPower(POWER_ENERGY, 0);
     }
 
-    void EnterEvadeMode() override
-    {
-        // need removeAll Passengers before RemoveAllAuras, because ride aura also deleted
-       if (m_creature->GetVehicleKit())
-           m_creature->GetVehicleKit()->RemoveAllPassengers();
-        m_creature->RemoveAllAuras();
-        m_creature->DeleteThreatList();
-        m_creature->CombatStop(true);
-
-        if (m_creature->isAlive())
-        {
-            m_creature->GetMotionMaster()->Clear();
-            m_creature->GetMotionMaster()->MovePoint(1, fSaurfangPositions[0].x, fSaurfangPositions[0].y, fSaurfangPositions[0].z);
-        }
-
-        m_creature->SetLootRecipient(NULL);
-
-        Reset();
-    }
-
     void MoveInLineOfSight(Unit *pWho) override
     {
         if (!m_bIsIntroStarted && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->GetDistance2d(pWho) < 50.0f)
@@ -194,22 +163,15 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_MARK_OF_FALLEN_CHAMPION, CAST_TRIGGERED);
     }
 
-    // workaround for MoveTargetHome, till we can change HomePoints
-    void MovementInform(uint32 uiMovementType, uint32 /*uiData*/) override
-    //void JustReachedHome() override
+    void JustReachedHome() override
     {
-        if (uiMovementType != POINT_MOTION_TYPE)
-            return;
-
         if (m_pInstance)
             m_pInstance->SetData(TYPE_DEATHBRINGER_SAURFANG, FAIL);
 
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
-        m_creature->SetFacingTo(fSaurfangPositions[0].o);
         DoCastSpellIfCan(m_creature, SPELL_REMOVE_MARKS, CAST_TRIGGERED);
     }
 
-    // used for unlocking bugged encounter
     void JustDied(Unit *pKiller) override
     {
         if (m_pInstance)
@@ -234,7 +196,6 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         {
             pSummoned->CastSpell(pSummoned, SPELL_BLOOD_LINK_BEAST, true);
             pSummoned->CastSpell(pSummoned, SPELL_RESISTANT_SKIN, true);
-//            pSummoned->setFaction(m_creature->getFaction());
         }
     }
 
@@ -275,10 +236,9 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
         // Berserk (hard enrage)
         if (m_uiBerserkTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature, SPELL_BERSERK, CAST_AURA_NOT_PRESENT) == CAST_OK)
             {
                 DoScriptText(SAY_BERSERK, m_creature);
-                m_uiBerserkTimer = (m_pInstance->IsHeroicDifficulty() ? 6 : 8) * MINUTE * IN_MILLISECONDS;
             }
         }
         else

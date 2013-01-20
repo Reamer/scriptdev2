@@ -53,14 +53,8 @@ enum
     SAY_COMPLETE_QUEST          = -1509017,                 // Yell when realm complete quest 8743 for world event
 };
 
-struct SpawnLocation
-{
-    uint32 m_uiEntry;
-    float m_fX, m_fY, m_fZ, m_fO;
-};
-
 // Spawn coords for Andorov and his team
-static const SpawnLocation aAndorovSpawnLocs[MAX_HELPERS] =
+static const SPAWNLOCATION aAndorovSpawnLocs[MAX_HELPERS] =
 {
     {NPC_GENERAL_ANDOROV, -8660.4f,  1510.29f, 32.449f,  2.2184f},
     {NPC_KALDOREI_ELITE,  -8655.84f, 1509.78f, 32.462f,  2.33341f},
@@ -70,13 +64,13 @@ static const SpawnLocation aAndorovSpawnLocs[MAX_HELPERS] =
 };
 
 // Movement locations for Andorov
-static const SpawnLocation aAndorovMoveLocs[] =
+static const LOCATION aAndorovMoveLocs[] =
 {
-    {0, -8701.51f, 1561.80f, 32.092f},
-    {0, -8718.66f, 1577.69f, 21.612f},
-    {0, -8876.97f, 1651.96f, 21.57f, 5.52f},
-    {0, -8882.15f, 1602.77f, 21.386f},
-    {0, -8940.45f, 1550.69f, 21.616f},
+    {-8701.51f, 1561.80f, 32.092f, 0.0f},
+    {-8718.66f, 1577.69f, 21.612f, 0.0f},
+    {-8876.97f, 1651.96f, 21.57f, 5.52f},
+    {-8882.15f, 1602.77f, 21.386f, 0.0f},
+    {-8940.45f, 1550.69f, 21.616f, 0.0f},
 };
 
 struct SortingParameters

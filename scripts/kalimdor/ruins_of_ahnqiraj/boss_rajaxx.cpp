@@ -143,11 +143,11 @@ struct MANGOS_DLL_DECL npc_general_andorovAI : public ScriptedAI, private Dialog
             case 1:
             case 3:
                 ++m_uiPointId;
-                m_creature->GetMotionMaster()->MovePoint(m_uiPointId, aAndorovMoveLocs[m_uiPointId].m_fX, aAndorovMoveLocs[m_uiPointId].m_fY, aAndorovMoveLocs[m_uiPointId].m_fZ);
+                m_creature->GetMotionMaster()->MovePoint(m_uiPointId, aAndorovMoveLocs[m_uiPointId].x, aAndorovMoveLocs[m_uiPointId].y, aAndorovMoveLocs[m_uiPointId].z);
                 break;
             case POINT_ID_MOVE_INTRO:
                 m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                m_creature->SetFacingTo(aAndorovMoveLocs[3].m_fO);
+                m_creature->SetFacingTo(aAndorovMoveLocs[3].o);
                 ++m_uiPointId;
                 break;
             case POINT_ID_MOVE_ATTACK:
@@ -174,10 +174,10 @@ struct MANGOS_DLL_DECL npc_general_andorovAI : public ScriptedAI, private Dialog
         {
             // reset to combat position
             if (m_uiPointId >= 4)
-                m_creature->GetMotionMaster()->MovePoint(POINT_ID_MOVE_ATTACK, aAndorovMoveLocs[4].m_fX, aAndorovMoveLocs[4].m_fY, aAndorovMoveLocs[4].m_fZ);
+                m_creature->GetMotionMaster()->MovePoint(POINT_ID_MOVE_ATTACK, aAndorovMoveLocs[4].x, aAndorovMoveLocs[4].y, aAndorovMoveLocs[4].z);
             // reset to intro position
             else
-                m_creature->GetMotionMaster()->MovePoint(POINT_ID_MOVE_INTRO, aAndorovMoveLocs[2].m_fX, aAndorovMoveLocs[2].m_fY, aAndorovMoveLocs[2].m_fZ);
+                m_creature->GetMotionMaster()->MovePoint(POINT_ID_MOVE_INTRO, aAndorovMoveLocs[2].x, aAndorovMoveLocs[2].y, aAndorovMoveLocs[2].z);
         }
 
         m_creature->SetLootRecipient(NULL);
@@ -204,7 +204,7 @@ struct MANGOS_DLL_DECL npc_general_andorovAI : public ScriptedAI, private Dialog
     // Wrapper to start the event
     void DoMoveToEventLocation()
     {
-        m_creature->GetMotionMaster()->MovePoint(m_uiPointId, aAndorovMoveLocs[m_uiPointId].m_fX, aAndorovMoveLocs[m_uiPointId].m_fY, aAndorovMoveLocs[m_uiPointId].m_fZ);
+        m_creature->GetMotionMaster()->MovePoint(m_uiPointId, aAndorovMoveLocs[m_uiPointId].x, aAndorovMoveLocs[m_uiPointId].y, aAndorovMoveLocs[m_uiPointId].z);
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
         StartNextDialogueText(SAY_ANDOROV_INTRO_1);
     }
@@ -218,7 +218,7 @@ struct MANGOS_DLL_DECL npc_general_andorovAI : public ScriptedAI, private Dialog
             if (m_uiMoveTimer <= uiDiff)
             {
                 m_creature->SetWalk(false);
-                m_creature->GetMotionMaster()->MovePoint(m_uiPointId, aAndorovMoveLocs[m_uiPointId].m_fX, aAndorovMoveLocs[m_uiPointId].m_fY, aAndorovMoveLocs[m_uiPointId].m_fZ);
+                m_creature->GetMotionMaster()->MovePoint(m_uiPointId, aAndorovMoveLocs[m_uiPointId].x, aAndorovMoveLocs[m_uiPointId].y, aAndorovMoveLocs[m_uiPointId].z);
 
                 DoInitializeFollowers();
                 m_uiMoveTimer = 0;

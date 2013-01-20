@@ -46,7 +46,7 @@ void instance_mechanar::OnPlayerEnter(Player* pPlayer)
     if (GetSingleCreatureFromStorage(NPC_PATHALEON, true))
         return;
 
-    pPlayer->SummonCreature(NPC_PATHALEON, aBridgeLocs[6].m_fX, aBridgeLocs[6].m_fY, aBridgeLocs[6].m_fZ, aBridgeLocs[6].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+    pPlayer->SummonCreature(NPC_PATHALEON, aBridgeLocs[6].x, aBridgeLocs[6].y, aBridgeLocs[6].z, aBridgeLocs[6].o, TEMPSUMMON_DEAD_DESPAWN, 0);
 }
 
 void instance_mechanar::OnCreatureCreate(Creature* pCreature)
@@ -182,7 +182,7 @@ void instance_mechanar::DoSpawnBridgeWave()
         // For these wave ids summon only 1 npc
         if (m_uiBridgeEventPhase == 6 || m_uiBridgeEventPhase == 4 || m_uiBridgeEventPhase == 1)
         {
-            if (Creature* pTemp = pPlayer->SummonCreature(aBridgeEventNpcs[m_uiBridgeEventPhase][0], aBridgeLocs[m_uiBridgeEventPhase].m_fX, aBridgeLocs[m_uiBridgeEventPhase].m_fY, aBridgeLocs[m_uiBridgeEventPhase].m_fZ, aBridgeLocs[m_uiBridgeEventPhase].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0))
+            if (Creature* pTemp = pPlayer->SummonCreature(aBridgeEventNpcs[m_uiBridgeEventPhase][0], aBridgeLocs[m_uiBridgeEventPhase].x, aBridgeLocs[m_uiBridgeEventPhase].y, aBridgeLocs[m_uiBridgeEventPhase].z, aBridgeLocs[m_uiBridgeEventPhase].o, TEMPSUMMON_DEAD_DESPAWN, 0))
             {
                 pTemp->CastSpell(pTemp, SPELL_SIMPLE_TELEPORT, false);
 
@@ -203,8 +203,8 @@ void instance_mechanar::DoSpawnBridgeWave()
                     continue;
 
                 // Choose a random point to summon the npcs
-                pPlayer->GetRandomPoint(aBridgeLocs[m_uiBridgeEventPhase].m_fX, aBridgeLocs[m_uiBridgeEventPhase].m_fY, aBridgeLocs[m_uiBridgeEventPhase].m_fZ, 5.0f, fX, fY, fZ);
-                if (Creature* pTemp = pPlayer->SummonCreature(aBridgeEventNpcs[m_uiBridgeEventPhase][i], fX, fY, fZ, aBridgeLocs[m_uiBridgeEventPhase].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pPlayer->GetRandomPoint(aBridgeLocs[m_uiBridgeEventPhase].x, aBridgeLocs[m_uiBridgeEventPhase].y, aBridgeLocs[m_uiBridgeEventPhase].z, 5.0f, fX, fY, fZ);
+                if (Creature* pTemp = pPlayer->SummonCreature(aBridgeEventNpcs[m_uiBridgeEventPhase][i], fX, fY, fZ, aBridgeLocs[m_uiBridgeEventPhase].o, TEMPSUMMON_DEAD_DESPAWN, 0))
                 {
                     pTemp->CastSpell(pTemp, SPELL_SIMPLE_TELEPORT, false);
 

@@ -451,9 +451,9 @@ void instance_blackrock_spire::JustDidDialogueStep(int32 iEntry)
             m_uiStadiumEventTimer = 1000;
             // Move the two near the balcony
             if (Creature* pRend = GetSingleCreatureFromStorage(NPC_REND_BLACKHAND))
-                pRend->SetFacingTo(aStadiumLocs[5].m_fO);
+                pRend->SetFacingTo(aStadiumLocs[5].o);
             if (Creature* pNefarius = GetSingleCreatureFromStorage(NPC_LORD_VICTOR_NEFARIUS))
-                pNefarius->GetMotionMaster()->MovePoint(0, aStadiumLocs[5].m_fX, aStadiumLocs[5].m_fY, aStadiumLocs[5].m_fZ);
+                pNefarius->GetMotionMaster()->MovePoint(0, aStadiumLocs[5].x, aStadiumLocs[5].y, aStadiumLocs[5].z);
             break;
         case SAY_NEFARIUS_WARCHIEF:
             // Prepare for Gyth - note: Nefarius should be moving around the balcony
@@ -461,7 +461,7 @@ void instance_blackrock_spire::JustDidDialogueStep(int32 iEntry)
             {
                 pRend->ForcedDespawn(5000);
                 pRend->SetWalk(false);
-                pRend->GetMotionMaster()->MovePoint(0, aStadiumLocs[6].m_fX, aStadiumLocs[6].m_fY, aStadiumLocs[6].m_fZ);
+                pRend->GetMotionMaster()->MovePoint(0, aStadiumLocs[6].x, aStadiumLocs[6].y, aStadiumLocs[6].z);
             }
             m_uiStadiumEventTimer = 30000;
             break;
@@ -473,7 +473,7 @@ void instance_blackrock_spire::JustDidDialogueStep(int32 iEntry)
             if (Creature* pNefarius = GetSingleCreatureFromStorage(NPC_LORD_VICTOR_NEFARIUS))
             {
                 pNefarius->ForcedDespawn(5000);
-                pNefarius->GetMotionMaster()->MovePoint(0, aStadiumLocs[6].m_fX, aStadiumLocs[6].m_fY, aStadiumLocs[6].m_fZ);
+                pNefarius->GetMotionMaster()->MovePoint(0, aStadiumLocs[6].x, aStadiumLocs[6].y, aStadiumLocs[6].z);
             }
             break;
 
@@ -493,13 +493,13 @@ void instance_blackrock_spire::DoSendNextStadiumWave()
                 if (aStadiumEventNpcs[m_uiStadiumWaves][i] == 0)
                     continue;
 
-                pNefarius->GetRandomPoint(aStadiumLocs[0].m_fX, aStadiumLocs[0].m_fY, aStadiumLocs[0].m_fZ, 7.0f, fX, fY, fZ);
-                fX = std::min(aStadiumLocs[0].m_fX, fX);            // Halfcircle - suits better the rectangular form
+                pNefarius->GetRandomPoint(aStadiumLocs[0].x, aStadiumLocs[0].y, aStadiumLocs[0].z, 7.0f, fX, fY, fZ);
+                fX = std::min(aStadiumLocs[0].x, fX);            // Halfcircle - suits better the rectangular form
                 if (Creature* pTemp = pNefarius->SummonCreature(aStadiumEventNpcs[m_uiStadiumWaves][i], fX, fY, fZ, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
                 {
                     // Get some point in the center of the stadium
-                    pTemp->GetRandomPoint(aStadiumLocs[2].m_fX, aStadiumLocs[2].m_fY, aStadiumLocs[2].m_fZ, 5.0f, fX, fY, fZ);
-                    fX = std::min(aStadiumLocs[2].m_fX, fX);        // Halfcircle - suits better the rectangular form
+                    pTemp->GetRandomPoint(aStadiumLocs[2].x, aStadiumLocs[2].y, aStadiumLocs[2].z, 5.0f, fX, fY, fZ);
+                    fX = std::min(aStadiumLocs[2].x, fX);        // Halfcircle - suits better the rectangular form
 
                     pTemp->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
                     ++m_uiStadiumMobsAlive;
@@ -517,8 +517,8 @@ void instance_blackrock_spire::DoSendNextStadiumWave()
        // Send Gyth
         if (Creature* pNefarius = GetSingleCreatureFromStorage(NPC_LORD_VICTOR_NEFARIUS))
         {
-            if (Creature* pTemp = pNefarius->SummonCreature(NPC_GYTH, aStadiumLocs[1].m_fX, aStadiumLocs[1].m_fY, aStadiumLocs[1].m_fZ, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
-                pTemp->GetMotionMaster()->MovePoint(0, aStadiumLocs[2].m_fX, aStadiumLocs[2].m_fY, aStadiumLocs[2].m_fZ);
+            if (Creature* pTemp = pNefarius->SummonCreature(NPC_GYTH, aStadiumLocs[1].x, aStadiumLocs[1].y, aStadiumLocs[1].z, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0))
+                pTemp->GetMotionMaster()->MovePoint(0, aStadiumLocs[2].x, aStadiumLocs[2].y, aStadiumLocs[2].z);
         }
 
         // Set this to 2, because Rend will be summoned later during the fight
@@ -573,9 +573,9 @@ bool AreaTrigger_at_blackrock_spire(Player* pPlayer, AreaTriggerEntry const* pAt
 
                 // Summon Nefarius and Rend for the dialogue event
                 // Note: Nefarius and Rend need to be hostile and not attackable
-                if (Creature* pNefarius = pPlayer->SummonCreature(NPC_LORD_VICTOR_NEFARIUS, aStadiumLocs[3].m_fX, aStadiumLocs[3].m_fY, aStadiumLocs[3].m_fZ, aStadiumLocs[3].m_fO, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                if (Creature* pNefarius = pPlayer->SummonCreature(NPC_LORD_VICTOR_NEFARIUS, aStadiumLocs[3].x, aStadiumLocs[3].y, aStadiumLocs[3].z, aStadiumLocs[3].o, TEMPSUMMON_CORPSE_DESPAWN, 0))
                     pNefarius->setFaction(FACTION_BLACK_DRAGON);
-                if (Creature* pRend = pPlayer->SummonCreature(NPC_REND_BLACKHAND, aStadiumLocs[4].m_fX, aStadiumLocs[4].m_fY, aStadiumLocs[4].m_fZ, aStadiumLocs[4].m_fO, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                if (Creature* pRend = pPlayer->SummonCreature(NPC_REND_BLACKHAND, aStadiumLocs[4].x, aStadiumLocs[4].y, aStadiumLocs[4].z, aStadiumLocs[4].o, TEMPSUMMON_CORPSE_DESPAWN, 0))
                     pRend->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
 
                 pInstance->SetData(TYPE_STADIUM, IN_PROGRESS);

@@ -863,7 +863,10 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
             }
             DoUseDoorOrButton(GO_SAURFANG_DOOR, 0, false); // Open Saurfang door and move to destination Point
             if (Creature *pSaurfang = GetSingleCreatureFromStorage(NPC_DEATHBRINGER_SAURFANG))
+            {
                 pSaurfang->GetMotionMaster()->MovePoint(0, fSaurfangPositions[1].x, fSaurfangPositions[1].y, fSaurfangPositions[1].z);
+                pSaurfang->SetRespawnCoord(fSaurfangPositions[1].x, fSaurfangPositions[1].y, fSaurfangPositions[1].z, fSaurfangPositions[1].o);
+            }
             break;
         }
         case SAY_SAURFANG_INTRO_ALLY_0:

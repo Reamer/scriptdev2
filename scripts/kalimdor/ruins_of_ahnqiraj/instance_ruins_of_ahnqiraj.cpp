@@ -320,7 +320,7 @@ void instance_ruins_of_ahnqiraj::DoSendNextArmyWave()
                     continue;
 
                 pTemp->SetWalk(false);
-                pTemp->GetRandomPoint(aAndorovMoveLocs[4].m_fX, aAndorovMoveLocs[4].m_fY, aAndorovMoveLocs[4].m_fZ, 10.0f, fX, fY, fZ);
+                pTemp->GetRandomPoint(aAndorovMoveLocs[4].x, aAndorovMoveLocs[4].y, aAndorovMoveLocs[4].z, 10.0f, fX, fY, fZ);
                 pTemp->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
             }
         }

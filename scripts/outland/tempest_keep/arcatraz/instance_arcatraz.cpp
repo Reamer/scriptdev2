@@ -309,7 +309,7 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             SetData(TYPE_WARDEN_1, IN_PROGRESS);
             break;
         case TYPE_WARDEN_1:
-            pMellichar->SummonCreature(urand(0, 1) ? NPC_BLAZING_TRICKSTER : NPC_PHASE_HUNTER, aSummonPosition[0].m_fX, aSummonPosition[0].m_fY, aSummonPosition[0].m_fZ, aSummonPosition[0].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+            pMellichar->SummonCreature(urand(0, 1) ? NPC_BLAZING_TRICKSTER : NPC_PHASE_HUNTER, aSummonPosition[0].x, aSummonPosition[0].y, aSummonPosition[0].z, aSummonPosition[0].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             break;
         case YELL_MELLICHAR_RELEASE2:
             if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_BETA_POD))
@@ -320,7 +320,7 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             SetData(TYPE_WARDEN_2, IN_PROGRESS);
             break;
         case TYPE_WARDEN_2:
-            pMellichar->SummonCreature(NPC_MILLHOUSE, aSummonPosition[1].m_fX, aSummonPosition[1].m_fY, aSummonPosition[1].m_fZ, aSummonPosition[1].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+            pMellichar->SummonCreature(NPC_MILLHOUSE, aSummonPosition[1].x, aSummonPosition[1].y, aSummonPosition[1].z, aSummonPosition[1].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             break;
         case SPELL_TARGET_DELTA:
             pMellichar->CastSpell(pMellichar, SPELL_TARGET_DELTA, false);
@@ -329,7 +329,7 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             SetData(TYPE_WARDEN_3, IN_PROGRESS);
             break;
         case TYPE_WARDEN_3:
-            pMellichar->SummonCreature(urand(0, 1) ? NPC_AKKIRIS : NPC_SULFURON, aSummonPosition[2].m_fX, aSummonPosition[2].m_fY, aSummonPosition[2].m_fZ, aSummonPosition[2].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+            pMellichar->SummonCreature(urand(0, 1) ? NPC_AKKIRIS : NPC_SULFURON, aSummonPosition[2].x, aSummonPosition[2].y, aSummonPosition[2].z, aSummonPosition[2].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             pMellichar->CastSpell(pMellichar, SPELL_TARGET_OMEGA, false);
             if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_BOSS_POD))
                 pMellichar->SetFacingToObject(pTarget);
@@ -346,7 +346,7 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             SetData(TYPE_WARDEN_4, IN_PROGRESS);
             break;
         case TYPE_WARDEN_4:
-            pMellichar->SummonCreature(urand(0, 1) ? NPC_TW_DRAKONAAR : NPC_BL_DRAKONAAR, aSummonPosition[3].m_fX, aSummonPosition[3].m_fY, aSummonPosition[3].m_fZ, aSummonPosition[3].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+            pMellichar->SummonCreature(urand(0, 1) ? NPC_TW_DRAKONAAR : NPC_BL_DRAKONAAR, aSummonPosition[3].x, aSummonPosition[3].y, aSummonPosition[3].z, aSummonPosition[3].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             pMellichar->CastSpell(pMellichar, SPELL_TARGET_OMEGA, false);
             if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_BOSS_POD))
                 pMellichar->SetFacingToObject(pTarget);
@@ -356,7 +356,7 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             SetData(TYPE_WARDEN_5, IN_PROGRESS);
             break;
         case TYPE_WARDEN_5:
-            pMellichar->SummonCreature(NPC_SKYRISS, aSummonPosition[4].m_fX, aSummonPosition[4].m_fY, aSummonPosition[4].m_fZ, aSummonPosition[4].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+            pMellichar->SummonCreature(NPC_SKYRISS, aSummonPosition[4].x, aSummonPosition[4].y, aSummonPosition[4].z, aSummonPosition[4].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             break;
         case SAY_SKYRISS_AGGRO:
             // Kill Mellichar and start combat

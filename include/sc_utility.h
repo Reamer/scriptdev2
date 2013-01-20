@@ -104,4 +104,21 @@ struct bit_mask { enum { value = 1UL << N1 | bit_mask<N2, N3, N4, N5, N6, -1>::v
 template <>
 struct bit_mask<-1, -1, -1, -1, -1, -1> { enum { value = 0 }; };
 
+struct StaticLocation
+{
+    float x, y, z, o;
+};
+
+struct EventLocations
+{
+    float x, y, z, o;
+    uint32 m_uiEntry;
+};
+
+struct SpawnLocation
+{
+    uint32 m_uiEntry;
+    float m_fX, m_fY, m_fZ, m_fO;
+};
+
 #endif // SC_UTILITY_H

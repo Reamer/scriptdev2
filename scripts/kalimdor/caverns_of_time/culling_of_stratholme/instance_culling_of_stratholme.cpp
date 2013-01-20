@@ -31,12 +31,7 @@ enum
     SAY_CHROMIE_HURRY    = -1000000                         // TODO
 };
 
-struct sSpawnLocation
-{
-    float m_fX, m_fY, m_fZ, m_fO;
-};
-
-static const sSpawnLocation m_aArthasSpawnLocs[] =          // need tuning
+static const LOCATION m_aArthasSpawnLocs[] =          // need tuning
 {
     {1969.73f, 1287.12f, 145.48f, 3.14f},
     {2049.43f, 1287.43f, 142.75f, 0.06f},
@@ -45,7 +40,7 @@ static const sSpawnLocation m_aArthasSpawnLocs[] =          // need tuning
     {2363.77f, 1406.31f, 128.64f, 3.23f}
 };
 
-static const sSpawnLocation m_aChromieSpawnLocs[] =         // need tuning, escpecially EndPositions!
+static const LOCATION m_aChromieSpawnLocs[] =         // need tuning, escpecially EndPositions!
 {
     {1814.46f, 1283.97f, 142.30f, 4.32f},                   // near bridge
     {2311.0f, 1502.4f, 127.9f, 0.0f},                       // End
@@ -53,25 +48,25 @@ static const sSpawnLocation m_aChromieSpawnLocs[] =         // need tuning, escp
     {2186.42f, 1323.77f, 129.91f, 0.0f},                    // Hourglass, End
 };
 
-static const sSpawnLocation m_aUtherAndJainaSpawnLoc[] =
+static const LOCATION m_aUtherAndJainaSpawnLoc[] =
 {
     {1761.42f, 1285.75f, 139.945f, 4.93f},                  // Spawning Position for Uther
     {1896.39f, 1292.91f, 143.711f, 0.0f},                   // Spawning Position for Jaina Proudmoore
 };
 
-static const sSpawnLocation m_aMalcomAndScruffySpawnLoc[] =
+static const LOCATION m_aMalcomAndScruffySpawnLoc[] =
 {
     {1603.38f, 805.988f, 123.272f, 1.9f},                   // Spawning Position for Malcom
     {1602.30f, 809.385f, 123.454f, 5.0f},                   // Spawning Position for Scuffy
 };
 
-static const sSpawnLocation m_aWaveSpawnLoc[] =
+static const LOCATION m_aWaveSpawnLoc[] =
 {
     {2193.82f, 1226.140f, 137.40f, 2.3f},                   // Right Spawn Location
     {2224.79f, 1331.750f, 127.16f, 3.5f},                   // Left Spawn Location
 };
 
-static const sSpawnLocation m_aInfiniteCorruptorSpawnLoc[] =
+static const LOCATION m_aInfiniteCorruptorSpawnLoc[] =
 {
     {2333.510f, 1277.315f, 132.885f, 3.44f},                // InfiniteCorruptor
     {2339.371f, 1280.550f, 135.345f, 3.44f},                // InfiniteCorruptor Portal
@@ -562,7 +557,7 @@ void instance_culling_of_stratholme::DoSpawnArthasIfNeeded()
     if (uiPosition && uiPosition <= MAX_ARTHAS_SPAWN_POS)
     {
         if (Player* pPlayer = GetPlayerInMap())
-            pPlayer->SummonCreature(NPC_ARTHAS, m_aArthasSpawnLocs[uiPosition-1].m_fX, m_aArthasSpawnLocs[uiPosition-1].m_fY, m_aArthasSpawnLocs[uiPosition-1].m_fZ, m_aArthasSpawnLocs[uiPosition-1].m_fO, TEMPSUMMON_MANUAL_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_ARTHAS, m_aArthasSpawnLocs[uiPosition-1].x, m_aArthasSpawnLocs[uiPosition-1].y, m_aArthasSpawnLocs[uiPosition-1].z, m_aArthasSpawnLocs[uiPosition-1].o, TEMPSUMMON_MANUAL_DESPAWN, 10000);
     }
 }
 
@@ -578,13 +573,13 @@ void instance_culling_of_stratholme::DoSpawnChromieIfNeeded()
     {
         Creature* pChromie = GetSingleCreatureFromStorage(NPC_CHROMIE_END, true);
         if (!pChromie)
-            pPlayer->SummonCreature(NPC_CHROMIE_END, m_aChromieSpawnLocs[1].m_fX, m_aChromieSpawnLocs[1].m_fY, m_aChromieSpawnLocs[1].m_fZ, m_aChromieSpawnLocs[1].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_CHROMIE_END, m_aChromieSpawnLocs[1].x, m_aChromieSpawnLocs[1].y, m_aChromieSpawnLocs[1].z, m_aChromieSpawnLocs[1].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
     }
     else if (GetInstancePosition() >= POS_ARTHAS_INTRO)
     {
         Creature* pChromie = GetSingleCreatureFromStorage(NPC_CHROMIE_ENTRANCE, true);
         if (!pChromie)
-            pPlayer->SummonCreature(NPC_CHROMIE_ENTRANCE, m_aChromieSpawnLocs[0].m_fX, m_aChromieSpawnLocs[0].m_fY, m_aChromieSpawnLocs[0].m_fZ, m_aChromieSpawnLocs[0].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_CHROMIE_ENTRANCE, m_aChromieSpawnLocs[0].x, m_aChromieSpawnLocs[0].y, m_aChromieSpawnLocs[0].z, m_aChromieSpawnLocs[0].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
     }
 }
 
@@ -594,14 +589,14 @@ void instance_culling_of_stratholme::DoSpawnUtherAndJainaIfNeeded()
     if (!pUther)
     {
         if (Player* pPlayer = GetPlayerInMap())
-            pPlayer->SummonCreature(NPC_UTHER_THE_LIGHTBRINGER, m_aUtherAndJainaSpawnLoc[0].m_fX, m_aUtherAndJainaSpawnLoc[0].m_fY, m_aUtherAndJainaSpawnLoc[0].m_fZ, m_aUtherAndJainaSpawnLoc[0].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_UTHER_THE_LIGHTBRINGER, m_aUtherAndJainaSpawnLoc[0].x, m_aUtherAndJainaSpawnLoc[0].y, m_aUtherAndJainaSpawnLoc[0].z, m_aUtherAndJainaSpawnLoc[0].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
     }
 
     Creature* pJainaProudmoore = GetSingleCreatureFromStorage(NPC_JAINA_PROUDMOORE, true);
     if (!pJainaProudmoore)
     {
         if (Player* pPlayer = GetPlayerInMap())
-            pPlayer->SummonCreature(NPC_JAINA_PROUDMOORE, m_aUtherAndJainaSpawnLoc[1].m_fX, m_aUtherAndJainaSpawnLoc[1].m_fY, m_aUtherAndJainaSpawnLoc[1].m_fZ, m_aUtherAndJainaSpawnLoc[1].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_JAINA_PROUDMOORE, m_aUtherAndJainaSpawnLoc[1].x, m_aUtherAndJainaSpawnLoc[1].y, m_aUtherAndJainaSpawnLoc[1].z, m_aUtherAndJainaSpawnLoc[1].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
     }
 }
 
@@ -611,14 +606,14 @@ void instance_culling_of_stratholme::DoSpawnMalcomAndScruffyIfNeed()
     if (!pMalcom)
     {
         if (Player* pPlayer = GetPlayerInMap())
-            pPlayer->SummonCreature(NPC_MALCOM_MOORE, m_aMalcomAndScruffySpawnLoc[0].m_fX, m_aMalcomAndScruffySpawnLoc[0].m_fY, m_aMalcomAndScruffySpawnLoc[0].m_fZ, m_aMalcomAndScruffySpawnLoc[0].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_MALCOM_MOORE, m_aMalcomAndScruffySpawnLoc[0].x, m_aMalcomAndScruffySpawnLoc[0].y, m_aMalcomAndScruffySpawnLoc[0].z, m_aMalcomAndScruffySpawnLoc[0].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
     }
 
     Creature* pScuffy = GetSingleCreatureFromStorage(NPC_SCRUFFY, true);
     if (!pScuffy)
     {
         if (Player* pPlayer = GetPlayerInMap())
-            pPlayer->SummonCreature(NPC_SCRUFFY, m_aMalcomAndScruffySpawnLoc[1].m_fX, m_aMalcomAndScruffySpawnLoc[1].m_fY, m_aMalcomAndScruffySpawnLoc[1].m_fZ, m_aMalcomAndScruffySpawnLoc[1].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+            pPlayer->SummonCreature(NPC_SCRUFFY, m_aMalcomAndScruffySpawnLoc[1].x, m_aMalcomAndScruffySpawnLoc[1].y, m_aMalcomAndScruffySpawnLoc[1].z, m_aMalcomAndScruffySpawnLoc[1].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
     }
 }
 
@@ -629,8 +624,8 @@ void instance_culling_of_stratholme::DoSpawnInfiniteCorruptorIfNeed()
 
     if (Creature* pArthas = GetSingleCreatureFromStorage(NPC_ARTHAS))
     {
-        pArthas->SummonCreature(NPC_INFINITE_CORRUPTER, m_aInfiniteCorruptorSpawnLoc[0].m_fX, m_aInfiniteCorruptorSpawnLoc[0].m_fY, m_aInfiniteCorruptorSpawnLoc[0].m_fZ, m_aInfiniteCorruptorSpawnLoc[0].m_fO, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 25*MINUTE*IN_MILLISECONDS);
-        pArthas->SummonCreature(NPC_TIME_RIFT_2, m_aInfiniteCorruptorSpawnLoc[1].m_fX, m_aInfiniteCorruptorSpawnLoc[1].m_fY, m_aInfiniteCorruptorSpawnLoc[1].m_fZ, m_aInfiniteCorruptorSpawnLoc[1].m_fO, TEMPSUMMON_TIMED_DESPAWN, 25*MINUTE*IN_MILLISECONDS);
+        pArthas->SummonCreature(NPC_INFINITE_CORRUPTER, m_aInfiniteCorruptorSpawnLoc[0].x, m_aInfiniteCorruptorSpawnLoc[0].y, m_aInfiniteCorruptorSpawnLoc[0].z, m_aInfiniteCorruptorSpawnLoc[0].o, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 25*MINUTE*IN_MILLISECONDS);
+        pArthas->SummonCreature(NPC_TIME_RIFT_2, m_aInfiniteCorruptorSpawnLoc[1].x, m_aInfiniteCorruptorSpawnLoc[1].y, m_aInfiniteCorruptorSpawnLoc[1].z, m_aInfiniteCorruptorSpawnLoc[1].o, TEMPSUMMON_TIMED_DESPAWN, 25*MINUTE*IN_MILLISECONDS);
     }
 }
 
@@ -790,7 +785,7 @@ void instance_culling_of_stratholme::SummonWave()
             {
                 if (pWaveData->m_auiMobEntry[i] && (pWaveData->m_uiSide == LEFT || pWaveData->m_uiSide == RIGHT))
                 {
-                    if (Creature* pTemp = pArthas->SummonCreature(pWaveData->m_auiMobEntry[i], m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fX + irand(-3, +3), m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fY + irand(-3, +3), m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fZ, m_aWaveSpawnLoc[pWaveData->m_uiSide].m_fO, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
+                    if (Creature* pTemp = pArthas->SummonCreature(pWaveData->m_auiMobEntry[i], m_aWaveSpawnLoc[pWaveData->m_uiSide].x + irand(-3, +3), m_aWaveSpawnLoc[pWaveData->m_uiSide].y + irand(-3, +3), m_aWaveSpawnLoc[pWaveData->m_uiSide].z, m_aWaveSpawnLoc[pWaveData->m_uiSide].o, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
                     {
                         //if (Player* pPlayer = GetPlayerInMap(true))
                           //  pTemp->AI()->AttackStart(pPlayer);
