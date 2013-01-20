@@ -132,9 +132,10 @@ void ScriptedAI::UpdateAI(const uint32 uiDiff)
  */
 void ScriptedAI::EnterEvadeMode()
 {
-    // need removeAll Passengers before RemoveAllAuras, because ride aura also deleted
-   if (m_creature->GetVehicleKit())
-       m_creature->GetVehicleKit()->RemoveAllPassengers();
+    VehicleKitPtr pVehicleKit = m_creature->GetVehicleKit();
+    if (pVehicleKit)
+        pVehicleKit->Reset();
+
     m_creature->RemoveAllAuras();
     m_creature->DeleteThreatList();
     m_creature->CombatStop(true);
@@ -145,10 +146,6 @@ void ScriptedAI::EnterEvadeMode()
     m_creature->SetLootRecipient(NULL);
 
     Reset();
-
-    // if Creature is a vehicle install all accessories
- //   if (m_creature->GetVehicleKit())
-       // m_creature->GetVehicleKit()->InstallAllAccessories(m_creature->GetEntry());
 }
 
 /// This function calls Reset() to reset variables as expected
@@ -251,7 +248,7 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* pTarget, int32 uiSchool, int32 i
             continue;
 
         //Check for school if specified
-        if (uiSchool >= 0 && (pTempSpell->SchoolMask & uiSchool))
+        if (uiSchool >= 0 && pTempSpell->SchoolMask & uiSchool)
             continue;
 
         //Check for spell mechanic if specified

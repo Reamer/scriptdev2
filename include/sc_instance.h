@@ -114,6 +114,7 @@ class DialogueHelper
         DialogueHelper(DialogueEntry const* pDialogueArray);
         // The array MUST be terminated by {0,0,0,0,0}
         DialogueHelper(DialogueEntryTwoSide const* aDialogueTwoSide);
+        virtual ~DialogueHelper(){};
 
         /// Function to initialize the dialogue helper for instances. If not used with instances, GetSpeakerByEntry MUST be overwritten to obtain the speakers
         void InitializeDialogueHelper(ScriptedInstance* pInstance, bool bCanSimulateText = false) { m_pInstance = pInstance; m_bCanSimulate = bCanSimulateText; }
