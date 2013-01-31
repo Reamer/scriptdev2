@@ -65,8 +65,7 @@ enum
     SPELL_GAS_SPORE             = 69278,
 
     // Vile Gas
-    SPELL_VILE_GAS_SUMMON       = 72288,
-    SPELL_VILE_GAS              = 71307
+    SPELL_VILE_GAS              = 69240,
 };
 
 enum
@@ -252,6 +251,17 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
             else
                 m_uiGastricBloatTimer -= uiDiff;
         }
+
+        if (m_uiVileGasTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_VILE_GAS, SELECT_FLAG_PLAYER))
+            {
+                if (DoCastSpellIfCan(pTarget, SPELL_VILE_GAS) == CAST_OK)
+                    m_uiVileGasTimer = urand(10000, 13000);
+            }
+        }
+        else
+            m_uiVileGasTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }

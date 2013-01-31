@@ -65,6 +65,13 @@ enum BossSpells
     NPC_BIG_OOZE                = 36899,
 
     MAX_MUTATE_INFACTION_STEPS  = 5,
+
+    // Vile Gas (heroic)
+    SPELL_VILE_GAS_SUMMON       = 72285,
+    SPELL_VILE_GAS_SUMMON_TRIG  = 72287,
+    SPELL_VILE_GAS              = 71307,
+    SPELL_VILE_GAS_TRIGGERED    = 72272,
+
 };
 
 struct Locations
@@ -117,11 +124,13 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
     uint32 m_uiSlimeSprayTimer;
     uint32 m_uiMutatedInfectionTimer;
     uint32 m_uiInfectionsRate;
+    uint32 m_uiVileGasTimer;
 
     void Reset() override
     {
         m_uiSlimeSprayTimer = urand(17000, 23000);
         m_uiInfectionsRate = 0;
+        m_uiVileGasTimer = urand(10000, 15000);
         m_uiMutatedInfectionTimer = uiMutatedInfections[m_uiInfectionsRate].durationOfOneTick * uiMutatedInfections[m_uiInfectionsRate].amountOfCast + 1000;
         ++m_uiInfectionsRate;
     }
@@ -209,6 +218,17 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
             }
             else
                 m_uiMutatedInfectionTimer -= uiDiff;
+        }
+
+        if (m_pInstance && m_pInstance->IsHeroicDifficulty())
+        {
+            if (m_uiVileGasTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature, XXX) == CAST_OK)
+                    m_uiVileGasTimer = urand(10000, 15000);
+            }
+            else
+                m_uiVileGasTimer -= uiDiff;            
         }
 
         DoMeleeAttackIfReady();
