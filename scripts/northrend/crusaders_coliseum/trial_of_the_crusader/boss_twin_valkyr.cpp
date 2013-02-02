@@ -128,14 +128,10 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
     {
         m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
         Difficulty m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
-        m_bIsHeroic = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_10MAN_HEROIC);
-        m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         Reset();
     }
 
     instance_trial_of_the_crusader* m_pInstance;
-    bool m_bIsHeroic;
-    bool m_bIs25Man;
 
     ValkyrPhases m_Phase;
     uint32 m_uiTwinSpikeLTimer;
@@ -211,7 +207,7 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
                 else
                     m_uiTwinSpikeLTimer -= uiDiff;
 
-                if (m_bIsHeroic)
+                if (m_pInstance && m_pInstance->IsHeroicDifficulty())
                 {
                     if (m_uiLightTouchTimer <= uiDiff)
                     {
@@ -286,15 +282,11 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
     {
         m_pInstance = (instance_trial_of_the_crusader*)pCreature->GetInstanceData();
         m_uiMapDifficulty = pCreature->GetMap()->GetDifficulty();
-        m_bIsHeroic = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_10MAN_HEROIC);
-        m_bIs25Man = (m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_NORMAL || m_uiMapDifficulty == RAID_DIFFICULTY_25MAN_HEROIC);
         Reset();
     }
 
     instance_trial_of_the_crusader* m_pInstance;
     Difficulty m_uiMapDifficulty;
-    bool m_bIsHeroic;
-    bool m_bIs25Man;
 
     ValkyrPhases m_Phase;
     uint32 m_uiTwinSpikeDTimer;
@@ -356,7 +348,7 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
                 else
                     m_uiTwinSpikeDTimer -= uiDiff;
 
-                if (m_bIsHeroic)
+                if (m_pInstance && m_pInstance->IsHeroicDifficulty())
                 {
                     if (m_uiDarkTouchTimer <= uiDiff)
                     {

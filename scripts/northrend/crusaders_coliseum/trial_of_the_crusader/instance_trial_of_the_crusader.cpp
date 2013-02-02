@@ -742,6 +742,9 @@ void instance_trial_of_the_crusader::JustDidDialogueStep(int32 iEntry)
             {
                 pJaraxxus->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
                 pJaraxxus->SetInCombatWithZone();
+                // workaround for Aggro handling with FIZZLEBANG and player
+                if (Player* pPlayer = GetPlayerInMap(true, false))
+                    pJaraxxus->AI()->EnterCombat(pPlayer);
             }
             break;
         }

@@ -105,6 +105,8 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
     bool m_bNextVolcanoSummon;
 
+    GuidList m_lSummoner;
+
     void Reset() 
     {
         m_uiNetherPowerTimer        = 0;
@@ -122,7 +124,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JARAXXUS, FAIL);
-
+        DespawnSummoner();
         m_creature->ForcedDespawn();
     }
 
@@ -130,6 +132,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JARAXXUS, DONE);
+        DespawnSummoner();
     }
 
     void Aggro(Unit* pWho)
@@ -171,11 +174,23 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
                     pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 else
                     pSummoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                m_lSummoner.push_back(pSummoned->GetObjectGuid());
                 break;
             default:
                 break;
         }
 
+    }
+
+    void DespawnSummoner()
+    {
+        for (GuidList::const_iterator itr = m_lSummoner.begin(); itr != m_lSummoner.end(); ++itr)
+        {
+            if (Creature* pSummoner = m_creature->GetMap()->GetCreature(*itr))
+            {
+                pSummoner->ForcedDespawn(4000);
+            }
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
