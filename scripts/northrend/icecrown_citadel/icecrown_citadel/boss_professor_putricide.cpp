@@ -141,12 +141,7 @@ enum
     SAY_ROTFACE_DEATH           = -1631080,
 };
 
-struct Locations
-{
-    float x,y,z,o;
-};
-
-static Locations SpawnLoc[]=
+static LOCATION SpawnLoc[]=
 {
     {4356.779785f, 3263.510010f, 389.398010f, 1.586f},  // 0 Putricide start point o=1.586
     {4295.081055f, 3188.883545f, 389.330261f, 4.270f},  // 1 Puticide Festergut say, o=4.27
@@ -446,10 +441,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                         if (Unit* pTarget = pRotface->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_VILE_GAS, SELECT_FLAG_PLAYER))
                         {
                             if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS) == CAST_OK)
-                            {
-                                if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS) == CAST_OK)
-                                    m_uiAssistanceSpellTimer = 30000;
-                            }
+                                m_uiAssistanceSpellTimer = 30000;
                         }
                     }
                 }

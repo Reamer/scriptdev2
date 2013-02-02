@@ -67,10 +67,7 @@ enum BossSpells
     MAX_MUTATE_INFACTION_STEPS  = 5,
 
     // Vile Gas (heroic)
-    SPELL_VILE_GAS_SUMMON       = 72285,
-    SPELL_VILE_GAS_SUMMON_TRIG  = 72287,
-    SPELL_VILE_GAS              = 71307,
-    SPELL_VILE_GAS_TRIGGERED    = 72272,
+    SPELL_VILE_GAS              = 69240,
 
 };
 
@@ -224,7 +221,7 @@ struct MANGOS_DLL_DECL boss_rotfaceAI : public ScriptedAI
         {
             if (m_uiVileGasTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, XXX) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS) == CAST_OK)
                     m_uiVileGasTimer = urand(10000, 15000);
             }
             else
