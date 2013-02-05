@@ -101,6 +101,7 @@ enum
     GO_ORANGE_VALVE                 = 201616, // triggers event 23438
     GO_ORANGE_TUBE                  = 201617,
     GO_GREEN_TUBE                   = 201618,
+    GO_DRINK_ME_TABLE               = 201584,
 
     GO_BLOODWING_DOOR               = 201920,
     GO_CRIMSON_HALL_DOOR            = 201376, // Council combat door

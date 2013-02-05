@@ -408,6 +408,7 @@ void instance_icecrown_citadel::OnObjectCreate(GameObject* pGo)
         case GO_GREEN_PLAGUE:
         case GO_ORANGE_VALVE:
         case GO_GREEN_VALVE:
+        case GO_DRINK_ME_TABLE:
             break;
         default:
             return;

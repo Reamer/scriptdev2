@@ -47,14 +47,13 @@ enum BossSpells
     SPELL_EXPUNGED_GAS              = 70701,
     SPELL_GASEOUS_BLOAT_VISUAL      = 70215,
 
-    // Professor spells
-    SPELL_BERSERK                   = 47008,
-
     // Assistance Spells from other Encounter
     SPELL_OOZE_FLOOD_TRIGGER        = 69795,
     SPELL_VILE_GAS                  = 72272,
     SPELL_MALLEABLE_GOO_ASSIST      = 70852,
 
+    // Professor spells
+    SPELL_BERSERK                   = 47008,
     SPELL_UNSTABLE_EXPERIMENT       = 70351,
     SPELL_VOLATILE_EXPERIMENT       = 72842, // heroic
     SPELL_GREEN_OOZE_SUMMON         = 71412,
@@ -331,7 +330,6 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             {
                 pSummoned->CastSpell(pSummoned, SPELL_SLIME_PUDDLE_AURA, true);
                 pSummoned->CastSpell(pSummoned, SPELL_GROW_STACKER_GROW_AURA, true);
-                //pSummoned->SetObjectScale(0.2f);
                 pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
                 break;
             }
@@ -751,21 +749,82 @@ CreatureAI* GetAI_mob_icc_volatile_ooze(Creature* pCreature)
     return new mob_icc_volatile_oozeAI(pCreature);
 }
 
+// mob Mutated Abomination
+struct MANGOS_DLL_DECL mob_mutated_amobinationAI : public ScriptedAI
+{
+    mob_mutated_amobinationAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        SetCombatMovement(false);
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
+        Reset();
+    }
+
+    instance_icecrown_citadel* m_pInstance;
+
+    void Reset() override
+    {
+        m_creature->SetPower(POWER_ENERGY, 0);
+    }
+
+    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
+    {
+        if (pSpell->SpellDifficultyId == 2178)
+        {
+            m_creature->MonsterSay("I have cast Regurgitated Ooze", LANG_UNIVERSAL);
+            if (m_pInstance)
+                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
+        }
+    }
+
+    void JustDied(Unit* pKiller) override
+    {
+        if (m_pInstance && m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE) != DONE)
+        {
+            // Possibly remove GO_FLAG_NO_INTERACT when amob dies is not blizz-like
+            if (GameObject* pGOTable = m_pInstance->GetSingleGameObjectFromStorage(GO_DRINK_ME_TABLE))
+                pGOTable->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+        }
+    }
+};
+
+CreatureAI* GetAI_mob_mutated_amobination(Creature* pCreature)
+{
+    return new mob_mutated_amobinationAI(pCreature);
+}
+
+// GO Drink Me!
+bool GOUse_go_drink_me(Player* pPlayer, GameObject* pGameObject)
+{
+    pGameObject->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+    pPlayer->CastSpell(pPlayer, 70308 , true, NULL, NULL, pGameObject->GetObjectGuid());
+    return true;
+}
+
 void AddSC_boss_professor_putricide()
 {
-    Script *newscript;
-    newscript = new Script;
-    newscript->Name = "boss_professor_putricide";
-    newscript->GetAI = &GetAI_boss_professor_putricide;
-    newscript->RegisterSelf();
+    Script* pNewScript;
+    pNewScript = new Script;
+    pNewScript->Name = "boss_professor_putricide";
+    pNewScript->GetAI = &GetAI_boss_professor_putricide;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "mob_icc_volatile_ooze";
-    newscript->GetAI = &GetAI_mob_icc_volatile_ooze;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_icc_volatile_ooze";
+    pNewScript->GetAI = &GetAI_mob_icc_volatile_ooze;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "mob_icc_gas_cloud";
-    newscript->GetAI = &GetAI_mob_icc_gas_cloud;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_icc_gas_cloud";
+    pNewScript->GetAI = &GetAI_mob_icc_gas_cloud;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "mob_mutated_amobination";
+    pNewScript->GetAI = &GetAI_mob_mutated_amobination;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_drink_me";
+    pNewScript->pGOUse = &GOUse_go_drink_me;
+    pNewScript->RegisterSelf();
 }
