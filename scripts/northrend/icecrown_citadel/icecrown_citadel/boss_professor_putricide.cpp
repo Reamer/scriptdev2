@@ -31,7 +31,7 @@ EndScriptData */
 enum BossSpells
 {
     // controlled abomination
-    SPELL_MUTATED_TRANSFORMATION    = 70311,
+    SPELL_MUTATED_TRANSFORMATION    = 70308,
     SPELL_EAT_OOZE                  = 72527,
     SPELL_REGURGITATED_OOZE         = 70539,
     SPELL_MUTATED_SLASH             = 70542,
@@ -796,7 +796,7 @@ CreatureAI* GetAI_mob_mutated_amobination(Creature* pCreature)
 bool GOUse_go_drink_me(Player* pPlayer, GameObject* pGameObject)
 {
     pGameObject->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-    pPlayer->CastSpell(pPlayer, 70308 , true, NULL, NULL, pGameObject->GetObjectGuid());
+    pPlayer->CastSpell(pPlayer, SPELL_MUTATED_TRANSFORMATION , true, NULL, NULL, pGameObject->GetObjectGuid());
     return true;
 }
 
