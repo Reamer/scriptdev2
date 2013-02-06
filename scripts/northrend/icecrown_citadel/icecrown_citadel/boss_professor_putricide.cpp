@@ -428,40 +428,43 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (m_pInstance && IsAssisting() && m_pInstance->IsHeroicDifficulty())
+        if (m_pInstance && IsAssisting())
         {
-            if (m_pInstance->GetData(TYPE_ROTFACE) == IN_PROGRESS)
+            if (m_pInstance->IsHeroicDifficulty())
             {
-                if (m_uiAssistanceSpellTimer <= uiDiff)
+                if (m_pInstance->GetData(TYPE_ROTFACE) == IN_PROGRESS)
                 {
-                    if (Creature* pRotface = m_pInstance->GetSingleCreatureFromStorage(NPC_ROTFACE))
+                    if (m_uiAssistanceSpellTimer <= uiDiff)
                     {
-                        if (Unit* pTarget = pRotface->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_VILE_GAS, SELECT_FLAG_PLAYER))
+                        if (Creature* pRotface = m_pInstance->GetSingleCreatureFromStorage(NPC_ROTFACE))
                         {
-                            if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS) == CAST_OK)
-                                m_uiAssistanceSpellTimer = 30000;
+                            if (Unit* pTarget = pRotface->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_VILE_GAS, SELECT_FLAG_PLAYER))
+                            {
+                                if (DoCastSpellIfCan(m_creature, SPELL_VILE_GAS) == CAST_OK)
+                                    m_uiAssistanceSpellTimer = 30000;
+                            }
                         }
                     }
+                    else
+                        m_uiAssistanceSpellTimer -= uiDiff;
                 }
-                else
-                    m_uiAssistanceSpellTimer -= uiDiff;
-            }
 
-            if (m_pInstance->GetData(TYPE_FESTERGUT) == IN_PROGRESS)
-            {
-                if (m_uiAssistanceSpellTimer <= uiDiff)
+                if (m_pInstance->GetData(TYPE_FESTERGUT) == IN_PROGRESS)
                 {
-                    if (Creature* pRotface = m_pInstance->GetSingleCreatureFromStorage(NPC_FESTERGUT))
+                    if (m_uiAssistanceSpellTimer <= uiDiff)
                     {
-                        if (Unit* pTarget = pRotface->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_VILE_GAS, SELECT_FLAG_PLAYER))
+                        if (Creature* pRotface = m_pInstance->GetSingleCreatureFromStorage(NPC_FESTERGUT))
                         {
-                            if (DoCastSpellIfCan(pTarget, SPELL_MALLEABLE_GOO_ASSIST) == CAST_OK)
-                                m_uiAssistanceSpellTimer = 30000;
+                            if (Unit* pTarget = pRotface->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_VILE_GAS, SELECT_FLAG_PLAYER))
+                            {
+                                if (DoCastSpellIfCan(pTarget, SPELL_MALLEABLE_GOO_ASSIST) == CAST_OK)
+                                    m_uiAssistanceSpellTimer = 30000;
+                            }
                         }
                     }
+                    else
+                        m_uiAssistanceSpellTimer -= uiDiff;
                 }
-                else
-                    m_uiAssistanceSpellTimer -= uiDiff;
             }
             return;
         }
@@ -669,6 +672,7 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
             case WAITING:
                 if (DoCastSpellIfCan(m_creature, SPELL_GASEOUS_BLOAT) == CAST_OK)
                     phase = CASTING;
+                break;
             case CASTING:
             default:
                 //do nothing
@@ -711,7 +715,7 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public ScriptedAI
 
         if (pSpell->SpellDifficultyId == 2241)
         {
-            pTarget->FixateTarget(pTarget);
+            m_creature->FixateTarget(pTarget);
             phase = FOLLOW;
         }
     }
@@ -736,6 +740,7 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public ScriptedAI
             case WAITING:
                 if (DoCastSpellIfCan(m_creature, SPELL_OOZE_ADHESIVE) == CAST_OK)
                     phase = CASTING;
+                break;
             case CASTING:
             default:
                 //do nothing
