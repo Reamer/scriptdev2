@@ -324,6 +324,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             case NPC_GROWING_OOZE_PUDDLE_TRIGGER:
             {
                 DoCastSpellIfCan(pSummoned, SPELL_SLIME_PUDDLE, CAST_TRIGGERED);
+                pSummoned->ForcedDespawn(10*IN_MILLISECONDS);
                 break;
             }
             case NPC_GROWING_OOZE_PUDDLE:
@@ -466,6 +467,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                         m_uiAssistanceSpellTimer -= uiDiff;
                 }
             }
+            // return when in Assisting mode
             return;
         }
 
