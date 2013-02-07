@@ -102,6 +102,8 @@ enum BossSpells
     NPC_VOLATILE_OOZE               = 37697,
     NPC_MUTATED_ABOMINATION         = 37672,
     NPC_MALLEABLE_GOO               = 38556,
+    NPC_GAS_COUD                    = 37562,
+    NPC_VOLATILE_OOZE               = 37697,
 
 /*
     SPELL_OOZE_GAS_PROTECTION     = 70812,
@@ -289,8 +291,23 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
 
     void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
     {
-        if (pSpell->Id == SPELL_OOZE_FLOOD_TRIGGER)
-            DoScriptText(urand(0, 1) ? SAY_SLIME_FLOW_1 : SAY_SLIME_FLOW_2, m_creature);
+        switch(pSpell->Id)
+        {
+            case SPELL_OOZE_FLOOD_TRIGGER:
+            {
+                DoScriptText(urand(0, 1) ? SAY_SLIME_FLOW_1 : SAY_SLIME_FLOW_2, m_creature);
+                break;
+            }
+            case SPELL_TEAR_GAS:
+            {
+                SetCombatMovement(false);
+                m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
+                m_Phase = m_Phase == PHASE_ONE ? PHASE_RUNNING_ONE : PHASE_RUNNING_TWO;
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     void DoExperiment(bool green, bool both = false)
@@ -316,9 +333,6 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
 
     void JustSummoned(Creature *pSummoned) override
     {
-        if (pSummoned->GetEntry() != NPC_GREEN_ORANGE_OOZE_STALKER)
-            pSummoned->SetInCombatWithZone();
-
         switch (pSummoned->GetEntry())
         {
             case NPC_GROWING_OOZE_PUDDLE_TRIGGER:
@@ -493,19 +507,15 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                             {
                                 DoExperiment(true, true);
                                 DoScriptText(SAY_PHASE_CHANGE, m_creature);
-                                m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
                                 SetCombatMovement(false);
+                                m_creature->GetMotionMaster()->Clear();
+                                m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
                                 m_Phase = PHASE_RUNNING_ONE;
                             }
                         }
                         else
                         {
-                            if (DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS) == CAST_OK)
-                            {
-                                m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                                SetCombatMovement(false);
-                                m_Phase = PHASE_RUNNING_ONE;
-                            }                            
+                            DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS);
                         }
                         return;
                     }
@@ -547,18 +557,14 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                                 DoExperiment(true, true);
                                 DoScriptText(SAY_PHASE_CHANGE, m_creature);
                                 SetCombatMovement(false);
+                                m_creature->GetMotionMaster()->Clear();
                                 m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
                                 m_Phase = PHASE_RUNNING_TWO;
                             }
                         }
                         else
                         {
-                            if (DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS) == CAST_OK)
-                            {
-                                SetCombatMovement(false);
-                                m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                                m_Phase = PHASE_RUNNING_TWO;
-                            }
+                            DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS);
                         }
                         return;
                     }
@@ -626,7 +632,7 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
     mob_icc_gas_cloudAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
-        //m_creature->SetSpeedRate(MOVE_RUN, 1.0f);
+        m_creature->SetSpeedRate(MOVE_RUN, 1.0f);
         Reset();
     }
 
@@ -696,7 +702,7 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public ScriptedAI
     mob_icc_volatile_oozeAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
-        //m_creature->SetSpeedRate(MOVE_RUN, 1.0f);
+        m_creature->SetSpeedRate(MOVE_RUN, 1.0f);
         Reset();
     }
 
