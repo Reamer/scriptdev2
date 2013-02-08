@@ -142,13 +142,7 @@ static const DialogueEntry aCitadelDialogue[] =
     {0, 0, 0},
 };
 
-struct Locations
-{
-    float x,y,z,o;
-};
-
-// positions
-static Locations fSaurfangPositions[12]=
+static LOCATION fSaurfangPositions[12]=
 {
     {-468.05f, 2211.69f, 541.11f, 3.16f}, // Deathbringer teleport point
     {-491.30f, 2211.35f, 541.11f, 3.16f}, // Deathbringer dest point

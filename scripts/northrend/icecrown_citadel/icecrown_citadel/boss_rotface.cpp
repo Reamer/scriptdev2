@@ -71,11 +71,7 @@ enum BossSpells
 
 };
 
-struct Locations
-{
-    float x,y,z,o;
-};
-const static Locations PutricideRotfacePoint = {4417.302246f, 3188.219971f, 389.332520f, 5.102f};  // 2 Putricide Rotface say o=5.102
+const static LOCATION PutricideRotfacePoint = {4417.302246f, 3188.219971f, 389.332520f, 5.102f};  // 2 Putricide Rotface say o=5.102
 
 struct MutatedInfections
 {

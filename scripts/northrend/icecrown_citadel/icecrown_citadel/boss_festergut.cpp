@@ -82,11 +82,7 @@ enum
     SAY_FESTERGUT_DEATH         = -1631091,
 };
 
-struct Locations
-{
-    float x,y,z,o;
-};
-const static Locations PutricideFestergutPoint= {4295.081055f, 3188.883545f, 389.330261f, 4.270f};  // 1 Puticide Festergut say, o=4.27
+const static LOCATION PutricideFestergutPoint= {4295.081055f, 3188.883545f, 389.330261f, 4.270f};  // 1 Puticide Festergut say, o=4.27
 
 struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
 {

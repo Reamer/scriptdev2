@@ -227,13 +227,7 @@ enum Phase
     PHASE_NORMAL_FORM       =   7,                          // Internal marker, for switching back to either NORMAL_2 or NORMAL_MAIEV
 };
 
-struct Locations
-{
-    float x, y, z;
-    uint32 id;
-};
-
-static const Locations aGlaivePosition[]=
+static const LOCATION aGlaivePosition[]=
 {
     {695.105f, 305.303f, 354.256f},
     {659.338f, 305.303f, 354.256f},
@@ -241,7 +235,7 @@ static const Locations aGlaivePosition[]=
     {664.338f, 305.303f, 354.256f}
 };
 
-static const Locations aEyeBlast[]=
+static const LOCATION aEyeBlast[]=
 {
     {650.697f, 320.128f, 353.730f},
     {652.799f, 275.091f, 353.367f},
@@ -249,7 +243,7 @@ static const Locations aEyeBlast[]=
     {709.865f, 325.654f, 353.322f}
 };
 
-static const Locations aAkamaWP[]=
+static const LOCATION aAkamaWP[]=
 {
     {770.01f, 304.50f, 312.29f},                            // Bottom of the first stairs, at the doors
     {780.66f, 304.50f, 319.74f},                            // Top of the first stairs
@@ -265,11 +259,12 @@ static const Locations aAkamaWP[]=
     {796.84f, 304.89f, 319.76f},                            // Down the second flight of stairs
     {782.01f, 304.55f, 319.76f}                             // Final location - back at the uiInitial gates. This is where he will fight the minions!
 };
+
 // 755.762, 304.0747, 312.1769 -- This is where Akama should be spawned
-static const Locations aSpiritSpawns[]=
+static const SpawnLocation aSpiritSpawns[]=
 {
-    {755.5426f, 309.9156f, 312.2129f, SPIRIT_OF_UDALO},
-    {755.5426f, 298.7923f, 312.0834f, SPIRIT_OF_OLUM}
+    {SPIRIT_OF_UDALO, 755.5426f, 309.9156f, 312.2129f, 0.0f},
+    {SPIRIT_OF_OLUM, 755.5426f, 298.7923f, 312.0834f, 0.0f}
 };
 
 struct WayPoints
@@ -539,7 +534,7 @@ struct MANGOS_DLL_DECL npc_akama_illidanAI : public ScriptedAI
                 m_creature->GetPosition(PosX, PosY, PosZ);
                 for(uint8 i = 0; i < 2; ++i)
                 {
-                    Creature* Spirit = m_creature->SummonCreature(aSpiritSpawns[i].id, aSpiritSpawns[i].x, aSpiritSpawns[i].y, aSpiritSpawns[i].z, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 360000);
+                    Creature* Spirit = m_creature->SummonCreature(aSpiritSpawns[i].m_uiEntry, aSpiritSpawns[i].m_fX, aSpiritSpawns[i].m_fY, aSpiritSpawns[i].m_fZ, aSpiritSpawns[i].m_fO, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 360000);
                     if (Spirit)
                     {
                         Spirit->SetVisibility(VISIBILITY_OFF);

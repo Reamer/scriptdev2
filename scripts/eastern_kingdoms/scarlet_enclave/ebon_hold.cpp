@@ -1703,13 +1703,7 @@ enum mograine
     SPELL_THUNDER                     = 53630
 };
 
-struct Locations
-{
-    float x, y, z, o;
-    uint32 id;
-};
-
-static Locations LightofDawnLoc[]=
+static LOCATION LightofDawnLoc[]=
 {
     {2281.335f, -5300.409f, 85.170f, 0.0f},     // 0 Tirion Fordring loc
     {2283.896f, -5287.914f, 83.066f, 1.55f},    // 1 Tirion Fordring loc2

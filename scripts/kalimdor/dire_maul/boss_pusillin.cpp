@@ -36,12 +36,7 @@ enum{
 	SPELL_GROWUP   =	22735
 };
 
-
-struct Locations
-{
-    float x, y, z;
-};
-static Locations PusillinWP[]=
+static LOCATION PusillinWP[]=
 {
 	{-163.86f, -198.46f, -4.15f},                            // Start
 	{-138.83f, -351.36f, -4.15f},                            
