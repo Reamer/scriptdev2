@@ -301,7 +301,10 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             {
                 SetCombatMovement(false);
                 m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                m_Phase = m_Phase == PHASE_ONE ? PHASE_RUNNING_ONE : PHASE_RUNNING_TWO;
+                if (m_Phase == PHASE_ONE)
+                    m_Phase = PHASE_RUNNING_ONE;
+                else if (m_Phase == PHASE_TWO)
+                    m_Phase = PHASE_RUNNING_TWO;
                 break;
             }
             default:
@@ -740,8 +743,8 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public ScriptedAI
             case FOLLOW:
                 if (m_creature->GetDistance(m_creature->getVictim()) <= 4.0f)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_OOZE_ERUPTION, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
-                        phase = WAITING;
+                    DoCastSpellIfCan(m_creature->getVictim(), SPELL_OOZE_ERUPTION, CAST_INTERRUPT_PREVIOUS);
+                    phase = WAITING;
                 }
                 break;
             case WAITING:
