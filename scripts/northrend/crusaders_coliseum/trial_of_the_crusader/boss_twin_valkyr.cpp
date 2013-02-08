@@ -187,6 +187,10 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        // workaround for reset, because the valkyrs attack themself if raid whipes
+        if (m_creature->getVictim()->GetTypeId() != TYPEID_PLAYER)
+            m_creature->AI()->EnterEvadeMode();
+
         if (m_uiOrbsSummonTimer <= uiDiff)
         {
             DoCastSpellIfCan(m_creature, SPELL_SUMMON_DARK_BULLET, CAST_TRIGGERED);
@@ -336,6 +340,10 @@ struct MANGOS_DLL_DECL boss_eydisAI : public ScriptedAI
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
+
+        // workaround for reset, because the valkyrs attack themself if raid whipes
+        if (m_creature->getVictim()->GetTypeId() != TYPEID_PLAYER)
+            m_creature->AI()->EnterEvadeMode();
 
         switch (m_Phase)
         {

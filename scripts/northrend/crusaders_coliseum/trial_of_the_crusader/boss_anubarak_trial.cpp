@@ -794,12 +794,12 @@ void AddSC_boss_anubarak_trial()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
-    pNewScript->Name = "mob_anubarak_spike";
+    pNewScript->Name = "npc_anubarak_spike";
     pNewScript->GetAI = &GetAI_npc_anubarak_trial_spikes;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
-    pNewScript->Name = "mob_frost_sphere";
+    pNewScript->Name = "npc_frost_sphere";
     pNewScript->GetAI = &GetAI_mob_frost_sphere;
     pNewScript->RegisterSelf();
 }
