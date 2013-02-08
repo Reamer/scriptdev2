@@ -71,7 +71,7 @@ enum BossSpells
 
 };
 
-const static LOCATION PutricideRotfacePoint = {4417.302246f, 3188.219971f, 389.332520f, 5.102f};  // 2 Putricide Rotface say o=5.102
+const static LOCATION PutricideRotfacePoint = Location(4417.302246f, 3188.219971f, 389.332520f, 5.102f);  // 2 Putricide Rotface say o=5.102
 
 struct MutatedInfections
 {
@@ -297,11 +297,11 @@ struct MANGOS_DLL_DECL mob_big_oozeAI : public ScriptedAI
 {
     mob_big_oozeAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_icecrown_citadel*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance *m_pInstance;
+    instance_icecrown_citadel *m_pInstance;
     uint32 m_uiStickyOozeTimer;
     uint32 m_uiCheckTimer;
     bool m_bHasSaid;
@@ -354,9 +354,11 @@ struct MANGOS_DLL_DECL mob_big_oozeAI : public ScriptedAI
                         {
                             if (Creature *pRotface = m_pInstance->GetSingleCreatureFromStorage(NPC_ROTFACE))
                             {
+                                pRotface->MonsterYell("Achievment gibs nicht mehr!!", LANG_UNIVERSAL);
                                 DoScriptText(SAY_OOZE_EXPLODE, pRotface);
                                 m_bHasSaid = true;
                             }
+                            m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_DANCES_WITH_OOZES, false);
                         }
                     }
                 }
@@ -382,56 +384,6 @@ struct MANGOS_DLL_DECL mob_big_oozeAI : public ScriptedAI
 CreatureAI* GetAI_mob_big_ooze(Creature* pCreature)
 {
     return new mob_big_oozeAI(pCreature);
-}
-
-// Ooze explosion stalker
-struct MANGOS_DLL_DECL mob_ooze_explosion_stalkerAI : public ScriptedAI
-{
-    mob_ooze_explosion_stalkerAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        pCreature->ForcedDespawn(10000);
-    }
-    void Reset(){}
-    void UpdateAI(const uint32 uiDiff){}
-};
-
-CreatureAI* GetAI_mob_ooze_explosion_stalker(Creature* pCreature)
-{
-    return new mob_ooze_explosion_stalkerAI(pCreature);
-}
-
-struct MANGOS_DLL_DECL mob_sticky_oozeAI : public ScriptedAI
-{
-    mob_sticky_oozeAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        SetCombatMovement(false);
-        pCreature->CastSpell(pCreature, SPELL_STICKY_AURA, true);
-    }
-
-    ScriptedInstance *m_pInstance;
-
-    void Reset(){}
-    void DamageTaken(Unit* pDealer, uint32& uiDamage)
-    {
-        uiDamage = 0;
-    }
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_pInstance)
-        {
-            if (m_pInstance->GetData(TYPE_ROTFACE) != IN_PROGRESS)
-            {
-                m_creature->ForcedDespawn();
-                return;
-            }
-        }
-    }
-};
-
-CreatureAI* GetAI_mob_sticky_ooze(Creature* pCreature)
-{
-    return new mob_sticky_oozeAI(pCreature);
 }
 
 void AddSC_boss_rotface()

@@ -166,7 +166,7 @@ static const uint32 aAllianceHordeChampions[][2] =
     {NPC_A_SU_HU_ALYSSIA_MOONSTALKER,   NPC_H_SU_HU_RUJ_KAH                 }
 };
 
-static Locations aChampionSP[] =
+static LOCATION aChampionSP[] =
 {
     {612.0f, 127.0f, 395.139526f},
     {610.0f, 133.0f, 395.139526f},
