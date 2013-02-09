@@ -621,7 +621,7 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_GASEOUS_BLOAT);
     }
 
-    void void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
     {
         if (pSpell->SpellDifficultyId == 2178)
         {
@@ -699,7 +699,7 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_OOZE_ADHESIVE);
     }
 
-    void void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
     {
         if (pSpell->SpellDifficultyId == 2178)
         {
