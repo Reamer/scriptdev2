@@ -471,6 +471,17 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
          }
     }
 
+    void DestroyMutatedAbomination()
+    {
+        if (m_pInstance)
+        {
+            if (Creature* pMutatedAbomination = m_pInstance->GetSingleCreatureFromStorage(NPC_MUTATED_ABOMINATION))
+            {
+                m_creature->DealDamage(pMutatedAbomination, pMutatedAbomination->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+            }
+        }
+    }
+
     void UpdateAI(const uint32 uiDiff) override
     {
         if (m_pInstance && IsAssisting())
@@ -561,6 +572,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                     else
                     {
                         m_Phase = PHASE_THREE;
+                        DestroyMutatedAbomination();
                         m_fHealthPercentForNextPhase = -1.0f; // Phase Three is end
                     }
                     DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS_CANCEL, CAST_TRIGGERED); // no affect in heroic mode, because no Tear Gas

@@ -268,6 +268,7 @@ void instance_icecrown_citadel::OnCreatureCreate(Creature* pCreature)
         case NPC_FESTERGUT:
         case NPC_ROTFACE:
         case NPC_PROFESSOR_PUTRICIDE:
+        case NPC_MUTATED_ABOMINATION:
         case NPC_TALDARAM:
         case NPC_VALANAR:
         case NPC_KELESETH:

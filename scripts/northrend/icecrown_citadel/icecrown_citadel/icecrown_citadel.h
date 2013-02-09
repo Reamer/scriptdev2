@@ -74,12 +74,13 @@ enum
     NPC_MENETHIL                    = 38579,
     NPC_FROSTMOURNE_TRIGGER         = 38584,
     NPC_FROSTMOURNE_HOLDER          = 27880,
+    // Festergut and Rotface
     NPC_STINKY                      = 37025,
     NPC_PRECIOUS                    = 37217,
-    NPC_PUDDLE_STALKER              = 37013, // related to Festergut and Rotface
+    NPC_PUDDLE_STALKER              = 37013,
     NPC_RIMEFANG                    = 37533,
     NPC_SPINESTALKER                = 37534,
-
+    NPC_MUTATED_ABOMINATION         = 37672,
 
     // GameObjects entries
     GO_ICEWALL_1                    = 201911,
