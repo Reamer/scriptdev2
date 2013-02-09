@@ -30,8 +30,8 @@ enum
     SPELL_BERSERK               = 47008,
 
     // Gastric Bloat
-    SPELL_GASTRIC_BLOAT         = 72214, // proc aura, ~8 sec cooldown, cooldown for Creature requires implementation in core
-    SPELL_GASTRIC_BLOAT_TRIGGER = 72219, // workaround for ~8 sec cooldown
+    SPELL_GASTRIC_BLOAT         = 72214,
+    SPELL_GASTRIC_BLOAT_TRIGGER = 72219,
 
     // Inhale Blight
     SPELL_INHALE_BLIGHT         = 69165,
@@ -99,24 +99,19 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
     uint32 m_uiGasSporeTimer;
     uint32 m_uiVileGasTimer;
 
-    // temp Timer, till Creatures have Spellcooldowns
-    uint32 m_uiGastricBloatTimer;
-
     void Reset() override
     {
         m_uiBerserkTimer = 5 * MINUTE * IN_MILLISECONDS;
         m_uiInhaleBlightTimer = 30000;
         m_uiGasSporeTimer = 20000;
         m_uiVileGasTimer = 10000;
-
-        m_uiGastricBloatTimer =  urand(7000, 9000);
     }
 
     void Aggro(Unit* pWho) override
     {
         DoScriptText(SAY_AGGRO, m_creature);
 
-        //DoCastSpellIfCan(m_creature, SPELL_GASTRIC_BLOAT, CAST_TRIGGERED); // not working as intended currently
+        DoCastSpellIfCan(m_creature, SPELL_GASTRIC_BLOAT, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, SPELL_GASEOUS_BLIGHT_1, CAST_TRIGGERED); // DoT aura
         DoCastSpellIfCan(m_creature, SPELL_GASEUS_BLIGHT_DUMMY, CAST_TRIGGERED); // visual cast on dummy npc
 
@@ -234,19 +229,6 @@ struct MANGOS_DLL_DECL boss_festergutAI : public ScriptedAI
         }
         else
             m_uiGasSporeTimer -= uiDiff;
-
-        if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
-        {
-            if (m_uiGastricBloatTimer < uiDiff)
-            {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_GASTRIC_BLOAT_TRIGGER) == CAST_OK)
-                {
-                    m_uiGastricBloatTimer = urand(7000, 9000);
-                }
-            }
-            else
-                m_uiGastricBloatTimer -= uiDiff;
-        }
 
         if (m_uiVileGasTimer < uiDiff)
         {
