@@ -337,25 +337,11 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             case NPC_GROWING_OOZE_PUDDLE_TRIGGER:
             {
                 DoCastSpellIfCan(pSummoned, SPELL_SLIME_PUDDLE, CAST_TRIGGERED);
-                pSummoned->ForcedDespawn(10*IN_MILLISECONDS);
+                pSummoned->ForcedDespawn(5*IN_MILLISECONDS);
                 break;
             }
-            case NPC_GROWING_OOZE_PUDDLE:
-            {
-                pSummoned->CastSpell(pSummoned, SPELL_SLIME_PUDDLE_AURA, true);
-                pSummoned->CastSpell(pSummoned, SPELL_GROW_STACKER_GROW_AURA, true);
-                pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+            default:
                 break;
-            }
-            case NPC_CHOKING_GAS_BOMB:
-            {
-                pSummoned->CastSpell(pSummoned, SPELL_CHOKING_GAS_BOMB_AURA, true);
-                // creature is already despawned and spell doesn't hit anybody, this need proper implementation in core
-                pSummoned->CastSpell(pSummoned, SPELL_CHOKING_GAS_BOMB_EXPL_AUR, true);
-                pSummoned->AI()->SetCombatMovement(false, true);
-                pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
-                break;
-            }
         }
     }
 
