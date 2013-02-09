@@ -287,7 +287,7 @@ struct MANGOS_DLL_DECL boss_deathbringer_saurfangAI : public ScriptedAI
                 m_creature->CastSpell(m_creature, SPELL_CALL_BLOOD_BEAST_5, true);
             }
 
-            m_uiBloodBeastsTimer  = 40000;
+            m_uiBloodBeastsTimer  = urand(35000, 40000);
 
             if (m_pInstance->IsHeroicDifficulty())
                 m_uiScentOfBloodTimer = 7000; // 5 seconds after beasts engage in combat
