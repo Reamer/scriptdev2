@@ -533,7 +533,11 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
             if (uiData == IN_PROGRESS)
                 SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, true);
             else if (uiData == FAIL)
+            {
+                if (GameObject* pGOTable = GetSingleGameObjectFromStorage(GO_DRINK_ME_TABLE))
+                    pGOTable->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
                 SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
+            }
             // Proff sometimes does't trigger door, so let's check it explicitly
            GameObject* pDoor = GetSingleGameObjectFromStorage(GO_SCIENTIST_DOOR);
            if (pDoor)
