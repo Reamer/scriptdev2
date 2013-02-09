@@ -179,7 +179,6 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
 
     PutricidePhases m_Phase;
 
-    uint32 m_uiHealthCheckTimer;
     uint32 m_uiTransitionTimer;
     uint32 m_uiEnrageTimer;
     uint32 m_uiSlimePuddleTimer;
@@ -190,6 +189,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
     uint32 m_uiUnboundPlagueTimer;
 
     bool m_bIsGreenOoze; // green or orange ooze to summon
+    float m_fHealthPercentForNextPhase;
 
     uint32 m_uiAssistanceSpellTimer;
 
@@ -199,8 +199,8 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         SetCombatMovement(true);
 
         m_bIsGreenOoze              = true; // first ooze summoned is always green
+        m_fHealthPercentForNextPhase = 80.0f;
 
-        m_uiHealthCheckTimer        = 1000;
         m_uiTransitionTimer         = 15000;
         m_uiEnrageTimer             = 10 * MINUTE * IN_MILLISECONDS;
         m_uiSlimePuddleTimer        = 10000;
@@ -300,11 +300,8 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             case SPELL_TEAR_GAS:
             {
                 SetCombatMovement(false);
+                m_creature->GetMotionMaster()->Clear();
                 m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                if (m_Phase == PHASE_ONE)
-                    m_Phase = PHASE_RUNNING_ONE;
-                else if (m_Phase == PHASE_TWO)
-                    m_Phase = PHASE_RUNNING_TWO;
                 break;
             }
             default:
@@ -355,6 +352,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                 pSummoned->CastSpell(pSummoned, SPELL_CHOKING_GAS_BOMB_AURA, true);
                 // creature is already despawned and spell doesn't hit anybody, this need proper implementation in core
                 pSummoned->CastSpell(pSummoned, SPELL_CHOKING_GAS_BOMB_EXPL_AUR, true);
+                pSummoned->AI()->SetCombatMovement(false, true);
                 pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
                 break;
             }
@@ -443,6 +441,36 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             m_uiEnrageTimer -= uiDiff;
     }
 
+    void UpdateHealthCheck(const uint32 uiDiff)
+    {
+        // health check
+         if (m_creature->GetHealthPercent() <= m_fHealthPercentForNextPhase)
+         {
+             if (m_pInstance->IsHeroicDifficulty())
+             {
+                 if (DoCastSpellIfCan(m_creature, SPELL_VOLATILE_EXPERIMENT) == CAST_OK)
+                 {
+                     DoExperiment(true, true);
+                     DoScriptText(SAY_PHASE_CHANGE, m_creature);
+                     SetCombatMovement(false);
+                     m_creature->GetMotionMaster()->Clear();
+                     m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
+                     m_Phase = m_Phase == PHASE_ONE ? PHASE_RUNNING_ONE : PHASE_RUNNING_TWO;
+                 }
+             }
+             else
+             {
+                 if (DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS) == CAST_OK)
+                 {
+                     // we work with spellhit, because Tear Gas has no interrupt flag for Moving
+                     // Move to table if Tear Gas Spell Hits Putricide
+                     m_Phase = m_Phase == PHASE_ONE ? PHASE_RUNNING_ONE : PHASE_RUNNING_TWO;
+                 }
+             }
+             return;
+         }
+    }
+
     void UpdateAI(const uint32 uiDiff) override
     {
         if (m_pInstance && IsAssisting())
@@ -498,88 +526,25 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
         {
             case PHASE_ONE:
             {
-                // health check
-                if (m_uiHealthCheckTimer <= uiDiff)
-                {
-                    if (m_creature->GetHealthPercent() <= 80.0f)
-                    {
-                        if (m_pInstance->IsHeroicDifficulty())
-                        {
-                            if (DoCastSpellIfCan(m_creature, SPELL_VOLATILE_EXPERIMENT) == CAST_OK)
-                            {
-                                DoExperiment(true, true);
-                                DoScriptText(SAY_PHASE_CHANGE, m_creature);
-                                SetCombatMovement(false);
-                                m_creature->GetMotionMaster()->Clear();
-                                m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                                m_Phase = PHASE_RUNNING_ONE;
-                            }
-                        }
-                        else
-                        {
-                            DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS);
-                        }
-                        return;
-                    }
-                    m_uiHealthCheckTimer = 1000;
-                }
-                else
-                    m_uiHealthCheckTimer -= uiDiff;
-
+                UpdateHealthCheck(uiDiff);
                 UpdateUnstableExperimentTimer(uiDiff);
                 break;
             }
-            case PHASE_TRANSITION_ONE:
-            {
-                if (m_uiTransitionTimer <= uiDiff)
-                {
-                    SetCombatMovement(true);
-                    m_creature->GetMotionMaster()->Clear();
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-                    m_uiTransitionTimer = 15000;
-                    m_Phase = PHASE_TWO;
-                    DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS_CANCEL, CAST_TRIGGERED); // no affect in heroic mode, because no Tear Gas
-                }
-                else
-                    m_uiTransitionTimer -= uiDiff;
-
-                return;
-            }
             case PHASE_TWO:
             {
-                // health check
-                if (m_uiHealthCheckTimer <= uiDiff)
-                {
-                    if (m_creature->GetHealthPercent() <= 35.0f)
-                    {
-                        if (m_pInstance->IsHeroicDifficulty())
-                        {
-                            if (DoCastSpellIfCan(m_creature, SPELL_VOLATILE_EXPERIMENT) == CAST_OK)
-                            {
-                                DoExperiment(true, true);
-                                DoScriptText(SAY_PHASE_CHANGE, m_creature);
-                                SetCombatMovement(false);
-                                m_creature->GetMotionMaster()->Clear();
-                                m_creature->GetMotionMaster()->MovePoint(POINT_PUTRICIDE_SPAWN, SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z);
-                                m_Phase = PHASE_RUNNING_TWO;
-                            }
-                        }
-                        else
-                        {
-                            DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS);
-                        }
-                        return;
-                    }
-                    m_uiHealthCheckTimer = 1000;
-                }
-                else
-                    m_uiHealthCheckTimer -= uiDiff;
-
+                UpdateHealthCheck(uiDiff);
                 UpdateMalleableGoo(uiDiff);
                 UpdateUnstableExperimentTimer(uiDiff);
                 UpdateChokingGasBombTimer(uiDiff);
                 break;
             }
+            case PHASE_THREE:
+            {
+                UpdateMalleableGoo(uiDiff);
+                UpdateChokingGasBombTimer(uiDiff);
+                break;
+            }
+            case PHASE_TRANSITION_ONE:
             case PHASE_TRANSITION_TWO:
             {
                 if (m_uiTransitionTimer <= uiDiff)
@@ -588,18 +553,20 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                     m_creature->GetMotionMaster()->Clear();
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                     m_uiTransitionTimer = 15000;
-                    m_Phase = PHASE_THREE;
+                    if (m_Phase == PHASE_TRANSITION_ONE)
+                    {
+                        m_Phase = PHASE_TWO;
+                        m_fHealthPercentForNextPhase = 35.0f;
+                    }
+                    else
+                    {
+                        m_Phase = PHASE_THREE;
+                        m_fHealthPercentForNextPhase = -1.0f; // Phase Three is end
+                    }
                     DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS_CANCEL, CAST_TRIGGERED); // no affect in heroic mode, because no Tear Gas
                 }
                 else
                     m_uiTransitionTimer -= uiDiff;
-
-                return;
-            }
-            case PHASE_THREE:
-            {
-                UpdateMalleableGoo(uiDiff);
-                UpdateChokingGasBombTimer(uiDiff);
                 break;
             }
             case PHASE_RUNNING_ONE:
