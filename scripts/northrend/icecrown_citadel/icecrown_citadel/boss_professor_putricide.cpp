@@ -99,7 +99,6 @@ enum BossSpells
     NPC_GROWING_OOZE_PUDDLE         = 37690,
     NPC_GROWING_OOZE_PUDDLE_TRIGGER = 38234,
     NPC_CHOKING_GAS_BOMB            = 38159,
-    NPC_MUTATED_ABOMINATION         = 37672,
     NPC_MALLEABLE_GOO               = 38556,
     NPC_GAS_COUD                    = 37562,
     NPC_VOLATILE_OOZE               = 37697,
