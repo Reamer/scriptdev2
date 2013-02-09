@@ -302,6 +302,7 @@ struct MANGOS_DLL_DECL boss_lady_deathwhisperAI : public ScriptedAI
         SetCombatMovement(true);
         m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
         m_bIsPhaseOne = false;
+        DoResetThreat();
     }
 
     void UpdateAI(const uint32 uiDiff) override
