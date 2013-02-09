@@ -656,7 +656,7 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
             case FOLLOW:
                 if (m_creature->GetDistance(m_creature->getVictim()) <= 4.0f)
                 {
-                    if (DoCastSpellIfCan(m_creature, SPELL_EXPUNGED_GAS) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature, SPELL_EXPUNGED_GAS, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
                         phase = WAITING;
                 }
                 break;
