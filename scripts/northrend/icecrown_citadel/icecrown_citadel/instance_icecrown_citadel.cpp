@@ -356,6 +356,10 @@ void instance_icecrown_citadel::OnObjectCreate(GameObject* pGo)
             if (m_auiEncounter[TYPE_VALITHRIA] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
+        case GO_BLOODWING_DOOR:
+        case GO_FROSTWING_DOOR:
+            pGo->SetGoState(GO_STATE_READY);
+            break;
         case GO_SAURFANG_CACHE:
         case GO_SAURFANG_CACHE_25:
         case GO_SAURFANG_CACHE_10_H:
@@ -813,8 +817,6 @@ void instance_icecrown_citadel::Update(uint32 uiDiff)
                 pDoor->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
             if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_SCIENTIST_DOOR_ORANGE))
                 pDoor->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-            //TODO: I have hear for a Putricide prefight event to the door GO_SCIENTIST_DOOR, if you kill monster, then door should be open.
-            DoUseDoorOrButton(GO_SCIENTIST_DOOR);
             m_uiPutricideValveTimer = 0;
         }
         else
