@@ -268,6 +268,7 @@ void instance_icecrown_citadel::OnCreatureCreate(Creature* pCreature)
         case NPC_FESTERGUT:
         case NPC_ROTFACE:
         case NPC_PROFESSOR_PUTRICIDE:
+        case NPC_MUTATED_ABOMINATION:
         case NPC_TALDARAM:
         case NPC_VALANAR:
         case NPC_KELESETH:
@@ -354,6 +355,10 @@ void instance_icecrown_citadel::OnObjectCreate(GameObject* pGo)
         case GO_GREEN_DRAGON_EXIT:
             if (m_auiEncounter[TYPE_VALITHRIA] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
+            break;
+        case GO_BLOODWING_DOOR:
+        case GO_FROSTWING_DOOR:
+            pGo->SetGoState(GO_STATE_READY);
             break;
         case GO_SAURFANG_CACHE:
         case GO_SAURFANG_CACHE_25:
@@ -487,8 +492,8 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
                     DoRespawnGameObject(GO_SAURFANG_CACHE, 60 * MINUTE);
                      // Note: these doors may not be correct. In theory the doors should be already opened
                     DoUseDoorOrButton(GO_SCIENTIST_DOOR);
-                    DoUseDoorOrButton(GO_CRIMSON_HALL_DOOR);
-                    DoUseDoorOrButton(GO_GREEN_DRAGON_ENTRANCE);
+                    //DoUseDoorOrButton(GO_CRIMSON_HALL_DOOR);
+                    //DoUseDoorOrButton(GO_GREEN_DRAGON_ENTRANCE);
                     break;
                 }
                 case IN_PROGRESS:
@@ -532,34 +537,13 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
             if (uiData == IN_PROGRESS)
                 SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, true);
             else if (uiData == FAIL)
+            {
+                if (GameObject* pGOTable = GetSingleGameObjectFromStorage(GO_DRINK_ME_TABLE))
+                    pGOTable->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
                 SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
-            // Proff sometimes does't trigger door, so let's check it explicitly
-           GameObject* pDoor = GetSingleGameObjectFromStorage(GO_SCIENTIST_DOOR);
-           if (pDoor)
-           {
-               switch (uiData)
-               {
-                   case IN_PROGRESS:
-                   case SPECIAL:
-                   {
-                       // Close door if it's open
-                       if (pDoor->getLootState() != GO_ACTIVATED)
-                           DoUseDoorOrButton(GO_SCIENTIST_DOOR);
-                       break;
-                   }
-                   case NOT_STARTED:
-                   case FAIL:
-                   case DONE:
-                   {
-                       // Open door if it's closed
-                       if (pDoor->getLootState() != GO_READY)
-                           DoUseDoorOrButton(GO_SCIENTIST_DOOR);
-                       break;
-                   }
-                   default: break;
-               }
-           }
-           break;
+            }
+            DoUseDoorOrButton(GO_SCIENTIST_DOOR);
+            break;
         }
         case TYPE_BLOOD_PRINCE_COUNCIL:
             m_auiEncounter[uiType] = uiData;
@@ -833,7 +817,6 @@ void instance_icecrown_citadel::Update(uint32 uiDiff)
                 pDoor->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
             if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_SCIENTIST_DOOR_ORANGE))
                 pDoor->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-
             m_uiPutricideValveTimer = 0;
         }
         else

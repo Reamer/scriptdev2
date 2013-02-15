@@ -99,7 +99,6 @@ enum BossSpells
     NPC_GROWING_OOZE_PUDDLE         = 37690,
     NPC_GROWING_OOZE_PUDDLE_TRIGGER = 38234,
     NPC_CHOKING_GAS_BOMB            = 38159,
-    NPC_MUTATED_ABOMINATION         = 37672,
     NPC_MALLEABLE_GOO               = 38556,
     NPC_GAS_COUD                    = 37562,
     NPC_VOLATILE_OOZE               = 37697,
@@ -273,13 +272,13 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             {
                 DoCastSpellIfCan(m_creature, SPELL_CREATE_CONCOCTION);
                 DoScriptText(SAY_TRANSFORM_1, m_creature);
-                m_uiTransitionTimer = m_pInstance->IsHeroicDifficulty() ? 30 * IN_MILLISECONDS : 4 * IN_MILLISECONDS;
+                m_uiTransitionTimer = m_pInstance->IsHeroicDifficulty() ? 30 * IN_MILLISECONDS : 10 * IN_MILLISECONDS;
                 m_Phase = PHASE_TRANSITION_ONE; // counter for entering phase 2
             }
             else if (m_Phase == PHASE_RUNNING_TWO)
             {
                 DoCastSpellIfCan(m_creature, SPELL_GUZZLE_POTIONS);
-                m_uiTransitionTimer = 4 * IN_MILLISECONDS;
+                m_uiTransitionTimer = 10 * IN_MILLISECONDS;
                 if (m_pInstance->IsHeroicDifficulty())
                     m_uiTransitionTimer = m_pInstance->Is25ManDifficulty() ? 20 * IN_MILLISECONDS : 30 * IN_MILLISECONDS;
                 DoScriptText(SAY_TRANSFORM_2, m_creature);
@@ -306,6 +305,12 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             }
             default:
                 break;
+        }
+        if (pSpell->SpellDifficultyId == 2178)
+        {
+            m_creature->MonsterSay("I have cast Regurgitated Ooze", LANG_UNIVERSAL);
+            if (m_pInstance)
+                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
         }
     }
 
@@ -457,6 +462,17 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
          }
     }
 
+    void DestroyMutatedAbomination()
+    {
+        if (m_pInstance)
+        {
+            if (Creature* pMutatedAbomination = m_pInstance->GetSingleCreatureFromStorage(NPC_MUTATED_ABOMINATION))
+            {
+                m_creature->DealDamage(pMutatedAbomination, pMutatedAbomination->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+            }
+        }
+    }
+
     void UpdateAI(const uint32 uiDiff) override
     {
         if (m_pInstance && IsAssisting())
@@ -547,6 +563,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
                     else
                     {
                         m_Phase = PHASE_THREE;
+                        DestroyMutatedAbomination();
                         m_fHealthPercentForNextPhase = -1.0f; // Phase Three is end
                     }
                     DoCastSpellIfCan(m_creature, SPELL_TEAR_GAS_CANCEL, CAST_TRIGGERED); // no affect in heroic mode, because no Tear Gas
@@ -601,6 +618,17 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
         phase = WAITING;
         DoCastSpellIfCan(m_creature, SPELL_GAS_VARIABLE_GAS, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, SPELL_GASEOUS_BLOAT_VISUAL, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, SPELL_GASEOUS_BLOAT);
+    }
+
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
+    {
+        if (pSpell->SpellDifficultyId == 2178)
+        {
+            m_creature->MonsterSay("I have cast Regurgitated Ooze", LANG_UNIVERSAL);
+            if (m_pInstance)
+                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
+        }
     }
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
@@ -628,8 +656,8 @@ struct MANGOS_DLL_DECL mob_icc_gas_cloudAI : public ScriptedAI
             case FOLLOW:
                 if (m_creature->GetDistance(m_creature->getVictim()) <= 4.0f)
                 {
-                    m_creature->getVictim()->CastSpell(m_creature->getVictim(), SPELL_EXPUNGED_GAS, true, NULL, NULL, m_creature->GetObjectGuid());
-                    phase = WAITING;
+                    if (DoCastSpellIfCan(m_creature, SPELL_EXPUNGED_GAS, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                        phase = WAITING;
                 }
                 break;
             case WAITING:
@@ -669,6 +697,16 @@ struct MANGOS_DLL_DECL mob_icc_volatile_oozeAI : public ScriptedAI
         phase = WAITING;
         DoCastSpellIfCan(m_creature, SPELL_OOZE_VARIABLE_OOZE, CAST_TRIGGERED);
         DoCastSpellIfCan(m_creature, SPELL_OOZE_ADHESIVE);
+    }
+
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
+    {
+        if (pSpell->SpellDifficultyId == 2178)
+        {
+            m_creature->MonsterSay("I have cast Regurgitated Ooze", LANG_UNIVERSAL);
+            if (m_pInstance)
+                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
+        }
     }
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
@@ -732,26 +770,6 @@ struct MANGOS_DLL_DECL mob_mutated_amobinationAI : public ScriptedAI
     void Reset() override
     {
         m_creature->SetPower(POWER_ENERGY, 0);
-    }
-
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
-    {
-        if (pSpell->SpellDifficultyId == 2178)
-        {
-            m_creature->MonsterSay("I have cast Regurgitated Ooze", LANG_UNIVERSAL);
-            if (m_pInstance)
-                m_pInstance->SetSpecialAchievementCriteria(TYPE_ACHIEVE_NAUSEA, false);
-        }
-    }
-
-    void JustDied(Unit* pKiller) override
-    {
-        if (m_pInstance && m_pInstance->GetData(TYPE_PROFESSOR_PUTRICIDE) != DONE)
-        {
-            // Possibly remove GO_FLAG_NO_INTERACT when amob dies is not blizz-like
-            if (GameObject* pGOTable = m_pInstance->GetSingleGameObjectFromStorage(GO_DRINK_ME_TABLE))
-                pGOTable->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-        }
     }
 };
 

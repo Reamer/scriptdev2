@@ -921,7 +921,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                             }
                         }
                         // pick a target and run for it
-                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER))
                         {
                             pTarget->GetPosition(fPosX, fPosY, fPosZ);
                             DoScriptText(EMOTE_MASSIVE_CRASH, m_creature, pTarget);
