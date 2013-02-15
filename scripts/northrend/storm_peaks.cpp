@@ -93,6 +93,7 @@ struct MANGOS_DLL_DECL npc_freeDragonAI : public ScriptedAI
                                     pPlayer->DealDamage(pPrisoner, pPrisoner->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                                 }
                             }
+                            ((Player*)pPlayer)->KilledMonsterCredit(m_creature->GetEntry(), m_creature->GetObjectGuid());
                             pPlayer->DealDamage(m_creature, m_creature->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                         }
                     }
