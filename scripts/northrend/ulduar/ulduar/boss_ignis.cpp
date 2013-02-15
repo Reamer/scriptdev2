@@ -266,8 +266,9 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
     {
         if (pCreature->GetEntry() == NPC_SCORCH_TRIGGER && !pCreature->IsInWater())
         {
+            pCreature->CastSpell(pCreature, m_bIsRegularMode ? SPELL_SCORCH_AURA : SPELL_SCORCH_AURA_H, true);
             pCreature->SetDisplayId(11686);
-            pCreature->SetInCombatWithZone();
+            pCreature->AI()->SetCombatMovement(false, true);
             pCreature->ForcedDespawn(SCORCH_DESPAWN_TIME);
         }
         else
