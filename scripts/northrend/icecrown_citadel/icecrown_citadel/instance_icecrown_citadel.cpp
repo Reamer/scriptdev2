@@ -491,7 +491,7 @@ void instance_icecrown_citadel::SetData(uint32 uiType, uint32 uiData)
                     DoUseDoorOrButton(GO_SAURFANG_DOOR);
                     DoRespawnGameObject(GO_SAURFANG_CACHE, 60 * MINUTE);
                      // Note: these doors may not be correct. In theory the doors should be already opened
-                    DoUseDoorOrButton(GO_SCIENTIST_DOOR);
+                    //DoUseDoorOrButton(GO_SCIENTIST_DOOR);
                     //DoUseDoorOrButton(GO_CRIMSON_HALL_DOOR);
                     //DoUseDoorOrButton(GO_GREEN_DRAGON_ENTRANCE);
                     break;
