@@ -65,6 +65,7 @@ enum
     NPC_LADY_JAINA_PROUDMOORE       = 37188, // after Saurfang's encounter
     NPC_ALLIANCE_MARINE             = 37830,
     NPC_SKYBREAKER_MARINE           = 37380,
+    // blood district
     NPC_BLOOD_ORB_CONTROL           = 38008,
     NPC_LANATHEL_INTRO              = 38004,
     NPC_VALITHRIA_QUEST             = 38589,
@@ -163,12 +164,14 @@ enum
     AREATRIGGER_MARROWGAR_INTRO         = 5732,
     AREATRIGGER_DEATHWHISPER_INTRO      = 5709,
     AREATRIGGER_SINDRAGOSA_PLATFORM     = 5604,
+    AREATRIGGER_BLOOD_PRINCE_COUNCIL    = 5708,
 
 
     // instance spells
     SPELL_GRIP_OF_AGONY                     = 70572,    // Saurfang Intro
     SPELL_VEHICLE_HARDCODED                 = 46598, // Deathbringer enters Overlord
     SPELL_ESSENCE_OF_THE_BLOOD_QUEEN        = 70867,
+    SPELL_FEIGN_DEATH                       = 71598,
 
 
     GO_TELEPORT_GOSSIP_MESSAGE      = 99323,
@@ -194,6 +197,8 @@ enum
     EVENT_STOP_SAURFANG_INTRO_ALLY      = 7,
     EVENT_START_SAURFANG_OUTRO_ALLY     = 8,
     EVENT_STOP_SAURFANG_OUTRO_ALLY      = 9,
+
+    EVENT_REVIEW_BLOOD_COUNCIL          = 10,
 };
 
 enum IcecrownAchievments
@@ -339,6 +344,7 @@ class MANGOS_DLL_DECL instance_icecrown_citadel : public ScriptedInstance, priva
 
         bool m_bHasMarrowgarIntroYelled;
         bool m_bHasDeathwhisperIntroYelled;
+        bool m_bHasBloodCouncilIntroYelled;
         bool m_bHasRimefangLanded;
         bool m_bHasSpinestalkerLanded;
 

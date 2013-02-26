@@ -81,9 +81,13 @@ enum
     SAY_SAURFANG_OUTRO_HORDE_4           = -1631069,
 
     // Festergut
-    SAY_STINKY_DIES = -1631081,
+    SAY_STINKY_DIES                      = -1631081,
     // Rotface
-    SAY_PRECIOUS_DIES = -1631070,
+    SAY_PRECIOUS_DIES                    = -1631070,
+
+    // blood prince council
+    SAY_COUNCIL_INTRO_1                 = -1631101,                 // Intro by Bloodqueen
+    SAY_COUNCIL_INTRO_2                 = -1631102,
 };
 
 static const DialogueEntry aCitadelDialogue[] =
@@ -139,6 +143,9 @@ static const DialogueEntry aCitadelDialogue[] =
     {SAY_SAURFANG_OUTRO_HORDE_3, NPC_OVERLORD_SAURFANG, 11000},
     {SAY_SAURFANG_OUTRO_HORDE_4, NPC_OVERLORD_SAURFANG, 10000},
     {EVENT_STOP_SAURFANG_OUTRO_HORDE, 0, 0},
+    {SAY_COUNCIL_INTRO_1, NPC_LANATHEL_INTRO, 15000},
+    {SAY_COUNCIL_INTRO_1, NPC_LANATHEL_INTRO, 5000},
+    {EVENT_REVIEW_BLOOD_COUNCIL, 0, 0},
     {0, 0, 0},
 };
 
@@ -170,6 +177,7 @@ m_uiPutricideValveTimer(0),
 m_bHasMarrowgarIntroYelled(false),
 m_bHasDeathwhisperIntroYelled(false),
 m_bHasRimefangLanded(false),
+m_bHasBloodCouncilIntroYelled(false),
 m_bHasSpinestalkerLanded(false)
 {
     Initialize();
@@ -208,6 +216,11 @@ void instance_icecrown_citadel::DoHandleCitadelAreaTrigger(uint32 uiTriggerId, P
     {
         StartNextDialogueText(SAY_DEATHWHISPER_SPEECH_1);
         m_bHasDeathwhisperIntroYelled = true;
+    }
+    else if (uiTriggerId == AREATRIGGER_BLOOD_PRINCE_COUNCIL && !m_bHasBloodCouncilIntroYelled)
+    {
+        StartNextDialogueText(SAY_COUNCIL_INTRO_1);
+        m_bHasBloodCouncilIntroYelled = true;
     }
     else if (uiTriggerId == AREATRIGGER_SINDRAGOSA_PLATFORM)
     {
@@ -1009,6 +1022,32 @@ void instance_icecrown_citadel::JustDidDialogueStep(int32 iEntry)
             break;
         }
         // TODO: alliance outro
+        case EVENT_REVIEW_BLOOD_COUNCIL:
+        {
+            if (Creature *pTaldaram = GetSingleCreatureFromStorage(NPC_TALDARAM))
+            {
+                pTaldaram->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                pTaldaram->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
+                pTaldaram->SetInCombatWithZone();
+            }
+            if (Creature *pKeleseth = GetSingleCreatureFromStorage(NPC_KELESETH))
+            {
+                pKeleseth->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                pKeleseth->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
+                pKeleseth->SetInCombatWithZone();
+            }
+            if (Creature *pValanar = GetSingleCreatureFromStorage(NPC_VALANAR))
+            {
+                pValanar->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                pValanar->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
+                pValanar->SetInCombatWithZone();
+            }
+            if (Creature *pLanathelInto = GetSingleCreatureFromStorage(NPC_LANATHEL_INTRO))
+            {
+                pLanathelInto->SetVisibility(VISIBILITY_OFF);
+            }
+            break;
+        }
         default:
             break;
     }
@@ -1022,7 +1061,7 @@ InstanceData* GetInstanceData_instance_icecrown_spire(Map* pMap)
 bool AreaTrigger_at_icecrown_citadel(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (pAt->id == AREATRIGGER_MARROWGAR_INTRO || pAt->id == AREATRIGGER_DEATHWHISPER_INTRO ||
-            pAt->id == AREATRIGGER_SINDRAGOSA_PLATFORM)
+            pAt->id == AREATRIGGER_SINDRAGOSA_PLATFORM || pAt->id == AREATRIGGER_BLOOD_PRINCE_COUNCIL)
     {
         if (pPlayer->isGameMaster() || pPlayer->isDead())
             return false;
