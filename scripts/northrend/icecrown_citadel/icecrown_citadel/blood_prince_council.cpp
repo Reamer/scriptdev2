@@ -257,47 +257,17 @@ struct MANGOS_DLL_DECL base_blood_prince_council_bossAI : public ScriptedAI
             if (m_pInstance->GetData(TYPE_BLOOD_PRINCE_COUNCIL) != DONE)
                 m_pInstance->SetData(TYPE_BLOOD_PRINCE_COUNCIL, DONE);
 
-            if (m_creature->GetEntry() != NPC_VALANAR)
-            {
-                if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_VALANAR))
-                {
-                    if (pTmp->isAlive())
-                    {
-                        pTmp->RemoveAurasDueToSpell(SPELL_INVOCATION_VALANAR);
-                        pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
-                    }
-                }
-            }
+            if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_VALANAR))
+                pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
 
-            if (m_creature->GetEntry() != NPC_KELESETH)
-            {
-                if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_KELESETH))
-                {
-                    if (pTmp->isAlive())
-                    {
-                        pTmp->RemoveAurasDueToSpell(SPELL_INVOCATION_KELESETH);
-                        pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
-                    }
-                }
-            }
+            if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_KELESETH))
+                pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
             
-            if (m_creature->GetEntry() != NPC_TALDARAM)
-            {
-                if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_TALDARAM))
-                {
-                    if (pTmp->isAlive())
-                    {
-                        pTmp->RemoveAurasDueToSpell(SPELL_INVOCATION_TALDARAM);
-                        pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
-                    }
-                }
-            }
+            if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_TALDARAM))
+                pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
 
             if (Creature *pTmp = m_pInstance->GetSingleCreatureFromStorage(NPC_LANATHEL_INTRO))
-            {
-                if (pTmp->isAlive())
-                    pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
-            }
+                pTmp->DealDamage(pTmp, pTmp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, NULL, false);
         }
     }
 
