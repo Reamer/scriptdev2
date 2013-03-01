@@ -150,6 +150,7 @@ struct MANGOS_DLL_DECL npc_blood_orb_controlAI : public ScriptedAI
                          m_creature->MonsterSay("Unknown Target hit by Invocation Move", LANG_UNIVERSAL);
                          break;
                 }
+                m_uiInvocationOfBloodTarget = pTarget->GetEntry();
                 DoCastSpellIfCan(m_creature, spellId, CAST_TRIGGERED);
             }
         }
@@ -240,6 +241,10 @@ struct MANGOS_DLL_DECL base_blood_prince_council_bossAI : public ScriptedAI
                     pOrb->Respawn();
                     pOrb->SetMaxHealth(uiHealth);
                     pOrb->SetHealth(uiHealth);
+                    if (Creature* pValanar = m_pInstance->GetSingleCreatureFromStorage(NPC_VALANAR))
+                    {
+                        pOrb->CastSpell(pValanar, SPELL_INVOCATION_VALANAR, true);
+                    }
                 }
             }
         }
