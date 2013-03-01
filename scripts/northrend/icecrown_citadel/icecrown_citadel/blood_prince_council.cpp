@@ -416,6 +416,17 @@ struct MANGOS_DLL_DECL boss_keleseth_iccAI : public base_blood_prince_council_bo
         m_uiSphereTimer = 4000;
     }
 
+    void AttackStart(Unit* pWho) override
+    {
+        if (pWho && m_creature->Attack(pWho, true))             // The Attack function also uses basic checks if pWho can be attacked
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+            DoStartMovement(pWho, 20.0f);
+        }
+    }
+
     void KilledUnit(Unit *pVictim) override
     {
         DoScriptText(urand(0,1) ? SAY_KELESETH_SLAY_1 : SAY_KELESETH_SLAY_2, m_creature);
