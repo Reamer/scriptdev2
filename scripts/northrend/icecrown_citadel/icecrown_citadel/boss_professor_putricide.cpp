@@ -382,7 +382,7 @@ struct MANGOS_DLL_DECL boss_professor_putricideAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_UNSTABLE_EXPERIMENT) == CAST_OK)
             {
                 DoExperiment(m_bIsGreenOoze);
-                m_uiUnstableExperimentTimer = 30000;
+                m_uiUnstableExperimentTimer = urand(36000,39000);
                 m_bIsGreenOoze = !m_bIsGreenOoze;
             }
         }
